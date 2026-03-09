@@ -1,0 +1,32 @@
+# Optional override for scripts/build_corpus.rb --rules
+# Omit keys you do not want to override.
+
+positive_title_terms:
+  - lba2
+  - lba 2
+  - little big adventure 2
+  - twinsen's odyssey
+  - temple of
+  - dinofly
+  - zeelich
+
+positive_body_terms:
+  - sendell
+  - dark monk
+  - holomap
+
+negative_title_terms:
+  - lba1
+  - lba 1
+  - little big adventure 1
+  - relentless
+
+negative_body_terms:
+  - funfrock
+  - citadel island
+
+weights:
+  positive_title: 5
+  positive_body: 4
+  negative_title: -5
+  negative_body: -4

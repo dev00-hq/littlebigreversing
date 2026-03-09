@@ -1,0 +1,87 @@
+{
+  "Analysis": {
+    "Binary Analysis": "https://6d60465f.crimson-9jv.pages.dev/binary-analysis/",
+    "Entrypoint trace": "https://6d60465f.crimson-9jv.pages.dev/entrypoint/",
+    "Boot / Loading Sequence": "https://6d60465f.crimson-9jv.pages.dev/boot-sequence/",
+    "Detangling notes": "https://6d60465f.crimson-9jv.pages.dev/detangling/",
+    "Progress metrics": "https://6d60465f.crimson-9jv.pages.dev/metrics/"
+  },
+  "Rewrite (Python + raylib)": {
+    "Overview": "https://6d60465f.crimson-9jv.pages.dev/rewrite/",
+    "Tech tree": "https://6d60465f.crimson-9jv.pages.dev/rewrite/tech-tree/"
+  },
+  "Crimsonland.exe": {
+    "Overview": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/",
+    "State machine": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/state-machine/",
+    "Frame loop": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/frame-loop/",
+    "Gameplay glue": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/gameplay/",
+    "Rendering": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/rendering/",
+    "UI and menus": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/ui/",
+    "Main menu (state 0)": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/main-menu/",
+    "Screens and flows": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/screens/",
+    "Demo / attract mode": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/demo-mode/",
+    "Online high scores": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/online-scores/",
+    "Mods (CMOD plugins)": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/mods/",
+    "Terrain pipeline": "https://6d60465f.crimson-9jv.pages.dev/crimsonland-exe/terrain/"
+  },
+  "Formats & pipeline": {
+    "Overview": "https://6d60465f.crimson-9jv.pages.dev/formats/",
+    "PAQ": "https://6d60465f.crimson-9jv.pages.dev/formats/paq/",
+    "JAZ": "https://6d60465f.crimson-9jv.pages.dev/formats/jaz/",
+    "Fonts": "https://6d60465f.crimson-9jv.pages.dev/formats/fonts/",
+    "Sprite atlas cutting": "https://6d60465f.crimson-9jv.pages.dev/atlas/",
+    "Extraction pipeline": "https://6d60465f.crimson-9jv.pages.dev/pipeline/",
+    "Python executable spec": "https://6d60465f.crimson-9jv.pages.dev/python-executable-spec/",
+    "Save/status file (game.cfg)": "https://6d60465f.crimson-9jv.pages.dev/save-status-format/",
+    "Config blob (crimson.cfg)": "https://6d60465f.crimson-9jv.pages.dev/crimson-cfg/"
+  },
+  "Data tables & IDs": {
+    "Weapon table": "https://6d60465f.crimson-9jv.pages.dev/weapon-table/",
+    "Weapon ID map": "https://6d60465f.crimson-9jv.pages.dev/weapon-id-map/",
+    "UI weapon icons": "https://6d60465f.crimson-9jv.pages.dev/ui-weapon-icons/",
+    "Perk ID map": "https://6d60465f.crimson-9jv.pages.dev/perk-id-map/",
+    "Bonus ID map": "https://6d60465f.crimson-9jv.pages.dev/bonus-id-map/",
+    "Game mode map": "https://6d60465f.crimson-9jv.pages.dev/game-mode-map/",
+    "Quest builders": "https://6d60465f.crimson-9jv.pages.dev/quest-builders/",
+    "Audio": "https://6d60465f.crimson-9jv.pages.dev/audio/"
+  },
+  "Structs & pools": {
+    "Overview": "https://6d60465f.crimson-9jv.pages.dev/structs/",
+    "Player": "https://6d60465f.crimson-9jv.pages.dev/structs/player/",
+    "Creature": "https://6d60465f.crimson-9jv.pages.dev/structs/creature.md",
+    "Projectile": "https://6d60465f.crimson-9jv.pages.dev/structs/projectile/",
+    "Effects": "https://6d60465f.crimson-9jv.pages.dev/structs/effects/"
+  },
+  "Grim2D": {
+    "Overview": "https://6d60465f.crimson-9jv.pages.dev/grim2d/",
+    "API vtable": "https://6d60465f.crimson-9jv.pages.dev/grim2d/api/",
+    "API evidence": "https://6d60465f.crimson-9jv.pages.dev/grim2d/api-evidence/",
+    "Runtime validation": "https://6d60465f.crimson-9jv.pages.dev/grim2d/runtime-validation/"
+  },
+  "Runtime tooling": {
+    "Frida": "https://6d60465f.crimson-9jv.pages.dev/frida/",
+    "WinDbg / CDB": "https://6d60465f.crimson-9jv.pages.dev/windbg/"
+  },
+  "Gameplay notes": {
+    "UI elements": "https://6d60465f.crimson-9jv.pages.dev/ui-elements/",
+    "In-game console": "https://6d60465f.crimson-9jv.pages.dev/console/"
+  },
+  "Secrets": {
+    "Overview": "https://6d60465f.crimson-9jv.pages.dev/secrets/",
+    "Easter eggs": "https://6d60465f.crimson-9jv.pages.dev/secrets/easter-eggs/",
+    "Weapon candidates": "https://6d60465f.crimson-9jv.pages.dev/secrets/weapon-candidates/"
+  },
+  "Tracking & meta": {
+    "Work status model": "https://6d60465f.crimson-9jv.pages.dev/work-status/",
+    "Worklog": "https://6d60465f.crimson-9jv.pages.dev/worklog/",
+    "Build provenance and hashes": "https://6d60465f.crimson-9jv.pages.dev/provenance/",
+    "Third-party libraries": "https://6d60465f.crimson-9jv.pages.dev/third-party-libs/"
+  },
+  "Cheatsheets": {
+    "Frida GumJS": "https://6d60465f.crimson-9jv.pages.dev/cheatsheets/frida/",
+    "raylib (Python)": "https://6d60465f.crimson-9jv.pages.dev/cheatsheets/raylib/",
+    "Zensical Markdown": "https://6d60465f.crimson-9jv.pages.dev/cheatsheets/zensical/",
+    "Zig 0.15": "https://6d60465f.crimson-9jv.pages.dev/cheatsheets/zig/",
+    "DirectX 8": "https://6d60465f.crimson-9jv.pages.dev/cheatsheets/directx8/"
+  }
+}

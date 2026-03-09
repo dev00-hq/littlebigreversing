@@ -1,0 +1,6 @@
+# Keep only the single compressed artifact for mbn_tools payloads.
+mbn_tools/*/
+
+# Allow just the canonical archive name.
+mbn_tools/*.tar.zst
+!mbn_tools/mbn_tools.tar.zst

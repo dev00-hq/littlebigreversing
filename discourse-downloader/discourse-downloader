@@ -1,0 +1,460 @@
+#!/usr/bin/env ruby
+require 'net/http'
+require 'json'
+require 'optparse'
+require 'ostruct'
+require 'uri'
+#require 'htmltoword'
+
+CONFIG_FILE = '~/src/discourse-downloader/apikeys'
+@print_html = true
+@cookies = {}
+
+# from https://ruby-doc.org/stdlib-2.1.1/libdoc/optparse/rdoc/OptionParser.html
+  def parse_args(args)
+    # The options specified on the command line will be collected in *options*.
+    # We set default values here.
+    options = OpenStruct.new
+    options.html = false
+    options.verbose = false
+    options.config_file = CONFIG_FILE
+    options.username = nil
+    options.password = nil
+    options.password_env = nil
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = "Usage: #{$PROGRAM_NAME} [options] URL"
+
+      opts.separator ""
+      opts.separator "Specific options:"
+
+      opts.on("-c", "--config [CONFIG FILE]",
+              "Configuration file. Default is #{CONFIG_FILE}") do |config|
+        options.config_file = config
+      end
+
+      # Boolean switch.
+      opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+        options.verbose = v
+      end
+
+      opts.on("-m", "--[no-]markdown", "Output Markdown") do |m|
+        options.markdown = m
+      end
+
+      opts.on("-w", "--word", "Output docx") do |m|
+        options.word = m
+      end
+
+      opts.on("-u", "--username USERNAME", "Discourse username/email for session login") do |username|
+        options.username = username
+      end
+
+      opts.on("-p", "--password PASSWORD", "Discourse password for session login") do |password|
+        options.password = password
+      end
+
+      opts.on("--password-env ENV_VAR", "Read Discourse password from ENV_VAR") do |env_var|
+        options.password_env = env_var
+      end
+
+      opts.separator ""
+      opts.separator "Common options:"
+
+      # No argument, shows at tail.  This will print an options summary.
+      # Try it and see!
+      opts.on_tail("-h", "--help", "Show this message") do
+        puts opts
+        exit
+      end
+
+    end
+
+    opt_parser.parse!(args)
+    options
+  end
+
+def parse_config_file(config_file)
+  config = {
+    api_key: nil,
+    api_user: nil,
+    username: nil,
+    password: nil
+  }
+  plain_lines = []
+  return config unless config_file
+
+  path = File.expand_path(config_file)
+  return config unless File.file?(path)
+
+  File.readlines(path).each do |line|
+    stripped = line.strip
+    next if stripped.empty? || stripped.start_with?('#')
+
+    if stripped =~ /\A([A-Z_]+)\s*=\s*(.+)\z/
+      key = Regexp.last_match(1)
+      value = Regexp.last_match(2).strip
+      value = Regexp.last_match(1) if value =~ /\A"(.*)"\z/
+      value = Regexp.last_match(1) if value =~ /\A'(.*)'\z/
+      case key
+      when 'API_KEY'
+        config[:api_key] = value
+      when 'API_USER'
+        config[:api_user] = value
+      when 'USERNAME', 'USER', 'LOGIN', 'EMAIL'
+        config[:username] = value
+      when 'PASSWORD', 'PASS'
+        config[:password] = value
+      end
+      next
+    end
+
+    plain_lines << stripped
+  end
+
+  if !config[:username] && plain_lines.length >= 2
+    config[:username] = plain_lines[0]
+    config[:password] = plain_lines[1]
+  end
+
+  config
+end
+
+def cookie_header
+  @cookies.map { |k, v| "#{k}=#{v}" }.join('; ')
+end
+
+def store_cookies(response)
+  set_cookie_headers = response.get_fields('set-cookie') || []
+  set_cookie_headers.each do |header|
+    pair = header.split(';', 2).first
+    name, value = pair.split('=', 2)
+    next unless name && value
+
+    @cookies[name] = value
+  end
+end
+
+def http_request(method, url, headers: {}, form: nil, redirect_limit: 5)
+  uri = URI.parse(url)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = (uri.scheme == 'https')
+
+  request = if method == :post
+              Net::HTTP::Post.new(uri.request_uri)
+            else
+              Net::HTTP::Get.new(uri.request_uri)
+            end
+  headers.each { |key, value| request[key] = value }
+  request['Cookie'] = cookie_header unless @cookies.empty?
+  request.set_form_data(form) if form
+
+  response = http.request(request)
+  store_cookies(response)
+
+  if response.is_a?(Net::HTTPRedirection)
+    raise "Too many redirects for #{url}" if redirect_limit <= 0
+
+    location = response['location']
+    redirected_url = URI.join(url, location).to_s
+    return http_request(:get, redirected_url, headers: headers, redirect_limit: redirect_limit - 1)
+  end
+
+  unless response.is_a?(Net::HTTPSuccess)
+    raise "HTTP #{response.code} for #{url}"
+  end
+
+  response.body
+end
+
+def http_get(url, headers = {})
+  http_request(:get, url, headers: headers)
+end
+
+def http_post_form(url, form, headers = {})
+  http_request(:post, url, headers: headers, form: form)
+end
+
+def login_session(protocol, host, username, password)
+  base_url = "#{protocol}://#{host}"
+  puts "Authenticating as #{username}"
+  csrf_body = http_get("#{base_url}/session/csrf", 'Accept' => 'application/json')
+  csrf_data = JSON.parse(csrf_body)
+  csrf_token = csrf_data['csrf']
+  raise 'Failed to fetch CSRF token' unless csrf_token
+
+  login_body = http_post_form(
+    "#{base_url}/session.json",
+    {
+      'login' => username,
+      'password' => password
+    },
+    {
+      'Accept' => 'application/json',
+      'X-Requested-With' => 'XMLHttpRequest',
+      'X-CSRF-Token' => csrf_token
+    }
+  )
+  login_data = JSON.parse(login_body)
+  if login_data['error']
+    raise "Login failed: #{login_data['error']}"
+  end
+  if login_data['requires_second_factor']
+    raise 'Login requires second factor; non-interactive session login is not supported'
+  end
+
+  puts "Authenticated successfully as #{username}"
+end
+
+def parse_target_url(url)
+  uri = URI.parse(url)
+  raise "Unsupported URL: #{url}" unless uri.is_a?(URI::HTTP) && uri.host
+
+  base = {
+    protocol: uri.scheme,
+    host: uri.host
+  }
+  path = uri.path
+
+  topic_match = path.match(%r{\A/t/(?:.+?/)?([0-9]+)})
+  if topic_match
+    return base.merge(
+      type: :topic,
+      topic_id: topic_match[1]
+    )
+  end
+
+  category_match = path.match(%r{\A/c/(.+)})
+  if category_match
+    return base.merge(
+      type: :category,
+      cat: category_match[1]
+    )
+  end
+
+  raise "Unsupported Discourse URL path: #{path}"
+end
+
+
+def print_topic(url_map)
+
+  if @print_html
+    puts "HTML"
+  else
+    puts "NO HTML"
+  end
+
+  topic_template = "%{protocol}://%{host}/t/%{topic_id}%{post_num}.json%{api}"
+  raw_template = "%{protocol}://%{host}/raw/%{topic_id}%{post_num}%{api}"
+  post_template = "%{protocol}://%{host}/t/%{topic_id}%{post_num}.json"
+  post_link_template = "%{protocol}://%{host}/t/%{topic_id}%{post_num}"
+  url_map[:post_num] = "/1" # make sure to start at the top!
+  url = topic_template % url_map
+
+  #puts "=============================\nGetting #{url}\n===================="
+
+  puts "print_topic: Opening #{url}"
+  web_page = http_get(url)
+  data = JSON.parse(web_page)
+  post_stream = data['post_stream']
+  stream = post_stream['stream']
+  post_map = Hash.new
+
+  stream.each do |post_id|
+    post_map[post_id] = nil
+  end
+
+  title = data['title']
+  total_posts = data['posts_count']
+
+
+  puts "#{title}: #{total_posts} posts"
+  puts "#{stream}"
+
+  if @print_html
+    filename = "topic-#{url_map[:topic_id]}.html"
+  else
+    filename = "topic-#{url_map[:topic_id]}.txt"
+  end
+
+  File.open(filename, "w") do |file|
+    if @print_html
+      file.puts "<html><head><title>#{title}: #{total_posts} posts</title></head>"
+    else
+      file.puts "#{title}: #{total_posts} posts"
+    end
+    post_count = 0
+    last_post_downloaded = 0
+    post_num = 1
+    while post_count < total_posts do
+      message_text = "this should be erased"
+      post_stream['posts'].each do |post|
+        name = post['name']
+        username = post['username']
+        date = post['created_at']
+        post_num = post['post_number']
+        cooked = post['cooked']
+        if @print_html
+          message_text = cooked
+        else
+          url_map[:post_num] = "/#{post_num}"
+          post_url = raw_template % url_map
+          message_text = http_get(post_url)
+        end
+        post_link = post_link_template % url_map
+        post_id = post['id']
+        replies = post['reply_count']
+        reply_to = post['reply_to_post_number'] || 1
+        avg_time = post['avg_time']
+        reads = post['reads']
+        puts "Processing #{post_id}."
+        next if post_map[post_id]
+        post_map[post_id] = post_num
+        post_count += 1
+        if @print_html
+        processed_post = "
+<hr>
+From #{username} #{post_id} #{date}<br>
+Name: #{name} (#{username})<br>
+Subject: #{title}<br>
+Date: #{date}<br>
+Post: #{post_num}<br>
+In-reply-to: #{reply_to}<br>
+Num-Replies: #{replies}<br>
+Read-time: #{avg_time}<br>
+Times-read: #{reads}<br>
+Post-URL: <a href=\"#{post_link}\">#{post_link}</a><br>
+<br>
+#{message_text}
+"        else
+        processed_post = "
+From #{username} #{post_id} #{date}
+Name: #{name} (#{username})
+Subject: #{title}
+Date: #{date}
+Post: #{post_num}
+In-reply-to: #{reply_to}
+Num-Replies: #{replies}
+Read-time: #{avg_time}
+Times-read: #{reads}
+Post-URL: #{post_link}
+
+#{message_text}
+"
+        end
+
+        file.puts processed_post
+        puts "From #{username} #{post_id} #{date}"
+      end
+      if post_count < total_posts
+        # get new url
+        if last_post_downloaded >= post_num
+          puts "Problem finding all posts. Last: #{last_post_downloaded}. Current #{post_num}. Giving up"
+          post_count = 10000000
+        else
+          last_post_downloaded = post_num
+          url_map[:post_num] = "/#{post_num}"
+          url = topic_template % url_map
+          puts "=============================\nGetting #{url}\n===================="
+          web_page = http_get(url)
+          data = JSON.parse(web_page)
+          post_stream = data['post_stream']
+        end
+      end
+    end
+    post_map.each do |post|
+      puts "Missing post: #{post[0]}" unless post[1]
+      file.puts "Missing post: #{post[0]}" unless post[1]
+    end
+  end
+end
+
+
+# TODO add error checking
+
+def main
+  options = parse_args(ARGV)
+
+  if ARGV.empty?
+    parse_args(['-h'])
+  else
+    url = ARGV[0]
+  end
+
+  puts "Got #{url}" unless ARGV.empty?
+  target = parse_target_url(url)
+
+  config = parse_config_file(options.config_file)
+  api_key = config[:api_key]
+  api_user = config[:api_user]
+  username = options.username || config[:username]
+  password = options.password || config[:password]
+  if options.password_env
+    env_password = ENV[options.password_env]
+    raise "Environment variable #{options.password_env} is not set" unless env_password
+
+    password = env_password
+  end
+
+  api_string = ""
+  if api_key && api_user
+    api_string = "?api_key=#{api_key}&api_user=#{api_user}"
+    puts "Using API key auth for #{api_user}"
+  elsif username && password
+    login_session(target[:protocol], target[:host], username, password)
+  elsif username || password
+    raise 'Both username and password are required for session login'
+  end
+
+  @print_html= !options.markdown
+
+  if @print_html
+    puts "HTML!"
+  else
+    puts "NO HTMLE!"
+  end
+
+  if target[:type] == :topic
+    url_map = {protocol: target[:protocol],
+               host: target[:host],
+               topic_id: target[:topic_id],
+               post_num: "/1", # include slash e.g., "/5"
+               api: api_string
+              }
+
+    print_topic(url_map)
+  end
+
+  if target[:type] == :category
+    puts "Got a category: #{target[:cat]}"
+    cat_map = {protocol: target[:protocol],
+               host: target[:host],
+               cat: target[:cat],
+               api: api_string
+              }
+    puts "Her is: #{cat_map}"
+    get_cat_topics(cat_map)
+  end
+end
+
+def get_cat_topics(cat_map)
+  cat_template = "%{protocol}://%{host}/c/%{cat}.json%{api}"
+  url = cat_template % cat_map
+  puts "Getting #{url}"
+
+  web_page = http_get(url)
+  data = JSON.parse(web_page)
+
+  topic_list = data['topic_list']
+
+  topics = topic_list['topics']
+
+  cat_map[:post_num] = ""
+  topics.each do |topic|
+    puts "#{topic['id']}: #{topic['title']}"
+    cat_map[:topic_id] = topic['id']
+    print_topic(cat_map)
+  end
+end
+
+main
