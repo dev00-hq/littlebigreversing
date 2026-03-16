@@ -8,40 +8,7 @@ Thumbs.db
 .vscode/
 
 # Parked nested Git metadata so the parent repo can track contents normally.
-**/.git.disabled/
 
-# discourse-downloader generated files and local secrets
-#discourse-downloader/.bundle/
-#discourse-downloader/.config
-#discourse-downloader/.yardoc/
-#discourse-downloader/_yardoc/
-#discourse-downloader/apikeys
-#discourse-downloader/build/
-#discourse-downloader/build-iPhoneOS/
-#discourse-downloader/build-iPhoneSimulator/
-#discourse-downloader/coverage/
-#discourse-downloader/corpus/
-#discourse-downloader/doc/
-#discourse-downloader/lib/bundler/man/
-#discourse-downloader/logs/
-#discourse-downloader/mbn
-#discourse-downloader/pkg/
-#discourse-downloader/rdoc/
-#discourse-downloader/runs/
-#discourse-downloader/spec/examples.txt
-#discourse-downloader/spec/reports/
-#discourse-downloader/test/tmp/
-#discourse-downloader/test/version_tmp/
-#discourse-downloader/tmp/
-#discourse-downloader/vendor/bundle/
-#discourse-downloader/*.bridgesupport
-#discourse-downloader/*.dat*
-#discourse-downloader/*.gem
-#discourse-downloader/*.rbc
-#discourse-downloader/.repl_history
-#discourse-downloader/.rvmrc
-#discourse-downloader/topic-*.html
-#discourse-downloader/topic-*.txt
 
 # littlebigreversing unpacked tool payloads; keep the canonical archive.
 littlebigreversing/mbn_tools/*/
