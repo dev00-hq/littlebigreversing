@@ -1,0 +1,29 @@
+{
+  "run_id": "20260212T232146Z",
+  "generated_at": "2026-02-12T23:21:52Z",
+  "coverage": {
+    "stage1_records": 9612,
+    "claims": 7241,
+    "entities": 12999,
+    "topic_cards": 170
+  },
+  "duplicate_claim_ratio": 0.0,
+  "provenance_completeness": {
+    "total": 7241,
+    "complete": 7241,
+    "ratio": 1.0
+  },
+  "confidence_distribution": {
+    "0.0-0.39": 0,
+    "0.4-0.59": 5808,
+    "0.6-0.79": 235,
+    "0.8-1.0": 1198
+  },
+  "drift": {
+    "has_previous": true,
+    "previous_snapshot": "runs/20260212T232111Z/canonical_claim_ids.txt",
+    "added": 649,
+    "removed": 0,
+    "unchanged": 6592
+  }
+}

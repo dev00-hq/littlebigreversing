@@ -1,0 +1,2201 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 11695,
+        "name": "Twinsen",
+        "username": "Quetch",
+        "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png",
+        "created_at": "2007-12-19T10:04:56.000Z",
+        "cooked": "<p>[b]Little Big Adventure 2</p>\n<ul>\n<li>White T-Shirt Mod -[/b]</li>\n</ul>\n<p><span class=\"bbcode-b\"><span class=\"bbcode-u\">Description: </span></span></p>\n<p>This mod came to existence because of the original concept where Twinsen was supposed to wear a white T-Shirt. Such reference can still be seen in the games intro movie. Also, a preview of LBA2, also known to have been in beta stage has clearly shown screenshots where Twinsen was wearing his original white T-Shirt.</p>\n<p><span class=\"bbcode-u\"><span class=\"bbcode-b\">Note: </span></span></p>\n<p>The original version of LBA2 was meant to contain other different elements such as a modified ferry, gaining access to the top of the lighthouse, modified areas of some islands, a blue sky in the undergas level, etc. but unfortunately I could only bring Twinsens T-Shirt back <img src=\"https://forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p><span class=\"bbcode-u\"><span class=\"bbcode-b\">Installation:</span></span></p>\n<p>Extract the RESS.HQR file inside the archive into the LBA2/TO installation directory, overwriting the existing one. (Be sure to make a backup first!) Enjoy!</p>\n<p><a class=\"attachment\" href=\"/uploads/short-url/rVd9LPfYlmM9pLP5peuauAuH4w9.zip\">LBA2_WTSM.zip</a> (429 KB)</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T19:51:20.147Z",
+        "reply_count": 19,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 14,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 165.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": "Twinsen",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "/uploads/short-url/rVd9LPfYlmM9pLP5peuauAuH4w9.zip",
+            "internal": true,
+            "reflection": false,
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": "",
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1595,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 309038,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2007-12-22T11:46:52.000Z",
+        "cooked": "<p>Always give some screenshots.</p>\n<p>I think OBrasilo already did this a while ago, but still its a good mod to use for those who like to mod LBA2 instead of LBA1 <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>Btw, I see you only change Twinsens outfit texture, right?!</p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:12.304Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309044,
+        "name": "",
+        "username": "elmuerte",
+        "avatar_template": "/user_avatar/forum.magicball.net/elmuerte/{size}/27089_2.png",
+        "created_at": "2007-12-22T14:12:37.000Z",
+        "cooked": "<p>well, I was the first one to ever mod LBA2. I changed Twinsens wizard robe, gave it my avatar as pattern.</p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:12.491Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": "staff",
+        "flair_url": "/uploads/default/original/3X/5/5/559743aa44a0676e04be9d54425231def12069c1.png",
+        "flair_bg_color": "",
+        "flair_color": "",
+        "flair_group_id": 3,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": true,
+        "admin": true,
+        "staff": true,
+        "user_id": 1,
+        "hidden": false,
+        "trust_level": 4,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309045,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2007-12-22T14:26:41.000Z",
+        "cooked": "<p>I think I remember that mod <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:12.522Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309183,
+        "name": "Twinsen",
+        "username": "Quetch",
+        "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png",
+        "created_at": "2007-12-24T14:43:21.000Z",
+        "cooked": "<p>yeah, I just replaced the texture  but the hard thing was that pure white (255,255,255) didnt work  I figure pure white has some transparency problems as the gourad sharing was showing weird red-orange-brown-yellow patterns  like lava on the TShirt <img src=\"https://forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"> so what I did was take the LBA2 palette and pick the closest white that I could and the surprise was that it was exactly the white they used in the LBA2 preview <img src=\"https://forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"> also, here are the shots :</p>\n<p><img src=\"https://forum.magicball.net/uploads/default/original/2X/f/f68efd46b8840054a36b99b62f3b2f76e4132396.jpeg\" alt=\"lba0.jpg\" data-base62-sha1=\"zb9OhzhVkurVowKeTIicI1PtRvo\" width=\"640\" height=\"480\"><img src=\"https://forum.magicball.net/uploads/default/original/2X/9/9cd896b760896e661308195b08416e10c17c111d.jpeg\" alt=\"lba1.jpg\" data-base62-sha1=\"mnwwwCFVLKNWl6mkJdcQEiaVn8V\" width=\"640\" height=\"480\"></p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T19:45:00.590Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": "Twinsen",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1595,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309184,
+        "name": null,
+        "username": "leoboe",
+        "avatar_template": "/user_avatar/forum.magicball.net/leoboe/{size}/479_2.png",
+        "created_at": "2007-12-24T14:48:56.000Z",
+        "cooked": "<p>you said that the pattern repeats itself with the texture and so it wont be possible to make him wear an MBN-Shirt.<br>\nBut what about the Parade-tunic then?<br>\nHas it got the same problem or would it be possible to add the MBN-Logo there? <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:17.725Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2284,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309192,
+        "name": "Twinsen",
+        "username": "Quetch",
+        "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png",
+        "created_at": "2007-12-24T15:23:52.000Z",
+        "cooked": "<p>same problem  the pattern repeats so that the texture ( only 2 stars ) covers the whole tunic</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:18.007Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": "Twinsen",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1595,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309196,
+        "name": null,
+        "username": "leoboe",
+        "avatar_template": "/user_avatar/forum.magicball.net/leoboe/{size}/479_2.png",
+        "created_at": "2007-12-24T16:11:52.000Z",
+        "cooked": "<p>Ahhh very interesting<br>\nbut sad though <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/frowning_face.png?v=12\" title=\":frowning_face:\" class=\"emoji emoji-custom\" alt=\":frowning_face:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:18.134Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2284,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309197,
+        "name": "Twinsen",
+        "username": "Quetch",
+        "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png",
+        "created_at": "2007-12-24T16:28:30.000Z",
+        "cooked": "<p>well I could make the MBN logo appear but it would appear in weird places, several times <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/frowning_face.png?v=12\" title=\":frowning_face:\" class=\"emoji emoji-custom\" alt=\":frowning_face:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:18.164Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": "Twinsen",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1595,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309308,
+        "name": null,
+        "username": "Streg",
+        "avatar_template": "/user_avatar/forum.magicball.net/streg/{size}/269_2.png",
+        "created_at": "2007-12-26T05:29:56.000Z",
+        "cooked": "<p>[action=StreGGy]imagines twinsen wearing trousers with an mbn logo right at the groin part.[/action]</p>\n<p>mwahahaha.</p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:22.255Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1376,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309314,
+        "name": "Twinsen",
+        "username": "Quetch",
+        "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png",
+        "created_at": "2007-12-26T08:40:32.000Z",
+        "cooked": "<p><img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/joy.gif?v=12\" title=\":joy:\" class=\"emoji emoji-custom only-emoji\" alt=\":joy:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:22.464Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": "Twinsen",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1595,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309335,
+        "name": null,
+        "username": "leoboe",
+        "avatar_template": "/user_avatar/forum.magicball.net/leoboe/{size}/479_2.png",
+        "created_at": "2007-12-26T13:48:03.000Z",
+        "cooked": "<p>Or with magic balls as Ponitail</p>\n<p>the ponitail was made of balls wasnt it?</p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:23.155Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2284,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309383,
+        "name": "Twinsen",
+        "username": "Quetch",
+        "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png",
+        "created_at": "2007-12-27T08:06:45.000Z",
+        "cooked": "<p>YES IT WAS !!! WOW what a great idea !!! pity Im only able to do that for LBA1 <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/frowning_face.png?v=12\" title=\":frowning_face:\" class=\"emoji emoji-custom\" alt=\":frowning_face:\" loading=\"lazy\" width=\"20\" height=\"20\"> cause we cant recolor the LBA2 models ( .lm2 extension )</p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:24.811Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": "Twinsen",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1595,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 309396,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2007-12-27T12:26:43.000Z",
+        "cooked": "<p>Already made it for LBA1 as well. I think I post it somewhere. I made a Twinsen Clown <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 14,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:14:25.263Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/14",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 312586,
+        "name": null,
+        "username": "Niborius",
+        "avatar_template": "/user_avatar/forum.magicball.net/niborius/{size}/544_2.png",
+        "created_at": "2008-02-16T11:34:28.000Z",
+        "cooked": "<p>Hey im new here and i wonder how you maked that, cause in the Ress.hqr file, i can only see some strange icons and nowhere, i see some things like (for example): Color: 255,255,255</p>",
+        "post_number": 15,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:16:22.050Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2607,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/15",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 312591,
+        "name": null,
+        "username": "LBAWinOwns",
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "created_at": "2008-02-16T14:59:00.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"Niborius\" data-post=\"15\" data-topic=\"11692\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n<img loading=\"lazy\" alt=\"\" width=\"24\" height=\"24\" src=\"//forum.magicball.net/user_avatar/localhost/niborius/48/544_2.png\" class=\"avatar\"> Niborius:</div>\n<blockquote>\n<p>Hey im new here and i wonder how you maked that, cause in the Ress.hqr file, i can only see some strange icons and nowhere, i see some things like (for example): Color: 255,255,255</p>\n</blockquote>\n</aside>\n<p>How he created the modified RESS.HQR or how to install it to play with a white t-shirted Twinsen?</p>",
+        "post_number": 16,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T19:56:10.475Z",
+        "reply_count": 0,
+        "reply_to_post_number": 15,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 967,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/16",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 312653,
+        "name": "Twinsen",
+        "username": "Quetch",
+        "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png",
+        "created_at": "2008-02-17T07:36:52.000Z",
+        "cooked": "<p>yes, please explain more <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 17,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:16:24.464Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": "Twinsen",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1595,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/17",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 312677,
+        "name": null,
+        "username": "Niborius",
+        "avatar_template": "/user_avatar/forum.magicball.net/niborius/{size}/544_2.png",
+        "created_at": "2008-02-17T14:40:45.000Z",
+        "cooked": "<p>oh sorry, well i mean how he modified RESS.HQR, yes;).</p>",
+        "post_number": 18,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:16:25.266Z",
+        "reply_count": 0,
+        "reply_to_post_number": 17,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2607,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/18",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 312709,
+        "name": "",
+        "username": "Lupin",
+        "avatar_template": "/user_avatar/forum.magicball.net/lupin/{size}/27801_2.png",
+        "created_at": "2008-02-17T18:51:42.000Z",
+        "cooked": "<p>Using one of the fan-made programs to extract files from *.HQR packages.<br>\nZinks <a href=\"http://www.magicball.net/downloads/programs/development/lba_package_editor\" rel=\"noopener nofollow ugc\">Package Editor</a> for instance.</p>",
+        "post_number": 19,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:16:26.338Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://www.magicball.net/downloads/programs/development/lba_package_editor",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 223,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/19",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 312760,
+        "name": "Twinsen",
+        "username": "Quetch",
+        "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png",
+        "created_at": "2008-02-18T13:12:55.000Z",
+        "cooked": "<p>yes so basically Ive hacked the RESS.HQR archive by extracting one single file I needed ( entry <span class=\"hashtag-raw\">#7</span> if I recall correctly ), opened it with LBAWinOwns Image Creator program, located Twinsens shirt texture, and recolored it as I wanted ( note: that is NOT 255/255/255 at all <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"> its a very light gray  I think it was 224/224/224 if I recally correctly )</p>",
+        "post_number": 20,
+        "post_type": 1,
+        "posts_count": 22,
+        "updated_at": "2024-10-25T18:16:28.118Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11692,
+        "topic_slug": "lba2-twinsens-white-t-shirt",
+        "display_username": "Twinsen",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 1595,
+          "username": "Quetch",
+          "name": "Twinsen",
+          "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1595,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-twinsens-white-t-shirt/11692/20",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      11695,
+      309038,
+      309044,
+      309045,
+      309183,
+      309184,
+      309192,
+      309196,
+      309197,
+      309308,
+      309314,
+      309335,
+      309383,
+      309396,
+      312586,
+      312591,
+      312653,
+      312677,
+      312709,
+      312760,
+      312812,
+      312905
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      6630
+    ],
+    [
+      2,
+      6627
+    ],
+    [
+      5,
+      6625
+    ],
+    [
+      10,
+      6624
+    ],
+    [
+      12,
+      6623
+    ],
+    [
+      14,
+      6622
+    ],
+    [
+      15,
+      6571
+    ],
+    [
+      18,
+      6570
+    ],
+    [
+      20,
+      6569
+    ],
+    [
+      22,
+      6567
+    ]
+  ],
+  "tags_descriptions": {},
+  "fancy_title": "LBA2 - Twinsen&rsquo;s white T-Shirt",
+  "id": 11692,
+  "title": "LBA2 - Twinsen's white T-Shirt",
+  "posts_count": 22,
+  "created_at": "2007-12-19T10:04:56.000Z",
+  "views": 7059,
+  "reply_count": 21,
+  "like_count": 0,
+  "last_posted_at": "2008-02-20T11:36:53.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "lba2-twinsens-white-t-shirt",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 1595,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_11692",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 22,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 8,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 1595,
+        "username": "Quetch",
+        "name": "Twinsen",
+        "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png",
+        "post_count": 9,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 2284,
+        "username": "leoboe",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/leoboe/{size}/479_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 223,
+        "username": "Lupin",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/lupin/{size}/27801_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 3
+      },
+      {
+        "id": 2607,
+        "username": "Niborius",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/niborius/{size}/544_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1,
+        "username": "elmuerte",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/elmuerte/{size}/27089_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": "staff",
+        "flair_url": "/uploads/default/original/3X/5/5/559743aa44a0676e04be9d54425231def12069c1.png",
+        "flair_color": "",
+        "flair_bg_color": "",
+        "flair_group_id": 3,
+        "admin": true,
+        "moderator": true,
+        "trust_level": 4
+      },
+      {
+        "id": 967,
+        "username": "LBAWinOwns",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1376,
+        "username": "Streg",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/streg/{size}/269_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 1595,
+      "username": "Quetch",
+      "name": "Twinsen",
+      "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+    },
+    "last_poster": {
+      "id": 1595,
+      "username": "Quetch",
+      "name": "Twinsen",
+      "avatar_template": "/user_avatar/forum.magicball.net/quetch/{size}/24543_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

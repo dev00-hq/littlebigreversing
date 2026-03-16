@@ -1,0 +1,61 @@
+{
+  "run_id": "20260213T000003Z",
+  "input_scope": "index_normalized",
+  "options": {
+    "stage_target": 2,
+    "resume": false,
+    "chunk_size": 25,
+    "limits": {
+      "max_records": 100,
+      "max_bytes": 52428800,
+      "max_entities": 25000
+    }
+  },
+  "started_at": "2026-02-13T01:32:16Z",
+  "stages": {
+    "0": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:32:16Z",
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/runs/20260213T000003Z/schema_registry.json",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/runs/20260213T000003Z/sampling_policy.json"
+      ],
+      "finished_at": "2026-02-13T01:32:16Z"
+    },
+    "1": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:32:16Z",
+      "metrics": {
+        "records_emitted": 9612,
+        "bytes_parsed": 3389223,
+        "chunks_flushed": 43,
+        "sources_completed": 9,
+        "limit_hit": "max_records"
+      },
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage1_records.jsonl"
+      ],
+      "finished_at": "2026-02-13T01:32:18Z"
+    },
+    "2": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:32:16Z",
+      "metrics": {
+        "records_processed": 9612,
+        "claims_emitted": 6592,
+        "entities_emitted": 12157,
+        "duplicate_claims": 0,
+        "duplicate_entities": 0,
+        "chunks_flushed": 74,
+        "limit_hit": "max_records"
+      },
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage2_claims.jsonl",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage2_entities.jsonl"
+      ],
+      "finished_at": "2026-02-13T01:32:21Z"
+    }
+  },
+  "finished_at": "2026-02-13T01:32:21Z",
+  "resumed_at": "2026-02-13T01:32:17Z"
+}

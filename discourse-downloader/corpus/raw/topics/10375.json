@@ -1,0 +1,1464 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 10378,
+        "name": null,
+        "username": "ContiX",
+        "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png",
+        "created_at": "2006-11-12T05:28:10.000Z",
+        "cooked": "<p>Just wonderingis there a way to enable Anti-Aliasing in LBA2? I know its an old game, but isnt there a way to force it or something?</p>\n<p>Just a random thought that occured to me while playing<img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T15:24:18.354Z",
+        "reply_count": 12,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 2,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 70.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2027,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 269468,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2006-11-12T05:52:03.000Z",
+        "cooked": "<p>LBA2 uses software emulation for 3D graphics, so I dont think enforcing anti-aliasing through the GPU driver will be useful It does work for Grim Fandango though.</p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:21.992Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269503,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2006-11-12T12:35:56.000Z",
+        "cooked": "<p>- ChaosFish: Anti-aliasing is not possible in either LBA games for the simply reason that both work in 256 colors, while anti-aliasing is usually for 16-bit and 32-bit colors. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:23.332Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269508,
+        "name": "",
+        "username": "elmuerte",
+        "avatar_template": "/user_avatar/forum.magicball.net/elmuerte/{size}/27089_2.png",
+        "created_at": "2006-11-12T13:29:15.000Z",
+        "cooked": "<p>besides that afaik LBA2 doesnt actually use directdraw3d<br>\nso there is no hardware acceleration and thus no hardware features like aa</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:23.513Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": "staff",
+        "flair_url": "/uploads/default/original/3X/5/5/559743aa44a0676e04be9d54425231def12069c1.png",
+        "flair_bg_color": "",
+        "flair_color": "",
+        "flair_group_id": 3,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": true,
+        "admin": true,
+        "staff": true,
+        "user_id": 1,
+        "hidden": false,
+        "trust_level": 4,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269562,
+        "name": null,
+        "username": "ContiX",
+        "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png",
+        "created_at": "2006-11-12T22:16:08.000Z",
+        "cooked": "<p>Darnis there no way to up the game to use 16/32 bit or something?<br>\nOr rather, is there no way to force the game to use DirectDraw3d or something?</p>\n<p>As with my last few posts on things like this, this is one of those things that would probably need a redesign of the engine or something like that, right?</p>\n<p>Its not that I dont already love the game as it is - I just want to experiment a bit<img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:25.514Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2027,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269563,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2006-11-12T22:19:09.000Z",
+        "cooked": "<p>I seriously doubt youll be able to make LBA2 use DirectX when it wasnt programed to do so</p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:25.548Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269573,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2006-11-13T10:49:22.000Z",
+        "cooked": "<p>A totally new implementation of the engine will be needed in that matter, like Sbastien did with LbaWin, since hes using Direct3D.</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:25.903Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269611,
+        "name": null,
+        "username": "ContiX",
+        "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png",
+        "created_at": "2006-11-13T17:48:31.000Z",
+        "cooked": "<p>Does that mean that AA will work in LBAWin? I dont have the time currently to check</p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:27.420Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2027,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269613,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2006-11-13T17:52:05.000Z",
+        "cooked": "<p>Does LBA1 need anti-aliasing?</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:27.484Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269618,
+        "name": null,
+        "username": "ContiX",
+        "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png",
+        "created_at": "2006-11-13T18:49:58.000Z",
+        "cooked": "<p>!!!<br>\nNononono, its fine the way it isI just want to play around with it!!!<br>\nMan, I think I gave you guys the wrong impression starting with my first post about expanding LBA1/2</p>\n<p>No, really, the games are awesome - I just want to experiment<img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:27.692Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2027,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269623,
+        "name": "",
+        "username": "elmuerte",
+        "avatar_template": "/user_avatar/forum.magicball.net/elmuerte/{size}/27089_2.png",
+        "created_at": "2006-11-13T19:40:13.000Z",
+        "cooked": "<p>LBAwin uses Direct3D?<br>\nwhy would he reimplement the whole rendering?</p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:27.876Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": "staff",
+        "flair_url": "/uploads/default/original/3X/5/5/559743aa44a0676e04be9d54425231def12069c1.png",
+        "flair_bg_color": "",
+        "flair_color": "",
+        "flair_group_id": 3,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": true,
+        "admin": true,
+        "staff": true,
+        "user_id": 1,
+        "hidden": false,
+        "trust_level": 4,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269624,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2006-11-13T19:46:08.000Z",
+        "cooked": "<p>I really dont think he reimplement the whole rendering routines but I think it work with Direct3D in some way.</p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:27.909Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 269628,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-11-13T20:21:18.000Z",
+        "cooked": "<p>I dont know if it is possible to turn off Direct3D, but if so, its worth a try to find it out.</p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T17:50:28.047Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10375,
+        "topic_slug": "anti-aliasing-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2027,
+          "username": "ContiX",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anti-aliasing-in-lba2/10375/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      10378,
+      269468,
+      269503,
+      269508,
+      269562,
+      269563,
+      269573,
+      269611,
+      269613,
+      269618,
+      269623,
+      269624,
+      269628
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      7033
+    ],
+    [
+      3,
+      7032
+    ],
+    [
+      7,
+      7031
+    ]
+  ],
+  "suggested_topics": [],
+  "tags_descriptions": {},
+  "fancy_title": "Anti-Aliasing in LBA2",
+  "id": 10375,
+  "title": "Anti-Aliasing in LBA2",
+  "posts_count": 13,
+  "created_at": "2006-11-12T05:28:10.000Z",
+  "views": 2998,
+  "reply_count": 12,
+  "like_count": 0,
+  "last_posted_at": "2006-11-13T20:21:18.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "anti-aliasing-in-lba2",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 2027,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_10375",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 13,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 6,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 2027,
+        "username": "ContiX",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png",
+        "post_count": 4,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 2,
+        "username": "ChaosFish",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 1,
+        "username": "elmuerte",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/elmuerte/{size}/27089_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": "staff",
+        "flair_url": "/uploads/default/original/3X/5/5/559743aa44a0676e04be9d54425231def12069c1.png",
+        "flair_color": "",
+        "flair_bg_color": "",
+        "flair_group_id": 3,
+        "admin": true,
+        "moderator": true,
+        "trust_level": 4
+      },
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 1918,
+        "username": "Kobold",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 2027,
+      "username": "ContiX",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/contix/{size}/420_2.png"
+    },
+    "last_poster": {
+      "id": 1918,
+      "username": "Kobold",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

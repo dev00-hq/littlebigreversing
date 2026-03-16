@@ -1,0 +1,93 @@
+{
+  "run_id": "20260213T000002Z",
+  "input_scope": "with_raw",
+  "options": {
+    "stage_target": 4,
+    "resume": false,
+    "chunk_size": 250,
+    "limits": {
+      "max_records": 50000,
+      "max_bytes": 52428800,
+      "max_entities": 25000
+    }
+  },
+  "started_at": "2026-02-13T01:31:55Z",
+  "stages": {
+    "0": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:31:55Z",
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/runs/20260213T000002Z/schema_registry.json",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/runs/20260213T000002Z/sampling_policy.json"
+      ],
+      "finished_at": "2026-02-13T01:31:55Z"
+    },
+    "1": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:31:55Z",
+      "metrics": {
+        "records_emitted": 9612,
+        "bytes_parsed": 3389223,
+        "chunks_flushed": 39,
+        "sources_completed": 9,
+        "limit_hit": null
+      },
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage1_records.jsonl"
+      ],
+      "finished_at": "2026-02-13T01:31:57Z"
+    },
+    "2": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:31:57Z",
+      "metrics": {
+        "records_processed": 9612,
+        "claims_emitted": 6592,
+        "entities_emitted": 12157,
+        "duplicate_claims": 0,
+        "duplicate_entities": 0,
+        "chunks_flushed": 74,
+        "limit_hit": null
+      },
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage2_claims.jsonl",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage2_entities.jsonl"
+      ],
+      "finished_at": "2026-02-13T01:32:00Z"
+    },
+    "3": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:32:00Z",
+      "metrics": {
+        "claims_processed": 2764,
+        "topic_cards": 170,
+        "chunks_flushed": 11
+      },
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/topic_cards.jsonl"
+      ],
+      "finished_at": "2026-02-13T01:32:00Z"
+    },
+    "4": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:32:00Z",
+      "metrics": {
+        "topics_processed": 59,
+        "raw_records_emitted": 1258,
+        "claims_delta_emitted": 649,
+        "entities_delta_emitted": 842,
+        "windows_flushed": 3
+      },
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage4_raw_delta.jsonl",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage4_claims_delta.jsonl",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage4_entities_delta.jsonl",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage2_claims_merged.jsonl",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage2_entities_merged.jsonl",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/topic_cards_merged.jsonl"
+      ],
+      "finished_at": "2026-02-13T01:32:01Z"
+    }
+  },
+  "finished_at": "2026-02-13T01:32:01Z"
+}

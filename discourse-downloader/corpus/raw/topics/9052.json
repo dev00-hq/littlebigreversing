@@ -1,0 +1,2244 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 9055,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-11-30T14:50:36.000Z",
+        "cooked": "<p>Yes, with this thread, Im officially starting The LBA 2 Engine Project.</p>\n<p>Goal? To reverse-engineer LBA 2 back to C/C++.</p>\n<p>Heres whats already done:<br>\n- Main menu [Incomplete];<br>\n- Body models (thanks to yaz0r).</p>\n<p>Anyway, heres the main menu part (incomplete for now):</p>\n<pre><code class=\"lang-auto\">void InitializeMainMenu();\n// NOTE: Setting the X and Y coordinate of the buttons is not yet implemented.\nint Idx;\nstring Text;\n{\n    Idx = 0;\n    if (game.InGame == true)\n    {\n        Idx = 1;\n    }\n    //InText(Text Data Index (*2 = Text File, (*2)+1=Text Index Table), Text Index)\n    Text = InText({Menu Text Index}, {\"Load game\" index});\n    mainMenu.MenuItems[Idx].Caption = Text;\n    Idx++;\n    Text = InText({Menu Text Index}, {\"Save game\" index});\n    mainMenu.MenuItems[Idx].Caption = Text;\n    if (game.InGame == false)\n    {\n        Idx++;\n    }\n    Text = InText({Menu Text Index}, {\"Options\" index});\n    mainMenu.MenuItems[Idx].Caption = Text;\n    Idx++;\n    Text = InText{Menu Text Index}, {\"Quit\" index});\n    mainMenu.MenuItems[Idx].Caption = Text;\n    if (game.InGame == true)\n    {\n        Idx = 0;\n        Text = InText({Menu Text Index}, {\"Return to game\" index});\n        mainMenu.MenuItems[Idx].Caption = Text;\n    }\n    if (game.InGame == true)\n    {\n        mainMenu.ItemsCount = 4;\n    }\n    else\n    {\n        mainMenu.ItemsCount = 6;\n    }\n}\n\nvoid DrawMainMenu();\n{\n    DrawImage(LoadHQR(\"SCREEN.HQR\", MenuBackgroundIndex));\n    for (int i = 1; i &lt;= mainMenu.ItemsCount; i++)\n    {\n        DrawMenuButton(mainMenu.MenuItems[Idx].Caption, mainMenu.MenuItems[Idx].X, mainMenu.MenuItems[Idx].Y);\n        if (mainMenu.SelectedMenuItem = idx)\n        {\n            DrawMenuButtonHighlight(mainMenu.MenuItems[Idx].Caption, mainMenu.MenuItems[Idx].X, mainMenu.MenuItems[Idx].Y);\n        }\n    }\n}\n\nvoid LoadMainMenu();\n{\n    int ReadStr;\n\n    InitializeMainMenu;\n    mainMenu.SelectedMenuItem = 0;\n    DrawMainMenu;\n    while (mainMenu.MenuString != \"\\027\")\n        ReadStr = BackgroundCharRead;\n        mainMenu.MenuString += ReadStr;\n        // NOTE: The correct reading of the string has yet to be implemented,\n        // but I unfortunately don't know, how to get the rightmost n characters\n        // out of a string in C.\n        if (mainMenu.MenuString.ToUppercase == \"LIFE\")\n        {\n            twinsen.Life = maxLife;\n            mainMenu.MenuString = \"\";\n        }\n        elseif (mainMenu.MenuString.ToUppercase == \"MAGIC\")\n        {\n            twinsen.Magic = maxMagic[twinsen.magicLevel];\n            mainMenu.MenuString = \"\";\n        }\n        elseif (mainMenu.MenuString.ToUppercase ==\"GOLD\")\n        {\n            // NOTE: This part can be reduced, what will be done later.\n            if (game.Planet &gt; 0)\n            {\n                if (twinsen.Zlitos &lt; 999)\n                {\n                    if (twinsen.Zlitos &lt; 950)\n                    {\n                        twinsen.Zlitos += 50;\n                    }\n                    else\n                    {\n                        twinsen.Zlitos = 999;\n                    }\n                }\n            }\n            else\n            {\n                if (twinsen.Kashes &lt; 999)\n                {\n                    if (twinsen.Kashes &lt; 950)\n                    {\n                        twinsen.Kashes += 50;\n                    }\n                    else\n                    {\n                        twinsen.Kashes = 999;\n                    }\n                }\n            }\n            mainMenu.MenuString = \"\";\n        }\n        elseif (mainMenu.MenuString.ToUppercase == \"PINGOUIN\")\n        {\n            if (twinsen.InventoryItems[Pingouin].Count &lt; 10)\n            {\n                twinsen.InventoryItems[Pingouin].Count += 5;\n            }\n            mainMenu.MenuString = \"\";\n        }\n        elseif (mainMenu.MenuString.ToUppercase == \"CLOVER\")\n        {\n            for (int i; i &lt;= twinsen.BoxCount; i++)\n            {\n                twinsen.BoxFull[i] = true;\n            }\n            mainMenu.MenuString = \"\";\n        }\n        elseif (mainMenu.MenuString.ToUppercase == \"BOX\")\n        {\n            if (twinsen.BoxCount &lt; 10)\n            {\n                twinsen.BoxCount++;\n                for (int i; i &lt;= twinsen.BoxCount; i++)\n                {\n                    twinsen.BoxFull[i] = true;\n                }\n            }\n            mainMenu.MenuString = \"\";\n        }\n        elseif (mainMenu.MenuString.ToUppercase == \"FULL\")\n        {\n            twinsen.Life = maxLife;\n            twinsen.InventoryItems[TritonHorn].Life = maxHornLife;\n            twinsen.Magic = maxMagic[twinsen.magicLevel];\n            for (int i; i &lt;= twinsen.BoxCount; i++)\n            {\n                twinsen.BoxFull[i] = true;\n            }\n            mainMenu.MenuString = \"\";\n        }\n        elseif (mainMenu.MenuString.ToUppercase == \"SPEED\")\n        {\n            if (game.showCoordinates == false)\n            {\n                game.showCoordinates = true;\n            }\n            else\n            {\n                game.showCoordinates = false;\n            }\n            mainMenu.MenuString = \"\";\n        }\n        elseif (mainMenu.MenuString == \"\\027\")\n        {\n            BackToGame;\n        }\n        elseif ((mainMenu.MenuString == \"\\013\") || (mainMenu.MenuString     == \" \"))\n        {\n            MainMenuCommand(mainMenu.SelectedItem);\n        }\n        // Menu movement has yet to be implemented.\n    }\n}\n</code></pre>\n<p>I would, of course, need help from anyone who knows some C and/or C++.</p>\n<p>Edit: Could some mod split this post from this thread, please? <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T15:23:18.428Z",
+        "reply_count": 35,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 9,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 220.2,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 234260,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2005-11-30T17:03:45.000Z",
+        "cooked": "<p>Hmmm, you shouldnt post C like code if you didnt compile it yet and see if it work <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"> and I think isnt good to have the code here in the threads. Probably attaching the files or if possible creating a new project under sourceforge, perhaps?</p>\n<p>Anyway well, you should use twinEngine to start doing the LBA RE. Why? Because you have lots of things already done that is equal and have the same meaning/subject if you get what Im trying to say.</p>\n<p>This part your tryng to reverse is already done by twinEngine and its almost the same like LBA1, so you should see that code. This is the file that have this informations <a href=\"http://cvs.sourceforge.net/viewcvs.py/twin-e/twin-e/src/comportementMenu.c?rev=1.13&amp;view=auto\" rel=\"noopener nofollow ugc\">comportementMenu.c</a></p>\n<p> And better isnt to make a new engine but use twinEngine for LBA2 aswell <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:28:57.663Z",
+        "reply_count": 0,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://cvs.sourceforge.net/viewcvs.py/twin-e/twin-e/src/comportementMenu.c?rev=1.13&view=auto",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234268,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-11-30T17:44:01.000Z",
+        "cooked": "<p>- alexfont: OK, thanks for the tip. I think Ill go from TwinEngine and just start modifying it from LBA 1 to LBA 2.</p>\n<p>So first, I have to change some things in that menu:</p>\n<ol>\n<li>Add the cheat codes;</li>\n<li>Make the menu flexible, since in LBA 2, when you call the main menu from in-game, it has 6 buttons while when you start the executable file, it has 4 buttons; 5 buttons if theres a CURRENT.LBA file in the SAVE folder;</li>\n<li>Modify the borders to be rounder;</li>\n<li>Add the code to display the demo screenshots if the SCRSHOT.HQR is present and/or the <span class=\"hashtag-raw\">#IFDEF</span> DEMO is set;</li>\n<li>Make the CURRENT.LBA image be displayed when the CURRENT.LBA file is found in the SAVE folder;</li>\n<li>Modify the background image to be loaded from SCREEN.HQR instead of RESS.HQR as it is in LBA 1.</li>\n</ol>\n<p>Anyway, Ill put into it the LBA 2 models code since I have it, thanks to yaz0r.</p>\n<p>And yes, I agree with you. With just modifying TwinEngine from LBA 1 to LBA 2 we can have bigger compatibility between the two and also have the possibility to make some modification tutorials in the future, which will work with both.</p>\n<p>Edit: I just submitted the registration for this project in SourceForge now, but I have to wait 2 days for it to be accepted (or possibly rejected) though</p>\n<p>And in the end, thanks for splitting the thread. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:28:57.952Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 2,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234275,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-11-30T19:08:08.000Z",
+        "cooked": "<p>Many good lucks to you.</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:28:58.206Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234278,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-11-30T19:33:07.000Z",
+        "cooked": "<p>- ChaosFish: Thanks.</p>\n<p>Ill keep updating this thread as progress is done. And when my project gets accepted on SourceForge as well.</p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:28:58.331Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234284,
+        "name": null,
+        "username": "Echomote",
+        "avatar_template": "/user_avatar/forum.magicball.net/echomote/{size}/161_2.png",
+        "created_at": "2005-11-30T20:03:09.000Z",
+        "cooked": "<p>with this engine would you also be able make a isometric LBA2 outside?</p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:28:58.557Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 712,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234337,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-12-01T13:39:45.000Z",
+        "cooked": "<p>- Dan2552: You can already make an isometric LBA 2 outside - just convert the outside Brick Layout Libraries from LBA 1 to LBA 2, make some new bricks, layouts and libraries (mainly for Emerald Moon, Zeelich and Zeelich Undergas) and then make the grids using Zinks LBArchitect.</p>\n<p>But yes, with this LBA 2 engine, it would be done much more easily than with LBArchitect + LBA Brick Layout Editor, since we will certainly learn many new things from it.</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:00.272Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234342,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2005-12-01T14:21:54.000Z",
+        "cooked": "<p>I think this is a huge work to do and in my view we need to do other things instead trying to make the LBA2 engine. Lke what? Discover the things we dont know yet about the file formats for example.</p>\n<p>Why I say this? Well if you see well, Yaz0r start doing his engine 4/5 years ago and it is far from finish, so you can see the work you need to spend there.</p>\n<p>So I think finished doing the twin-e and then with the same project and help from Yaz0r if he can, doing this one <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:00.434Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234345,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-12-01T14:39:00.000Z",
+        "cooked": "<p>- alexfont: But it will take years for yaz0r to finish the Twin-E. But oh well, I can wait.</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:00.528Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234355,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2005-12-01T17:24:50.000Z",
+        "cooked": "<p>The thing is that you will spend more years without that engine.</p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:00.839Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234396,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-12-02T14:51:41.000Z",
+        "cooked": "<p>OK, excellent news so far. SourceForge approved this project. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/cool.png?v=12\" title=\":cool:\" class=\"emoji emoji-custom\" alt=\":cool:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>Its website will be at <a href=\"http://lba2engine.sourceforge.net\" rel=\"noopener nofollow ugc\">http://lba2engine.sourceforge.net</a> . Ill also try to make a separate forum for it, which will be for reporting bugs, support, etc. It will use the SMF forum software, with a skin by sebz2005.</p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:02.131Z",
+        "reply_count": 0,
+        "reply_to_post_number": 10,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://lba2engine.sourceforge.net",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 463,
+          "username": "xesf",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234432,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2005-12-02T19:42:08.000Z",
+        "cooked": "<p>You dont need a forum for that. SourceForge have a bug track for that, and other things also.<br>\nBtw, dont forget to ask Yaz0r permition to use his code in this new project.<br>\nI continue thinking this should be the same project and no two separated projects <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>Ahbtw, Im now trying to port twinEngine for SymbianOS/Epoc S60, but isnt easy <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/blush.png?v=12\" title=\":blush:\" class=\"emoji emoji-custom\" alt=\":blush:\" loading=\"lazy\" width=\"20\" height=\"20\"> When I get so more time Ill continue trying porting that. Im really forword to play LBA in my mobile <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:03.319Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234442,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-12-02T20:27:49.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"alexfont\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n alexfont:</div>\n<blockquote>\n<p>Ahbtw, Im now trying to port twinEngine for SymbianOS/Epoc S60</p>\n</blockquote>\n</aside>\n<p>What are those?</p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:03.707Z",
+        "reply_count": 0,
+        "reply_to_post_number": 12,
+        "quote_count": 0,
+        "incoming_link_count": 2,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 463,
+          "username": "xesf",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234444,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2005-12-02T20:36:07.000Z",
+        "cooked": "<p>Symbian is an Operating System for mobile phones. For example, Nokia use it in his last models. Im now only trying for Nokia Serie60 phones because I have one (6630), anyway I didnt manage to get it to work yet because I need to change things in the project code including the mainSDL.c file that make possible run the game with the SDL interface. Anyway I already fix somethings, I just need time for it, thing that I dont have much this days :(.<br>\nBut if I didnt manage to make it Ill ask help with some Symbian Gurus, it will be really great to have LBA on the mobile. I have now Monkey Island and the Day Of The Tentacle thought ScummVM and its great ;). Also the great Another World game, who doesnt remember this classic</p>",
+        "post_number": 14,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:03.781Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/14",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234445,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-12-02T20:40:09.000Z",
+        "cooked": "<p>Ooh sounds cool <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"> I could play LBA on waiting rooms.</p>",
+        "post_number": 15,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:03.814Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/15",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234446,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2005-12-02T20:47:31.000Z",
+        "cooked": "<p>Yes. The only thing you will need is space on the memory card to put LBA inside.</p>",
+        "post_number": 16,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:03.849Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 3,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 20.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/16",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234471,
+        "name": null,
+        "username": "SebZ",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/s/d2c977/{size}.png",
+        "created_at": "2005-12-03T02:58:27.000Z",
+        "cooked": "<p>Heres an <span class=\"bbcode-u\"><span class=\"bbcode-b\">example</span></span> of the soon page.</p>\n<p>Its a little different from the one right now but its close! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 17,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:04.738Z",
+        "reply_count": 0,
+        "reply_to_post_number": 16,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 463,
+          "username": "xesf",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 796,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/17",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234472,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-12-03T03:17:57.000Z",
+        "cooked": "<p>- sebz2005: OMG! Thats very good! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/fearful.png?v=12\" title=\":fearful:\" class=\"emoji emoji-custom\" alt=\":fearful:\" loading=\"lazy\" width=\"20\" height=\"20\"> Keep up the good work!</p>",
+        "post_number": 18,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:04.772Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/18",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234474,
+        "name": null,
+        "username": "SebZ",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/s/d2c977/{size}.png",
+        "created_at": "2005-12-03T03:24:18.000Z",
+        "cooked": "<p>Heres a zip with the page and image updated to put onto the host.</p>\n<p>Beta 2.</p>",
+        "post_number": 19,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:04.854Z",
+        "reply_count": 0,
+        "reply_to_post_number": 18,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 796,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/19",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 234519,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-12-03T13:49:55.000Z",
+        "cooked": "<p>This looks very cool sebz!</p>",
+        "post_number": 20,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:29:06.480Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 9052,
+        "topic_slug": "the-lba-2-engine-project",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/the-lba-2-engine-project/9052/20",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      9055,
+      234260,
+      234268,
+      234275,
+      234278,
+      234284,
+      234337,
+      234342,
+      234345,
+      234355,
+      234396,
+      234432,
+      234442,
+      234444,
+      234445,
+      234446,
+      234471,
+      234472,
+      234474,
+      234519,
+      234522,
+      234523,
+      234561,
+      234589,
+      234590,
+      234592,
+      234593,
+      234595,
+      234600,
+      234608,
+      246635,
+      246639,
+      246640,
+      246641,
+      246642,
+      246644,
+      246647,
+      246648,
+      246651,
+      247091,
+      247096,
+      247180,
+      247310,
+      269864,
+      269871,
+      269882,
+      269994,
+      269997
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      7379
+    ],
+    [
+      7,
+      7378
+    ],
+    [
+      11,
+      7377
+    ],
+    [
+      20,
+      7376
+    ],
+    [
+      31,
+      7241
+    ],
+    [
+      40,
+      7238
+    ],
+    [
+      43,
+      7237
+    ],
+    [
+      44,
+      7029
+    ],
+    [
+      47,
+      7028
+    ]
+  ],
+  "tags_descriptions": {},
+  "fancy_title": "The LBA 2 Engine Project",
+  "id": 9052,
+  "title": "The LBA 2 Engine Project",
+  "posts_count": 48,
+  "created_at": "2005-11-30T14:50:36.000Z",
+  "views": 7862,
+  "reply_count": 46,
+  "like_count": 0,
+  "last_posted_at": "2006-11-17T00:53:13.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "the-lba-2-engine-project",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 1016,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_9052",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 48,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 9,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 14,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 14,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 2,
+        "username": "ChaosFish",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "post_count": 8,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 796,
+        "username": "SebZ",
+        "name": null,
+        "avatar_template": "/letter_avatar_proxy/v4/letter/s/d2c977/{size}.png",
+        "post_count": 7,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 712,
+        "username": "Echomote",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/echomote/{size}/161_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 49,
+        "username": "CrazyBee",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/crazybee/{size}/25_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1,
+        "username": "elmuerte",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/elmuerte/{size}/27089_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": "staff",
+        "flair_url": "/uploads/default/original/3X/5/5/559743aa44a0676e04be9d54425231def12069c1.png",
+        "flair_color": "",
+        "flair_bg_color": "",
+        "flair_group_id": 3,
+        "admin": true,
+        "moderator": true,
+        "trust_level": 4
+      },
+      {
+        "id": 1490,
+        "username": "takashi_maze",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/takashi_maze/{size}/294_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1568,
+        "username": "PlasmaStorm",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/plasmastorm/{size}/307_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 1016,
+      "username": "Battler",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+    },
+    "last_poster": {
+      "id": 1016,
+      "username": "Battler",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

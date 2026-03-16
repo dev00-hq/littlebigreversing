@@ -1,0 +1,22 @@
+{
+  "source_index": 9,
+  "cursors": {
+    "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/index/topics_discovered.jsonl": 378,
+    "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/index/topic_classification.jsonl": 378,
+    "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/index/evidence_index.jsonl": 1507,
+    "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/normalized/topics_lba2.jsonl": 59,
+    "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/normalized/posts_lba2.jsonl": 1258,
+    "/Users/sebastian.matus/repos/lba2/discourse-downloader/spec/formats.md": 2326,
+    "/Users/sebastian.matus/repos/lba2/discourse-downloader/spec/tools.md": 814,
+    "/Users/sebastian.matus/repos/lba2/discourse-downloader/spec/workflows.md": 598,
+    "/Users/sebastian.matus/repos/lba2/discourse-downloader/spec/glossary.md": 2298
+  },
+  "metrics": {
+    "records_emitted": 9612,
+    "bytes_parsed": 3389223,
+    "chunks_flushed": 39,
+    "sources_completed": 9,
+    "limit_hit": null
+  },
+  "completed": true
+}

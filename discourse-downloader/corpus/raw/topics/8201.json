@@ -1,0 +1,2280 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 8204,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-03-06T19:34:36.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"OBrasilo\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n OBrasilo:</div>\n<blockquote>\n<ul>\n<li>Illumina: That font is a normal 8x8 MS-DOS font. Itt stored in the executable files. But that font already has  and  (its MS-DOS CP 437), so you dont have to worry about that.</li>\n</ul>\n</blockquote>\n</aside>\n<p>Obras: is there any possibility to edit this font or replace it with another font?</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T15:22:37.600Z",
+        "reply_count": 63,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 18,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 405.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 213319,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-03-06T20:01:57.000Z",
+        "cooked": "<p>- ChaosFish: Yes. To edit it, I can send you a program, EVAFont. Its dated 1990, but still To extract the font from the executable file(s), dont worry, Ill do it for you, and to put the font back into the executable file(s), dont worry either, Ill make a program, that will replace the existing font there with a new one. Besides, the same kind of fonts you can find in the .CPI files, but dont worry about them, I have a Hebrew 8x8 font, and Ill release it with that program. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:19.862Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213323,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-03-06T20:22:29.000Z",
+        "cooked": "<p>OK. Heres the format for that kind of fonts.</p>\n<p>Each character in the font, as you see it in a file, represents a line of a screen character. For example:<br>\nA is (in MS-DOS, 8x8 stanard EGA/VGA font):<br>\nOn-screen:</p>\n<pre><code class=\"lang-auto\">\n\\--------\n\\---#----\n\\--###---\n\\-##-##--\n\\-#####--\n\\-##-##--\n\\-##-##--\n\\--------\n</code></pre>\n<p>Where - is bit 0, and # is bit 1.</p>\n<p>Now, consider this:</p>\n<pre><code class=\"lang-auto\">2^0 2^1 2^2 2^3 2^4 2^5 2^6 2^7\nB8  B7  B6  B5  B4  B3  B2  B1\n</code></pre>\n<p>Thus:</p>\n<pre><code class=\"lang-auto\">NUM(10) = B1*1 + B2*2 + B3*4 + B4*8 + B5*16 + B6*32 + B7*64 + B8*128\n</code></pre>\n<p>And you get (for A in MS-DOS):</p>\n<pre><code class=\"lang-auto\">00h 10h 38h 6Ch 7Ch 6Ch 6Ch 00h\n</code></pre>\n<p>And you have to consider, that depending of size, the font data is divided in parts of either 8, 14, 16, or 19 (8x19 is a rare font size, and its almost unused) bytes, depending on the font (8x8, 8x14, etc.), where the 8, 14, etc. means the character height. Now, in the LBA case, we have a 8x8 font, thus there are 8-bytes-per-character. Now, do this: get byte-by-byte in a loop, and convert them into binary data, which you store in an 2-D array (a string of ASCII codes in binary format) (for example: <span class=\"bbcode-b\">var chardata: array[0255][18] of string[8]</span> in Pascal, where [0255] is the character, and [18] is the pixel line, its the same, as [b]Dim charadata(0 To 255)(1 To 8) As String * 8 in VB, where string[8] or String * 8 means a string with a fixed width of 8 bytes), and everytime you reach 8 bytes, increase the character counter variable (which has to have an initial value of 0) by 1, and re-set the line counter variable to 0.</p>\n<p>For vice-versa, just convert the ASCII codes of the font file characters into binary format, and then consider:</p>\n<pre><code class=\"lang-auto\">If bit = 0 then this pixel is empty (has background color).\nIf bit = 1 then this pixel is filled (has foreground color).\n</code></pre>\n<p>The background and foreground colors are specified in DOS screen data with one byte, which is after each character (NOTE: has nothing to do with the data in the font files),<br>\nwhich in hex has 2 digits: digit 1 = background color, and digit2 = foreground color, thus 1Fh would mean bright white (Fh) on blue (1h).</p>\n<p>For more, contact me, either by PM, or by e-mail, or on my forum. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:20.025Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213329,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-03-06T21:25:14.000Z",
+        "cooked": "<p>Heres a MS-DOS font editor for Windows, made by me.</p>\n<h1><a name=\"p-213329-ms-dos-font-editor-version-100-by-obrasilo-1\" class=\"anchor\" href=\"#p-213329-ms-dos-font-editor-version-100-by-obrasilo-1\"></a>MS-DOS Font Editor version 1.0.0 by OBrasilo</h1>\n<ol>\n<li>\n<p>You dont need to open a text for preview to edit the font. Just edit it in the main dialog box.</p>\n</li>\n<li>\n<p>It can open from and save to two types of font files: .FNT (also .F16, etc.), and from LBA 2/TO executables directly. The support for the Code Page Information (.CPI) files will be added in the future.</p>\n</li>\n<li>\n<p>To edit the font, just click on the area of the font. Left Click = fill area (set current pixel bit to 1), Right Click = empty area (set current pixel bit to 0)*.</p>\n</li>\n<li>\n<p>When you quit the program, if you have the preview dialog box open, close it first (or you can also close it after the program, which is not recommended).</p>\n</li>\n</ol>\n<p>* Current pixel bit = bit of that square in the font file (square (double pixel) in the program , bit in the font file).</p>\n<p>Get it here: <a href=\"http://www.obrasilero.com/FontEdit.zip\" rel=\"noopener nofollow ugc\">http://www.obrasilero.com/FontEdit.zip</a>. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:20.247Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://www.obrasilero.com/FontEdit.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213336,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-03-06T22:09:14.000Z",
+        "cooked": "<p>- ChaosFish: Another thing, Ill release that Hebrew font with the next version of the program, becuase this version cant yet save to a type, different, than the loaded scenes type, but in the next version, Ill implement this.</p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:20.511Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213338,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-03-06T22:19:32.000Z",
+        "cooked": "<p>Wow, you mean you made this program right now?? I must say, youre really good. Thanks!</p>\n<p>If this is too much to ask then just tell me (its not crucial), but can you make a patch that automatically replaces the LBA2.EXE / TWINSEN.EXE font file with an outside font? Like lba2fontreplace.exe /slovanian_dos.fnt to replace the MS-DOS font in LBA2 to slovanian_dos font in the same directory? It would be perfect for LBA2 trasnlations installation programs, and it would be awesome for the Hebrew translation.</p>\n<p>Anyhow, great work dude, you rule <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:20.584Z",
+        "reply_count": 0,
+        "reply_to_post_number": 4,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213339,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-03-06T22:26:37.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"OBrasilo\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n OBrasilo:</div>\n<blockquote>\n<ul>\n<li>ChaosFish: Another thing, Ill release that Hebrew font with the next version of the program, becuase this version cant yet save to a type, different, than the loaded scenes type, but in the next version, Ill implement this.</li>\n</ul>\n</blockquote>\n</aside>\n<p>Awesome!! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>--&gt; Split</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:20.620Z",
+        "reply_count": 0,
+        "reply_to_post_number": 5,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213344,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-03-06T23:01:14.000Z",
+        "cooked": "<h1><a name=\"p-213344-blba-2-font-replacer-version-100b-1\" class=\"anchor\" href=\"#p-213344-blba-2-font-replacer-version-100b-1\"></a><span class=\"bbcode-b\">LBA 2 Font Replacer version 1.0.0</span></h1>\n<p>Author: Joo de Cames (OBrasilo).</p>\n<p>Purpose: Replaces the 8x8 MS-DOS font inside the LBA 2 executables with an outside 8x8 MS-DOS font file.</p>\n<p>Usage: LBA2Replace font_file_name lba2_path</p>\n<p>NOTE: The quotation marks (\") are obbligatory.</p>\n<p>Example: LBA2Replace C:\\FONTS\\CP862.FNT C:\\Program Files\\Activision\\Twinsens Odyssey</p>\n<p>BTW: Hebrew font (CP862.FNT), 8x8, included, so you can practise a bit, before using this program in an installation package.</p>\n<p>Get it here: <a href=\"http://www.obrasilero.com/LBA2Replace.zip\" rel=\"noopener nofollow ugc\">http://www.obrasilero.com/LBA2Replace.zip</a>. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:20.795Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://www.obrasilero.com/LBA2Replace.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213367,
+        "name": null,
+        "username": "Illumina",
+        "avatar_template": "/user_avatar/forum.magicball.net/illumina/{size}/95_2.png",
+        "created_at": "2005-03-07T10:41:16.000Z",
+        "cooked": "<p>You know, when I translated the words in the LBA 2 settings menu for keyboards, the  appears then as + instead. Well, thats the same thing for the other swedish letters. Things seems different than you think, OBrasilo, when you mentioned that it uses even swedish font.</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:21.562Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 288,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213370,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-03-07T13:40:08.000Z",
+        "cooked": "<p>Obras, I worship you!!!</p>\n<p>It works! Thank you thank you thank you. Youre a very quick programmer, dude!!</p>\n<p>(did I mention thank you?)</p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:21.660Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213372,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-03-07T13:51:17.000Z",
+        "cooked": "<p>- Illumina: This is becuase you typed them in the Windows manner. Did you try to use the KeybGroups?</p>\n<p>- ChaosFish: Thanks for appreciating my work. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:21.717Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213377,
+        "name": null,
+        "username": "Illumina",
+        "avatar_template": "/user_avatar/forum.magicball.net/illumina/{size}/95_2.png",
+        "created_at": "2005-03-07T14:02:31.000Z",
+        "cooked": "<p>OBrasilo: However, what do you mean Keybgroups? Got instructions? Sorry if I didnt read everything you typed around here.</p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:21.865Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 288,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213380,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-03-07T14:35:27.000Z",
+        "cooked": "<p>- Illumina: I hope youll find this image useful:<br>\n<span alt=\"\" role=\"presentation\" class=\"broken-image\" title=\"This image is broken\"><svg class=\"fa d-icon d-icon-unlink svg-icon\" aria-hidden=\"true\"><use href=\"#unlink\"></use></svg></span></p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:21.953Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213381,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-03-07T14:37:16.000Z",
+        "cooked": "<p>- Illumina: I got your problem. Youre incorrectly using the Western European KeybGroup. Use the SWE/NOR/DAN (stands for: Swedish/Norwegian/Danish) instead. The Western European one is for the standard LBA font, and doesnt have  or , while the SWE/NOR/DAN one has. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 14,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:21.985Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/14",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213630,
+        "name": null,
+        "username": "Illumina",
+        "avatar_template": "/user_avatar/forum.magicball.net/illumina/{size}/95_2.png",
+        "created_at": "2005-03-09T09:08:54.000Z",
+        "cooked": "<p>Well, Im using using other text editor than that you mentioned, OBrasilo. It must be called LBATxt.exe.</p>",
+        "post_number": 15,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:30.940Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 288,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/15",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213633,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2005-03-09T10:29:16.000Z",
+        "cooked": "<p>Will try this soon</p>",
+        "post_number": 16,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:31.045Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/16",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213646,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-03-09T13:57:27.000Z",
+        "cooked": "<p>- Illumina: You have to use the one I mentioned.<br>\n[quote=ChaosFish (QuickStart sticky thread)]<br>\n<a href=\"http://www.obrasilero.com/textedit.ZIP\" rel=\"noopener nofollow ugc\">LBA Text File Editor</a>: Edit the LBA text, in any language (character mapping feature). Includes the LBA font in standard font format. Also download the <a href=\"http://www.obrasilero.com/Textexe.zip\" rel=\"noopener nofollow ugc\">update</a>.<br>\n[/quote]</p>\n<p>NOTE: You MUST download the update. After downloading and unzipping everything (the update in the end), you just have to run the TEXTEDIT.EXE file. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 17,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:31.524Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://www.obrasilero.com/Textexe.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.obrasilero.com/textedit.ZIP",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/17",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 213647,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-03-09T14:00:46.000Z",
+        "cooked": "<p>[quote=Illumina (the signature)]<br>\nHow do the chineses people write in China on computers anyway? :geek:<br>\n[/quote]</p>\n<p>Its simple: for Chinese (both Traditional and Simiplified), Korean, and Japanese, a system, called IME, is used. In this way, you enter the character in an alphabetical script (either Chinese Bopomofo (for traditional; Chinese Latin Pinyin for simplified), Korean alphabetical script, or Latin for Japanse, and the system automatically converts it into the appropriate special characters (of which, you must choose the best one yourself).</p>",
+        "post_number": 18,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:16:31.568Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/18",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 215766,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-03-26T01:37:42.000Z",
+        "cooked": "<p>OBras: I have a little request for LBA 2 Font Replacer:<br>\nCan you please, instead of the Required parameter missing massege box, make the LBA2 exe font in current folder be replaced with default FNT file in current folder?<br>\nE.G. when in C:\\Games\\LBA\\LBA2, oppening LBA2Replace.exe will automatically replace C:\\Games\\LBA\\LBA2\\LBA2.EXEs font with with C:\\Games\\LBA\\LBA2\\lba2.fnt.</p>\n<p>Thanks in advance Obras <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 19,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:17:50.295Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/19",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 215787,
+        "name": null,
+        "username": "morshem",
+        "avatar_template": "/user_avatar/forum.magicball.net/morshem/{size}/54_2.png",
+        "created_at": "2005-03-26T05:06:22.000Z",
+        "cooked": "<p>Will the user have to run this patch manually (like I had to <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"> ), or can it be installed automatically with the rest of the files?</p>",
+        "post_number": 20,
+        "post_type": 1,
+        "posts_count": 80,
+        "updated_at": "2024-10-25T17:17:51.083Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8201,
+        "topic_slug": "lba2-dos-font",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 159,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-dos-font/8201/20",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      8204,
+      213319,
+      213323,
+      213329,
+      213336,
+      213338,
+      213339,
+      213344,
+      213367,
+      213370,
+      213372,
+      213377,
+      213380,
+      213381,
+      213630,
+      213633,
+      213646,
+      213647,
+      215766,
+      215787,
+      215836,
+      215865,
+      215871,
+      215882,
+      215884,
+      215888,
+      215889,
+      215900,
+      215901,
+      215902,
+      215903,
+      215904,
+      215905,
+      215906,
+      215907,
+      215909,
+      215910,
+      215912,
+      215913,
+      215928,
+      215930,
+      215985,
+      216041,
+      216045,
+      216047,
+      216049,
+      216067,
+      216072,
+      216076,
+      216077,
+      216081,
+      216278,
+      216316,
+      216324,
+      216380,
+      216385,
+      216447,
+      217331,
+      217344,
+      217521,
+      217524,
+      218478,
+      218481,
+      218485,
+      218487,
+      218488,
+      218489,
+      218490,
+      218496,
+      218497,
+      218502,
+      218510,
+      218564,
+      222383,
+      222401,
+      222426,
+      222434,
+      222436,
+      222440,
+      222848
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      7648
+    ],
+    [
+      9,
+      7647
+    ],
+    [
+      15,
+      7646
+    ],
+    [
+      16,
+      7645
+    ],
+    [
+      19,
+      7629
+    ],
+    [
+      21,
+      7628
+    ],
+    [
+      22,
+      7627
+    ],
+    [
+      42,
+      7626
+    ],
+    [
+      43,
+      7625
+    ],
+    [
+      52,
+      7623
+    ],
+    [
+      56,
+      7622
+    ],
+    [
+      58,
+      7610
+    ],
+    [
+      60,
+      7608
+    ],
+    [
+      62,
+      7595
+    ],
+    [
+      74,
+      7548
+    ],
+    [
+      75,
+      7547
+    ],
+    [
+      80,
+      7543
+    ]
+  ],
+  "tags_descriptions": {},
+  "fancy_title": "LBA2 DOS font",
+  "id": 8201,
+  "title": "LBA2 DOS font",
+  "posts_count": 80,
+  "created_at": "2005-03-06T19:34:36.000Z",
+  "views": 10829,
+  "reply_count": 79,
+  "like_count": 0,
+  "last_posted_at": "2005-06-19T17:13:08.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "lba2-dos-font",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 2,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_8201",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 80,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 6,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 33,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 2,
+        "username": "ChaosFish",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "post_count": 28,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 159,
+        "username": "morshem",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/morshem/{size}/54_2.png",
+        "post_count": 10,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 184,
+        "username": "Zink",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "post_count": 4,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 288,
+        "username": "Illumina",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/illumina/{size}/95_2.png",
+        "post_count": 4,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      }
+    ],
+    "created_by": {
+      "id": 2,
+      "username": "ChaosFish",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+    },
+    "last_poster": {
+      "id": 1016,
+      "username": "Battler",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

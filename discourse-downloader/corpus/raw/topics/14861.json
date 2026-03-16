@@ -1,0 +1,2270 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 14864,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2013-12-25T19:32:29.000Z",
+        "cooked": "<p>Hi all,</p>\n<p>I managed to release the LBArchitect beta 9, that includes the LBA2 Scene and Script editing. And a sad news is that this may be the last version that will be released. I dont know if I will be able to continue work on this. I will however do my best to fix important bugs if they are found.</p>\n<p>This version enables you to open, edit and save scenes from LBA2, including scripts, and including the outside scenes. However, they have to be loaded with another background (one of the existing isometric Grids). Building LBA2 stages with Designer is not possible yet.</p>\n<p>There is also no help for the script commands. If you want to help, you may test the commands and send me anything you discover. Since I didnt have the game source, I researched the script command parameters by setting a value and testing whether all the scripts decompile well. Unfortunately, some commands are never used in the original scripts, so this method could not work for them. Because of that some commands may work strangely, while others may crash the game.</p>\n<p>You can download the beta 9 version from my site:<br>\n<a href=\"http://moonbase.kazekr.net/d.php?n=LBArchitect_1.0.0_beta9.zip\" class=\"onebox\" target=\"_blank\" rel=\"noopener nofollow ugc\">http://moonbase.kazekr.net/d.php?n=LBArchitect_1.0.0_beta9.zip</a></p>\n<p>or, if the the above link does not work for you, from here:<br>\n<a href=\"https://dl.dropboxusercontent.com/u/6325939/LBArchitect_1.0.0_beta9.zip\" class=\"onebox\" target=\"_blank\" rel=\"noopener nofollow ugc\">https://dl.dropboxusercontent.com/u/6325939/LBArchitect_1.0.0_beta9.zip</a></p>\n<p>Enjoy!</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T15:27:54.815Z",
+        "reply_count": 17,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 44,
+        "reads": 2,
+        "readers_count": 1,
+        "score": 305.2,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://moonbase.kazekr.net/d.php?n=LBArchitect_1.0.0_beta9.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 4
+          },
+          {
+            "url": "https://dl.dropboxusercontent.com/u/6325939/LBArchitect_1.0.0_beta9.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 3
+          },
+          {
+            "url": "https://forum.magicball.net/t/speedrunner-needs-help-those-freacking-slot-machines/14870/12",
+            "internal": true,
+            "reflection": true,
+            "title": "Speedrunner needs help. Those freacking slot machines!",
+            "clicks": 0
+          }
+        ],
+        "read": true,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 396493,
+        "name": null,
+        "username": "Darkflame",
+        "avatar_template": "/user_avatar/forum.magicball.net/darkflame/{size}/24_2.png",
+        "created_at": "2013-12-25T23:22:17.000Z",
+        "cooked": "<p>wow.<br>\nJust wow.</p>\n<p>What a present!<br>\nReally well done!</p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:30.739Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 2,
+        "readers_count": 1,
+        "score": 5.2,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 48,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396501,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2013-12-26T14:17:41.000Z",
+        "cooked": "<p>LBA community always has great gifts in this part of the season. Really great work Zink.</p>\n<p>As I can easily understand you wont be able to work more on this tool, I just need to thank you all the hard work and effort youve been doing in this past years with all your tools, specially LBArchitect.</p>\n<p>One last note, you should get rid of the beta 9 suffix because the tools is so damn stable after all those versions <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:30.992Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 2,
+        "readers_count": 1,
+        "score": 10.2,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396507,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2013-12-26T22:26:37.000Z",
+        "cooked": "<p>Thats aweseome ! No, awesome !! Thanks you Zink <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/grin.png?v=12\" title=\":grin:\" class=\"emoji emoji-custom\" alt=\":grin:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:31.205Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 2,
+        "readers_count": 1,
+        "score": 5.2,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396509,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2013-12-27T09:20:57.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"alexfont\" data-post=\"3\" data-topic=\"14861\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n alexfont:</div>\n<blockquote>\n<p>As I can easily understand you wont be able to work more on this tool</p>\n</blockquote>\n</aside>\n<p>Thats not set in stone. It may turn out I will have some time. I just cant be sure now how much or if any.</p>\n<aside class=\"quote no-group\" data-username=\"alexfont\" data-post=\"3\" data-topic=\"14861\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n alexfont:</div>\n<blockquote>\n<p>One last note, you should get rid of the beta 9 suffix because the tools is so damn stable after all those versions <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n</blockquote>\n</aside>\n<p>Good point. I will think about it for the next release <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T20:04:57.955Z",
+        "reply_count": 0,
+        "reply_to_post_number": 3,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 2,
+        "readers_count": 1,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396797,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2014-02-10T09:14:27.000Z",
+        "cooked": "<p>Who is Stanley ?</p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:41.838Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396798,
+        "name": null,
+        "username": "Jast",
+        "avatar_template": "/user_avatar/forum.magicball.net/jast/{size}/511_2.png",
+        "created_at": "2014-02-10T14:10:37.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"Polaris\" data-post=\"6\" data-topic=\"14861\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n<img alt=\"\" width=\"24\" height=\"24\" src=\"https://forum.magicball.net/user_avatar/forum.magicball.net/polaris/48/28468_2.png\" class=\"avatar\"> Polaris:</div>\n<blockquote>\n<p>Who is Stanley ?</p>\n</blockquote>\n</aside>\n<p>Im guessing:</p>\n<aside class=\"quote no-group\" data-username=\"Twinsunica\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n Twinsunica:</div>\n<blockquote>\n<p>At some place in the [Emperors] palace, Twinsen inquires a guy called Stanley from Adeline Software Internationals game Time Commando.</p>\n</blockquote>\n</aside>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T20:04:58.859Z",
+        "reply_count": 0,
+        "reply_to_post_number": 6,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2425,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396799,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2014-02-10T17:02:21.000Z",
+        "cooked": "<p>That guy has a name ?! I thought he simply was the Time Commando <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/crazy_face.png?v=12\" title=\":crazy_face:\" class=\"emoji emoji-custom\" alt=\":crazy_face:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:41.900Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396800,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2014-02-10T17:22:59.000Z",
+        "cooked": "<p>Neat I must say !</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:41.928Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396801,
+        "name": null,
+        "username": "marcosmapf",
+        "avatar_template": "/user_avatar/forum.magicball.net/marcosmapf/{size}/964_2.png",
+        "created_at": "2014-02-10T22:17:07.000Z",
+        "cooked": "<p>Thats very nice! Are you planning on doing something specific or are you just messing around with the tools?</p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:41.960Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 5200,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396805,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2014-02-11T20:22:14.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"MrQuetch\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n MrQuetch:</div>\n<blockquote>\n<p>Nice job, Zink! Wow, I am very impressed! The same goes for just about everyone else. By the way, I downloaded the program. However, I am having trouble trying to save an edited already existing scene to, LS2 format. It only allows me to save in, LS1 format, which was what the last LBArchitect included with it. Also, how do I open up the outside scenes?  Can you please tell me how to save to, LS2 format, and how to open up outside scenes? Thanks! I hope to hear from you soon! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n</blockquote>\n</aside>\n<p>Hi! Its great someone is actually doing something with the program <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>The only available LS1 format is a bug. I just omitted the place when I was fixing the file dialogs. Alternatively you can save the grid/scene to a scenario, open the scenario as a HQR file, and then extract the LS2 file from the entry 9 (counting from 1), (which will be there only if the Scripts compile without errors).</p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T20:04:58.881Z",
+        "reply_count": 0,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 3,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 15.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396807,
+        "name": null,
+        "username": "Darkflame",
+        "avatar_template": "/user_avatar/forum.magicball.net/darkflame/{size}/24_2.png",
+        "created_at": "2014-02-12T12:17:46.000Z",
+        "cooked": "<p>This is all awesome stuff <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"><br>\nI wish I had time to play about with it but I am swamped with work right now.</p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:42.145Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 48,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396810,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2014-02-13T06:21:05.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"MrQuetch\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n MrQuetch:</div>\n<blockquote>\n<p>Do you know if there are any easier ways of editing the outside scenes? All I can do is turn on the, Green Net. Even then, that doesnt help. From my experience and knowledge, I have to estimate where actual locations are from locations of nearby objects that I know are there in the game. If it is not too hard, having exact point locations would be nice, but I understand that there is still more to be done.</p>\n</blockquote>\n</aside>\n<p>I dont know any. I actually didnt mean to include the outside scene editing for this release, but the format turned out to be the same as of the isometric ones, so it didnt require any additional work. For the next release (If :)) I plan to make at least displaying the height maps of the outside areas in isometric mode. But its a lot of work, because I need to change the rendering engine to a more flexible one, and that will you know what :).</p>\n<aside class=\"quote no-group\" data-username=\"MrQuetch\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n MrQuetch:</div>\n<blockquote>\n<p>By the way, I also figured out the, IMPACT POINT code line used for LBA 2. This line of code creates an effect at the index of a, Flag Point / Location, and then the index of the effect that is displayed there.</p>\n<p>In the SCENE.HQR file at entry 57, there are some examples of these used for land mines after the Zeelichians have invaded Twinsun. They are located near the bottom of the grid. For example: Actor 18 is only enabled after the invasion, and if you are a distance away, while not being in discreet mode, the line will be triggered. You will then hear a, Click and the line of code, IMPACT POINT will trigger. Note for the object, the flag where the effect happens is at the same position. This doesnt have to be the same. You could have an effect happen on the opposite side of the grid, just change the flag location. Here is another example: Change IMPACT POINT 18 15 to 15 15. This will create an explosion where Dino - Fly would be standing, or is standing.</p>\n</blockquote>\n</aside>\n<p>Oh, thats great you figured it out. Thanks for the explanation, I will check it when I have some time.</p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T20:04:58.909Z",
+        "reply_count": 0,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396820,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2014-02-14T01:21:39.000Z",
+        "cooked": "<p>- Zink: For rendering height maps in isometric mode, you can look at the code of my LBA 2 Island Height Map Viewer. That pretty much does just that.</p>",
+        "post_number": 14,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:42.554Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 2,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/14",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396821,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2014-02-14T06:16:38.000Z",
+        "cooked": "<p>Thanks, I will certainly do that.</p>",
+        "post_number": 15,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:42.585Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/15",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 396827,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2014-02-17T18:42:43.000Z",
+        "cooked": "<p>I never played TC nor AITD, so I cant tell for sure, but if the resource.hqr is the only hqr file in TC directory, it is possible that all is kept inside it, in the way that each entry contains one group of data, that are further encoded (like smaller HQRs inside one large HQR). This technique is present in both LBA1 and 2. I cannot help you in the research, but I can give you some advice:</p>\n<ol>\n<li>You could test if Im right with the structure by unpacking one of the entries (preferably a large one) and research by hex-editing whether or not it contains something like a list of offsets at the beginning. It might be hard to see if present, as well as apparent while not present (the data might resemble such structure while being something else).</li>\n<li>After trying to find the files structure, the research method I use to find out what the entry does, is changing a random part of the file (taking the structure into consideration not avoid making the file unreadable to the game engine) to something else (starting with a single byte, in most cases to 0x00 or 0xFF) and playing the game for couple of minutes to see if that changed something. If not, try another byte or group, ending with the whole file if necessary (I had to do that couple of times for LBA2). If the game crashes after the change, return that byte to the original value, and try another byte or a different value.</li>\n</ol>\n<p>Its not an easy task, and no effects are guaranteed. I still have not discovered some entries of ress.hqr from LBA2, though I have changed all of their contents and played the whole game. Looks like they are not used for anything (which might be true as well).</p>\n<p>As for scene editing it depends. We could tell if we knew the scene format.</p>",
+        "post_number": 16,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:06:42.776Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/16",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 402948,
+        "name": "SGK",
+        "username": "SpaceGuitarist",
+        "avatar_template": "/user_avatar/forum.magicball.net/spaceguitarist/{size}/28408_2.png",
+        "created_at": "2016-12-14T03:41:14.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"MrQuetch\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n MrQuetch:</div>\n<blockquote>\n<p>I just made this in spare time.<br>\n<img src=\"https://forum.magicball.net/uploads/default/original/2X/b/b1e9b81ef8ff8141692645a1b90495890a4f8733.png\" alt=\"\" data-base62-sha1=\"pnTfI30zHAJOyryWdrGBW5rwoYX\" role=\"presentation\" width=\"270\" height=\"270\"></p>\n</blockquote>\n</aside>\n<p>This.</p>\n<p>[b]THIS IS</p>\n<p>THE BEST POST</p>\n<p>YOU HAVE EVER MADE</p>\n<p>IN YOUR LIFE, MR.QUETCH</p>\n<p>&lt;3[/b]</p>",
+        "post_number": 17,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-26T00:46:21.539Z",
+        "reply_count": 0,
+        "reply_to_post_number": null,
+        "quote_count": 1,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": "SGK",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 2,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 822,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": "downloaded local copies of images",
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/17",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 402959,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2016-12-15T18:17:05.000Z",
+        "cooked": "<p>:lol::lol::lol:<img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/joy.gif?v=12\" title=\":joy:\" class=\"emoji emoji-custom\" alt=\":joy:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 18,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:10:25.579Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/18",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 402968,
+        "name": "SGK",
+        "username": "SpaceGuitarist",
+        "avatar_template": "/user_avatar/forum.magicball.net/spaceguitarist/{size}/28408_2.png",
+        "created_at": "2016-12-15T23:25:56.000Z",
+        "cooked": "<p>Apparently, you have plenty of time during lunch breaks. I suggest you make more hot rabbibunnies in swimsuits montages druing this period. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/roll_eyes.gif?v=12\" title=\":roll_eyes:\" class=\"emoji emoji-custom\" alt=\":roll_eyes:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 19,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T19:10:25.904Z",
+        "reply_count": 0,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": "SGK",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 822,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/19",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 402998,
+        "name": null,
+        "username": "Wesker",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/w/919ad9/{size}.png",
+        "created_at": "2016-12-18T04:01:21.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"MrQuetch\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n MrQuetch:</div>\n<blockquote>\n<p>You have to hex the files in order to change the color of polys, and then save the file as under a different name with the same lm2 extension.</p>\n</blockquote>\n</aside>\n<p>Is this also possible with Time Commando, MrQuetch? Namely the console versions? Because if thats the case, then I would definitely like to try.</p>",
+        "post_number": 20,
+        "post_type": 1,
+        "posts_count": 29,
+        "updated_at": "2024-10-25T20:05:33.630Z",
+        "reply_count": 0,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 14861,
+        "topic_slug": "lbarchitect-with-the-lba2-scene-editing",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 5491,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lbarchitect-with-the-lba2-scene-editing/14861/20",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      14864,
+      396493,
+      396501,
+      396507,
+      396509,
+      396797,
+      396798,
+      396799,
+      396800,
+      396801,
+      396805,
+      396807,
+      396810,
+      396820,
+      396821,
+      396827,
+      402948,
+      402959,
+      402968,
+      402998,
+      403016,
+      403018,
+      403039,
+      404584,
+      404585,
+      406826,
+      406827,
+      406829,
+      406835
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      4432
+    ],
+    [
+      3,
+      4431
+    ],
+    [
+      6,
+      4386
+    ],
+    [
+      7,
+      4385
+    ],
+    [
+      11,
+      4384
+    ],
+    [
+      12,
+      4383
+    ],
+    [
+      14,
+      4382
+    ],
+    [
+      16,
+      4378
+    ],
+    [
+      17,
+      3348
+    ],
+    [
+      18,
+      3346
+    ],
+    [
+      20,
+      3344
+    ],
+    [
+      21,
+      3338
+    ],
+    [
+      22,
+      3337
+    ],
+    [
+      23,
+      3323
+    ],
+    [
+      24,
+      2935
+    ],
+    [
+      26,
+      1768
+    ],
+    [
+      27,
+      1767
+    ],
+    [
+      28,
+      1763
+    ],
+    [
+      29,
+      1762
+    ]
+  ],
+  "tags_descriptions": {},
+  "fancy_title": "LBArchitect with the LBA2 Scene editing!",
+  "id": 14861,
+  "title": "LBArchitect with the LBA2 Scene editing!",
+  "posts_count": 29,
+  "created_at": "2013-12-25T19:32:29.000Z",
+  "views": 17546,
+  "reply_count": 22,
+  "like_count": 0,
+  "last_posted_at": "2021-04-17T15:40:16.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "lbarchitect-with-the-lba2-scene-editing",
+  "category_id": 50,
+  "word_count": 4771,
+  "deleted_at": null,
+  "user_id": 184,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_14861",
+  "draft_sequence": 0,
+  "posted": false,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 29,
+  "last_read_post_number": 7,
+  "last_read_post_id": 396798,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 5,
+  "participant_count": 10,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "notifications_reason_id": null,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 2162,
+        "username": "Polaris",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "post_count": 7,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 3
+      },
+      {
+        "id": 184,
+        "username": "Zink",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "post_count": 6,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 5491,
+        "username": "Wesker",
+        "name": null,
+        "avatar_template": "/letter_avatar_proxy/v4/letter/w/919ad9/{size}.png",
+        "post_count": 5,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 822,
+        "username": "SpaceGuitarist",
+        "name": "SGK",
+        "avatar_template": "/user_avatar/forum.magicball.net/spaceguitarist/{size}/28408_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 48,
+        "username": "Darkflame",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/darkflame/{size}/24_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 5200,
+        "username": "marcosmapf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/marcosmapf/{size}/964_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 3256,
+        "username": "Phreak",
+        "name": null,
+        "avatar_template": "/letter_avatar_proxy/v4/letter/p/db5fbb/{size}.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 2425,
+        "username": "Jast",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/jast/{size}/511_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 184,
+      "username": "Zink",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+    },
+    "last_poster": {
+      "id": 3256,
+      "username": "Phreak",
+      "name": null,
+      "avatar_template": "/letter_avatar_proxy/v4/letter/p/db5fbb/{size}.png"
+    },
+    "links": [
+      {
+        "url": "http://moonbase.kazekr.net/d.php?n=LBArchitect_1.0.0_beta9.zip",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 4,
+        "user_id": 184,
+        "domain": "moonbase.kazekr.net",
+        "root_domain": "kazekr.net"
+      },
+      {
+        "url": "https://dl.dropboxusercontent.com/u/6325939/LBArchitect_1.0.0_beta9.zip",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 3,
+        "user_id": 184,
+        "domain": "dl.dropboxusercontent.com",
+        "root_domain": "dropboxusercontent.com"
+      }
+    ]
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

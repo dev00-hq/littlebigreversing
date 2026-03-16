@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "generated_at": "2026-02-13T01:31:28Z",
+  "schemas": {
+    "analysis_record": {
+      "required": [
+        "record_id",
+        "record_type",
+        "text",
+        "metadata",
+        "provenance"
+      ],
+      "optional": [
+        "topic_id",
+        "post_id"
+      ]
+    },
+    "claim_record": {
+      "required": [
+        "claim_id",
+        "claim_kind",
+        "claim_text",
+        "entities",
+        "confidence",
+        "evidence_refs",
+        "provenance"
+      ],
+      "optional": [
+        "topic_id",
+        "post_id"
+      ]
+    },
+    "topic_card": {
+      "required": [
+        "topic_id",
+        "title",
+        "labels",
+        "summary",
+        "key_claims",
+        "tools",
+        "formats",
+        "workflows",
+        "risks"
+      ],
+      "optional": [
+        "metadata"
+      ]
+    },
+    "run_manifest": {
+      "required": [
+        "run_id",
+        "input_scope",
+        "started_at",
+        "stages"
+      ],
+      "optional": [
+        "finished_at"
+      ]
+    }
+  }
+}

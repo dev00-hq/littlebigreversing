@@ -1,0 +1,1779 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 12685,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2009-03-04T21:22:29.000Z",
+        "cooked": "<p>Uhm, I searched through the forums, I found nothing about this so I decided to open a new thread.</p>\n<p>Does anyone know where is all the info about projectiles stored in LBA2?<br>\nIf so, would it be possible to swap them with other ones?<br>\nFor example swapping pistolaser shots with rockets, or Funfrocks fireballs with Franco grenades<br>\nAnd with that I dont mean swapping their models, as I can do that easily</p>\n<p>Oh, and who can explain me what in the world is ANIMS3D.HQR for? I tried swapping some entries but nothing seems to change.</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T15:26:08.392Z",
+        "reply_count": 13,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 65.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 339481,
+        "name": null,
+        "username": "Dino-Fly",
+        "avatar_template": "/user_avatar/forum.magicball.net/dino-fly/{size}/497_2.png",
+        "created_at": "2009-03-04T21:36:53.000Z",
+        "cooked": "<p>I think ANIMS3D.HQR is for the high-def videos, not sure though.</p>\n<p>And its impossible to swap projectiles, soz.<img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:32:32.683Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2356,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 339484,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2009-03-04T21:53:15.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"Dino-Fly\" data-post=\"2\" data-topic=\"12682\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n<img loading=\"lazy\" alt=\"\" width=\"24\" height=\"24\" src=\"//forum.magicball.net/user_avatar/localhost/dino-fly/48/497_2.png\" class=\"avatar\"> Dino-Fly:</div>\n<blockquote>\n<p>I think ANIMS3D.HQR is for the high-def videos, not sure though.</p>\n<p>And its impossible to swap projectiles, soz.<img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n</blockquote>\n</aside>\n<p>Aw, that sucks. It was something that I always wished to do. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>I dont think ANIMS3D is for the videos, since the first two entries are labeled Twinsen walking and Twinsen running, yet I higly doubt it contains the animations used for character models, there already is ANIMS.HQR for that<img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/face_with_diagonal_mouth.png?v=12\" title=\":face_with_diagonal_mouth:\" class=\"emoji emoji-custom\" alt=\":face_with_diagonal_mouth:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T19:58:30.690Z",
+        "reply_count": 0,
+        "reply_to_post_number": 2,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 339536,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2009-03-06T13:40:47.000Z",
+        "cooked": "<p>But the projectile image is just a sprite, isnt it? It is in LBA 1, where I was able to replace the magic ball with a different image. (Though I couldnt change the physics.)</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:32:34.582Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 339539,
+        "name": null,
+        "username": "LBAWinOwns",
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "created_at": "2009-03-06T13:58:49.000Z",
+        "cooked": "<p>Yes.</p>\n<p>That is correct for LBA 1.</p>\n<p>As for LBA2, please remember that their ought to be redundancy (I assume) for all objects that exist in both the isometric and the real 3D view. They are stored differently. (I think)</p>\n<p>Well I guess you can wait for someone more experienced to answer, who doesnt just speculate <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:32:34.689Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 967,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 339540,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2009-03-06T13:59:54.000Z",
+        "cooked": "<p>I dont think that the magic ball outside is three-dimensional, you cant really see it in different lighting/from different angles than inside.</p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:32:34.722Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 339545,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2009-03-06T15:08:17.000Z",
+        "cooked": "<p>Some of the projectiles are 3D (lasers, darts probably), and others are 2D (magic ball, blowgun balls). The trajectories and damage are probably hard-coded in the game, so no change is possible.</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:32:34.874Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 339552,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2009-03-06T21:24:32.000Z",
+        "cooked": "<p>I know I can change their appearance but replacing the darts with the groboclone rockets is good for a laugh and nothing more, since they still act like darts. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"><br>\nYeah, I was afraid that they were hard coded. Oh well.</p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:32:35.093Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 341872,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2009-04-18T14:53:34.000Z",
+        "cooked": "<p>In LBA1 and 2 there are a lot of common things split in various files.</p>\n<p>The Projectiles information in LBA (1&amp;2) are stored under Animation Actions. This actions are in different places from both games. In LBA1 it is on FILE3D.HQR and in LBA2 is only store at 1 single entry at RESS.HQR (<span class=\"hashtag-raw\">#45</span>)</p>\n<p>The animations tells the engine it have a projectile of a type to be throw in a certain keyframe with a 3D object or sprite. You can swap sprites or 3D objects from projectiles but it will make the entire game to use that change. So, if you want to make a change in only 1 animation you will need to change those entries above.</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:33:56.570Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 364564,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2011-04-22T21:20:39.000Z",
+        "cooked": "<p>Sorry to be a thread necromancer (on my own thread nonetheless) , but Im having my annual urge to play/screw with LBA2 and yep, you guessed it. Im STILL trying to figure out how to edit projectiles <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>So, I get that projectile information is stored on entry 45 of RESS.hqr<br>\nIs there any way a mere mortal with no hacking skills can edit this information?</p>\n<p>Alexfonts answer seemed to imply that it was possible, but after messing around with programs like LBA pack editor and the likes I got nothing. If anyone is able and willing to clarify that for me it would be much appreciated!<img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:47:24.967Z",
+        "reply_count": 0,
+        "reply_to_post_number": 9,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 463,
+          "username": "xesf",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 364602,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2011-04-25T13:39:02.000Z",
+        "cooked": "<p>From what I understand the animation contains information what projectile to fire and at what frame. So if you want to change a projectile for an animation to another one, you will rather have to edit the animations, not projectiles themselves. As far as I know we dont have any editor for LBA 2 animations, so you would have to hex-edit them, and I dont know if we have the file format description anywhere.</p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:47:26.377Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 364606,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2011-04-25T15:23:13.000Z",
+        "cooked": "<p>yes, we dont have yet that format, but its almost identical to LBA1 file. There are some programs, the ones that shows LBA2 objects, that have partially loaded this file. I will try to grab some more info for you.</p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:47:26.531Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 364804,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2011-05-09T18:49:50.000Z",
+        "cooked": "<p>That would be super. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"> Much appreciated.</p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:47:33.883Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 364955,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2011-05-21T15:10:37.000Z",
+        "cooked": "<p>The actual projectile sprites are in SPRITES.HQR and SPRIRAW.HQR. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 14,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:47:39.375Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/14",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 365030,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2011-05-23T22:34:32.000Z",
+        "cooked": "<p>Im not interested in the sprites as much as the projectiles themselves. I know I can make a dart look like a rocket, but it wont explode on impact like one. Thats what Id like to do.</p>",
+        "post_number": 15,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:47:42.087Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/15",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 365167,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2011-05-28T23:07:23.000Z",
+        "cooked": "<p>- Lawrence: That information is in FILE3D.HQR. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 16,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T18:47:46.971Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 12682,
+        "topic_slug": "question-about-projectiles-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/question-about-projectiles-lba2/12682/16",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      12685,
+      339481,
+      339484,
+      339536,
+      339539,
+      339540,
+      339545,
+      339552,
+      341872,
+      364564,
+      364602,
+      364606,
+      364804,
+      364955,
+      365030,
+      365167
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      6189
+    ],
+    [
+      4,
+      6187
+    ],
+    [
+      9,
+      6144
+    ],
+    [
+      10,
+      5410
+    ],
+    [
+      11,
+      5407
+    ],
+    [
+      13,
+      5393
+    ],
+    [
+      14,
+      5381
+    ],
+    [
+      15,
+      5379
+    ],
+    [
+      16,
+      5374
+    ]
+  ],
+  "suggested_topics": [],
+  "tags_descriptions": {},
+  "fancy_title": "Question about projectiles (LBA2)",
+  "id": 12682,
+  "title": "Question about projectiles (LBA2)",
+  "posts_count": 16,
+  "created_at": "2009-03-04T21:22:29.000Z",
+  "views": 3666,
+  "reply_count": 15,
+  "like_count": 0,
+  "last_posted_at": "2011-05-28T23:07:23.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "question-about-projectiles-lba2",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 3071,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_12682",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 16,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 7,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 3071,
+        "username": "Lawrence",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "post_count": 6,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 184,
+        "username": "Zink",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 1918,
+        "username": "Kobold",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 2356,
+        "username": "Dino-Fly",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/dino-fly/{size}/497_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 967,
+        "username": "LBAWinOwns",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 3071,
+      "username": "Lawrence",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+    },
+    "last_poster": {
+      "id": 1016,
+      "username": "Battler",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

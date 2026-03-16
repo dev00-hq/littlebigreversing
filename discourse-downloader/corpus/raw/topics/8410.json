@@ -1,0 +1,1775 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 8413,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-04-30T21:32:23.000Z",
+        "cooked": "<p>Yep its true!! Really!<br>\nCheck my sig or go <a href=\"http://lba.fishos.cc/hebrew/\" rel=\"noopener nofollow ugc\">here</a>!</p>\n<p>Have fun playing LBA2 in Hebrew!!</p>\n<p>Id like to give a million thanks to Zink and to OBrasilo. Without their AMAZINGLY good willing and hard working help, this translation would probably never excisted.</p>\n<p>KIFAK HEY to Obras!</p>\n<p>KIFAK HEY to Zink!</p>\n<p>I am very happy now. Yes. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>The translators are morshem and myself.</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T15:22:48.124Z",
+        "reply_count": 10,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 7,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 85.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://lba.fishos.cc/hebrew/",
+            "internal": false,
+            "reflection": false,
+            "title": "fishos.cc",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/need-some-help-with-translate-lba/8452/2",
+            "internal": true,
+            "reflection": true,
+            "title": "need some help with Translate LBA",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-hebrew-community/8411/15",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Hebrew Community",
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 218792,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-04-30T22:00:10.000Z",
+        "cooked": "<p>- ChaosFish: I know a way to modify the characters available for input on LBA 1 New Game. If you want, I can post some screenshots of the modified character table.</p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:39.603Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 2,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 15.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218793,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-04-30T22:10:12.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"OBrasilo\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n OBrasilo:</div>\n<blockquote>\n<ul>\n<li>ChaosFish: I know a way to modify the characters available for input on LBA 1 New Game. If you want, I can post some screenshots of the modified character table.</li>\n</ul>\n</blockquote>\n</aside>\n<p>Im sorry, but I didnt get a word <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/blush.png?v=12\" title=\":blush:\" class=\"emoji emoji-custom\" alt=\":blush:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:39.650Z",
+        "reply_count": 0,
+        "reply_to_post_number": 2,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218798,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-04-30T22:43:55.000Z",
+        "cooked": "<p>- ChaosFish: In LBA 1, when you specify New Game, you see a text field and a character table below it, right? Well, in it, normally, there are English letter. But I found a way of modifying it.</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:39.850Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218800,
+        "name": null,
+        "username": "Reek",
+        "avatar_template": "/user_avatar/forum.magicball.net/reek/{size}/115_2.png",
+        "created_at": "2005-04-30T23:14:44.000Z",
+        "cooked": "<p>Woo, nice.</p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:39.917Z",
+        "reply_count": 0,
+        "reply_to_post_number": 4,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 397,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218810,
+        "name": null,
+        "username": "Illumina",
+        "avatar_template": "/user_avatar/forum.magicball.net/illumina/{size}/95_2.png",
+        "created_at": "2005-05-01T04:21:59.000Z",
+        "cooked": "<p>That was a splendid work through time and effort, ChaosFish! Great work! I thought it could be difficult to translate games to hebrew, but OBrasilo and Zink made nothing which was impossible. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:40.282Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 2,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 288,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218830,
+        "name": null,
+        "username": "morshem",
+        "avatar_template": "/user_avatar/forum.magicball.net/morshem/{size}/54_2.png",
+        "created_at": "2005-05-01T14:16:16.000Z",
+        "cooked": "<p>I dreamt tonight that I got angry at Chaos because he didnt put my name in the credits in this thread.</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:41.011Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 159,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218833,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2005-05-01T14:23:27.000Z",
+        "cooked": "<p>Congrats to all <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:41.111Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218845,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-05-01T17:11:52.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"OBrasilo\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n OBrasilo:</div>\n<blockquote>\n<ul>\n<li>ChaosFish: In LBA 1, when you specify New Game, you see a text field and a character table below it, right? Well, in it, normally, there are English letter. But I found a way of modifying it.</li>\n</ul>\n</blockquote>\n</aside>\n<p>In LbaWin you only need to press RightAtl+RightShift and you write in Hebrew. (works on almost all Israeli computers)</p>\n<aside class=\"quote no-group\" data-username=\"morshem\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n<img loading=\"lazy\" alt=\"\" width=\"24\" height=\"24\" src=\"//forum.magicball.net/user_avatar/localhost/morshem/48/54_2.png\" class=\"avatar\"> morshem:</div>\n<blockquote>\n<p>I dreamt tonight that I got angry at Chaos because he didnt put my name in the credits in this thread.</p>\n</blockquote>\n</aside>\n<p>But I did!!!</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:41.532Z",
+        "reply_count": 0,
+        "reply_to_post_number": 7,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 159,
+          "username": "morshem",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/morshem/{size}/54_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218854,
+        "name": null,
+        "username": "morshem",
+        "avatar_template": "/user_avatar/forum.magicball.net/morshem/{size}/54_2.png",
+        "created_at": "2005-05-01T19:21:35.000Z",
+        "cooked": "<ol>\n<li>\n<p>I think he meant all the letters that you see there in the boxes, that you can change that.</p>\n</li>\n<li>\n<p>yeah, but the first time I saw this thread was in the middle of the night, I was half asleep, and I didnt notice that you put my name in the end (and in brackets) <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n</li>\n</ol>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:41.846Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 159,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218860,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-05-01T20:05:56.000Z",
+        "cooked": "<p>I mean exactly what morshem said - all the letters that you can see there in the boxes, I know a way for chaning them. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:42.042Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 3,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 20.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218865,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-05-01T20:23:29.000Z",
+        "cooked": "<p>Oh ok! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>What is the way? What file is needed to be changed?</p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:42.243Z",
+        "reply_count": 0,
+        "reply_to_post_number": 11,
+        "quote_count": 0,
+        "incoming_link_count": 2,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 218903,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-05-02T09:01:43.000Z",
+        "cooked": "<p>- ChaosFish: LBA.EXE or RELENT.EXE. So, a patch will be needed (if you want the characters to be changed). <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:43.640Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 2,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 15.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 219063,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-05-03T18:24:24.000Z",
+        "cooked": "<p>Hebrew people:</p>\n<p>Is it too much to ask for some feedback? A comment? Anything?</p>\n<p>It feels like no one has even tried playing with the translation</p>",
+        "post_number": 14,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:49.177Z",
+        "reply_count": 0,
+        "reply_to_post_number": 13,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/14",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 219065,
+        "name": null,
+        "username": "morshem",
+        "avatar_template": "/user_avatar/forum.magicball.net/morshem/{size}/54_2.png",
+        "created_at": "2005-05-03T18:25:59.000Z",
+        "cooked": "<p>Its really suck! Who the hell translated it? <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>Good enough? <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 15,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:49.249Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 159,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/15",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 219071,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-05-03T18:30:04.000Z",
+        "cooked": "<p>Yeah it would have been good enough if it was a real comment.</p>",
+        "post_number": 16,
+        "post_type": 1,
+        "posts_count": 16,
+        "updated_at": "2024-10-25T17:19:49.459Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8410,
+        "topic_slug": "lba2-is-now-in-full-hebrew",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-is-now-in-full-hebrew/8410/16",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      8413,
+      218792,
+      218793,
+      218798,
+      218800,
+      218810,
+      218830,
+      218833,
+      218845,
+      218854,
+      218860,
+      218865,
+      218903,
+      219063,
+      219065,
+      219071
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      7593
+    ],
+    [
+      7,
+      7592
+    ],
+    [
+      14,
+      7590
+    ]
+  ],
+  "suggested_topics": [],
+  "tags_descriptions": {},
+  "fancy_title": "LBA2 is now in full Hebrew!!   !",
+  "id": 8410,
+  "title": "LBA2 is now in full Hebrew!!   !",
+  "posts_count": 16,
+  "created_at": "2005-04-30T21:32:23.000Z",
+  "views": 3024,
+  "reply_count": 15,
+  "like_count": 0,
+  "last_posted_at": "2005-05-03T18:30:04.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "lba2-is-now-in-full-hebrew",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 2,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_8410",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 16,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 6,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 2,
+        "username": "ChaosFish",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "post_count": 6,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 4,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 159,
+        "username": "morshem",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/morshem/{size}/54_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 288,
+        "username": "Illumina",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/illumina/{size}/95_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 397,
+        "username": "Reek",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/reek/{size}/115_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      }
+    ],
+    "created_by": {
+      "id": 2,
+      "username": "ChaosFish",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+    },
+    "last_poster": {
+      "id": 2,
+      "username": "ChaosFish",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

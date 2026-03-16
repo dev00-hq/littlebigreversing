@@ -1,0 +1,125 @@
+{
+  "run_id": "20260213T000001Z",
+  "input_scope": "index_normalized",
+  "options": {
+    "stage_target": 5,
+    "resume": false,
+    "chunk_size": 250,
+    "limits": {
+      "max_records": 50000,
+      "max_bytes": 52428800,
+      "max_entities": 25000
+    }
+  },
+  "started_at": "2026-02-13T01:31:28Z",
+  "stages": {
+    "0": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:31:28Z",
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/runs/20260213T000001Z/schema_registry.json",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/runs/20260213T000001Z/sampling_policy.json"
+      ],
+      "finished_at": "2026-02-13T01:31:28Z"
+    },
+    "1": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:31:28Z",
+      "metrics": {
+        "records_emitted": 9612,
+        "bytes_parsed": 3389223,
+        "chunks_flushed": 39,
+        "sources_completed": 9,
+        "limit_hit": null
+      },
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage1_records.jsonl"
+      ],
+      "finished_at": "2026-02-13T01:31:30Z"
+    },
+    "2": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:31:30Z",
+      "metrics": {
+        "records_processed": 9612,
+        "claims_emitted": 6592,
+        "entities_emitted": 12157,
+        "duplicate_claims": 0,
+        "duplicate_entities": 0,
+        "chunks_flushed": 74,
+        "limit_hit": null
+      },
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage2_claims.jsonl",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/stage2_entities.jsonl"
+      ],
+      "finished_at": "2026-02-13T01:31:33Z"
+    },
+    "3": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:31:34Z",
+      "metrics": {
+        "claims_processed": 2764,
+        "topic_cards": 170,
+        "chunks_flushed": 11
+      },
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/topic_cards.jsonl"
+      ],
+      "finished_at": "2026-02-13T01:31:34Z"
+    },
+    "4": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:31:34Z",
+      "metrics": {
+        "skipped": true,
+        "reason": "input_scope does not include raw corpus"
+      },
+      "outputs": [],
+      "finished_at": "2026-02-13T01:31:34Z"
+    },
+    "5": {
+      "status": "completed",
+      "started_at": "2026-02-13T01:31:34Z",
+      "metrics": {
+        "run_id": "20260213T000001Z",
+        "generated_at": "2026-02-13T01:31:34Z",
+        "coverage": {
+          "stage1_records": 9612,
+          "claims": 6592,
+          "entities": 12157,
+          "topic_cards": 170
+        },
+        "duplicate_claim_ratio": 0.0,
+        "provenance_completeness": {
+          "total": 6592,
+          "complete": 6592,
+          "ratio": 1.0
+        },
+        "confidence_distribution": {
+          "0.0-0.39": 0,
+          "0.4-0.59": 5195,
+          "0.6-0.79": 207,
+          "0.8-1.0": 1190
+        },
+        "drift": {
+          "has_previous": true,
+          "previous_snapshot": "runs/20260212T232146Z/canonical_claim_ids.txt",
+          "added": 0,
+          "removed": 649,
+          "unchanged": 6592
+        }
+      },
+      "outputs": [
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/index/by_topic_id.json",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/index/by_kind.json",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/index/by_entity.json",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/analysis/index/confidence_distribution.json",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/runs/20260213T000001Z/quality_report.json",
+        "/Users/sebastian.matus/repos/lba2/discourse-downloader/runs/20260213T000001Z/canonical_claim_ids.txt"
+      ],
+      "finished_at": "2026-02-13T01:31:34Z"
+    }
+  },
+  "finished_at": "2026-02-13T01:31:34Z"
+}

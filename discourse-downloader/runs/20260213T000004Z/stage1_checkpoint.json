@@ -1,0 +1,14 @@
+{
+  "source_index": 0,
+  "cursors": {
+    "/Users/sebastian.matus/repos/lba2/discourse-downloader/corpus/index/topics_discovered.jsonl": 1
+  },
+  "metrics": {
+    "records_emitted": 1,
+    "bytes_parsed": 447,
+    "chunks_flushed": 1,
+    "sources_completed": 0,
+    "limit_hit": "max_records"
+  },
+  "completed": false
+}

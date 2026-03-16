@@ -1,0 +1,13 @@
+{
+  "cursor": 1,
+  "metrics": {
+    "records_processed": 1,
+    "claims_emitted": 0,
+    "entities_emitted": 0,
+    "duplicate_claims": 0,
+    "duplicate_entities": 0,
+    "chunks_flushed": 0,
+    "limit_hit": "max_records"
+  },
+  "completed": false
+}

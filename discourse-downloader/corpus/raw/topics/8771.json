@@ -1,0 +1,2458 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 8774,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-08-21T15:47:24.000Z",
+        "cooked": "<p>Yes, I promised it 18 months ago (when I mentioned it on my first site as LBA 2 Island Height Map Viewer), and here it is now.</p>\n<h1><a name=\"p-8774-blba-2-island-polygon-viewer-version-001-betab-1\" class=\"anchor\" href=\"#p-8774-blba-2-island-polygon-viewer-version-001-betab-1\"></a><span class=\"bbcode-b\">LBA 2 Island Polygon Viewer version 0.01 Beta</span></h1>\n<p>Current features:</p>\n<ul>\n<li>Loading directly from .ILE files;</li>\n<li>Viewing each part from 4 different angles.</li>\n</ul>\n<p>Things to do:</p>\n<ul>\n<li>Viewing the whole island in one piece;</li>\n<li>Viewing textures, clound and sea data, etc.;</li>\n<li>Editing islands.</li>\n</ul>\n<h2><a name=\"p-8774-how-this-program-works-2\" class=\"anchor\" href=\"#p-8774-how-this-program-works-2\"></a>How this program works</h2>\n<p>You load a LBA 2 .ILE file. The program will automatically draw the first area. You can change areas with the vertical scroll bar near the text box. You can change the angle of view with the horizontal scroll bar under the Rotate: label. You will see a polygon drawn in the picture box on the right of the window.</p>\n<h2><a name=\"p-8774-credits-3\" class=\"anchor\" href=\"#p-8774-credits-3\"></a>Credits</h2>\n<p>Me (OBrasilo): for starting the program and general coding.<br>\nKrzysztof Adamczewski (kat15pl): for supporting me with this program.</p>\n<p>Here is the program: <a href=\"http://www.obrasilero.com/ILEView.zip\" rel=\"noopener nofollow ugc\">http://www.obrasilero.com/ILEView.zip</a>.<br>\nAnd the source code: <a href=\"http://www.obrasilero.com/ILEView-source.zip\" rel=\"noopener nofollow ugc\">http://www.obrasilero.com/ILEView-source.zip</a>.</p>\n<p>Edit: Oh, and BTW, here is a screenshot of the program, when viewing a part of Otringal:<br>\n<span alt=\"\" role=\"presentation\" class=\"broken-image\" title=\"This image is broken\"><svg class=\"fa d-icon d-icon-unlink svg-icon\" aria-hidden=\"true\"><use href=\"#unlink\"></use></svg></span></p>\n<p>Enjoy it. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T15:23:05.114Z",
+        "reply_count": 55,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 11,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 330.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://www.obrasilero.com/ILEView.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 2
+          },
+          {
+            "url": "http://www.obrasilero.com/ILEView-source.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 1
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 227456,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2005-08-21T17:25:29.000Z",
+        "cooked": "<p>This looks great! Good work. I hope it will turn into an editor soon. BTW: You could make displaying all zones at once to make the islands look more natural.</p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:52.349Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227457,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-08-21T18:01:47.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"&quot;&quot;Zink&quot;&quot;\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n \"\"Zink\"\":</div>\n<blockquote>\n<p>This looks great! Good work. I hope it will turn into an editor soon.</p>\n</blockquote>\n</aside>\n<p>Yeah, as soon as me and kat15pl manage to write some code to display textures on the islands, then yes, I will make it and editor.</p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>BTW: You could make displaying all zones at once to make the islands look more natural.</p>\n</blockquote>\n</aside>\n<p>Well youre right about that. Besides, I already mentioned it in my post above:</p>\n<aside class=\"quote no-group\" data-username=\"&quot;&quot;myself&quot;&quot;\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n \"\"myself\"\":</div>\n<blockquote>\n<p>Things to do:</p>\n<ul>\n<li>Viewing the whole island in one piece;</li>\n</ul>\n</blockquote>\n</aside>\n<p>So yeah, in the next version, the whole islands will be displayed, in one piece. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:52.389Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227465,
+        "name": null,
+        "username": "DJT",
+        "avatar_template": "/user_avatar/forum.magicball.net/djt/{size}/26058_2.png",
+        "created_at": "2005-08-21T19:11:34.000Z",
+        "cooked": "<p>So could this eventually be used as a way to create your own islands for LBA?</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:52.700Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 301,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227468,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-08-21T19:25:39.000Z",
+        "cooked": "<p>- Double-J: But of course! One, when it will be an editor, you will be able to make your own LBA 2 islands. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:52.813Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227483,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2005-08-21T22:10:11.000Z",
+        "cooked": "<p>Wow this is so cool! You keep up that amazing work there Obras!</p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:53.351Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227486,
+        "name": null,
+        "username": "DJT",
+        "avatar_template": "/user_avatar/forum.magicball.net/djt/{size}/26058_2.png",
+        "created_at": "2005-08-22T00:01:48.000Z",
+        "cooked": "<p>Awesome!</p>\n<p>So, theoretically, wouldnt it be possible to construct a whole new game, or actually add islands into LBA 2, as an extended cut (as long as it used LBA 2 models)? Could we finally see Principle Island in LBA 2? Would it be possible for someone to edit the game sequence where you could take a ferry from Desert Island to Principle Island and actually interact with the characters?</p>\n<p>That would be awesome!</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:53.456Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 301,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227518,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2005-08-22T12:05:28.000Z",
+        "cooked": "<p>Nice work indeed!!!<br>\nIts a great thing to start but would it be excelent to have it in a 3D engine <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:54.611Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227538,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-08-22T15:22:22.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"&quot;&quot;ChaosFish&quot;&quot;\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n \"\"ChaosFish\"\":</div>\n<blockquote>\n<p>Wow this is so cool! You keep up that amazing work there Obras!</p>\n</blockquote>\n</aside>\n<p>Yeah, of course! Next version will also have Zoom (4 different zooms).</p>\n<aside class=\"quote no-group\" data-username=\"&quot;&quot;Double-J&quot;&quot;\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n \"\"Double-J\"\":</div>\n<blockquote>\n<p>Awesome!</p>\n<p>So, theoretically, wouldnt it be possible to construct a whole new game, or actually add islands into LBA 2, as an extended cut (as long as it used LBA 2 models)? Could we finally see Principle Island in LBA 2? Would it be possible for someone to edit the game sequence where you could take a ferry from Desert Island to Principle Island and actually interact with the characters?</p>\n<p>That would be awesome!</p>\n</blockquote>\n</aside>\n<p>Yeah, but of course! Only I have to make my program an editor (this will be as soon as I discover how the other data for each part is stored), then yes, it will be possible to make new islands for LBA 2, etc. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>Nice work indeed!!!<br>\nIts a great thing to start but would it be excelent to have it in a 3D engine <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n</blockquote>\n</aside>\n<p>Yeah, youre right. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:55.356Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227541,
+        "name": null,
+        "username": "DJT",
+        "avatar_template": "/user_avatar/forum.magicball.net/djt/{size}/26058_2.png",
+        "created_at": "2005-08-22T16:54:43.000Z",
+        "cooked": "<p>Obras for member of the year simply for this program! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:55.466Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 301,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227582,
+        "name": null,
+        "username": "Golemboy",
+        "avatar_template": "/user_avatar/forum.magicball.net/golemboy/{size}/191_2.png",
+        "created_at": "2005-08-23T11:42:00.000Z",
+        "cooked": "<p>Oh my god, its finally come! May your loins be full of fruit, oBras!</p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:56.963Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 874,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227583,
+        "name": null,
+        "username": "Bot13",
+        "avatar_template": "/user_avatar/forum.magicball.net/bot13/{size}/235_2.png",
+        "created_at": "2005-08-23T11:51:28.000Z",
+        "cooked": "<p>Hmm, I dont have any lba2 files installed, could anyone make some more screenshots <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"> ?</p>\n<p>Btw Obras, your a genious <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:57.013Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1164,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227586,
+        "name": null,
+        "username": "DJT",
+        "avatar_template": "/user_avatar/forum.magicball.net/djt/{size}/26058_2.png",
+        "created_at": "2005-08-23T12:18:49.000Z",
+        "cooked": "<p>This could be the way to make a quick LBA 3-type game without a new enginewe could recycle most of the stuff from LBA 2 (and maybe add new textures and models and whatnot?) and then just re-record voices and whatnot to make another LBA game!</p>\n<p>Unless Im off base here</p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:57.132Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 301,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227587,
+        "name": null,
+        "username": "LBAWinOwns",
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "created_at": "2005-08-23T12:32:00.000Z",
+        "cooked": "<p>good work <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 14,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:57.165Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 967,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/14",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227595,
+        "name": "",
+        "username": "Joasia",
+        "avatar_template": "/user_avatar/forum.magicball.net/joasia/{size}/24511_2.png",
+        "created_at": "2005-08-23T13:24:27.000Z",
+        "cooked": "<p>Obrasilo - I have a question, is your viewer capable of exporting the height map to a bitmap? This, along with the amount/size of triangles could be <span class=\"bbcode-i\">very</span> handy :D.</p>",
+        "post_number": 15,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:57.464Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": "staff",
+        "flair_url": "/uploads/default/original/3X/5/5/559743aa44a0676e04be9d54425231def12069c1.png",
+        "flair_bg_color": "",
+        "flair_color": "",
+        "flair_group_id": 3,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "",
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": true,
+        "admin": false,
+        "staff": true,
+        "user_id": 711,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/15",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227599,
+        "name": null,
+        "username": "the_angry_monkey",
+        "avatar_template": "/user_avatar/forum.magicball.net/the_angry_monkey/{size}/74_2.png",
+        "created_at": "2005-08-23T14:08:47.000Z",
+        "cooked": "<p>Brilliant work there Obras - your skills seem to know no limit <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"> Keep it up</p>",
+        "post_number": 16,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:57.605Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 220,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/16",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227604,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-08-23T14:28:29.000Z",
+        "cooked": "<p>- Bot13: OK, heres another screenshot (this one from the (still unreleased) version 0.02, when viewing a part of Citadel Island):<br>\n<span alt=\"\" role=\"presentation\" class=\"broken-image\" title=\"This image is broken\"><svg class=\"fa d-icon d-icon-unlink svg-icon\" aria-hidden=\"true\"><use href=\"#unlink\"></use></svg></span></p>\n<p>And thanks to everyone else for the compliments I receiver here. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"> New version (0.02) coming today. Still only viewer, but now with zoom, specifying lines-per-point, etc.</p>",
+        "post_number": 17,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:57.780Z",
+        "reply_count": 2,
+        "reply_to_post_number": 14,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 967,
+          "username": "LBAWinOwns",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/17",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227612,
+        "name": null,
+        "username": "MuhMuh",
+        "avatar_template": "/user_avatar/forum.magicball.net/muhmuh/{size}/263_2.png",
+        "created_at": "2005-08-23T15:09:32.000Z",
+        "cooked": "<p>WOW! Will we be able to use high-resolution textures? <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"> I think everything would look much better with better textures. And if we could export the maps to other Programs it would be much easier to make fangames.</p>",
+        "post_number": 18,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:58.058Z",
+        "reply_count": 0,
+        "reply_to_post_number": 17,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1316,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/18",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227620,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2005-08-23T17:33:04.000Z",
+        "cooked": "<h1><a name=\"p-227620-blba-2-island-polygon-viewer-version-002-betab-1\" class=\"anchor\" href=\"#p-227620-blba-2-island-polygon-viewer-version-002-betab-1\"></a><span class=\"bbcode-b\">LBA 2 Island Polygon Viewer version 0.02 Beta</span></h1>\n<p>New features:</p>\n<ul>\n<li>Option to change the amount of lines/triangles per point;</li>\n<li>Four different zooms;</li>\n<li>Controls are now disabled until a file is open;</li>\n<li>Whenever its needed to re-draw the polygon, the drawing procedure is now called (before, all instances had the drawing code);</li>\n<li>Removed the grid;</li>\n<li>Fixed program crash, when you press Cancel in the Load Island dialog box;</li>\n<li>Exporting polygons to .BMP pictures.</li>\n</ul>\n<p>Current features:</p>\n<ul>\n<li>Loading directly from .ILE files;</li>\n<li>Viewing each part from 4 different angles.</li>\n</ul>\n<p>Things to do:</p>\n<ul>\n<li>Displaying only what should be visible (currently (as well as in version 0.01), the parts that should be covered (because theyre behind our viewpoint) are still drawn);</li>\n<li>Viewing the whole island in one piece;</li>\n<li>Viewing textures, clound and sea data, etc.;</li>\n<li>Editing islands.</li>\n</ul>\n<h2><a name=\"p-227620-how-this-program-works-2\" class=\"anchor\" href=\"#p-227620-how-this-program-works-2\"></a>How this program works</h2>\n<p>You load a LBA 2 .ILE file. The program will automatically draw the first area. You can change areas with the vertical scroll bar near the text box. You can change the angle of view with the horizontal scroll bar under the Rotate: label. You will see a polygon drawn in the picture box on the right of the window.</p>\n<p>NOTE: When exporting to .BMP, if the polygon is zoomed to 2x default or 4x default, the whole polygon is exported, and not just the part you see in the PictureBox.</p>\n<h2><a name=\"p-227620-credits-3\" class=\"anchor\" href=\"#p-227620-credits-3\"></a>Credits</h2>\n<p>Me (OBrasilo): for starting the program and general coding.<br>\nKrzysztof Adamczewski (kat15pl): for supporting me with this program.</p>\n<pre><code> Here is the program: [http://www.obrasilero.com/ILEView.zip](http://www.obrasilero.com/ILEView.zip).\n And the source code: [http://www.obrasilero.com/ILEView-source.zip](http://www.obrasilero.com/ILEView-source.zip).\n\nEdit: Oh, and BTW, here is a screenshot of this version of the program, when viewing a part of Desert Island:\n</code></pre>\n<p><span alt=\"\" role=\"presentation\" class=\"broken-image\" title=\"This image is broken\"><svg class=\"fa d-icon d-icon-unlink svg-icon\" aria-hidden=\"true\"><use href=\"#unlink\"></use></svg></span></p>",
+        "post_number": 19,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:24:58.370Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/19",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 227703,
+        "name": null,
+        "username": "Golemboy",
+        "avatar_template": "/user_avatar/forum.magicball.net/golemboy/{size}/191_2.png",
+        "created_at": "2005-08-24T19:03:49.000Z",
+        "cooked": "<p>Do you think that in the next version it would be possible to have the window as one where you can drag the image around? Wouldnt it be quite easy - if youre drawing the whole bitmap everytime the zoom or rotation changes and the only displaying that part of the bitmap which falls inside the window with scrolling changes, (I assume you are, anyway) then couldnt at least smooth scrolling could be facilitated?</p>",
+        "post_number": 20,
+        "post_type": 1,
+        "posts_count": 74,
+        "updated_at": "2024-10-25T17:25:01.564Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 8771,
+        "topic_slug": "lba-2-island-polygon-viewer",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 874,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-2-island-polygon-viewer/8771/20",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      8774,
+      227456,
+      227457,
+      227465,
+      227468,
+      227483,
+      227486,
+      227518,
+      227538,
+      227541,
+      227582,
+      227583,
+      227586,
+      227587,
+      227595,
+      227599,
+      227604,
+      227612,
+      227620,
+      227703,
+      227706,
+      227710,
+      227711,
+      227714,
+      227718,
+      227722,
+      227723,
+      227728,
+      227730,
+      227739,
+      227884,
+      227886,
+      227893,
+      227909,
+      227919,
+      228036,
+      228038,
+      228317,
+      228323,
+      228334,
+      228342,
+      228350,
+      228356,
+      228358,
+      228369,
+      228379,
+      228382,
+      228404,
+      228406,
+      228407,
+      228412,
+      228421,
+      228425,
+      228429,
+      228430,
+      228432,
+      228438,
+      228478,
+      228479,
+      228482,
+      228514,
+      228528,
+      228688,
+      228704,
+      228706,
+      228732,
+      228735,
+      228739,
+      229275,
+      233213,
+      233214,
+      233257,
+      233258,
+      233288
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      7480
+    ],
+    [
+      8,
+      7479
+    ],
+    [
+      11,
+      7478
+    ],
+    [
+      20,
+      7477
+    ],
+    [
+      31,
+      7474
+    ],
+    [
+      34,
+      7473
+    ],
+    [
+      36,
+      7471
+    ],
+    [
+      38,
+      7467
+    ],
+    [
+      39,
+      7466
+    ],
+    [
+      48,
+      7465
+    ],
+    [
+      61,
+      7464
+    ],
+    [
+      62,
+      7463
+    ],
+    [
+      63,
+      7460
+    ],
+    [
+      64,
+      7459
+    ],
+    [
+      68,
+      7458
+    ],
+    [
+      69,
+      7448
+    ],
+    [
+      70,
+      7390
+    ]
+  ],
+  "tags_descriptions": {},
+  "fancy_title": "LBA 2 Island Polygon Viewer",
+  "id": 8771,
+  "title": "LBA 2 Island Polygon Viewer",
+  "posts_count": 74,
+  "created_at": "2005-08-21T15:47:24.000Z",
+  "views": 10299,
+  "reply_count": 73,
+  "like_count": 0,
+  "last_posted_at": "2005-11-19T23:48:06.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "lba-2-island-polygon-viewer",
+  "category_id": 50,
+  "word_count": 3587,
+  "deleted_at": null,
+  "user_id": 1016,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_8771",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 74,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 18,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 21,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 1406,
+        "username": "Bender",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/bender/{size}/279_2.png",
+        "post_count": 8,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 2,
+        "username": "ChaosFish",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "post_count": 6,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 301,
+        "username": "DJT",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/djt/{size}/26058_2.png",
+        "post_count": 6,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 1164,
+        "username": "Bot13",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/bot13/{size}/235_2.png",
+        "post_count": 5,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 5,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 1450,
+        "username": "kat15pl",
+        "name": null,
+        "avatar_template": "/letter_avatar_proxy/v4/letter/k/838e76/{size}.png",
+        "post_count": 4,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1376,
+        "username": "Streg",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/streg/{size}/269_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 184,
+        "username": "Zink",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 711,
+        "username": "Joasia",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/joasia/{size}/24511_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": "staff",
+        "flair_url": "/uploads/default/original/3X/5/5/559743aa44a0676e04be9d54425231def12069c1.png",
+        "flair_color": "",
+        "flair_bg_color": "",
+        "flair_group_id": 3,
+        "moderator": true,
+        "trust_level": 3
+      },
+      {
+        "id": 1490,
+        "username": "takashi_maze",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/takashi_maze/{size}/294_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 874,
+        "username": "Golemboy",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/golemboy/{size}/191_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 314,
+        "username": "Panda",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/panda/{size}/102_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 220,
+        "username": "the_angry_monkey",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/the_angry_monkey/{size}/74_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 223,
+        "username": "Lupin",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/lupin/{size}/27801_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 3
+      },
+      {
+        "id": 1316,
+        "username": "MuhMuh",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/muhmuh/{size}/263_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 967,
+        "username": "LBAWinOwns",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 505,
+        "username": "Sniper_Master",
+        "name": "Sniper Master",
+        "avatar_template": "/user_avatar/forum.magicball.net/sniper_master/{size}/131_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 1016,
+      "username": "Battler",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+    },
+    "last_poster": {
+      "id": 1016,
+      "username": "Battler",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+    },
+    "links": [
+      {
+        "url": "http://www.obrasilero.com/ILEView.zip",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 2,
+        "user_id": 1016,
+        "domain": "www.obrasilero.com",
+        "root_domain": "obrasilero.com"
+      },
+      {
+        "url": "http://sf.net/projects/twin-e",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 463,
+        "domain": "sf.net",
+        "root_domain": "sf.net"
+      },
+      {
+        "url": "http://www.obrasilero.com/ILEView-source.zip",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 1016,
+        "domain": "www.obrasilero.com",
+        "root_domain": "obrasilero.com"
+      }
+    ]
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

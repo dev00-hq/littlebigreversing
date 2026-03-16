@@ -1,0 +1,1152 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 15020,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2014-10-29T17:01:11.000Z",
+        "cooked": "<p>First, what is a Visual Novel? Its a novel that is played (read) on a computer, generally drawn in anime/manga style (but can really be drawn in any style you wish), with background images, sound effects, and optionally voices.</p>\n<p>Now that we know the LBA 2 scene format, it should be possible to use the LBA 2 engine as a Visual Novel engine. Why LBA 2 and not LBA 1, one might ask. Well heres why:</p>\n<ol>\n<li>LBA 2 has a neat SCREEN.HQR file where all background images (and their palettes) go, while LBA 1 doesnt (I think LBA 1 is limited to the few images already present in RESS.HQR which makes it inappropriate for Visual Novels);</li>\n<li>LBA 2 uses the Smacker format for the movies, for which the RAD Game Tools can be used, while LBA 1 uses the more confusing .FLA format and FLASAMP.HQR for audio;</li>\n<li>LBA 2 uses higher quality formats for samples and voices;</li>\n<li>LBA 2 uses .WAV for non-CD Audio music, while LBA 1 uses MIDI.</li>\n</ol>\n<p>Now, the only Scene commands wed need for a Visual Novel would pretty much be, display background image, display text, play voice, play movie, show credits (for the end), set/clear flag, and whatever is used to display text choices.</p>\n<p>Granted, there are better, more adapt engines for Visual Novels, designed specifically for that purpose. But it would be fun to try to see if it can really be achieved on the LBA 2 engine.</p>\n<p>A few questions remain:</p>\n<ol>\n<li>Is it possible to have text choices while a background image is displayed? Or does the engine only allow them in the middle of actual gameplay (which wouldnt be used for a Visual Novel)?</li>\n<li>How would saving be handled? In a traditional Visual Novel, you should be able to pretty much save at any point, but Im not sure if the LBA 2 engine allows saving while a background image is being displayed.</li>\n</ol>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T15:28:02.982Z",
+        "reply_count": 9,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 10,
+        "reads": 2,
+        "readers_count": 1,
+        "score": 95.2,
+        "yours": false,
+        "topic_id": 15017,
+        "topic_slug": "using-lba-2-as-a-visual-novel-engine",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/using-lba-2-as-a-visual-novel-engine/15017/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 398794,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2014-10-29T23:53:32.000Z",
+        "cooked": "<p>This sounds interesting. The main problem I see is that text displays over the picture. Uncool to represent the talking character with a layer of text on his head <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/confused.png?v=12\" title=\":confused:\" class=\"emoji emoji-custom\" alt=\":confused:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:07:51.794Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 2,
+        "readers_count": 1,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 15017,
+        "topic_slug": "using-lba-2-as-a-visual-novel-engine",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/using-lba-2-as-a-visual-novel-engine/15017/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 398795,
+        "name": null,
+        "username": "Darkflame",
+        "avatar_template": "/user_avatar/forum.magicball.net/darkflame/{size}/24_2.png",
+        "created_at": "2014-10-30T01:11:25.000Z",
+        "cooked": "<p>This is a crazy idea.<br>\nI like it <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>The other possibility I guess is to look if you can disable movement and fix the camera in the 3d scenes - effectively turning the 3d environments just into still backgrounds.<br>\nOf course, youd then have to do visual novels only set in the games locations, but it might be easier to get the dialogue working at least.</p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:07:51.830Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 2,
+        "readers_count": 1,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 15017,
+        "topic_slug": "using-lba-2-as-a-visual-novel-engine",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 48,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/using-lba-2-as-a-visual-novel-engine/15017/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 398805,
+        "name": null,
+        "username": "marcosmapf",
+        "avatar_template": "/user_avatar/forum.magicball.net/marcosmapf/{size}/964_2.png",
+        "created_at": "2014-10-31T23:58:56.000Z",
+        "cooked": "<p>Thats a very nice idea Battler <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"><br>\nItd different from everything else that Ive read in here so far, at least <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/joy.gif?v=12\" title=\":joy:\" class=\"emoji emoji-custom\" alt=\":joy:\" loading=\"lazy\" width=\"20\" height=\"20\"><br>\nGood luck</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:07:52.171Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 15017,
+        "topic_slug": "using-lba-2-as-a-visual-novel-engine",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 5200,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/using-lba-2-as-a-visual-novel-engine/15017/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 398829,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2014-11-02T14:30:34.000Z",
+        "cooked": "<p>I dont see a problem with text over characters. If any of you have played Umineko no Naku Koro ni or its predecessor, Higurashi no Naku Koro ni, youd know that thats precisely how those visual novels are done.<br>\nPlus, we dont know. Maybe boxed bottom text can be done on a background. Im not sure if text types automatically force bakcground or gameplay. Maybe the two things are handled separately. Im going to experiment a bit now to see what happens if I change a text type on a text usually displayed on a background.</p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:07:52.949Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 15017,
+        "topic_slug": "using-lba-2-as-a-visual-novel-engine",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/using-lba-2-as-a-visual-novel-engine/15017/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 398837,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2014-11-02T18:29:25.000Z",
+        "cooked": "<p>Update: I just tested and boxed text on the bottom on top of a background image IS possible. However, if the text type is set to 1 (Normal), the 3D models and sprites of the scene are still rendered on top of the new background image. Lets try with the Holomap Location text type. Edit: Same.</p>\n<p>Also, if the type is set to Inventory Description, its rendered without a frame but centered on the screen.</p>\n<p>Edit: If the type is 129 (Demo Text), it does exactly what we need. Boxed text on the bottom but none of the scene stuff is rendered!</p>\n<p>Now that we answered the text-related questions, lets go on. Can any kind of 2-D sprites be drawn on top of a background image? I know the game has some (like the LBA 2 and Twinsens Odyssey logos) that get drawn in the corner of a scene, but can they be drawn on top of a background image? And can they be drown on another position on the screen? Having character sprites drawn in one of the top corners would be just bad. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>Edit: Forgot to say, Im trying to update my LBA Text Editor to use my .DLL with the original Adeline compression and decompression implementations, and possibly other things too (maybe non-standard text types too, so we can learn what each does, maybe theres some that we dont even know about), but it seems half of the code is either missing or on some backup DVD so I have to rewrite a lot of code.</p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:07:53.227Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 5.2,
+        "yours": false,
+        "topic_id": 15017,
+        "topic_slug": "using-lba-2-as-a-visual-novel-engine",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/using-lba-2-as-a-visual-novel-engine/15017/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 398848,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2014-11-02T22:36:24.000Z",
+        "cooked": "<p>But if you do a visual novel, why would you put 3D models and sprites in your scene ?<br>\nThus isnt it easier to use text type 1 and switch scenes when you need a 2D sprite on top of it ?</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:07:53.622Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 15017,
+        "topic_slug": "using-lba-2-as-a-visual-novel-engine",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/using-lba-2-as-a-visual-novel-engine/15017/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 398851,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2014-11-02T23:48:05.000Z",
+        "cooked": "<p>- Polaris: The point it, text type 1 evidently requires an actual scene to be up and running. Text type 129, however, does not.</p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:07:53.727Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 15017,
+        "topic_slug": "using-lba-2-as-a-visual-novel-engine",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/using-lba-2-as-a-visual-novel-engine/15017/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 398858,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2014-11-03T09:26:04.000Z",
+        "cooked": "<p>Ah, I see. Couldnt you just make an empty scene then with no 3D models and no sprites ?</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:07:54.018Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 15017,
+        "topic_slug": "using-lba-2-as-a-visual-novel-engine",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/using-lba-2-as-a-visual-novel-engine/15017/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 398862,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2014-11-03T13:59:41.000Z",
+        "cooked": "<p>- Polaris: That is possible, yes. But lets first see if we can draw 2D sprites on top of a background images.</p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:07:54.165Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 15017,
+        "topic_slug": "using-lba-2-as-a-visual-novel-engine",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/using-lba-2-as-a-visual-novel-engine/15017/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      15020,
+      398794,
+      398795,
+      398805,
+      398829,
+      398837,
+      398848,
+      398851,
+      398858,
+      398862
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      4124
+    ],
+    [
+      4,
+      4122
+    ],
+    [
+      5,
+      4120
+    ],
+    [
+      10,
+      4119
+    ]
+  ],
+  "suggested_topics": [],
+  "tags_descriptions": {},
+  "fancy_title": "Using LBA 2 as a Visual Novel engine&hellip;",
+  "id": 15017,
+  "title": "Using LBA 2 as a Visual Novel engine...",
+  "posts_count": 10,
+  "created_at": "2014-10-29T17:01:11.000Z",
+  "views": 3298,
+  "reply_count": 9,
+  "like_count": 0,
+  "last_posted_at": "2014-11-03T13:59:41.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "using-lba-2-as-a-visual-novel-engine",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 1016,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_15017",
+  "draft_sequence": 0,
+  "posted": false,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 10,
+  "last_read_post_number": 3,
+  "last_read_post_id": 398795,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 4,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "notifications_reason_id": null,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 5,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 2162,
+        "username": "Polaris",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 3
+      },
+      {
+        "id": 48,
+        "username": "Darkflame",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/darkflame/{size}/24_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 5200,
+        "username": "marcosmapf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/marcosmapf/{size}/964_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 1016,
+      "username": "Battler",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+    },
+    "last_poster": {
+      "id": 1016,
+      "username": "Battler",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

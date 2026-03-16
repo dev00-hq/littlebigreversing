@@ -1,0 +1,676 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 15056,
+        "name": null,
+        "username": "Benzie101",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/b/b5ac83/{size}.png",
+        "created_at": "2015-02-13T02:26:47.000Z",
+        "cooked": "<p>It appears that you have not posted on our forums in several weeks, try 8 years! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/fearful.png?v=12\" title=\":fearful:\" class=\"emoji emoji-custom\" alt=\":fearful:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>So I did email xesf (alexfont) about this and he pointed me towards what Im sure is useful information, but Im really not that savvy when it comes to programming. Basically what I want to do is convert LBA 1 character models (and hopefully animations) into a more ubiquitous format so that they can be used in Source Film Maker and beyond. I first landed on LBAnimator and found that it could be used to export an AutoCAD (.dxf) file, but when I opened the resutling file I found that this format only contains the model shape and not the rest of the data.</p>\n<p>Xesf pointed me to neolbanet where there are a bunch of tools, among which appears to be an LM1 to OSG converter (<a href=\"https://code.google.com/p/neolbanet/source/browse/#svn%2Ftrunk%2FTools%2Flm1toosg\" rel=\"noopener nofollow ugc\">https://code.google.com/p/neolbanet/source/browse/#svn%2Ftrunk%2FTools%2Flm1toosg</a>) which would be a good step in the right direction but, considering my aforementioned lack of programming knowledge, I do not know how to compile this or whether it can be used to convert the character models (it appears they have only used it to convert the holomap).</p>\n<p>As for converting the animations to DMX files that would be compatible with the hypothetical eventual MDL files, I havent even begun thinking about that one!</p>\n<p>It would be awesome if we could work this out! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>Xesfs info about lm1 files: <a href=\"http://lba.fishos.cc/fileinfo/index.php?file=spec&amp;id=8\" class=\"inline-onebox\" rel=\"noopener nofollow ugc\">fishos.cc</a></p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 5,
+        "updated_at": "2024-10-25T15:28:04.678Z",
+        "reply_count": 4,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 5,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 45.0,
+        "yours": false,
+        "topic_id": 15053,
+        "topic_slug": "convert-lba-lm1-model-files-to-mdl-source",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "https://code.google.com/p/neolbanet/source/browse/#svn%2Ftrunk%2FTools%2Flm1toosg",
+            "internal": false,
+            "reflection": false,
+            "title": "Google Code Archive - Long-term storage for Google Code Project Hosting.",
+            "clicks": 0
+          },
+          {
+            "url": "http://lba.fishos.cc/fileinfo/index.php?file=spec&id=8",
+            "internal": false,
+            "reflection": false,
+            "title": "fishos.cc",
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2367,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/convert-lba-lm1-model-files-to-mdl-source/15053/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 399433,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2015-02-13T04:37:31.000Z",
+        "cooked": "<p>Yeah, not as active as before. We had brave and great times here, though.</p>\n<p>I remember Lupin working on something related to models years ago. I guess he made an exporter as well, but for LBA2. Im sure it is here somewhere in the forum in the LBA online related topics.</p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 5,
+        "updated_at": "2024-10-25T19:08:15.572Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 15053,
+        "topic_slug": "convert-lba-lm1-model-files-to-mdl-source",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2367,
+          "username": "Benzie101",
+          "name": null,
+          "avatar_template": "/letter_avatar_proxy/v4/letter/b/b5ac83/{size}.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/convert-lba-lm1-model-files-to-mdl-source/15053/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 399437,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2015-02-13T23:16:52.000Z",
+        "cooked": "<p>Or maybe try to contact the main guy behind LBAOnline, <a href=\"https://forum.magicball.net/member.php?u=2836\" rel=\"noopener nofollow ugc\">Rincevent_123</a> (he did nearly everything apart from the gui).</p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 5,
+        "updated_at": "2024-10-25T19:08:15.722Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 15053,
+        "topic_slug": "convert-lba-lm1-model-files-to-mdl-source",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "https://forum.magicball.net/member.php?u=2836",
+            "internal": false,
+            "reflection": false,
+            "title": "Magicball Network Forums",
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 2367,
+          "username": "Benzie101",
+          "name": null,
+          "avatar_template": "/letter_avatar_proxy/v4/letter/b/b5ac83/{size}.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/convert-lba-lm1-model-files-to-mdl-source/15053/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 399469,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2015-02-16T20:53:47.000Z",
+        "cooked": "<p>You mean LBANet, because LBAOnline was another project that came a little before LBANet <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 5,
+        "updated_at": "2024-10-25T19:08:16.904Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 5,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 25.0,
+        "yours": false,
+        "topic_id": 15053,
+        "topic_slug": "convert-lba-lm1-model-files-to-mdl-source",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2367,
+          "username": "Benzie101",
+          "name": null,
+          "avatar_template": "/letter_avatar_proxy/v4/letter/b/b5ac83/{size}.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/convert-lba-lm1-model-files-to-mdl-source/15053/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 399471,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2015-02-17T08:57:36.000Z",
+        "cooked": "<p>Yes, LBANet, sorry |)</p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 5,
+        "updated_at": "2024-10-25T19:08:16.972Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 3,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 15.0,
+        "yours": false,
+        "topic_id": 15053,
+        "topic_slug": "convert-lba-lm1-model-files-to-mdl-source",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 2367,
+          "username": "Benzie101",
+          "name": null,
+          "avatar_template": "/letter_avatar_proxy/v4/letter/b/b5ac83/{size}.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/convert-lba-lm1-model-files-to-mdl-source/15053/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      15056,
+      399433,
+      399437,
+      399469,
+      399471
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      4018
+    ],
+    [
+      3,
+      4017
+    ],
+    [
+      4,
+      4014
+    ]
+  ],
+  "suggested_topics": [],
+  "tags_descriptions": {},
+  "fancy_title": "Convert LBA LM1 model files to MDL (source)",
+  "id": 15053,
+  "title": "Convert LBA LM1 model files to MDL (source)",
+  "posts_count": 5,
+  "created_at": "2015-02-13T02:26:47.000Z",
+  "views": 3511,
+  "reply_count": 4,
+  "like_count": 0,
+  "last_posted_at": "2015-02-17T08:57:36.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "convert-lba-lm1-model-files-to-mdl-source",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 2367,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_15053",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 5,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 3,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 2162,
+        "username": "Polaris",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 3
+      },
+      {
+        "id": 2367,
+        "username": "Benzie101",
+        "name": null,
+        "avatar_template": "/letter_avatar_proxy/v4/letter/b/b5ac83/{size}.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 2367,
+      "username": "Benzie101",
+      "name": null,
+      "avatar_template": "/letter_avatar_proxy/v4/letter/b/b5ac83/{size}.png"
+    },
+    "last_poster": {
+      "id": 2162,
+      "username": "Polaris",
+      "name": "",
+      "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

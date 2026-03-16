@@ -1,0 +1,949 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 11399,
+        "name": null,
+        "username": "Nik15",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/n/d9b06d/{size}.png",
+        "created_at": "2007-09-22T09:31:56.000Z",
+        "cooked": "<p>HI all how i can change graphich in LBA2 or  1 i have downloaded programs to edit imeg a others mut how i can open it help me pls:o</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 8,
+        "updated_at": "2024-10-25T15:25:06.582Z",
+        "reply_count": 4,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 20.0,
+        "yours": false,
+        "topic_id": 11396,
+        "topic_slug": "how-i-can-change-graphic-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1548,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/how-i-can-change-graphic-in-lba2/11396/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 300102,
+        "name": null,
+        "username": "LBAWinOwns",
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "created_at": "2007-09-22T11:12:54.000Z",
+        "cooked": "<p>Er</p>\n<p>What Graphics do you precisely wanna edit? Still images or the 3D animated characters?, my program LBA Image Creator can edit almost all still images. If you want to use that one, all you need to know is where your HQR files lies, then the programs interface is quite self explanatory (I think)</p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 8,
+        "updated_at": "2024-10-25T18:08:54.200Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 11396,
+        "topic_slug": "how-i-can-change-graphic-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1548,
+          "username": "Nik15",
+          "name": null,
+          "avatar_template": "/letter_avatar_proxy/v4/letter/n/d9b06d/{size}.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 967,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/how-i-can-change-graphic-in-lba2/11396/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 300117,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2007-09-22T12:01:57.000Z",
+        "cooked": "<p>Just check out the sticky thread in the LBA Modifications forum.</p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 8,
+        "updated_at": "2024-10-25T18:08:54.723Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11396,
+        "topic_slug": "how-i-can-change-graphic-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1548,
+          "username": "Nik15",
+          "name": null,
+          "avatar_template": "/letter_avatar_proxy/v4/letter/n/d9b06d/{size}.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/how-i-can-change-graphic-in-lba2/11396/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 300175,
+        "name": null,
+        "username": "Nik15",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/n/d9b06d/{size}.png",
+        "created_at": "2007-09-22T18:32:23.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"LBAWinOwns\" data-post=\"2\" data-topic=\"11396\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n<img loading=\"lazy\" alt=\"\" width=\"24\" height=\"24\" src=\"//forum.magicball.net/user_avatar/localhost/lbawinowns/48/201_2.png\" class=\"avatar\"> LBAWinOwns:</div>\n<blockquote>\n<p>Er</p>\n<p>What Graphics do you precisely wanna edit? Still images or the 3D animated characters?, my program LBA Image Creator can edit almost all still images. If you want to use that one, all you need to know is where your HQR files lies, then the programs interface is quite self explanatory (I think)</p>\n</blockquote>\n</aside>\n<p>thanks and how i can edit 3d models i have cinema 4d and where is 3d models of lba1,2 ??? (HQR file?)</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 8,
+        "updated_at": "2024-10-25T19:55:13.520Z",
+        "reply_count": 0,
+        "reply_to_post_number": 2,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11396,
+        "topic_slug": "how-i-can-change-graphic-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1548,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/how-i-can-change-graphic-in-lba2/11396/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 300178,
+        "name": null,
+        "username": "LBAWinOwns",
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "created_at": "2007-09-22T18:52:55.000Z",
+        "cooked": "<p>hmm, this is not my subject, but in general we are better in LBA1 modding so far. Alexfont has creator the Animator studio for editing the LBA1 (only??) models. afaik we dont have any converter that you can convert the standard 3d files of other file formats to LBA 3d formats.</p>\n<p>Most LBA modding tools: /t/lba-modifications-quick-start-modding-tools-updated-01-04-2009/6279/1</p>\n<p>LBA File Information (for your question where the 3d models lies): <a href=\"http://lba.fishos.cc/fileinfo/\" class=\"inline-onebox\" rel=\"noopener nofollow ugc\">fishos.cc</a></p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 8,
+        "updated_at": "2024-10-25T19:55:13.561Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 11396,
+        "topic_slug": "how-i-can-change-graphic-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://lba.fishos.cc/fileinfo/",
+            "internal": false,
+            "reflection": false,
+            "title": "fishos.cc",
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1548,
+          "username": "Nik15",
+          "name": null,
+          "avatar_template": "/letter_avatar_proxy/v4/letter/n/d9b06d/{size}.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 967,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/how-i-can-change-graphic-in-lba2/11396/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 300184,
+        "name": null,
+        "username": "Omni",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/o/779978/{size}.png",
+        "created_at": "2007-09-22T20:44:57.000Z",
+        "cooked": "<p>theres no converter from common 3d editor formats to the lba format yet, but that would be a very useful project. we just would need a solution for the problem, that no common 3d editor supports the 2D shapes used in LBA models. any ideas?</p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 8,
+        "updated_at": "2024-10-25T18:08:57.316Z",
+        "reply_count": 0,
+        "reply_to_post_number": 5,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11396,
+        "topic_slug": "how-i-can-change-graphic-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 967,
+          "username": "LBAWinOwns",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2283,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/how-i-can-change-graphic-in-lba2/11396/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 300185,
+        "name": null,
+        "username": "LBAWinOwns",
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "created_at": "2007-09-22T20:52:50.000Z",
+        "cooked": "<p>I have no idea about 3D editors, but isnt also the animating a bit of a problem?</p>\n<p>What do you mean with the 2D shapes?, In which particular way does LBA 3D models differ from the normal 3D models in technical point of view?</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 8,
+        "updated_at": "2024-10-25T18:08:57.352Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 11396,
+        "topic_slug": "how-i-can-change-graphic-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1548,
+          "username": "Nik15",
+          "name": null,
+          "avatar_template": "/letter_avatar_proxy/v4/letter/n/d9b06d/{size}.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 967,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/how-i-can-change-graphic-in-lba2/11396/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 300192,
+        "name": null,
+        "username": "Omni",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/o/779978/{size}.png",
+        "created_at": "2007-09-22T22:05:22.000Z",
+        "cooked": "<p>im talking about the single-colored circles, LBA is using to speed up the drawing of round objects. twinsens hands are circles and also his hair.</p>\n<p>the animating should be no major problem because LBA is implementing the quite common system of skeletal animation. for example, the open-source editor blender has a great amount of features to help develop skeletal animations. the only unique aspect in LBA is the use of translational bones whereas normally bones are merely used for specifying rotation of the limbs.<br>\nbut thats no real problem because:<br>\nyou can describe a translation using a rotating bone with varying length (sphere coordinates!). varying the length of a bone is possible in programs like blender.<br>\nalso in blender you can specify whether the direction a bone is pointing in has influence on its attached bones. the translational bone in LBA is therefore nothing else but a bone with varying length not influencing its child bones. a converter can automatically detect this and use the correct bone version in LBA.</p>\n<p>another unique feature of LBA animations is the fact, that the velocity of the characters in the game (moving upwards and downwards in the climbing animations, moving forward in the walking animation,) is specified in the animation.  i see no possibility to specify the velocity in a common 3d editor.</p>\n<p>keeping the above things in mind i assume, that we will need a converter which is translating the data using scripts to specify all non-representable aspects of the model and animation</p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 8,
+        "updated_at": "2024-10-25T18:08:57.602Z",
+        "reply_count": 0,
+        "reply_to_post_number": 7,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 11396,
+        "topic_slug": "how-i-can-change-graphic-in-lba2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 967,
+          "username": "LBAWinOwns",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2283,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/how-i-can-change-graphic-in-lba2/11396/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      11399,
+      300102,
+      300117,
+      300175,
+      300178,
+      300184,
+      300185,
+      300192
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      6719
+    ],
+    [
+      2,
+      6718
+    ]
+  ],
+  "suggested_topics": [],
+  "tags_descriptions": {},
+  "fancy_title": "How i can change graphic in LBA2?",
+  "id": 11396,
+  "title": "How i can change graphic in LBA2?",
+  "posts_count": 8,
+  "created_at": "2007-09-22T09:31:56.000Z",
+  "views": 2523,
+  "reply_count": 7,
+  "like_count": 0,
+  "last_posted_at": "2007-09-22T22:05:22.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "how-i-can-change-graphic-in-lba2",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 1548,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_11396",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 8,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 4,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 967,
+        "username": "LBAWinOwns",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1548,
+        "username": "Nik15",
+        "name": null,
+        "avatar_template": "/letter_avatar_proxy/v4/letter/n/d9b06d/{size}.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 2283,
+        "username": "Omni",
+        "name": null,
+        "avatar_template": "/letter_avatar_proxy/v4/letter/o/779978/{size}.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 2,
+        "username": "ChaosFish",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 1548,
+      "username": "Nik15",
+      "name": null,
+      "avatar_template": "/letter_avatar_proxy/v4/letter/n/d9b06d/{size}.png"
+    },
+    "last_poster": {
+      "id": 2283,
+      "username": "Omni",
+      "name": null,
+      "avatar_template": "/letter_avatar_proxy/v4/letter/o/779978/{size}.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

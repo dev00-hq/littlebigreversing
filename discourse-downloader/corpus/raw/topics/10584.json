@@ -1,0 +1,1159 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 10587,
+        "name": null,
+        "username": "Neko",
+        "avatar_template": "/user_avatar/forum.magicball.net/neko/{size}/12_2.png",
+        "created_at": "2007-01-08T20:16:28.000Z",
+        "cooked": "<p>Hi,</p>\n<p>I kind of wonder ehhh how do you guys find out stuff from the games? like how do you alter the games? Im studying informatica, but I dont learn stuff like: decipher these old games! rather, Im learning java and php and databases.</p>\n<p>but my second question:<br>\nhow far do you guys know stuff about lba2? for it could be fun to kind of remake lba1 sometime to lba 2 graphics! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"> or different: remake lba2 in lba1 graphics <img src=\"//forum.magicball.net/images/emoji/twemoji/open_mouth.png?v=12\" title=\":open_mouth:\" class=\"emoji\" alt=\":open_mouth:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>heh, the oppertunities</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T15:24:28.782Z",
+        "reply_count": 5,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 25.2,
+        "yours": false,
+        "topic_id": 10584,
+        "topic_slug": "lba2-info",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 17,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-info/10584/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 275126,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2007-01-08T20:27:14.000Z",
+        "cooked": "<p>Much of LBA 2 is still to be deciphered.<br>\nList of things to do:<br>\n- Viewing outsides properly, altering them<br>\n- Editing LBA 2 models<br>\n- Editing LBA 2 scenes<br>\n- Editing LBA 2 movies<br>\n- Editing</p>\n<p>LBA 2 has major problems with being modificated. The music and the movies are only stored on the CD.</p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T17:53:52.218Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10584,
+        "topic_slug": "lba2-info",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 17,
+          "username": "Neko",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/neko/{size}/12_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-info/10584/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 275127,
+        "name": null,
+        "username": "DJT",
+        "avatar_template": "/user_avatar/forum.magicball.net/djt/{size}/26058_2.png",
+        "created_at": "2007-01-08T20:59:36.000Z",
+        "cooked": "<p>I cant wait for thismaybe well use these tools for the Prequels sequel <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T17:53:52.257Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 5.2,
+        "yours": false,
+        "topic_id": 10584,
+        "topic_slug": "lba2-info",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 17,
+          "username": "Neko",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/neko/{size}/12_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 301,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-info/10584/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 275134,
+        "name": null,
+        "username": "Neko",
+        "avatar_template": "/user_avatar/forum.magicball.net/neko/{size}/12_2.png",
+        "created_at": "2007-01-08T21:39:48.000Z",
+        "cooked": "<p>yeah <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>can be a long time till hegesippe gets done in by lebourge</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T17:53:52.517Z",
+        "reply_count": 1,
+        "reply_to_post_number": 3,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 5.2,
+        "yours": false,
+        "topic_id": 10584,
+        "topic_slug": "lba2-info",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 301,
+          "username": "DJT",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/djt/{size}/26058_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 17,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-info/10584/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 275181,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2007-01-09T12:39:57.000Z",
+        "cooked": "<p>- Kobold: I see you need to update some of your information:</p>\n<aside class=\"quote no-group\" data-username=\"&quot;&quot;Kobold&quot;&quot;\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n \"\"Kobold\"\":</div>\n<blockquote>\n<ul>\n<li>Editing LBA 2 scenes</li>\n</ul>\n</blockquote>\n</aside>\n<p>You can edit basically everything in the LBA 2 scenes with my LBA Scene Manager, even the move scripts. Only the life scripts yet have to be done properly (it seems like they have a lot more commands than the LBA 1 life scripts).</p>\n<aside class=\"quote no-group\" data-username=\"&quot;&quot;Kobold&quot;&quot;\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n \"\"Kobold\"\":</div>\n<blockquote>\n<ul>\n<li>Editing LBA 2 movies</li>\n</ul>\n</blockquote>\n</aside>\n<p>Actually, you can edit the LBA 2 movies. Just use the <a href=\"http://www.radgametools.com/down/Smacker/SmkTools.exe\" rel=\"noopener nofollow ugc\">Old Smacker Tools</a>, available for free from the <a href=\"http://www.radgametools.com/\" rel=\"noopener nofollow ugc\">RAD Game Tools website</a>.</p>\n<aside class=\"quote no-group\" data-username=\"&quot;&quot;Kobold&quot;&quot;\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n \"\"Kobold\"\":</div>\n<blockquote>\n<ul>\n<li>Editing</li>\n</ul>\n</blockquote>\n</aside>\n<p>We can also edit a lot of other things of LBA 2 as well. We can edit the grids, the grid fragments, the BLLs, the bricks, the sprites, the images, the palettes, the credits (to edit them, use my LBA 2 Credits Manager), the music, the voices, the texts, the font, the raw sprites, and more.</p>\n<p>And Im already working on the LBA 2 3-D model format, so that I can add the support for the LBA 2 3-D models to my LBA Model Manager (and in turn, in future, to my LBA Character Manager). <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T17:53:54.095Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 5.2,
+        "yours": false,
+        "topic_id": 10584,
+        "topic_slug": "lba2-info",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://www.radgametools.com/",
+            "internal": false,
+            "reflection": false,
+            "title": "RAD Game Tools",
+            "clicks": 0
+          },
+          {
+            "url": "http://www.radgametools.com/down/Smacker/SmkTools.exe",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 17,
+          "username": "Neko",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/neko/{size}/12_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-info/10584/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 275189,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2007-01-09T14:05:29.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"OBrasilo\" data-post=\"5\" data-topic=\"10584\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n OBrasilo:</div>\n<blockquote>\n<p>We can also edit a lot of other things of LBA 2 as well. We can edit the grids, the grid fragments, the BLLs, the bricks, the sprites, the images, the palettes, the credits (to edit them, use my LBA 2 Credits Manager), the music, the voices, the texts, the font, the raw sprites, and more.</p>\n</blockquote>\n</aside>\n<p>I knew that.</p>\n<p>I was talking about editing LBA 2 scenes like it is now possible with LBArchitect - seeing what youre doing. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:53:24.297Z",
+        "reply_count": 0,
+        "reply_to_post_number": 5,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10584,
+        "topic_slug": "lba2-info",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-info/10584/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 275205,
+        "name": null,
+        "username": "DJT",
+        "avatar_template": "/user_avatar/forum.magicball.net/djt/{size}/26058_2.png",
+        "created_at": "2007-01-09T17:16:59.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"Neko\" data-post=\"4\" data-topic=\"10584\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n<img loading=\"lazy\" alt=\"\" width=\"24\" height=\"24\" src=\"//forum.magicball.net/user_avatar/localhost/neko/48/12_2.png\" class=\"avatar\"> Neko:</div>\n<blockquote>\n<p>yeah <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>can be a long time till hegesippe gets done in by lebourge</p>\n</blockquote>\n</aside>\n<p>LBA Sequel: LeBournges Revenge! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"> <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"> <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T19:53:24.368Z",
+        "reply_count": 0,
+        "reply_to_post_number": 4,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10584,
+        "topic_slug": "lba2-info",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 301,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-info/10584/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 275207,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2007-01-09T17:30:22.000Z",
+        "cooked": "<p>The sequel to the prequel eer yes.</p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T17:53:54.987Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 5.2,
+        "yours": false,
+        "topic_id": 10584,
+        "topic_slug": "lba2-info",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 17,
+          "username": "Neko",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/neko/{size}/12_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-info/10584/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 275209,
+        "name": null,
+        "username": "Neko",
+        "avatar_template": "/user_avatar/forum.magicball.net/neko/{size}/12_2.png",
+        "created_at": "2007-01-09T17:38:13.000Z",
+        "cooked": "<p>maybe I will try to make a patch for the lba that makes it just ten times harder to finish the gameif these editors are that good already, could you make there to be a funfrock with a small army?</p>\n<p>Id put him in the last room with two red rabbibunny clones, makes it impossible to live <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"> ok, maybe two grobos thenthose are good too!</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T17:53:55.069Z",
+        "reply_count": 0,
+        "reply_to_post_number": 8,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10584,
+        "topic_slug": "lba2-info",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 17,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-info/10584/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 275309,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2007-01-10T22:25:18.000Z",
+        "cooked": "<p>Neko, its not an easy task trying to discover file formats, its like running in the dark. In most of times we try to look first for patterns inside a file the file, and also most of the times they lead us to a answer. This is the kind of things which we need to practice a lot and also know other game file formats for example which in most of the times use the same pattern concept :).</p>\n<p>About LBA2 :), well, the way I did the LBAnimator Studio I can also make a similar program to load and edit LBA2 outside scenes but that takes some good time. Another thing which may be really difficult to get is the LBA2 script. You can see that only after 2 years I start the program, I finally manage to read and save the scripts well, and for LBA2, the scripts are much complicated, because the engine let us use lots of new things LBA1 doesnt allow. Making tools to full modify LBA2 is an hard task and take lots of time, and I can say we wont see it in a near future. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/face_with_diagonal_mouth.png?v=12\" title=\":face_with_diagonal_mouth:\" class=\"emoji emoji-custom\" alt=\":face_with_diagonal_mouth:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>About making LBA1 harder. I start some months ago a thread in this forum about that and also did a little example :), which was to give to the Swimming Pool some extra SuperGros, which gives another difficult level to the game.<br>\nWe can now easily do that thing, we just need to get a time to do it, and patience to make it in all game scenes</p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 10,
+        "updated_at": "2024-10-25T17:53:58.819Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.2,
+        "yours": false,
+        "topic_id": 10584,
+        "topic_slug": "lba2-info",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 17,
+          "username": "Neko",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/neko/{size}/12_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-info/10584/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      10587,
+      275126,
+      275127,
+      275134,
+      275181,
+      275189,
+      275205,
+      275207,
+      275209,
+      275309
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      6975
+    ],
+    [
+      5,
+      6974
+    ],
+    [
+      10,
+      6973
+    ]
+  ],
+  "suggested_topics": [],
+  "tags_descriptions": {},
+  "fancy_title": "lba2 info?",
+  "id": 10584,
+  "title": "lba2 info?",
+  "posts_count": 10,
+  "created_at": "2007-01-08T20:16:28.000Z",
+  "views": 2439,
+  "reply_count": 9,
+  "like_count": 0,
+  "last_posted_at": "2007-01-10T22:25:18.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "lba2-info",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 17,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_10584",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 10,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 5,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 1918,
+        "username": "Kobold",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 17,
+        "username": "Neko",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/neko/{size}/12_2.png",
+        "post_count": 3,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 3
+      },
+      {
+        "id": 301,
+        "username": "DJT",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/djt/{size}/26058_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      }
+    ],
+    "created_by": {
+      "id": 17,
+      "username": "Neko",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/neko/{size}/12_2.png"
+    },
+    "last_poster": {
+      "id": 463,
+      "username": "xesf",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

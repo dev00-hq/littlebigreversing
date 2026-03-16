@@ -1,0 +1,2238 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 10134,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-09-08T19:33:56.000Z",
+        "cooked": "<p>So, another round of correcting. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"> For the texts, Im already at them and will be finished sooner or later. The language is <span class=\"bbcode-i\">much</span> better than in LBA1. This time Ive got another problem - with the voices.</p>\n<p>(Ive translated the quotes to English for your better reference)<br>\nOn Emerald Moon, at a certain place, Baldino <span class=\"bbcode-i\">should </span>say (as also in the text):</p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>The doors jammed. We have to find some way to open it.</p>\n</blockquote>\n</aside>\n<p>But instead you only hear:</p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>The doors jammed.</p>\n</blockquote>\n</aside>\n<p>When crash-landing on Otringal, he <span class=\"bbcode-i\">should</span> say:</p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>Twinsen, I damaged the vessel during landing. I need some time for repairs. The Zeelichian fuel is called gazogem, its very powerful. You should go get some.</p>\n</blockquote>\n</aside>\n<p>But instead it goes like this:</p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>We have to find some way to open it. (pause) Twinsen, I damaged the vessel during landing. I need some time for repairs. The Zeelichian fuel is called gazogem, its very powerful. You should go get some.</p>\n</blockquote>\n</aside>\n<p>I dont know how the quote from Emerald Moon slipped over to Otringal, and I dont know how to fix it. I am a totally noob at sound programs and dont even have proper ones.<br>\nThe translation guides are not helpfull this time, because I only have 2 (or maybe some more) entries too fix.</p>\n<p>There are a few other problems:<br>\nAfter saving Raph, when with Zoe, if you keep walking into the wrong direction, Zoe should say (again this is the right way in the displayed text):</p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>No, not through there. First Lets go over to the lighthouse and visit the Weather Wizard.</p>\n</blockquote>\n</aside>\n<p>But instead she just says:</p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>No, not through there.</p>\n</blockquote>\n</aside>\n<p>When winning the race on Desert Island, the guy should say:</p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>I am going to tell you a little secret: a wizard told me that he might have hidden a protective spell on the island across from the Hacienda.</p>\n</blockquote>\n</aside>\n<p>But instead theres just a</p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>I am going to tell you a little secret:</p>\n</blockquote>\n</aside>\n<p>Ive never heard the other parts of the quotes somewhere, but they may be hidden somewhere in the .vox files at one of the quotes you never hear.</p>\n<p>Now, I dont know how to fix this. I am sure one of the guys from the modifications forum can help me. Do you know how to do this?<br>\n- be sure youve read my whole post before responding. Thank you <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"> -</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T15:24:07.739Z",
+        "reply_count": 23,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 10,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 130.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 262425,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2006-09-09T00:03:59.000Z",
+        "cooked": "<p>LBA2 voice acting record is easier since it use a common sound format. It also be with a good quality. What you need to do is check <a href=\"http://lba.fishos.cc/bit/guides.html\" rel=\"noopener nofollow ugc\">this guide</a> ChaosFish made that will help you in this Journey.</p>\n<p>Hope this helps. Anything else just ask <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:46:04.271Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://lba.fishos.cc/bit/guides.html",
+            "internal": false,
+            "reflection": false,
+            "title": "fishos.cc",
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262454,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-09-09T10:13:25.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"alexfont\" data-post=\"2\" data-topic=\"10131\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n alexfont:</div>\n<blockquote>\n<p>LBA2 voice acting record is easier since it use a common sound format. It also be with a good quality. What you need to do is check <a href=\"http://lba.fishos.cc/bit/guides.html\" rel=\"noopener nofollow ugc\">this guide</a> ChaosFish made that will help you in this Journey.</p>\n<p>Hope this helps. Anything else just ask <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n</blockquote>\n</aside>\n<p><img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/expressionless.png?v=12\" title=\":expressionless:\" class=\"emoji emoji-custom\" alt=\":expressionless:\" loading=\"lazy\" width=\"20\" height=\"20\"> But I just told you that the guides dont help me because 1) I only have to <span class=\"bbcode-i\">fix </span>a few quotes and 2) because I dont know how I get the sentences together into one sound file. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/nauseated_face.png?v=12\" title=\":nauseated_face:\" class=\"emoji emoji-custom\" alt=\":nauseated_face:\" loading=\"lazy\" width=\"20\" height=\"20\"> I am not up to recording anything. Just moving some misplaced speech around.</p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T19:52:27.785Z",
+        "reply_count": 0,
+        "reply_to_post_number": 2,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262502,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2006-09-09T13:22:35.000Z",
+        "cooked": "<p>You must use LBA Package Editor to move entries inside an HQR file. If you know what Text entry is, then its exactly the same as in the VOX file. There is a VOX file per Island.</p>\n<p>Maybe Im not undestanding right what you want to do exactly.</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:46:07.014Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262525,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-09-09T14:54:06.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"alexfont\" data-post=\"4\" data-topic=\"10131\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n alexfont:</div>\n<blockquote>\n<p>You must use LBA Package Editor to move entries inside an HQR file. If you know what Text entry is, then its exactly the same as in the VOX file. There is a VOX file per Island.</p>\n<p>Maybe Im not undestanding right what you want to do exactly.</p>\n</blockquote>\n</aside>\n<p>Yeah, it seems so. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/confused.png?v=12\" title=\":confused:\" class=\"emoji emoji-custom\" alt=\":confused:\" loading=\"lazy\" width=\"20\" height=\"20\"><br>\nLook, theres some <span class=\"bbcode-i\">speech </span><span class=\"bbcode-b\">inside </span>a *.wav or whatever theyre saved in file misplaced. The sentence We have to find some way to open it. is (mis)placed at the beginning of the file where Baldino said Twinsen, I damaged the vessel during landing. I need some time for repairs. The Zeelichian fuel is called gazogem, its very powerful. You should go get some., which is saved in the Otringal *.vox. I want to extract this very entry from the file, and cut out the We have to find some way to open it. from there and move it to the place where it belongs to some entry in the Emerald Moon .vox after The doors jammed. Therefore Ill have to modify the voices files itself, but I dont know how to.</p>\n<p>Do you get it now?</p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T19:52:27.984Z",
+        "reply_count": 0,
+        "reply_to_post_number": 4,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262552,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2006-09-09T19:55:19.000Z",
+        "cooked": "<p>- Kobold: Just download Adobe Audition 1.5, and edit the .WAVs with that. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:46:08.781Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262554,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-09-09T20:07:53.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"OBrasilo\" data-post=\"6\" data-topic=\"10131\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n OBrasilo:</div>\n<blockquote>\n<ul>\n<li>Kobold: Just download Adobe Audition 1.5, and edit the .WAVs with that. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></li>\n</ul>\n</blockquote>\n</aside>\n<p>Mhh Yeah. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/crazy_face.png?v=12\" title=\":crazy_face:\" class=\"emoji emoji-custom\" alt=\":crazy_face:\" loading=\"lazy\" width=\"20\" height=\"20\"><br>\nLook, I dont know in what format they have to be saved, I dont know what Adobe Audition is, where to download it, etc, etc, etc. More information, pleasse. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/blush.png?v=12\" title=\":blush:\" class=\"emoji emoji-custom\" alt=\":blush:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T19:52:28.122Z",
+        "reply_count": 0,
+        "reply_to_post_number": 6,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262605,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2006-09-10T08:02:15.000Z",
+        "cooked": "<p>Sorry for the misunderstanding but I thought it was misplaced inside the HQR and not inside a WAV file.</p>\n<p>For the sound specification you must follow this:<br>\nType: ACM Waveform - Microsoft ACM: IMA ADPCM<br>\nAudio format: PCM (uncompressed)<br>\nChannels: Mono<br>\nSample rate: 22 050 Hz<br>\nBit resolution: 16 bit</p>\n<p>Adobe Audition, is a sound edition program very good that its simple to use and could made what you need. Anyway, it isnt freeware software, you must pay for it, but if you want to download, well I cant stop you that <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"><br>\nTry torrents, emule-project or something. You should get there.</p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:46:10.686Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262619,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-09-10T09:51:58.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"alexfont\" data-post=\"8\" data-topic=\"10131\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n alexfont:</div>\n<blockquote>\n<p>Adobe Audition, is a sound edition program very good that its simple to use and could made what you need. Anyway, it isnt freeware software, you must pay for it, but if you want to download, well I cant stop you that <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n</blockquote>\n</aside>\n<p>I just repeated what OBrasilo said. Is there a demo or something?</p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p>Try torrents, emule-project or something. You should get there.</p>\n</blockquote>\n</aside>\n<p>Eerrrr What? <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/confused.png?v=12\" title=\":confused:\" class=\"emoji emoji-custom\" alt=\":confused:\" loading=\"lazy\" width=\"20\" height=\"20\"> Dunno what youre talking about.</p>\n<p>Thanks for helping me anyway. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T19:52:28.304Z",
+        "reply_count": 1,
+        "reply_to_post_number": 8,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262634,
+        "name": null,
+        "username": "SebZ",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/s/d2c977/{size}.png",
+        "created_at": "2006-09-10T10:26:25.000Z",
+        "cooked": "<p>If I may:<br>\n<a href=\"http://www.adobe.com/go/tryaudition_win\" class=\"onebox\" target=\"_blank\" rel=\"noopener nofollow ugc\">http://www.adobe.com/go/tryaudition_win</a></p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:46:11.861Z",
+        "reply_count": 0,
+        "reply_to_post_number": 9,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://www.adobe.com/go/tryaudition_win",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 796,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262673,
+        "name": null,
+        "username": "Streg",
+        "avatar_template": "/user_avatar/forum.magicball.net/streg/{size}/269_2.png",
+        "created_at": "2006-09-10T14:05:55.000Z",
+        "cooked": "<p>pfft <em>bit</em> cough argh cough heh <em>torrent</em></p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:46:13.260Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1376,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262675,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-09-10T14:38:39.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"StreGGy\" data-post=\"11\" data-topic=\"10131\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n StreGGy:</div>\n<blockquote>\n<p>pfft <em>bit</em> cough argh cough heh <em>torrent</em></p>\n</blockquote>\n</aside>\n<p>What <span class=\"bbcode-i\">is</span> torrent? And whats this crazy eMule everyones talking about? <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/confused.png?v=12\" title=\":confused:\" class=\"emoji emoji-custom\" alt=\":confused:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T19:52:28.518Z",
+        "reply_count": 0,
+        "reply_to_post_number": 11,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262682,
+        "name": null,
+        "username": "Streg",
+        "avatar_template": "/user_avatar/forum.magicball.net/streg/{size}/269_2.png",
+        "created_at": "2006-09-10T15:10:13.000Z",
+        "cooked": "<p><img src=\"//forum.magicball.net/uploads/default/original/3X/f/d/fd852df5478eb7eb9410ee9101bb364adf487fb0.gif\" alt=\"\" data-base62-sha1=\"AaK8q9ULXAWsmgycRPvQka4ziHm\" role=\"presentation\" width=\"276\" height=\"110\"><br>\n<img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom only-emoji\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-26T03:16:01.269Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 2,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 15.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 2,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1376,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": "downloaded local copies of images",
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262684,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-09-10T15:11:51.000Z",
+        "cooked": "<p>I prefer this one:<br>\n<img src=\"https://forum.magicball.net/uploads/default/original/3X/f/d/fd852df5478eb7eb9410ee9101bb364adf487fb0.gif\" alt=\"\" data-base62-sha1=\"AaK8q9ULXAWsmgycRPvQka4ziHm\" role=\"presentation\" width=\"276\" height=\"110\"><br>\nBut whats wrong at just giving me the answer? <img src=\"https://forum.magicball.net/plugins/discourse-lba-emoji/images/takam/angry.png?v=12\" title=\":angry:\" class=\"emoji emoji-custom\" alt=\":angry:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 14,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-26T03:16:01.192Z",
+        "reply_count": 1,
+        "reply_to_post_number": 13,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 2,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1376,
+          "username": "Streg",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/streg/{size}/269_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": "downloaded local copies of images",
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/14",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262692,
+        "name": null,
+        "username": "Streg",
+        "avatar_template": "/user_avatar/forum.magicball.net/streg/{size}/269_2.png",
+        "created_at": "2006-09-10T15:35:55.000Z",
+        "cooked": "<p>ull see when ull find out <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 15,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:46:13.929Z",
+        "reply_count": 1,
+        "reply_to_post_number": 14,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1376,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/15",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262703,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-09-10T17:05:26.000Z",
+        "cooked": "<p>Whatever. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/face_with_diagonal_mouth.png?v=12\" title=\":face_with_diagonal_mouth:\" class=\"emoji emoji-custom\" alt=\":face_with_diagonal_mouth:\" loading=\"lazy\" width=\"20\" height=\"20\"><br>\nThanks all, Ill try this out soon.<br>\nIf I edit the files, do I have to set the sound specification again before saving?</p>",
+        "post_number": 16,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:46:14.340Z",
+        "reply_count": 0,
+        "reply_to_post_number": 15,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1376,
+          "username": "Streg",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/streg/{size}/269_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/16",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 262712,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2006-09-10T18:51:59.000Z",
+        "cooked": "<p>- Kobold: A torrent is some kind of information of the computer with BitTorrnet software from which the files are. This information is then handled by a BitTorrent client, which uses it to download the files in a torrent.</p>\n<p>As for eMule - its P2P (peer-to-peer) file sharing client, just like eDonkey2000 and Shareaza (Shareaza also supports BitTorrent).</p>\n<p>And yes, if you edit the files, you have to set the sound specification again before saving. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 17,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:46:14.646Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/17",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 263535,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2006-09-17T13:07:33.000Z",
+        "cooked": "<p>You can also use Audacity, its freeware, but I dont know if it can save files in specific format.</p>",
+        "post_number": 18,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:46:44.086Z",
+        "reply_count": 1,
+        "reply_to_post_number": 17,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1016,
+          "username": "Battler",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/18",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 265002,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-10-01T15:23:49.000Z",
+        "cooked": "<p>So, some updates.</p>\n<p>Although there are much less mistakes per percentage LBA 2 has way more quotes. Thats what kept me from working some time.</p>\n<p>I think Im done with Citadel Island right now, Desert Island will follow. Good to have a free day on Tuesday. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>(Only text fixing right now, havent tried the voices yet. Any help is appreciated.)</p>",
+        "post_number": 19,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:47:36.371Z",
+        "reply_count": 0,
+        "reply_to_post_number": 18,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 184,
+          "username": "Zink",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/19",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 265124,
+        "name": null,
+        "username": "Kobold",
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "created_at": "2006-10-02T19:23:29.000Z",
+        "cooked": "<p>Ill give a cookie to anyone who knows why theres no school for me tomorrow! <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 20,
+        "post_type": 1,
+        "posts_count": 48,
+        "updated_at": "2024-10-25T17:47:41.025Z",
+        "reply_count": 2,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 10131,
+        "topic_slug": "improved-german-lba-2",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 1918,
+          "username": "Kobold",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1918,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/improved-german-lba-2/10131/20",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      10134,
+      262425,
+      262454,
+      262502,
+      262525,
+      262552,
+      262554,
+      262605,
+      262619,
+      262634,
+      262673,
+      262675,
+      262682,
+      262684,
+      262692,
+      262703,
+      262712,
+      263535,
+      265002,
+      265124,
+      265126,
+      265129,
+      265132,
+      265134,
+      265136,
+      265141,
+      265145,
+      265183,
+      265185,
+      265703,
+      265713,
+      265714,
+      268299,
+      268493,
+      268494,
+      269442,
+      269552,
+      271192,
+      271200,
+      272785,
+      273845,
+      273850,
+      273985,
+      389264,
+      389406,
+      389443,
+      389511,
+      389514
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      7097
+    ],
+    [
+      3,
+      7096
+    ],
+    [
+      10,
+      7095
+    ],
+    [
+      18,
+      7088
+    ],
+    [
+      19,
+      7074
+    ],
+    [
+      20,
+      7073
+    ],
+    [
+      27,
+      7072
+    ],
+    [
+      30,
+      7068
+    ],
+    [
+      33,
+      7045
+    ],
+    [
+      34,
+      7043
+    ],
+    [
+      36,
+      7033
+    ],
+    [
+      37,
+      7032
+    ],
+    [
+      38,
+      7013
+    ],
+    [
+      40,
+      6999
+    ],
+    [
+      41,
+      6986
+    ],
+    [
+      43,
+      6984
+    ],
+    [
+      44,
+      4658
+    ],
+    [
+      45,
+      4657
+    ],
+    [
+      47,
+      4656
+    ]
+  ],
+  "tags_descriptions": {},
+  "fancy_title": "Improved German LBA -2-",
+  "id": 10131,
+  "title": "Improved German LBA -2-",
+  "posts_count": 48,
+  "created_at": "2006-09-08T19:33:56.000Z",
+  "views": 7239,
+  "reply_count": 47,
+  "like_count": 0,
+  "last_posted_at": "2013-05-15T12:06:44.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "improved-german-lba-2",
+  "category_id": 50,
+  "word_count": 2578,
+  "deleted_at": null,
+  "user_id": 1918,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_10131",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 48,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 8,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 1918,
+        "username": "Kobold",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png",
+        "post_count": 25,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1376,
+        "username": "Streg",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/streg/{size}/269_2.png",
+        "post_count": 5,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 2,
+        "username": "ChaosFish",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "post_count": 5,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 5,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 5,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 796,
+        "username": "SebZ",
+        "name": null,
+        "avatar_template": "/letter_avatar_proxy/v4/letter/s/d2c977/{size}.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 184,
+        "username": "Zink",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 159,
+        "username": "morshem",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/morshem/{size}/54_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 1918,
+      "username": "Kobold",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+    },
+    "last_poster": {
+      "id": 1918,
+      "username": "Kobold",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/kobold/{size}/393_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

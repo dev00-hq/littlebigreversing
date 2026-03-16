@@ -1,0 +1,1468 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 13334,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2010-05-01T09:40:23.000Z",
+        "cooked": "<p>Hi there. I was wondering if anyone has got a list of all the entries of anims.hqr<br>\nI remember starting doing that myself, but I stopped at entry 152 because animations were starting to get hard to figure out by swapping them with Twinsens ones.<br>\n(by the way, I found a few interesting unused animations such as Twinsen flying on a malfuncioning proto-pack and blowing on Gawleys horn)</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T15:26:40.302Z",
+        "reply_count": 12,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 65.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 357359,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2010-05-01T12:42:26.000Z",
+        "cooked": "<p>- Lawrence: Look at the LBA File Information site. The list for the LBA 1 ANIM.HQR file is complete, the LBA 2 one is in-complete so far. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:06.308Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357361,
+        "name": null,
+        "username": "Kitarii",
+        "avatar_template": "/user_avatar/forum.magicball.net/kitarii/{size}/217_2.png",
+        "created_at": "2010-05-01T13:09:35.000Z",
+        "cooked": "<p>Blowing on gawleys horn is used isnt it? Maybe the malfunctioning proto-pack is where you fall from a cliff or something while trying to float.</p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:06.382Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": true,
+        "admin": false,
+        "staff": true,
+        "user_id": 1079,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357363,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2010-05-01T14:36:49.000Z",
+        "cooked": "<p>Big whoops! I didnt mention that Im talking about LBA2 here. Stupid me. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"><br>\nThis is why I was surprised of seeing Gawleys horn animation in there, and the protopack animation is not the one from falling off a cliff, Twinsen actually flies but in a wobbly manner, sometimes quickly spinning 360.<br>\nYou can check those out yourself if you want, the entries of anims.hqr are:<br>\n<span class=\"hashtag-raw\">#117</span> Gawleys horn<br>\n<span class=\"hashtag-raw\">#122</span> Protopack malfunction</p>\n<p>So the list is still uncomplete huh? Ah well. It seems nothing has changed since the last time I checked. I could post all the entries I found out if someone wants/needs them.</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:06.450Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357389,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2010-05-04T18:49:08.000Z",
+        "cooked": "<p>- Lawrence: Sure, it would be a great contribution, if you posted the entries you found out. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:07.407Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357390,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2010-05-04T19:19:42.000Z",
+        "cooked": "<p>All right then, this is what Ive got so far. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p><span class=\"hashtag-raw\">#89</span> Twinsen punching again<br>\n<span class=\"hashtag-raw\">#90</span> Twinsen punching yet again<br>\n<span class=\"hashtag-raw\">#91</span> Twinsen slashing with sword (aggressive)<br>\n<span class=\"hashtag-raw\">#92</span> Twinsen turning left (aggressive)<br>\n<span class=\"hashtag-raw\">#93</span> Twinsen turning right (aggressive)<br>\n<span class=\"hashtag-raw\">#94</span> Twinsen standing in discreet mode<br>\n<span class=\"hashtag-raw\">#95</span> Twinsen walking in discreet mode<br>\n<span class=\"hashtag-raw\">#96</span> Twinsen walking backwards in discreet mode<br>\n<span class=\"hashtag-raw\">#97</span> Twinsen turning left (discreet)<br>\n<span class=\"hashtag-raw\">#98</span> Twinsen turning right (discreet)<br>\n<span class=\"hashtag-raw\">#99</span> Twinsen crouching (discreet)<br>\n<span class=\"hashtag-raw\">#100</span> Twinsen slashing sword (discreet)<br>\n<span class=\"hashtag-raw\">#101</span> Twinsen jumping X+left<br>\n<span class=\"hashtag-raw\">#102</span> Twinsen jumping X+right<br>\n<span class=\"hashtag-raw\">#103</span> Twinsen turning left (discreet)<br>\n<span class=\"hashtag-raw\">#104</span> Twinsen turning right (discreet)<br>\n<span class=\"hashtag-raw\">#105</span> Twinsen standing with proto-pack<br>\n<span class=\"hashtag-raw\">#106</span> Twinsen flying forward (proto-pack)<br>\n<span class=\"hashtag-raw\">#107</span> Twinsen walking backward (proto-pack)<br>\n<span class=\"hashtag-raw\">#108</span> Twinsen turning left (proto-pack, walking)<br>\n<span class=\"hashtag-raw\">#109</span> Twinsen turning right (proto-pack, walking)<br>\n<span class=\"hashtag-raw\">#110</span> Twinsen turning left (proto-pack, flying)<br>\n<span class=\"hashtag-raw\">#111</span> Twinsen turning right (proto-pack, flying)<br>\n<span class=\"hashtag-raw\">#112</span> Twinsen getting hurt (proto-pack)<br>\n<span class=\"hashtag-raw\">#113</span> Twinsen falling part 1 (proto-pack)<br>\n<span class=\"hashtag-raw\">#114</span> Twinsen falling part 2 (proto-pack)<br>\n<span class=\"hashtag-raw\">#115</span> Twinsen falling part 3 (proto-pack)<br>\n<span class=\"hashtag-raw\">#116</span> Twinsen falling in water? (proto-pack)<br>\n<span class=\"hashtag-raw\">#117</span> Twinsen blowing on Gawleys horn (!!!)<br>\n<span class=\"hashtag-raw\">#118</span> Twinsen jumping forward (proto-pack)<br>\n<span class=\"hashtag-raw\">#119</span> Twinsen jumping backward (proto-pack)<br>\n<span class=\"hashtag-raw\">#120</span> Twinsen jumping left (proto-pack)<br>\n<span class=\"hashtag-raw\">#121</span> Twinsen jumping right (proto-pack)<br>\n<span class=\"hashtag-raw\">#122</span> Twinsen flying forward, wobbling and spinning (proto-pack malfunction?)<br>\n<span class=\"hashtag-raw\">#123</span> Twinsen holding umbrella + Zoe<br>\n<span class=\"hashtag-raw\">#124</span> Twinsen holding umbrella + Zoe and walking forward<br>\n<span class=\"hashtag-raw\">#125</span> Twinsen holding umbrella + Zoe and turning right<br>\n<span class=\"hashtag-raw\">#126</span> Twinsen holding umbrella + Zoe and turning left<br>\n<span class=\"hashtag-raw\">#127</span> Twinsen holding umbrella + Zoe and walking backward<br>\n<span class=\"hashtag-raw\">#128</span> Twinsen holding umbrella + Zoe looking around<br>\n<span class=\"hashtag-raw\">#129</span> Twinsen holding umbrella + Zoe falling<br>\n<span class=\"hashtag-raw\">#130</span> Twinsen holding umbrella + Zoe dying<br>\n<span class=\"hashtag-raw\">#131</span> Twinsen holding umbrella + Zoe rising after falling from a small height<br>\n<span class=\"hashtag-raw\">#132</span> Twinsen holding umbrella + Zoe rising after falling from a great height<br>\n<span class=\"hashtag-raw\">#133</span> Twinsen holding umbrella + Zoe pushing something?<br>\n<span class=\"hashtag-raw\">#134</span> Twinsen holding umbrella + Zoe drowning<br>\n<span class=\"hashtag-raw\">#135</span> Twinsen holding umbrella + Zoe jumping (to activate a platform)<br>\n<span class=\"hashtag-raw\">#136</span> Twinsen holding umbrella + Zoe looking to their right<br>\n<span class=\"hashtag-raw\">#137</span> Twinsen holding umbrella + Zoe looking at each other<br>\n<span class=\"hashtag-raw\">#138</span> Twinsen walking forward (triton horn)<br>\n<span class=\"hashtag-raw\">#139</span> Twinsen walking backward (triton horn)<br>\n<span class=\"hashtag-raw\">#140</span> Twinsen using triton horn<br>\n<span class=\"hashtag-raw\">#141</span> Twinsen walking (space suit)<br>\n<span class=\"hashtag-raw\">#142</span> Bob walking (I think)<br>\n<span class=\"hashtag-raw\">#143</span> Twinsen turning right (space suit)<br>\n<span class=\"hashtag-raw\">#144</span> Twinsen turning left (space suit)<br>\n<span class=\"hashtag-raw\">#145</span> Twinsen walking backward (space suit)<br>\n<span class=\"hashtag-raw\">#146</span> Twinsen in an odd pose (space suit)<br>\n<span class=\"hashtag-raw\">#147</span> Twinsen getting hurt, spinning and collapsing (space suit)<br>\n<span class=\"hashtag-raw\">#148</span> Twinsen standing (space suit)<br>\n<span class=\"hashtag-raw\">#149</span> Twinsen getting hurt (space suit)<br>\n<span class=\"hashtag-raw\">#150</span> Twinsen spinning backward (space suit)<br>\n<span class=\"hashtag-raw\">#151</span> Twinsen getting hurt and doing a backflip (space suit)</p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:07.468Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357392,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2010-05-05T08:12:59.000Z",
+        "cooked": "<p>Thanks for the info, I took the liberty of adding it into the file info site, I hope you dont have anything against that :).</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:07.767Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357395,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2010-05-05T12:06:11.000Z",
+        "cooked": "<p>On the contrary, Im glad my info could be of some use. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:07.874Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357420,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2010-05-05T18:58:23.000Z",
+        "cooked": "<p>I believe Twinsen does a 360 turn wit the proto-pack in LBA2 if he is hit by something (loss of life)</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:08.806Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357421,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2010-05-05T19:31:21.000Z",
+        "cooked": "<p>Nah, 100% sure its not that one. You have to see the animation in action to understand what I mean. He doesnt simply turn 360, he actually flies forward in an unstable manner, sometimes spinning. Try switching that animation with Twinsens standing animation or something and youll see.</p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:08.841Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357426,
+        "name": null,
+        "username": "LBAWinOwns",
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "created_at": "2010-05-05T21:25:10.000Z",
+        "cooked": "<p>If you play long enough he runs out of gazogem!</p>\n<p>(:p)</p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:09.023Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 967,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357427,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2010-05-05T21:30:44.000Z",
+        "cooked": "<p>Could you post a video of that or something ? (Of the spin, not of the gazogem :p) Ive never actually touched an LBA2 animation</p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:09.057Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 357448,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2010-05-06T17:38:35.000Z",
+        "cooked": "<p>Sorry, I would, but I dont really know how to make a video of a game, nor I have the necessary program to do that Anyway its not really long to do by yourself, you just need LBAPackEditor, swap the malfunctioning protopack entry with twinsens standing animation entry, boot LBA2 and watch.</p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 13,
+        "updated_at": "2024-10-25T18:43:09.835Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13331,
+        "topic_slug": "anims-hqr",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/anims-hqr/13331/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      13334,
+      357359,
+      357361,
+      357363,
+      357389,
+      357390,
+      357392,
+      357395,
+      357420,
+      357421,
+      357426,
+      357427,
+      357448
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      5767
+    ],
+    [
+      2,
+      5766
+    ],
+    [
+      5,
+      5763
+    ],
+    [
+      8,
+      5762
+    ],
+    [
+      13,
+      5761
+    ]
+  ],
+  "suggested_topics": [],
+  "tags_descriptions": {},
+  "fancy_title": "anims.hqr",
+  "id": 13331,
+  "title": "anims.hqr",
+  "posts_count": 13,
+  "created_at": "2010-05-01T09:40:23.000Z",
+  "views": 2272,
+  "reply_count": 12,
+  "like_count": 0,
+  "last_posted_at": "2010-05-06T17:38:35.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "anims-hqr",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 3071,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_13331",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 13,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 6,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 3071,
+        "username": "Lawrence",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "post_count": 6,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 2162,
+        "username": "Polaris",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 3
+      },
+      {
+        "id": 184,
+        "username": "Zink",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 967,
+        "username": "LBAWinOwns",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/lbawinowns/{size}/201_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1079,
+        "username": "Kitarii",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/kitarii/{size}/217_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "moderator": true,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 3071,
+      "username": "Lawrence",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+    },
+    "last_poster": {
+      "id": 3071,
+      "username": "Lawrence",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

@@ -1,0 +1,1283 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 13987,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2012-02-19T19:27:12.000Z",
+        "cooked": "<p>Ive always wanted to do something like that with editing tools, but Im no programmer and Im not sure its even possible at the moment<br>\nSome sort of hard mode for LBA2, which would basically mean less clover boxes to be found, a lot more roaming enemies, more health for all enemies, that sort of thing. My guess is that most of this could be accomplished by scene editing, and even someone like uhm me, could erase a few clover boxes and increase enemy health, the real problem would be adding more enemies, I have literally no clue about how actor AI works. I tried to figure out stuff by reading pre-existing enemy scripts, making small changes to them, trial and error and all that but I just dont get it.</p>\n<p>Why LBA2? Well, because it needs a hard mode more badly than LBA1 <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"> that game is a hard mode in itself, thanks to unforgiving recovery time from enemy attacks, insane firing rates and no way to quickly get out of the way.</p>\n<p>Im conscious that a lot is still unknown about LBA2 file formats, but I cant help but think this can be done as it doesnt require heavy modifications.</p>\n<p>Go ahead, crush my dreams <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/smiley.png?v=12\" title=\":smiley:\" class=\"emoji emoji-custom\" alt=\":smiley:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T15:27:10.553Z",
+        "reply_count": 9,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 4,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 65.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "https://forum.magicball.net/t/out-of-nowhere-nitro-meca-pingouin-without-countdown-to-explosion/13972/15",
+            "internal": true,
+            "reflection": true,
+            "title": "Out-of-nowhere nitro-meca-pingouin without countdown to explosion!",
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 372578,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2012-02-19T20:53:13.000Z",
+        "cooked": "<p>We have no tool to easily edit LBA 2 scenes. LBArchitect is aiming that in one of future versions, but it is a very distant future (it may never happen as well).</p>\n<p>Sorry to break your dreams <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T18:52:11.840Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 372587,
+        "name": "",
+        "username": "Polaris",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "created_at": "2012-02-20T14:20:43.000Z",
+        "cooked": "<p>Well that was fast</p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T18:52:12.155Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": "",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": "Hgsippe",
+        "title_is_group": false,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 2162,
+        "hidden": false,
+        "trust_level": 3,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 372603,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2012-02-20T23:07:08.000Z",
+        "cooked": "<p>-sadface-<br>\nWell, I cant really say I didnt see that coming. But exactly what is the issue? I think clover boxes can be easily deleted and health increased even with very basic scene editing tools, no? So Id say the problem are actor scripts But even with the LBA2 Scene Manager (which, if I recall correctly is even outdated) you could watch and edit them, hasnt anyone figured out how the script commands work? Is that the problem?<br>\nSorry Im being so persistent, I just wanna understand the situation <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T18:52:12.672Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 372609,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2012-02-21T13:20:02.000Z",
+        "cooked": "<p>- Lawrence: Thing is, alexfont has the LBA 2 script commands but refuses to disclose them.</p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T18:52:12.898Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 372627,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2012-02-21T17:20:11.000Z",
+        "cooked": "<p><img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/frowning_face.png?v=12\" title=\":frowning_face:\" class=\"emoji emoji-custom\" alt=\":frowning_face:\" loading=\"lazy\" width=\"20\" height=\"20\"> sad story bro</p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T18:52:13.567Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 372686,
+        "name": null,
+        "username": "Zink",
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "created_at": "2012-02-23T08:16:08.000Z",
+        "cooked": "<p>Hmm, is that the reason? I thought the commands were known among developers. I have them, but its only a list of track and life commands/vars with their code values, no description or parameter info. If anyone wants - just ask me (not sure if Im allowed to make it available publicly).</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T18:52:15.623Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 184,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 372688,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2012-02-23T08:36:46.000Z",
+        "cooked": "<p>Well, I have another problem now I cant edit those commands at all. LBA Scene Editor is horribly bugged, for example: I delete an actors life script and paste in a new one that is different, save the changes, check again the script and for some odd reason the original script is STILL there, except garbled up with a few characters from the script I pasted in (which makes the game crash)<br>\nIs there any tool that actually works that lets me edit actor scripts? <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/frowning_face.png?v=12\" title=\":frowning_face:\" class=\"emoji emoji-custom\" alt=\":frowning_face:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T18:52:15.682Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 372877,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2012-02-29T14:22:12.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"Lawrence\" data-post=\"8\" data-topic=\"13984\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n<img loading=\"lazy\" alt=\"\" width=\"24\" height=\"24\" src=\"//forum.magicball.net/user_avatar/localhost/lawrence/48/607_2.png\" class=\"avatar\"> Lawrence:</div>\n<blockquote>\n<p>Well, I have another problem now I cant edit those commands at all. LBA Scene Editor is horribly bugged, for example: I delete an actors life script and paste in a new one that is different, save the changes, check again the script and for some odd reason the original script is STILL there, except garbled up with a few characters from the script I pasted in (which makes the game crash)<br>\nIs there any tool that actually works that lets me edit actor scripts? <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/frowning_face.png?v=12\" title=\":frowning_face:\" class=\"emoji emoji-custom\" alt=\":frowning_face:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n</blockquote>\n</aside>\n<p>Yes of course, the script part of the released version of the LBA Scene Manager is very buggy. Im working on an improvement (Ive also PMd Zink about the LBA 2 script commands) but I have no idea on how much its going to take.</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T20:01:24.346Z",
+        "reply_count": 0,
+        "reply_to_post_number": 8,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 372879,
+        "name": null,
+        "username": "Lawrence",
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "created_at": "2012-02-29T17:34:56.000Z",
+        "cooked": "<p>Well, thank you and anyone working on these programs for your efforts. <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"> I remain hopeful</p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T18:52:22.085Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3071,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 373020,
+        "name": "Jack McKalling",
+        "username": "Jack_McKalling",
+        "avatar_template": "/user_avatar/forum.magicball.net/jack_mckalling/{size}/624_2.png",
+        "created_at": "2012-03-04T22:06:26.000Z",
+        "cooked": "<p>If you still want to play hard mode in LBA2, you could consider one or more <a href=\"/t/lba-challenge-thread/13829/13\">challenges</a>?</p>\n<p>Its not hard coded features, but if youre truthful to yourself and consistent, these could be alot harder than normal playthrough. Also dont be afraid of using <a href=\"/t/lba1-2-glitchs-bugs/13891/1\">known bugs/glitches</a> <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>Youre not limited to only the proven ones or only the unconfirmed ones, just take any challenge you like, read the description and go ahead. We all (me specifically) would appreciate it if you were able to prove the possibility of one of the red ones, but you dont need to.</p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 11,
+        "updated_at": "2024-10-25T20:01:25.081Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 1,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 13984,
+        "topic_slug": "lba2-hard-mode-concept",
+        "display_username": "Jack McKalling",
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "https://forum.magicball.net/t/lba-challenge-thread/13829/13",
+            "internal": true,
+            "reflection": false,
+            "title": "LBA Challenge Thread",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba1-2-glitchs-bugs/13891",
+            "internal": true,
+            "reflection": false,
+            "title": "LBA1&2 Glitchs/Bugs",
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 3071,
+          "username": "Lawrence",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 3189,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba2-hard-mode-concept/13984/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      13987,
+      372578,
+      372587,
+      372603,
+      372609,
+      372627,
+      372686,
+      372688,
+      372877,
+      372879,
+      373020
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      5107
+    ],
+    [
+      3,
+      5106
+    ],
+    [
+      5,
+      5105
+    ],
+    [
+      7,
+      5104
+    ],
+    [
+      9,
+      5097
+    ],
+    [
+      11,
+      5093
+    ]
+  ],
+  "suggested_topics": [],
+  "tags_descriptions": {},
+  "fancy_title": "LBA2 hard mode (concept)",
+  "id": 13984,
+  "title": "LBA2 hard mode (concept)",
+  "posts_count": 11,
+  "created_at": "2012-02-19T19:27:12.000Z",
+  "views": 2328,
+  "reply_count": 10,
+  "like_count": 0,
+  "last_posted_at": "2012-03-04T22:06:26.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "lba2-hard-mode-concept",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 3071,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_13984",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 11,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 5,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 3071,
+        "username": "Lawrence",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png",
+        "post_count": 5,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 184,
+        "username": "Zink",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 3189,
+        "username": "Jack_McKalling",
+        "name": "Jack McKalling",
+        "avatar_template": "/user_avatar/forum.magicball.net/jack_mckalling/{size}/624_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 2162,
+        "username": "Polaris",
+        "name": "",
+        "avatar_template": "/user_avatar/forum.magicball.net/polaris/{size}/28468_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 3
+      }
+    ],
+    "created_by": {
+      "id": 3071,
+      "username": "Lawrence",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/lawrence/{size}/607_2.png"
+    },
+    "last_poster": {
+      "id": 3189,
+      "username": "Jack_McKalling",
+      "name": "Jack McKalling",
+      "avatar_template": "/user_avatar/forum.magicball.net/jack_mckalling/{size}/624_2.png"
+    }
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

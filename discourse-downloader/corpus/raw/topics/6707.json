@@ -1,0 +1,2597 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 6710,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2004-04-17T17:14:17.000Z",
+        "cooked": "<p>(<a href=\"/t/latest-lba-file-information-27th-november-2004/6708/1\">Latest LBA File Information</a>)</p>\n<p>If you have new information for the LBA File Information project, please post it in this thread.</p>\n<p><span class=\"bbcode-b\">Use <a href=\"http://80.55.102.190/~zink/lba/d.php?n=LBAPackEditor.zip\" rel=\"noopener nofollow ugc\">LBA Package Editor with file info</a> (not LBADeCOMP), and choose Display all entires and Index all entries. Then start making the list.</span></p>\n<p><span class=\"bbcode-b\">Template submission for packages entries listing</span></p>\n<aside class=\"quote no-group\">\n<blockquote>\n<p><span class=\"bbcode-b\">FILENAME</span></p>\n<p>%1 001 ~1 Twinsen running *<br>\n%2 002 ~1 Twinsen fishing *<br>\n%4 003 ~2 Twinsun model *<br>\n%1 004 ~1 Zo chatting with Sendell *</p>\n<p>-END-</p>\n<p>~1 = animation<br>\n~2 = model</p>\n</blockquote>\n</aside>\n<p>In the beggining of each line, place %+(number) (one spacing after the number).<br>\n%1 stands for normal entry<br>\n%2 stands for hidden entry<br>\n%3 stands for repeated entry<br>\n%4 stands for blank entry</p>\n<p>The number of the entry should be 3 digits. Between the number of the entry and the description there should be ~+(number) (one spacing before the ~ and one spacing after the number).<br>\nMake one number for each entry type, and then (like in the template) explain which is each.</p>\n<p>In the description, make capital letters only in the start of a sentence and in the first letter of a name. Make the descriptions as short as possible.</p>\n<p>In the end, place * (one spacing before the *).</p>\n<p>Im asking you to use this template just for I wont have to do it myself. (it takes a lot of time)<br>\n-----------</p>\n<p>If you any have information you can give about LBA files other than packages entries listing, please start a new thread about it in the <a href=\"https://forum.magicball.net/forumdisplay.php?f=37\" rel=\"noopener nofollow ugc\">LBA Modifications</a> forum.</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T19:51:14.913Z",
+        "reply_count": 106,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 6,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 560.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://80.55.102.190/~zink/lba/d.php?n=LBAPackEditor.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 1
+          },
+          {
+            "url": "https://forum.magicball.net/forumdisplay.php?f=37",
+            "internal": false,
+            "reflection": false,
+            "title": "Magicball Network Forums",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/file3d-format/8946/4",
+            "internal": true,
+            "reflection": true,
+            "title": "File3D format...",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/help/8082/3",
+            "internal": true,
+            "reflection": true,
+            "title": "help?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/do-you-want-edit-your-lba2-saved-games/7557/10",
+            "internal": true,
+            "reflection": true,
+            "title": "Do you want edit your LBA2 saved games?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-package-editor-discuss/6769/45",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Package Editor - discuss",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/new-project-lba-file-information/6688/18",
+            "internal": true,
+            "reflection": true,
+            "title": "New project: LBA File Information",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/latest-lba-file-information-27th-november-2004/6708",
+            "internal": true,
+            "reflection": true,
+            "title": "Latest LBA File Information (27th November 2004)",
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      },
+      {
+        "id": 174153,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2004-04-18T11:55:06.000Z",
+        "cooked": "<p>LBA2</p>\n<p><span class=\"bbcode-b\">HOLOMAP.HQR</span></p>\n<p>%1 011 ~2 Holomap Arrow model *<br>\n%1 012 ~2 Holomap Short Arrow model *<br>\n%1 014 ~2 Holomap Car model *<br>\n%1 015 ~2 Holomap Dino-Fly model *</p>\n<p>-END-</p>\n<p>~2 = model</p>\n<hr>\n<p>Today Ill post the list for lba2 objfix.hqr<br>\nnow Ill see MotoGP to see Rossi wins <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/stuck_out_tongue.png?v=12\" title=\":stuck_out_tongue:\" class=\"emoji emoji-custom\" alt=\":stuck_out_tongue:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 2,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:52:51.449Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/2",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174165,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2004-04-18T14:45:44.000Z",
+        "cooked": "<p>Added LBA2 - HOLOMAP.HQR</p>",
+        "post_number": 3,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:52:51.822Z",
+        "reply_count": 0,
+        "reply_to_post_number": 2,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 463,
+          "username": "xesf",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/3",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174166,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2004-04-18T14:47:47.000Z",
+        "cooked": "<p>The objfix.hqr is the inventory objects. Ill soon add this list.</p>",
+        "post_number": 4,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:52:51.854Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/4",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174187,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2004-04-18T21:55:58.000Z",
+        "cooked": "<p>I have the list for holomap but the rest of entries are little difficult to discribe.</p>",
+        "post_number": 5,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:52:52.508Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/5",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174188,
+        "name": null,
+        "username": "Mannesh",
+        "avatar_template": "/user_avatar/forum.magicball.net/mannesh/{size}/28_2.png",
+        "created_at": "2004-04-18T22:54:29.000Z",
+        "cooked": "<p>this is so cool, what ive always wanted a whole list of all the files.</p>\n<p>the hardest list is the sprite list as its so big!</p>\n<p>also how are you finding what a certain entry is?</p>\n<p>do you change it, save it and reload the game?</p>\n<p>i need to know</p>",
+        "post_number": 6,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:52:52.538Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 54,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/6",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174246,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2004-04-19T16:21:04.000Z",
+        "cooked": "<p>Added LBA2 - SCREEN.HQR</p>",
+        "post_number": 7,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:52:54.622Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/7",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174327,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2004-04-20T18:40:37.000Z",
+        "cooked": "<p><span class=\"bbcode-b\">OBJFIX.HQR</span></p>\n<p>%1 001 ~2 Holomap *<br>\n%1 002 ~2 Magic Ball *<br>\n%1 003 ~2 Darts *<br>\n%1 004 ~2 Sendells Ball *<br>\n%1 005 ~2 Tunic and Sendells Medallion *<br>\n%1 006 ~2 Incandescent pearl *<br>\n%1 007 ~2 Pyramid shaped key *<br>\n%1 008 ~2 Part for the car *<br>\n%1 009 ~2 Kashes *<br>\n%1 010 ~2 Pisto-Laser *<br>\n%1 011 ~2 Emperors Sword *<br>\n%1 012 ~2 Wannies glove *<br>\n%1 013 ~2 Proto-Pack *<br>\n%1 014 ~2 Ferry Ticket *<br>\n%1 015 ~2 Nitro-Meca-Penguin *<br>\n%1 016 ~2 Can of GazoGem *<br>\n%1 017 ~2 Dissidents Ring *<br>\n%1 018 ~2 Gallic acid *<br>\n%1 019 ~2 Ferrymans Song *<br>\n%1 020 ~2 Ring of Lightning *<br>\n%1 021 ~2 Customers umbrella *<br>\n%1 022 ~2 Gems *<br>\n%1 023 ~2 Horn of the Blue Triton *<br>\n%1 024 ~2 Blowgun *<br>\n%1 025 ~2 Travel Token *<br>\n%1 026 ~2 Slice of Tart *<br>\n%1 027 ~2 Portable Radio *<br>\n%1 028 ~2 Garden Balsam *<br>\n%1 029 ~2 Magic Slate *<br>\n%1 030 ~2 Translator *<br>\n%1 031 ~2 Wizards Diploma *<br>\n%1 032 ~2 Fragment of the Francos *<br>\n%1 033 ~2 Fragment of the Sups *<br>\n%1 034 ~2 Fragment of the Mosquibees *<br>\n%1 035 ~2 Fragment of the Wannies *<br>\n%1 036 ~2 Key for the passage to CX *<br>\n%1 037 ~2 Pick-ax *<br>\n%1 038 ~2 Franco Burgermasters Key *<br>\n%1 039 ~2 Franco Burgermasters Notes *<br>\n%1 040 ~2 Protective Spell *<br>\n%1 041 ~2 Green Magic Ball *<br>\n%1 042 ~2 Red Magic Ball *<br>\n%1 043 ~2 Fire Magic Ball *<br>\n%1 044 ~2 Zlitos *<br>\n%1 045 ~2 Dark Monks Key *<br>\n%1 046 ~2 Memory Viewer *<br>\n%1 047 ~2 Blowtron *<br>\n%1 048 ~2 Wizards Parade Tunic *<br>\n%1 049 ~2 Super Jet-Pack *<br>\n%1 050 ~2 Piece of the Crystal of Celebration *<br>\n%1 051 ~2 Pisto-Laser in working condition *<br>\n%1 052 ~2 Green Ring of Lightning *<br>\n%1 053 ~2 Red Ring of Lightning *<br>\n%1 054 ~2 Ring of Lightning, level Fire *<br>\n%4 055 ~2  *<br>\n%4 056 ~2  *<br>\n%4 057 ~2  *<br>\n%4 058 ~2  *<br>\n%4 059 ~2  *<br>\n%4 060 ~2  *<br>\n%1 061 ~2 Lucky Clover Leaf *<br>\n%1 062 ~2 Darts *</p>\n<hr>\n<p>I cant discribe the remaining itens<br>\nChaosFish, I need your help  <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/face_with_diagonal_mouth.png?v=12\" title=\":face_with_diagonal_mouth:\" class=\"emoji emoji-custom\" alt=\":face_with_diagonal_mouth:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>\n<p>// ---- need review ------</p>\n<p>|<br>\n|<br>\nv</p>\n<p>%1 063 ~2 piece of wall *<br>\n%1 064 ~2 laser *<br>\n%1 065 ~2 laser colision *<br>\n%1 066 ~2 powerfull laser *<br>\n%1 067 ~2 Rocks * (Probably)<br>\n%1 068 ~2 Rocks * (Probably)<br>\n%1 069 ~2 Rocks * (Probably)<br>\n%1 070 ~2 Rocks * (Probably)<br>\n%1 071 ~2  *<br>\n%1 072 ~2  *<br>\n%1 073 ~2  *<br>\n%1 074 ~2  *<br>\n%1 075 ~2  *<br>\n%1 076 ~2 Cancer *<br>\n%1 077 ~2  *<br>\n%1 078 ~2  *<br>\n%1 079 ~2  *<br>\n%1 080 ~2  *<br>\n%1 081 ~2  *<br>\n%1 082 ~2  *<br>\n%1 083 ~2  *<br>\n%1 084 ~2  *<br>\n%1 085 ~2  *<br>\n%1 086 ~2  *<br>\n%1 087 ~2  *<br>\n%1 088 ~2  *<br>\n%1 089 ~2  *<br>\n%1 090 ~2  *<br>\n%1 091 ~2  *<br>\n%1 092 ~2  *<br>\n%1 093 ~2 Propellant *<br>\n%1 094 ~2 Box *<br>\n%1 095 ~2  *<br>\n%1 096 ~2  *<br>\n%1 097 ~2  *<br>\n%1 098 ~2  *<br>\n%1 099 ~2  *<br>\n%1 100 ~2  *<br>\n%1 101 ~2  *<br>\n%1 102 ~2  *<br>\n%1 103 ~2  *<br>\n%1 104 ~2 eye *    (Probably)<br>\n%1 105 ~2 Missile *</p>\n<p>-END-</p>\n<p>~2 = model</p>",
+        "post_number": 8,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:52:57.526Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/8",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174332,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2004-04-20T21:28:25.000Z",
+        "cooked": "<p>This file contains the informations about LBA1 characters.</p>\n<p><span class=\"bbcode-b\">FILE3D.HQR</span></p>\n<p>%1 001 ~3 Twinsen (normal mode) - 7 bodys and 38 animations *<br>\n%1 002 ~3 Twinsen (athletic mode) - 5 bodys and 26 animations *<br>\n%1 003 ~3 Twinsen (aggressive mode) - 5 bodys and 28 animations *<br>\n%1 004 ~3 Twinsen (discreet mode) - 5 bodys and 26 animations *<br>\n%1 005 ~3 Twinsen (with Proto-Pack) - 2 bodys and 16 animations *<br>\n%1 006 ~3 Nurse writing - 2 bodys and 9 animations *<br>\n%1 007 ~3 Nurse with club - 2 bodys and 14 animations*<br>\n%1 008 ~3 Supergro - 2 bodys and 10 animations *<br>\n%1 009 ~3 Nurse clothing - 1 body and 0 animations *<br>\n%1 010 ~3 Meca Penguin - 1 body and 2 animations *<br>\n%1 011 ~3 Garbage truck - 1 body and 5 animations *<br>\n%1 012 ~3 Grobo - 1 body and 17 animations *<br>\n%1 013 ~3 Soldier - 3 bodys and 16 animations *<br>\n%1 014 ~3 Rabbibunny - 7 bodys and 23 animations *<br>\n%1 015 ~3 Surveillance - 1 body and 6 animations *<br>\n%1 016 ~3 Business quetch - 1 body and 5 animations *<br>\n%1 017 ~3 Groboclone - 6 bodys and 20 animations *<br>\n%1 018 ~3 Green rabbibunny clone - 1 body and 7 animations *<br>\n%1 019 ~3 Turret - 3 bodys and 14 animations *<br>\n%1 020 ~3 Robot - 2 bodys and 9 animations *<br>\n%1 021 ~3 Tank - 4 bodys and 8 animations *<br>\n%1 022 ~3 Female rabbibunny - 4 bodys and 12 animations *<br>\n%1 023 ~3 Zo - 1 body and 18 animations *<br>\n%1 024 ~3 Catamaran - 2 bodys and 5 animations *<br>\n%1 025 ~3 Ferryboat - 2 bodys and 3 animations *<br>\n%1 026 ~3 Grobo sailor - 1 body and 11 animations *<br>\n%1 027 ~3 Rabbibunny sailor - 1 body and 4 animations *<br>\n%1 028 ~3 Boat - 2 bodys and 2 animations *<br>\n%1 029 ~3 Skeleton - 2 bodys and 13 animations *<br>\n%1 030 ~3 Spikes - 1 body and 3 animations *<br>\n%1 031 ~3 Spikes cylinder - 2 bodys and 3 animations *<br>\n%1 032 ~3 Electro-plant - 1 bodys and 3 animations *<br>\n%1 033 ~3 Rebels boat - 2 bodys and 4 animations *<br>\n%1 034 ~3 Soldier with machine gun - 3 bodys and 6 animations *<br>\n%1 035 ~3 Radar working - 1 body and 1 animations *<br>\n%1 036 ~3 Rabbinuby rebel - 4 bodys and 12 animations *<br>\n%1 037 ~3 Sphero rebel - 1 body and 7 animations *<br>\n%1 038 ~3 Sphero - 2 bodys and 9 animations *<br>\n%1 039 ~3 Rabbibunny clone with coputer - 1 bodys and 6 animations *<br>\n%1 040 ~3 Car - 2 bodys and 5 animations *<br>\n%1 041 ~3 Praying mantis - 1 body and 7 animations *<br>\n%1 042 ~3 Sphero clone - 3 bodys and 7 animations *<br>\n%1 043 ~3 ID - 1 body and 0 animations *<br>\n%1 044 ~3 Gawleys Horn - 1 body and 1 animations *<br>\n%1 045 ~3 Sendells Medallion - 2 bodys and 16 animations *<br>\n%1 046 ~3 Rabbiubnny fisher - 1 body and 7 animations *<br>\n%1 047 ~3 Motorcycle - 1 body and 3 animations *<br>\n%1 048 ~3 Horse - 2 bodys and 11 animations *<br>\n%1 049 ~3 Rabbibunny (wise man) - 2 bodys and 8 animations *<br>\n%1 050 ~3 Elf - 2 bodys and 4 animations *<br>\n%1 051 ~3 Bird - 1 body and 3 animations *<br>\n%1 052 ~3 Eye creature - 2 bodys and 8 animations *<br>\n%1 053 ~3 Rock - 1 body and 5 animations *<br>\n%1 054 ~3 Book of B - 1 body and 1 animations *<br>\n%4 055 ~3 Red rabbibunny clone - 1 body and 12 animations *<br>\n%4 056 ~3 Pirate flag - 1 body and 0 animations *<br>\n%4 057 ~3 Snake - 2 bodys and 10 animations *<br>\n%4 058 ~3 Proto-Pack - 1 body and 2 animations *<br>\n%4 059 ~3 Big machine gun - 2 bodys and 2 animations *<br>\n%4 060 ~3 Giant crab - 3 bodys and 6 animations *<br>\n%1 061 ~3 Hydroglider - 2 bodys and 2 animations *<br>\n%1 062 ~3 Groovy rabbibunny  - 1 body and 3 animations *<br>\n%1 063 ~3 Groovy grobo - 2 bodys and 10 animations *<br>\n%1 064 ~3 Goo creature - 1 body and 8 animations *<br>\n%1 065 ~3 Dino-Fly - 2 bodys and 4 animations *<br>\n%1 066 ~3 Guitarist rabbibunny - 2 bodys and 10 animations *<br>\n%1 067 ~3 Sphero with drums - 1 body and 3 animations *<br>\n%1 068 ~3 Twinsen clone - 1 body and 9 animations *<br>\n%1 069 ~3 Huge orange creature - 1 body and 10 animations *<br>\n%1 070 ~3 FunFrock - 1 body and 15 animations *<br>\n%1 071 ~3 Flying grobo - 1 body and 5 animations *<br>\n%1 072 ~3 Fake shark - 2 bodys and 4 animations *<br>\n%1 073 ~3 Snowboard - 1 body and 0 animations *<br>\n%1 074 ~3 Flag - 4 bodys and 1 animations *<br>\n%1 075 ~3 Twinsen with snowboard  - 1 body and 9 animations *<br>\n%1 076 ~3 Computer - 2 bodys and 3 animations *<br>\n%1 077 ~3 Construction truck - 1 body and 5 animations *<br>\n%1 078 ~3 Constuction worker 1 - 1 body and 11 animations *<br>\n%1 079 ~3 Constuction worker 2 - 1 body and 13 animations *<br>\n%1 080 ~3 Constuction worker 3 - 1 body and 9 animations *<br>\n%1 081 ~3 Tractor - 1 body and 9 animations *<br>\n%1 082 ~3 Groovy sphero - 1 body and 3 animations *</p>\n<p>-END-</p>\n<p>~3 = informations</p>\n<hr>\n<p>Please, also put informations by Yazor. He gave me some help.</p>\n<p>.</p>",
+        "post_number": 9,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:52:57.711Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/9",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174412,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2004-04-21T18:55:38.000Z",
+        "cooked": "<p>Added LBA1 - FILE3D.HQR<br>\nAdded LBA2 - OBJFIX.HQR</p>",
+        "post_number": 10,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:00.572Z",
+        "reply_count": 0,
+        "reply_to_post_number": 9,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 463,
+          "username": "xesf",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/10",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174767,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2004-04-24T22:53:21.000Z",
+        "cooked": "<p><span class=\"bbcode-b\">RESS.HQR</span></p>\n<p>%1 045 ~3 Contain the information of the LBA2 characters *</p>\n<p>-END-</p>\n<p>~3 = informations</p>",
+        "post_number": 11,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:12.831Z",
+        "reply_count": 2,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 10.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/11",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174795,
+        "name": null,
+        "username": "SebZ",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/s/d2c977/{size}.png",
+        "created_at": "2004-04-25T07:59:22.000Z",
+        "cooked": "<p>waht, are these like mesh?</p>",
+        "post_number": 12,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:13.872Z",
+        "reply_count": 1,
+        "reply_to_post_number": 11,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 463,
+          "username": "xesf",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 796,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/12",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174808,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2004-04-25T10:34:54.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"sebz2003\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n sebz2003:</div>\n<blockquote>\n<p>waht, are these like mesh?</p>\n</blockquote>\n</aside>\n<p>Didnt understand what do you want</p>",
+        "post_number": 13,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:14.349Z",
+        "reply_count": 0,
+        "reply_to_post_number": 12,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 796,
+          "username": "SebZ",
+          "name": null,
+          "avatar_template": "/letter_avatar_proxy/v4/letter/s/d2c977/{size}.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/13",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174869,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2004-04-25T13:06:39.000Z",
+        "cooked": "<aside class=\"quote no-group\" data-username=\"alexfont\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n alexfont:</div>\n<blockquote>\n<p>%1 045 ~3 Contain the information of the LBA2 characters *</p>\n<p>-END-</p>\n<p>~3 = informations</p>\n</blockquote>\n</aside>\n<p>Which file?</p>",
+        "post_number": 14,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:16.540Z",
+        "reply_count": 0,
+        "reply_to_post_number": 11,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 463,
+          "username": "xesf",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/14",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 174872,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2004-04-25T13:16:27.000Z",
+        "cooked": "<p>Oh sorry.</p>\n<p>Its Ress.hqr file from LBA2.</p>",
+        "post_number": 15,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:16.669Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 1,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": true,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/15",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 175059,
+        "name": null,
+        "username": "Battler",
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "created_at": "2004-04-26T17:15:52.000Z",
+        "cooked": "<p><span class=\"bbcode-b\">SCENE.HQR (LBA 2)</span></p>\n<p>%1 001 ~2 Scene count and maybe checksum *<br>\n%1 002 ~1 Scene 0: Twinsens house *<br>\n%1 003 ~1 Scene 1: Twinsens house, secret room *</p>\n<p>-END-</p>\n<p>~1 = scene data<br>\n~2 = scene count</p>",
+        "post_number": 16,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:23.371Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "user_id": 1016,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/16",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 175076,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2004-04-26T20:01:24.000Z",
+        "cooked": "<p>Nice work <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/wink.png?v=12\" title=\":wink:\" class=\"emoji emoji-custom\" alt=\":wink:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 17,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:23.998Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/17",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 175097,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2004-04-26T22:17:31.000Z",
+        "cooked": "<p>Cool thanks O_Brasileiro!</p>",
+        "post_number": 18,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:24.776Z",
+        "reply_count": 0,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 0.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/18",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 175098,
+        "name": null,
+        "username": "xesf",
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "created_at": "2004-04-26T22:21:54.000Z",
+        "cooked": "<p>Its possible put in this thread the filedesc.ini for download (file that contain the lba entries descriptions for LBA PAckage Editor) ?</p>\n<p>Edit: in the download thread</p>",
+        "post_number": 19,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:24.816Z",
+        "reply_count": 1,
+        "reply_to_post_number": 1,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 2,
+          "username": "ChaosFish",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 463,
+        "hidden": false,
+        "trust_level": 2,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/19",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      },
+      {
+        "id": 175291,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2004-04-28T15:27:17.000Z",
+        "cooked": "<p><span class=\"bbcode-b\">LBA1 - RESS.HQR</span></p>\n<p>%1 030 ~1 Animation for 029 *<br>\n%1 032 ~1 Animation for 031 *<br>\n%1 034 ~1 Animation for 033 *<br>\n%1 036 ~1 Animation for 035 *<br>\n%1 038 ~1 Animation for 037 *<br>\n%1 040 ~1 Animation for 039 *<br>\n%1 042 ~1 Animation for 041 *<br>\n%1 044 ~1 Animation for 043 *<br>\n%1 046 ~1 Animation for 045 *<br>\n%1 048 ~1 Animation for 047 *</p>\n<p>-END-</p>\n<p>~1 = animation</p>\n<hr>\n<p>Updated LBA1 - RESS.HQR<br>\nTypo fix LBA1 - ANIM.HQR</p>\n<p>Ill add some more files soon <img src=\"//forum.magicball.net/plugins/discourse-lba-emoji/images/takam/slight_smile.png?v=12\" title=\":slight_smile:\" class=\"emoji emoji-custom\" alt=\":slight_smile:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
+        "post_number": 20,
+        "post_type": 1,
+        "posts_count": 146,
+        "updated_at": "2024-10-25T16:53:31.999Z",
+        "reply_count": 1,
+        "reply_to_post_number": 19,
+        "quote_count": 0,
+        "incoming_link_count": 0,
+        "reads": 0,
+        "readers_count": 0,
+        "score": 5.0,
+        "yours": false,
+        "topic_id": 6707,
+        "topic_slug": "submissions-for-lba-file-information",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "read": false,
+        "user_title": null,
+        "reply_to_user": {
+          "id": 463,
+          "username": "xesf",
+          "name": null,
+          "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+        },
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/submissions-for-lba-file-information/6707/20",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null
+      }
+    ],
+    "stream": [
+      6710,
+      174153,
+      174165,
+      174166,
+      174187,
+      174188,
+      174246,
+      174327,
+      174332,
+      174412,
+      174767,
+      174795,
+      174808,
+      174869,
+      174872,
+      175059,
+      175076,
+      175097,
+      175098,
+      175291,
+      175330,
+      175570,
+      175589,
+      175611,
+      175616,
+      175626,
+      175732,
+      175742,
+      175743,
+      175766,
+      175880,
+      175885,
+      176426,
+      177589,
+      177614,
+      177616,
+      177617,
+      177661,
+      177684,
+      177751,
+      177757,
+      177798,
+      177821,
+      178041,
+      178077,
+      178096,
+      178414,
+      178419,
+      178420,
+      178431,
+      179246,
+      179509,
+      180290,
+      180299,
+      180301,
+      180302,
+      180309,
+      180407,
+      180638,
+      182135,
+      182312,
+      182313,
+      182407,
+      182473,
+      182570,
+      182588,
+      182604,
+      182627,
+      182800,
+      182802,
+      182806,
+      182822,
+      183028,
+      183858,
+      183874,
+      183935,
+      185815,
+      190833,
+      190835,
+      191421,
+      191473,
+      191634,
+      191785,
+      192239,
+      192241,
+      192244,
+      192262,
+      192271,
+      192276,
+      192281,
+      192323,
+      192415,
+      192575,
+      193707,
+      193708,
+      193740,
+      193765,
+      193766,
+      193767,
+      193770,
+      193771,
+      193777,
+      193929,
+      199063,
+      199098,
+      199240,
+      201201,
+      211180,
+      211182,
+      211185,
+      211186,
+      211227,
+      228531,
+      228535,
+      228536,
+      228538,
+      228539,
+      228541,
+      232713,
+      232716,
+      232736,
+      232738,
+      232740,
+      270586,
+      270602,
+      270669,
+      270701,
+      282717,
+      282720,
+      282723,
+      282732,
+      282737,
+      282738,
+      282762,
+      282781,
+      282782,
+      282800,
+      283867,
+      283875,
+      284021,
+      284024,
+      284220,
+      370062,
+      370063,
+      370064,
+      370065
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      7971
+    ],
+    [
+      2,
+      7970
+    ],
+    [
+      7,
+      7969
+    ],
+    [
+      8,
+      7968
+    ],
+    [
+      10,
+      7967
+    ],
+    [
+      11,
+      7964
+    ],
+    [
+      13,
+      7963
+    ],
+    [
+      16,
+      7962
+    ],
+    [
+      20,
+      7960
+    ],
+    [
+      22,
+      7958
+    ],
+    [
+      27,
+      7957
+    ],
+    [
+      31,
+      7956
+    ],
+    [
+      33,
+      7952
+    ],
+    [
+      34,
+      7944
+    ],
+    [
+      35,
+      7943
+    ],
+    [
+      40,
+      7942
+    ],
+    [
+      42,
+      7941
+    ],
+    [
+      44,
+      7939
+    ],
+    [
+      46,
+      7938
+    ],
+    [
+      47,
+      7935
+    ],
+    [
+      51,
+      7928
+    ],
+    [
+      52,
+      7926
+    ],
+    [
+      53,
+      7921
+    ],
+    [
+      58,
+      7920
+    ],
+    [
+      59,
+      7918
+    ],
+    [
+      60,
+      7907
+    ],
+    [
+      61,
+      7906
+    ],
+    [
+      64,
+      7905
+    ],
+    [
+      65,
+      7904
+    ],
+    [
+      69,
+      7903
+    ],
+    [
+      73,
+      7902
+    ],
+    [
+      74,
+      7896
+    ],
+    [
+      77,
+      7883
+    ],
+    [
+      78,
+      7842
+    ],
+    [
+      80,
+      7836
+    ],
+    [
+      82,
+      7834
+    ],
+    [
+      83,
+      7833
+    ],
+    [
+      84,
+      7830
+    ],
+    [
+      92,
+      7829
+    ],
+    [
+      94,
+      7821
+    ],
+    [
+      97,
+      7820
+    ],
+    [
+      104,
+      7769
+    ],
+    [
+      105,
+      7768
+    ],
+    [
+      106,
+      7767
+    ],
+    [
+      107,
+      7750
+    ],
+    [
+      108,
+      7670
+    ],
+    [
+      112,
+      7669
+    ],
+    [
+      113,
+      7463
+    ],
+    [
+      119,
+      7396
+    ],
+    [
+      124,
+      7021
+    ],
+    [
+      126,
+      7020
+    ],
+    [
+      128,
+      6884
+    ],
+    [
+      135,
+      6883
+    ],
+    [
+      138,
+      6876
+    ],
+    [
+      139,
+      6875
+    ],
+    [
+      140,
+      6874
+    ],
+    [
+      142,
+      6872
+    ],
+    [
+      143,
+      5207
+    ],
+    [
+      144,
+      5206
+    ]
+  ],
+  "tags_descriptions": {},
+  "fancy_title": "Submissions for LBA File Information",
+  "id": 6707,
+  "title": "Submissions for LBA File Information",
+  "posts_count": 146,
+  "created_at": "2004-04-17T17:14:17.000Z",
+  "views": 27699,
+  "reply_count": 145,
+  "like_count": 0,
+  "last_posted_at": "2011-11-12T10:31:16.000Z",
+  "visible": true,
+  "closed": false,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "submissions-for-lba-file-information",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 2,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": null,
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_6707",
+  "draft_sequence": 0,
+  "posted": false,
+  "unpinned": null,
+  "pinned": false,
+  "current_post_number": 1,
+  "highest_post_number": 146,
+  "last_read_post_number": 42,
+  "last_read_post_id": 177798,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 8,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "notifications_reason_id": null,
+    "can_invite_to": true,
+    "can_create_post": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 463,
+        "username": "xesf",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png",
+        "post_count": 65,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 2,
+        "username": "ChaosFish",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "post_count": 40,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1016,
+        "username": "Battler",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/battler/{size}/208_2.png",
+        "post_count": 18,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 2
+      },
+      {
+        "id": 184,
+        "username": "Zink",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/zink/{size}/61_2.png",
+        "post_count": 14,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 1203,
+        "username": "RussF-16",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/russf-16/{size}/242_2.png",
+        "post_count": 4,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 159,
+        "username": "morshem",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/morshem/{size}/54_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 54,
+        "username": "Mannesh",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/mannesh/{size}/28_2.png",
+        "post_count": 2,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      },
+      {
+        "id": 796,
+        "username": "SebZ",
+        "name": null,
+        "avatar_template": "/letter_avatar_proxy/v4/letter/s/d2c977/{size}.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 2,
+      "username": "ChaosFish",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+    },
+    "last_poster": {
+      "id": 463,
+      "username": "xesf",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/xesf/{size}/122_2.png"
+    },
+    "links": [
+      {
+        "url": "http://80.55.102.190/~zink/lba/d.php?n=LBAPackEditor.zip",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 2,
+        "domain": "80.55.102.190",
+        "root_domain": "102.190"
+      }
+    ]
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}

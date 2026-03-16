@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "input_scope_default": "index_normalized",
+  "chunk_size": 250,
+  "limits": {
+    "max_records": 200000,
+    "max_bytes": 200000000,
+    "max_entities": 200000
+  },
+  "source_rules": [
+    {
+      "patterns": [
+        "corpus/index/*.jsonl",
+        "corpus/normalized/*.jsonl"
+      ],
+      "mode": "jsonl_stream",
+      "deferred": false,
+      "max_records_per_chunk": 250
+    },
+    {
+      "patterns": [
+        "spec/*.md"
+      ],
+      "mode": "markdown_line_stream",
+      "deferred": false,
+      "max_records_per_chunk": 250
+    },
+    {
+      "patterns": [
+        "corpus/raw/topics/*.json",
+        "corpus/raw/posts/*.jsonl"
+      ],
+      "mode": "windowed_topic_ids",
+      "deferred": true,
+      "window_size": 25
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "cursor": 9612,
+  "metrics": {
+    "records_processed": 9612,
+    "claims_emitted": 6592,
+    "entities_emitted": 12157,
+    "duplicate_claims": 0,
+    "duplicate_entities": 0,
+    "chunks_flushed": 74,
+    "limit_hit": "max_records"
+  },
+  "completed": true
+}

@@ -1,0 +1,1117 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "id": 6282,
+        "name": null,
+        "username": "ChaosFish",
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "created_at": "2004-01-23T16:59:19.000Z",
+        "cooked": "<p><span class=\"bbcode-b\">What are mods?</span><br>\nMods are modifications to the games resources. Resources include scenes, models, animations, videos, etc. but also smaller things such as texts and fonts. A complete mod is a mod that uses the original game engine, but changes everything else.</p>\n<p><span class=\"bbcode-b\">LBA mods</span><br>\nSo you want to start modding LBA? Rock on!<br>\nAt this point you can change almost everything, thanks to our very cool LBA tools developers. Check the list of tools in this thread to see what you can do.</p>\n<p>Other than that, you can replace any entry type with any other entry from the game in the same type. (for example, replace Twinsens model with Zos model)</p>\n<p><span class=\"bbcode-b\">LBA File Information</span><br>\nFor comprehensive information about the entires of the LBA package files, see the <a href=\"http://lba.fishos.net/fileinfo/\" rel=\"noopener nofollow ugc\">[b]LBA File Information[/b]</a> website.<br>\nThe site also has a large variety of information about other technical aspects of the games, such as file format specifications.<br>\nYou can also submit your information if it isnt already listed there.</p>\n<p><span class=\"bbcode-b\">LBA Translations</span><br>\n<a href=\"http://lba.fishos.net/bit/\" rel=\"noopener nofollow ugc\">Little Bit Adventure</a> is a site dedicated to LBA mods - currently only for translations and dubbing. There youll find <a href=\"http://lba.fishos.net/bit/sets.html\" rel=\"noopener nofollow ugc\">sets</a> of compiled text and font files that goes together, uncompiled LBA <a href=\"http://lba.fishos.net/bit/fonts.html\" rel=\"noopener nofollow ugc\">fonts</a> and LBA <a href=\"http://lba.fishos.net/bit/text.html\" rel=\"noopener nofollow ugc\">text</a> files, and <a href=\"http://lba.fishos.net/bit/guides.html\" rel=\"noopener nofollow ugc\">guides</a> for telling you how to use them in the game and how to make your own translation and dubbing.</p>\n<p><span class=\"bbcode-b\">Tools</span><br>\nHere are some extremely useful programs that will help you to make your mods.<br>\n<span class=\"bbcode-u\"><span class=\"bbcode-b\">[drupal=forum/member.php?u=393]Yaz0r[/drupal] - <a href=\"http://www.yaz0r.net/\" rel=\"noopener nofollow ugc\">yaz0rs blog</a></span></span><br>\n<a href=\"http://prdownloads.sourceforge.net/twin-e/twin-e-win32-0.1.zip?download\" rel=\"noopener nofollow ugc\">TwinEngine</a>: <span class=\"bbcode-i\">(official beta)</span> LBA1 recode in open source made by reverse engineering. You must also download <a href=\"http://www.libsdl.org/release/SDL-1.2.13-win32.zip\" rel=\"noopener nofollow ugc\">SDL.dll</a> and extract to same directory for it to work. (<a href=\"http://twin-e.svn.sourceforge.net/viewvc/twin-e/\" rel=\"noopener nofollow ugc\">get current source code</a>)<br>\n[drupal=disknode/get/2660/lbaModelViewer.zip]LBA Model Viewer[/drupal]: View all LBA1 &amp; LBA2 models and their animations, from any angle youd like.<br>\n[drupal=disknode/get/2661/lba2ExtViewer.zip]LBA2 Island Viewer[/drupal]: View all LBA2 outside maps, from any angle and position youd like. Still quite buggy.</p>\n<p><span class=\"bbcode-u\"><span class=\"bbcode-b\">[drupal=forum/member.php?u=3728]david38[/drupal]</span></span><br>\n<a href=\"http://fishos.net/stuff/mbn/david38/PerspectiveMapViewerV3.rar\" rel=\"noopener nofollow ugc\">LBA Perspective Map Viewer</a>: View all LBA1 &amp; LBA2 isometric scenes as real 3D scenes from any angle and position youd like.</p>\n<p><span class=\"bbcode-u\"><span class=\"bbcode-b\">[drupal=forum/member.php?u=234]Zink[/drupal] - <a href=\"http://lba.kazekr.net/\" rel=\"noopener nofollow ugc\">Emerald Moon Base</a></span></span><br>\n<a href=\"http://lba.kazekr.net/d.php?n=LBAPackEditor.zip\" rel=\"noopener nofollow ugc\">LBA Package Editor</a>: Professional LBA compiler and de-compiler. This program can extract entries of LBA package files, and replace any entry with your own file. One of the main improvements over LBADeCOMP is the ability to extract hidden entries.<br>\n<a href=\"http://lba.kazekr.net/d.php?n=LBArchitect.zip\" rel=\"noopener nofollow ugc\">LBArchitect</a>: View and edit rooms from LBA1&amp;2 (and islands from LBA1). You can now create your own islands.<br>\n<a href=\"http://lba.kazekr.net/d.php?n=LBAFontEditor.zip\" rel=\"noopener nofollow ugc\">LBA Font Editor</a>: Edit the LBA font file. Includes clipboard support.<br>\n<a href=\"http://lba.kazekr.net/d.php?n=LBATextEditor2.zip\" rel=\"noopener nofollow ugc\">LBA Text Editor 2</a>: Edit the LBA text files, in any language (character mapping feature). Fancy interface.<br>\n<a href=\"http://lba.kazekr.net/d.php?n=LBAShapeEditor.zip\" rel=\"noopener nofollow ugc\">LBA Shape Editor</a>: Edit LBA2 shapes (stars flying out of characters when they get hurt, etc.).<br>\n<a href=\"http://lba.kazekr.net/d.php?n=LBAHqr.zip\" rel=\"noopener nofollow ugc\">LBA HQR manager</a>: Replace the entries inside HQR archives with your own files.</p>\n<p><span class=\"bbcode-u\"><span class=\"bbcode-b\">[drupal=forum/member.php?u=588]alexfont[/drupal] - <a href=\"http://sacredcarrot.xesf.net/\" rel=\"noopener nofollow ugc\">The Sacred Carrot</a></span></span><br>\n<a href=\"http://sacredcarrot.xesf.net/downloads/programs/LBAnimatorStudio.rar\" rel=\"noopener nofollow ugc\">LBAnimator Studio</a>: Edit and view all LBA1 3D models and animations in a real 3D environment made in OpenGL.<br>\n<a href=\"http://sacredcarrot.xesf.net/downloads/programs/LBAStoryCoder.rar\" rel=\"noopener nofollow ugc\">LBA Story Coder</a>: Edit the LBA1 and LBA2 scenes dynamic objects (doors, character, etc.). This program also works with LBArchitect to display the dynamic objects.<br>\n<a href=\"http://sacredcarrot.xesf.net/downloads/programs/LBAScreenViewer.rar\" rel=\"noopener nofollow ugc\">LBA Screen Viewer</a>: View all LBA special images, including LBA1 movies. You can also create LBA movies and images.<br>\n<a href=\"http://sacredcarrot.xesf.net/downloads/programs/LBA3DObjectViewer.rar\" rel=\"noopener nofollow ugc\">LBA 3D Object Viewer</a>: View all LBA1 3D models. Drag an LBA1 model file to the program to use, or define as lm1 tool in LBA Package Editor.<br>\n<a href=\"http://sacredcarrot.xesf.net/downloads/programs/LBAHolomapLocations.rar\" rel=\"noopener nofollow ugc\">LBA Holomap Locations</a>: Edit LBA1 holomap arrow information (entry 9 in RESS.HQR).</p>\n<p><span class=\"bbcode-u\"><span class=\"bbcode-b\">[drupal=forum/member.php?u=1288]OBrasilo[/drupal] - <a href=\"http://www.islandcx.net/\" rel=\"noopener nofollow ugc\">Little Big AREA</a></span></span><br>\n<a href=\"http://www.islandcx.net/RManager.zip\" rel=\"noopener nofollow ugc\">LBA Resource Manager</a>: Professional HQR file manager. Contains advanced features: scripts, Hex viewing, compression of entries, and more. You can also create your own HQRs from scratch. You need to have <a href=\"http://www.afreeocx.com/ocx/download/2875/comct332.ocx\" rel=\"noopener nofollow ugc\">comct332.ocx</a> in your Windows System32 folder for it to work.<br>\n<a href=\"http://www.islandcx.net/MManager.zip\" rel=\"noopener nofollow ugc\">LBA Model Manager</a>: Edit LBA1 models by changing their numeric values, and save them into the game.<br>\n<a href=\"http://www.islandcx.net/textedit.zip\" rel=\"noopener nofollow ugc\">LBA Text File Editor</a>: Edit the LBA text, in any language (character mapping feature). Instant in-game preview while typing. Also download the <a href=\"http://www.islandcx.net/Textexe.zip\" rel=\"noopener nofollow ugc\">update</a>.<br>\n<a href=\"http://www.islandcx.net/SManager.zip\" rel=\"noopener nofollow ugc\">LBA Scene Manager</a>: Edit the LBA1 and LBA2 scenes dynamic objects.<br>\n<a href=\"http://www.islandcx.net/LBA2SGE.zip\" rel=\"noopener nofollow ugc\">LBA2 Saved Game Editor</a>: Edit LBA2 savegames with a user friendly interface.<br>\n<a href=\"http://www.islandcx.net/EditorFile3D.zip\" rel=\"noopener nofollow ugc\">LBA File 3D Editor</a>: Edit the LBA1 &amp; LBA2 character information file (info of which models to use for which characters).<br>\n<a href=\"http://www.islandcx.net/BLLEdit.zip\" rel=\"noopener nofollow ugc\">LBA Brick Layout Library Editor</a>: Edit the scenes stock of of isometric bricks in both LBA1 and LBA2.<br>\n<a href=\"http://www.islandcx.net/ILEView.zip\" rel=\"noopener nofollow ugc\">LBA2 Island Polygon Viewer</a>: View the polygon surface of LBA2 outside scenes.<br>\n<a href=\"http://www.islandcx.net/LBA2Edit.zip\" rel=\"noopener nofollow ugc\">LBA2 Credits Manager</a>: Edit the credits file in LBA2, including the credits and the credits scene.<br>\n<a href=\"http://www.islandcx.net/Lbahack.zip\" rel=\"noopener nofollow ugc\">LBA/Relentless Area/Coordinate Hacker</a>: Edit position, area code and magic level in LBA1 savegames.<br>\n<a href=\"http://www.islandcx.net/FontEdit.zip\" rel=\"noopener nofollow ugc\">MS-DOS Font Editor</a>: Edit the MS-DOS font LBA2 uses for small sized text (used on the keyboard config menu).<br>\n<a href=\"http://www.islandcx.net/LBA2Replace.zip\" rel=\"noopener nofollow ugc\">LBA2 Font Replacer</a>: Replace the MS-DOS font stored in LBA2 executable file with any other MS-DOS .FNT file.<br>\n<a href=\"http://www.islandcx.net/Fontconv.zip\" rel=\"noopener nofollow ugc\">LBA Font File Converter</a>: Convert LBA fonts into .FON font format.<br>\n<a href=\"http://www.islandcx.net/winhqr.zip\" rel=\"noopener nofollow ugc\">WinHQR</a>: An older less advanced version of LBA Resource Manager. You can extract without decompression, replace any sort of entry, and more.</p>\n<p><span class=\"bbcode-u\"><span class=\"bbcode-b\">[drupal=forum/member.php?u=243]kargeor (George)[/drupal] - <a href=\"http://lbaprojects.sourceforge.net/\" rel=\"noopener nofollow ugc\">LBA Projects opensource</a></span></span><br>\n<a href=\"http://prdownloads.sourceforge.net/lbaprojects/LBAFont_275_exe.zip?download\" rel=\"noopener nofollow ugc\">LBA Font</a>: Edit the LBA font. Includes import from standard font files support.  (also developed by <span class=\"bbcode-b\">OBrasilo</span>)<br>\n<a href=\"http://prdownloads.sourceforge.net/lbaprojects/LBAText_200_exe.zip?download\" rel=\"noopener nofollow ugc\">LBA Text</a>: Edit the LBA text, in any language (character mapping feature). Simple interface.</p>\n<p><span class=\"bbcode-u\"><span class=\"bbcode-b\">[drupal=forum/member.php?u=1]El Muerte[/drupal] - <a href=\"http://magicball.net/\" rel=\"noopener nofollow ugc\">Magicball Network</a></span></span><br>\n[drupal=disknode/get/1663/lbadecomp12214.exe]LBADeCOMP[/drupal]: The first big program. It allows you to extract resources from LBA1 and LBA2. It also includes <span class=\"bbcode-u\">LBA Text Viewer</span>, <span class=\"bbcode-u\">LBA Image Viewer</span>, <span class=\"bbcode-u\">LBA Packer</span> (for compiling a fresh LBA archive), and detailed help files. You must also download and install the [drupal=disknode/get/1662/lbadepak.exe]LBADeCOMP library package[/drupal] for it to work. It has a bug: it may hang when trying to extract files to hard disk. If that happens you can just extract the files to a floppy.<br>\n[drupal=disknode/get/1652/lba-sge.exe]LBA Savegame Editor[/drupal]: Edit LBA1 and LBA2 savegames. You can edit the LBA1 location, inventory, position and character status. In LBA2 you can only change the location. This program has some problems with newer machines.<br>\n[drupal=disknode/get/1653/LBASGE2.1.0pre4-setup.exe]LBA1 Savegame Editor 2[/drupal]: A newer version of the LBA1 savegame editor. You can now also change the holomap arrows, the completed quests, and the viewed movies.</p>\n<p><span class=\"bbcode-u\"><span class=\"bbcode-b\">[drupal=forum/member.php?u=1232]LBAWinOwns[/drupal]</span></span><br>\n<a href=\"http://miffoljud.googlepages.com/LBAImageCreator1.1.zip\" rel=\"noopener nofollow ugc\">LBA Image Creator</a>: Convert any image into an LBA image format. (most kinds of LBA images are supported)</p>\n<p><span class=\"bbcode-u\"><span class=\"bbcode-b\">[drupal=forum/member.php?u=3062]K.A.T.[/drupal]</span></span><br>\n<a href=\"http://toya.net.pl/~kat15/LBALIMEditor.zip\" rel=\"noopener nofollow ugc\">LBA LIM Editor</a>: Editor for <em>.lim/</em>.raw files. You can also load and save into other known image formats.</p>\n<p><span class=\"bbcode-b\">This Forum</span><br>\nThis forum is for any discussion about LBA modifications. If you start any modding project, even a small one, you are more than welcome to open a new thread about it. If you seek help, please check out the <a href=\"http://lba.fishos.net/fileinfo/\" rel=\"noopener nofollow ugc\">LBA File Information</a> website and <a href=\"http://lba.fishos.net/bit/\" rel=\"noopener nofollow ugc\">Little Bit Adventure</a>s guides before asking questions.<br>\nNote that this forum is only for discussions about mods to the LBA games!</p>",
+        "post_number": 1,
+        "post_type": 1,
+        "posts_count": 1,
+        "updated_at": "2024-10-25T15:21:02.077Z",
+        "reply_count": 0,
+        "reply_to_post_number": null,
+        "quote_count": 0,
+        "incoming_link_count": 140,
+        "reads": 18,
+        "readers_count": 17,
+        "score": 703.6,
+        "yours": false,
+        "topic_id": 6279,
+        "topic_slug": "lba-modifications-quick-start-modding-tools-updated-01-04-2009",
+        "display_username": null,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_bg_color": null,
+        "flair_color": null,
+        "flair_group_id": null,
+        "badges_granted": [],
+        "version": 1,
+        "can_edit": false,
+        "can_delete": false,
+        "can_recover": false,
+        "can_see_hidden_post": false,
+        "can_wiki": false,
+        "link_counts": [
+          {
+            "url": "http://fishos.net/stuff/mbn/david38/PerspectiveMapViewerV3.rar",
+            "internal": false,
+            "reflection": false,
+            "clicks": 5
+          },
+          {
+            "url": "http://lba.kazekr.net/d.php?n=LBArchitect.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 4
+          },
+          {
+            "url": "http://lba.kazekr.net/d.php?n=LBAPackEditor.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 3
+          },
+          {
+            "url": "http://lba.fishos.net/fileinfo/",
+            "internal": false,
+            "reflection": false,
+            "clicks": 3
+          },
+          {
+            "url": "http://www.islandcx.net/ILEView.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 2
+          },
+          {
+            "url": "http://www.islandcx.net/textedit.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 2
+          },
+          {
+            "url": "http://lba.fishos.net/bit/text.html",
+            "internal": false,
+            "reflection": false,
+            "title": "Little Bit Adventure - Text",
+            "clicks": 1
+          },
+          {
+            "url": "http://sacredcarrot.xesf.net/",
+            "internal": false,
+            "reflection": false,
+            "clicks": 1
+          },
+          {
+            "url": "http://lba.kazekr.net/",
+            "internal": false,
+            "reflection": false,
+            "clicks": 1
+          },
+          {
+            "url": "http://prdownloads.sourceforge.net/twin-e/twin-e-win32-0.1.zip?download",
+            "internal": false,
+            "reflection": false,
+            "clicks": 1
+          },
+          {
+            "url": "http://www.islandcx.net/LBA2SGE.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 1
+          },
+          {
+            "url": "http://www.afreeocx.com/ocx/download/2875/comct332.ocx",
+            "internal": false,
+            "reflection": false,
+            "title": "Free .OCX Files for Download - OCXme.com",
+            "clicks": 1
+          },
+          {
+            "url": "http://lba.fishos.net/bit/",
+            "internal": false,
+            "reflection": false,
+            "title": "Little Bit Adventure",
+            "clicks": 1
+          },
+          {
+            "url": "http://prdownloads.sourceforge.net/lbaprojects/LBAText_200_exe.zip?download",
+            "internal": false,
+            "reflection": false,
+            "clicks": 1
+          },
+          {
+            "url": "http://www.islandcx.net/BLLEdit.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/LBA2Replace.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/Fontconv.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/winhqr.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://magicball.net/",
+            "internal": false,
+            "reflection": false,
+            "title": "Magicball Network - the Little Big Adventure / Twinsen's Odyssey community",
+            "clicks": 0
+          },
+          {
+            "url": "http://www.yaz0r.net/",
+            "internal": false,
+            "reflection": false,
+            "title": "yaz0r.net",
+            "clicks": 0
+          },
+          {
+            "url": "http://twin-e.svn.sourceforge.net/viewvc/twin-e/",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.libsdl.org/release/SDL-1.2.13-win32.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://lba.kazekr.net/d.php?n=LBAFontEditor.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://lba.kazekr.net/d.php?n=LBATextEditor2.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://lba.kazekr.net/d.php?n=LBAShapeEditor.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://lba.fishos.net/bit/sets.html",
+            "internal": false,
+            "reflection": false,
+            "title": "Little Bit Adventure - Sets",
+            "clicks": 0
+          },
+          {
+            "url": "http://lba.kazekr.net/d.php?n=LBAHqr.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://sacredcarrot.xesf.net/downloads/programs/LBAnimatorStudio.rar",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://sacredcarrot.xesf.net/downloads/programs/LBAStoryCoder.rar",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://sacredcarrot.xesf.net/downloads/programs/LBAScreenViewer.rar",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://sacredcarrot.xesf.net/downloads/programs/LBA3DObjectViewer.rar",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/RManager.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://sacredcarrot.xesf.net/downloads/programs/LBAHolomapLocations.rar",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/MManager.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/Textexe.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/SManager.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/EditorFile3D.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/LBA2Edit.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/Lbahack.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://www.islandcx.net/FontEdit.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://lbaprojects.sourceforge.net/",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://prdownloads.sourceforge.net/lbaprojects/LBAFont_275_exe.zip?download",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://miffoljud.googlepages.com/LBAImageCreator1.1.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://toya.net.pl/~kat15/LBALIMEditor.zip",
+            "internal": false,
+            "reflection": false,
+            "clicks": 0
+          },
+          {
+            "url": "http://lba.fishos.net/bit/fonts.html",
+            "internal": false,
+            "reflection": false,
+            "title": "Little Bit Adventure - Fonts",
+            "clicks": 0
+          },
+          {
+            "url": "http://lba.fishos.net/bit/guides.html",
+            "internal": false,
+            "reflection": false,
+            "title": "Little Bit Adventure - Guides",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/sound-of-lba/9412/3",
+            "internal": true,
+            "reflection": true,
+            "title": "sound of lba",
+            "clicks": 1
+          },
+          {
+            "url": "https://forum.magicball.net/t/lbawin-sound-during-videos-is-wrong/13655/9",
+            "internal": true,
+            "reflection": true,
+            "title": "LBAWin: sound during videos is wrong",
+            "clicks": 1
+          },
+          {
+            "url": "https://forum.magicball.net/t/is-there-a-lba-that-we-play-as-zoe/7911/3",
+            "internal": true,
+            "reflection": true,
+            "title": "Is there a LBA that we play as Zoe?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/where-i-can-get-lbadecomp-tools/7194/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Where I can get LBADeCOMP tools??",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/some-new-fonts-and-programs-for-you/6866/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Some new fonts and programs for you",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/how-to-change-hqr/6817/3",
+            "internal": true,
+            "reflection": true,
+            "title": "how to change hqr???",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/here-are-your-files/6691/5",
+            "internal": true,
+            "reflection": true,
+            "title": "Here are your files",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba1-and-lba2-made-open-source/15760",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA1 and LBA2 made Open Source",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-text-editor-hebrew-windows-7/13868",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA text editor + Hebrew + Windows 7 = ?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/mbns-6th-birthday/10225",
+            "internal": true,
+            "reflection": true,
+            "title": "MBN's 6th birthday",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/all-lba-modding-tools-have-been-mirrored-on-the-mbn/9120",
+            "internal": true,
+            "reflection": true,
+            "title": "All LBA modding tools have been mirrored on the MBN",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-and-mbn-mentioned-on-gamingworld-forums/7637/11",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA and MBN mentioned on GamingWorld Forums",
+            "clicks": 0
+          },
+          {
+            "url": "http://forum.magicball.net/t/mbn-years-review-2008/12573",
+            "internal": true,
+            "reflection": true,
+            "title": "MBN year's review 2008",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/where-is-it/11200/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Where is it?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/funfrocks-revenge/15659/48",
+            "internal": true,
+            "reflection": true,
+            "title": "Funfrock's revenge",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/what-happened-to-downloads/14647/21",
+            "internal": true,
+            "reflection": true,
+            "title": "What happened to Downloads?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-challenge-thread/13829/18",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Challenge Thread",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/hi/13807/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Hi",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/videos/13710/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Videos",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lbawin-sound-during-videos-is-wrong/13655/5",
+            "internal": true,
+            "reflection": true,
+            "title": "LBAWin: sound during videos is wrong",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lbarchitect-progress/12990/57",
+            "internal": true,
+            "reflection": true,
+            "title": "LBArchitect progress",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/models-images/13242/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Models images",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-fonts-where-it-is/12790/5",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Fonts, where it is?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-fonts-where-it-is/12790/2",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Fonts, where it is?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-advanced-engine/12706/46",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Advanced Engine",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/anybody-knows-how-to-make-this/12588/2",
+            "internal": true,
+            "reflection": true,
+            "title": "anybody knows how to make this?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/moon-suit/12158/5",
+            "internal": true,
+            "reflection": true,
+            "title": "Moon Suit",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lbalimeditor/11303/15",
+            "internal": true,
+            "reflection": true,
+            "title": "LBALIMEditor",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/help-with-modding/11280/4",
+            "internal": true,
+            "reflection": true,
+            "title": "Help with Modding",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/playing-as-somebody-else/11184/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Playing as somebody else",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/im-new-here-but-i-have-so-much-to-offer/11079/48",
+            "internal": true,
+            "reflection": true,
+            "title": "Im New here but I have SO MUCH to offer!!!",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/little-big-toolkit-lbt/10993/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Little Big Toolkit (LBT)",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/is-there-any-character-model-viewer/10976/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Is there any Character Model Viewer ?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba2-task-list-w-i-p/10930/62",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA2 Task List W.I.P.",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/question-about-the-exact-content-of-lba1-hrq/10856/2",
+            "internal": true,
+            "reflection": true,
+            "title": "question about the exact content of LBA1 HRQ",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba2-lotr-spoof/10683/39",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA2 - LOTR spoof",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/twinsen-engine/10602/6",
+            "internal": true,
+            "reflection": true,
+            "title": "Twinsen Engine",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-prequel-new-surprises-for-a-new-year/10576/5",
+            "internal": true,
+            "reflection": true,
+            "title": "[LBA Prequel] New Surprises for a New Year!!!",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-windows-working-fonts/10553/2",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA windows working fonts",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/hello-im-new/10378/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Hello - I'm new",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-model-manager/10208/41",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Model Manager",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/need-help-for-mods/10204/8",
+            "internal": true,
+            "reflection": true,
+            "title": "Need help for Mods",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-model-manager/10208/9",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Model Manager",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/all-in-one-editor-etc/10132/2",
+            "internal": true,
+            "reflection": true,
+            "title": "All-in-one editor, etc?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-translation-greek/9885/2",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Translation(Greek)",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-font/9848/3",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Font",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/that-dam-darned-protopack/9634/55",
+            "internal": true,
+            "reflection": true,
+            "title": "That dam...darned protopack!",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/are-there-cheats-to-lba2/9669/12",
+            "internal": true,
+            "reflection": true,
+            "title": "Are there cheats to LBA2?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/what-the-adeline-team-thinks/9269/8",
+            "internal": true,
+            "reflection": true,
+            "title": "What the Adeline team thinks",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/i-need-you-to-do-this-now/9264/10",
+            "internal": true,
+            "reflection": true,
+            "title": "I need YOU to do THIS... NOW :)",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/re-dub/9169/2",
+            "internal": true,
+            "reflection": true,
+            "title": "Re-Dub?",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-1-5-is-back/7050/258",
+            "internal": true,
+            "reflection": true,
+            "title": "Lba 1.5 is back...",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lbax-beta-demo-release-two/5831/111",
+            "internal": true,
+            "reflection": true,
+            "title": "~LbaX Beta Demo Release Two~",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/saving-bricks-discuss-lba-screen-viewer-offtopic/8836/42",
+            "internal": true,
+            "reflection": true,
+            "title": "Saving Bricks discuss [LBA Screen Viewer Offtopic]",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/twin-e-initial-release/8872/6",
+            "internal": true,
+            "reflection": true,
+            "title": "Twin-e initial release",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/finished-lba1-again/8747/10",
+            "internal": true,
+            "reflection": true,
+            "title": "finished LBA1, again",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/twinsen-character-model/8556/3",
+            "internal": true,
+            "reflection": true,
+            "title": "Twinsen Character Model",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/lba-savegame-editor/8512/2",
+            "internal": true,
+            "reflection": true,
+            "title": "LBA Savegame Editor",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/big-project/7790/141",
+            "internal": true,
+            "reflection": true,
+            "title": "Big Project...",
+            "clicks": 0
+          },
+          {
+            "url": "https://forum.magicball.net/t/big-project/7790/102",
+            "internal": true,
+            "reflection": true,
+            "title": "Big Project...",
+            "clicks": 0
+          }
+        ],
+        "read": false,
+        "user_title": null,
+        "bookmarked": false,
+        "actions_summary": [
+          {
+            "id": 2,
+            "can_act": true
+          },
+          {
+            "id": 6,
+            "can_act": true
+          },
+          {
+            "id": 3,
+            "can_act": true
+          },
+          {
+            "id": 4,
+            "can_act": true
+          },
+          {
+            "id": 8,
+            "can_act": true
+          },
+          {
+            "id": 10,
+            "can_act": true
+          },
+          {
+            "id": 7,
+            "can_act": true
+          }
+        ],
+        "moderator": false,
+        "admin": false,
+        "staff": false,
+        "group_moderator": true,
+        "user_id": 2,
+        "hidden": false,
+        "trust_level": 1,
+        "deleted_at": null,
+        "user_deleted": false,
+        "edit_reason": null,
+        "can_view_edit_history": false,
+        "wiki": false,
+        "post_url": "/t/lba-modifications-quick-start-modding-tools-updated-01-04-2009/6279/1",
+        "reactions": [],
+        "current_user_reaction": null,
+        "reaction_users_count": 0,
+        "current_user_used_main_reaction": false,
+        "can_accept_answer": false,
+        "can_unaccept_answer": false,
+        "accepted_answer": false,
+        "topic_accepted_answer": null,
+        "can_vote": false
+      }
+    ],
+    "stream": [
+      6282
+    ]
+  },
+  "timeline_lookup": [
+    [
+      1,
+      8056
+    ]
+  ],
+  "suggested_topics": [],
+  "tags_descriptions": {},
+  "fancy_title": "LBA Modifications: Quick Start &amp; Modding Tools [updated: 01-04-2009]",
+  "id": 6279,
+  "title": "LBA Modifications: Quick Start & Modding Tools [updated: 01-04-2009]",
+  "posts_count": 1,
+  "created_at": "2004-01-23T16:59:19.000Z",
+  "views": 98251,
+  "reply_count": 0,
+  "like_count": 0,
+  "last_posted_at": "2004-01-23T16:59:19.000Z",
+  "visible": true,
+  "closed": true,
+  "archived": false,
+  "has_summary": false,
+  "archetype": "regular",
+  "slug": "lba-modifications-quick-start-modding-tools-updated-01-04-2009",
+  "category_id": 50,
+  "word_count": 52,
+  "deleted_at": null,
+  "user_id": 2,
+  "featured_link": null,
+  "pinned_globally": false,
+  "pinned_at": "2004-01-23T16:59:19.000Z",
+  "pinned_until": null,
+  "image_url": null,
+  "slow_mode_seconds": 0,
+  "draft": null,
+  "draft_key": "topic_6279",
+  "draft_sequence": 0,
+  "unpinned": null,
+  "pinned": true,
+  "current_post_number": 1,
+  "highest_post_number": 1,
+  "deleted_by": null,
+  "actions_summary": [
+    {
+      "id": 4,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 8,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 10,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    },
+    {
+      "id": 7,
+      "count": 0,
+      "hidden": false,
+      "can_act": true
+    }
+  ],
+  "chunk_size": 20,
+  "bookmarked": false,
+  "topic_timer": null,
+  "message_bus_last_id": 0,
+  "participant_count": 1,
+  "show_read_indicator": false,
+  "thumbnails": null,
+  "slow_mode_enabled_until": null,
+  "valid_reactions": [
+    "heart",
+    "+1",
+    "laughing",
+    "open_mouth",
+    "clap",
+    "smiling_face_with_sunglasses",
+    "confetti_ball",
+    "hugs"
+  ],
+  "can_vote": false,
+  "vote_count": 0,
+  "user_voted": false,
+  "discourse_zendesk_plugin_zendesk_id": null,
+  "discourse_zendesk_plugin_zendesk_url": "https://your-url.zendesk.com/agent/tickets/",
+  "details": {
+    "can_edit": false,
+    "notification_level": 1,
+    "can_invite_to": true,
+    "can_reply_as_new_topic": true,
+    "can_flag_topic": true,
+    "participants": [
+      {
+        "id": 2,
+        "username": "ChaosFish",
+        "name": null,
+        "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png",
+        "post_count": 1,
+        "primary_group_name": null,
+        "flair_name": null,
+        "flair_url": null,
+        "flair_color": null,
+        "flair_bg_color": null,
+        "flair_group_id": null,
+        "trust_level": 1
+      }
+    ],
+    "created_by": {
+      "id": 2,
+      "username": "ChaosFish",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+    },
+    "last_poster": {
+      "id": 2,
+      "username": "ChaosFish",
+      "name": null,
+      "avatar_template": "/user_avatar/forum.magicball.net/chaosfish/{size}/2_2.png"
+    },
+    "links": [
+      {
+        "url": "http://fishos.net/stuff/mbn/david38/PerspectiveMapViewerV3.rar",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 5,
+        "user_id": 2,
+        "domain": "fishos.net",
+        "root_domain": "fishos.net"
+      },
+      {
+        "url": "http://lba.kazekr.net/d.php?n=LBArchitect.zip",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 4,
+        "user_id": 2,
+        "domain": "lba.kazekr.net",
+        "root_domain": "kazekr.net"
+      },
+      {
+        "url": "http://lba.fishos.net/fileinfo/",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 3,
+        "user_id": 2,
+        "domain": "lba.fishos.net",
+        "root_domain": "fishos.net"
+      },
+      {
+        "url": "http://lba.kazekr.net/d.php?n=LBAPackEditor.zip",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 3,
+        "user_id": 2,
+        "domain": "lba.kazekr.net",
+        "root_domain": "kazekr.net"
+      },
+      {
+        "url": "http://www.islandcx.net/ILEView.zip",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 2,
+        "user_id": 2,
+        "domain": "www.islandcx.net",
+        "root_domain": "islandcx.net"
+      },
+      {
+        "url": "http://www.islandcx.net/textedit.zip",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 2,
+        "user_id": 2,
+        "domain": "www.islandcx.net",
+        "root_domain": "islandcx.net"
+      },
+      {
+        "url": "http://sacredcarrot.xesf.net/",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 2,
+        "domain": "sacredcarrot.xesf.net",
+        "root_domain": "xesf.net"
+      },
+      {
+        "url": "http://www.afreeocx.com/ocx/download/2875/comct332.ocx",
+        "title": "Free .OCX Files for Download - OCXme.com",
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 2,
+        "domain": "www.afreeocx.com",
+        "root_domain": "afreeocx.com"
+      },
+      {
+        "url": "http://www.islandcx.net/LBA2SGE.zip",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 2,
+        "domain": "www.islandcx.net",
+        "root_domain": "islandcx.net"
+      },
+      {
+        "url": "https://forum.magicball.net/t/lbawin-sound-during-videos-is-wrong/13655/9",
+        "title": "LBAWin: sound during videos is wrong",
+        "internal": true,
+        "attachment": false,
+        "reflection": true,
+        "clicks": 1,
+        "user_id": 1918,
+        "domain": "localhost",
+        "root_domain": null
+      },
+      {
+        "url": "https://forum.magicball.net/t/sound-of-lba/9412/3",
+        "title": "sound of lba",
+        "internal": true,
+        "attachment": false,
+        "reflection": true,
+        "clicks": 1,
+        "user_id": 2,
+        "domain": "localhost",
+        "root_domain": null
+      },
+      {
+        "url": "http://lba.fishos.net/bit/",
+        "title": "Little Bit Adventure",
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 2,
+        "domain": "lba.fishos.net",
+        "root_domain": "fishos.net"
+      },
+      {
+        "url": "http://lba.fishos.net/bit/text.html",
+        "title": "Little Bit Adventure - Text",
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 2,
+        "domain": "lba.fishos.net",
+        "root_domain": "fishos.net"
+      },
+      {
+        "url": "http://lba.kazekr.net/",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 2,
+        "domain": "lba.kazekr.net",
+        "root_domain": "kazekr.net"
+      },
+      {
+        "url": "http://prdownloads.sourceforge.net/lbaprojects/LBAText_200_exe.zip?download",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 2,
+        "domain": "prdownloads.sourceforge.net",
+        "root_domain": "sourceforge.net"
+      },
+      {
+        "url": "http://prdownloads.sourceforge.net/twin-e/twin-e-win32-0.1.zip?download",
+        "title": null,
+        "internal": false,
+        "attachment": false,
+        "reflection": false,
+        "clicks": 1,
+        "user_id": 2,
+        "domain": "prdownloads.sourceforge.net",
+        "root_domain": "sourceforge.net"
+      }
+    ]
+  },
+  "pending_posts": [],
+  "bookmarks": []
+}
