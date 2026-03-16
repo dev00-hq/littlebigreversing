@@ -48,3 +48,4 @@ discourse-downloader/topic-*.txt
 # littlebigreversing unpacked tool payloads; keep the canonical archive.
 littlebigreversing/mbn_tools/*/
 !littlebigreversing/mbn_tools/mbn_tools.tar.zst
+dist/
