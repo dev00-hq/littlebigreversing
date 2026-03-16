@@ -11,10 +11,11 @@ Thumbs.db
 
 
 # littlebigreversing unpacked tool payloads; keep the canonical archive.
-littlebigreversing/mbn_tools/*/
-!littlebigreversing/mbn_tools/mbn_tools.tar.zst
+reference/littlebigreversing/mbn_tools/*/
+!reference/littlebigreversing/mbn_tools/mbn_tools.tar.zst
 dist/
-_innoextract_full/
-_installer_extract/
-lba2-classic/
-setup_twinsens_little_big_adventure_2_classic_3.2.4.3_(61767).exe
+work/_innoextract_full/
+work/_installer_extract/
+reference/lba2-classic/
+reference/installers/setup_twinsens_little_big_adventure_2_classic_3.2.4.3_(61767).exe
+build/
