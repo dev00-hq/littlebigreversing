@@ -7,8 +7,6 @@ Thumbs.db
 .idea/
 .vscode/
 
-lba2-classic/
-
 # Parked nested Git metadata so the parent repo can track contents normally.
 **/.git.disabled/
 
