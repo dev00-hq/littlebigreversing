@@ -641,3 +641,143 @@ The critical decision is whether you want to spend your time:
 - or building a new runtime with the source tree, extracted assets, and legacy tools acting as a reference system.
 
 For a graduation project, the second approach is clearly stronger.
+
+## Current Workspace Status
+
+This section reflects the current state of the workspace after the initial setup and cleanup work. It is intended as a handoff note for the next agent.
+
+### Current repo layout
+
+The repo root is now organized like this:
+
+- `docs/`
+  - reports and notes
+- `port/`
+  - reserved for the new modern port implementation
+- `reference/`
+  - imported upstream/reference material
+- `scripts/`
+  - environment/bootstrap helpers
+- `work/`
+  - extracted artifacts and temporary analysis outputs
+
+Important current paths:
+
+- report: `D:\repos\reverse\littlebigreversing\docs\PORTING_REPORT.md`
+- modern port workspace: `D:\repos\reverse\littlebigreversing\port`
+- historic source tree: `D:\repos\reverse\littlebigreversing\reference\lba2-classic`
+- imported MBN tools: `D:\repos\reverse\littlebigreversing\reference\littlebigreversing\mbn_tools`
+- extracted GOG payload: `D:\repos\reverse\littlebigreversing\work\_innoextract_full`
+- extracted original CD root: `D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2`
+- installer binary: `D:\repos\reverse\littlebigreversing\reference\installers\setup_twinsens_little_big_adventure_2_classic_3.2.4.3_(61767).exe`
+
+### Environment helpers already added
+
+Two PowerShell helper scripts were added:
+
+- `D:\repos\reverse\littlebigreversing\scripts\dev-shell.ps1`
+- `D:\repos\reverse\littlebigreversing\scripts\check-env.ps1`
+
+Use:
+
+- `.\scripts\dev-shell.ps1`
+- `.\scripts\check-env.ps1`
+
+`dev-shell.ps1` sets up the Visual Studio toolchain in the current PowerShell process and exports:
+
+- `LBA2_REPO_ROOT`
+- `LBA2_ORIGINAL_CD_ROOT`
+- `LBA2_SOURCE_ROOT`
+- `LBA2_MBN_TOOLS_ROOT`
+
+`check-env.ps1` currently validates:
+
+- Visual Studio/MSVC/CMake/Ninja/MASM
+- Python/Java/Git/7-Zip
+- Ghidra/x64dbg/DIE/PE-bear
+- the historic source tree
+- the extracted CD data
+- the MBN tools
+- SDL2 headers/libs
+- DOSBox runtime presence
+- DOSBox-X presence
+- OpenWatcom presence
+
+### Modern build environment status
+
+The modern build toolchain is available and working on this machine:
+
+- Visual Studio 2022
+- `cl`
+- `cmake`
+- `ninja`
+- `MSBuild`
+- `ml`
+
+This is not fully on `PATH` by default in the shell, which is why `dev-shell.ps1` exists.
+
+### SDL2 status
+
+SDL2 has already been installed for the repo using manifest-mode `vcpkg`.
+
+Files added/updated:
+
+- `D:\repos\reverse\littlebigreversing\vcpkg.json`
+- `D:\repos\reverse\littlebigreversing\vcpkg_installed\...`
+
+Current manifest:
+
+- dependency: `sdl2`
+- baseline pinned in `vcpkg.json`
+
+SDL2 is now detected successfully by `check-env.ps1`.
+
+Important paths:
+
+- SDL2 headers: `D:\repos\reverse\littlebigreversing\vcpkg_installed\x64-windows\include\SDL2`
+- SDL2 library: `D:\repos\reverse\littlebigreversing\vcpkg_installed\x64-windows\lib\SDL2.lib`
+
+This install is repo-local, not global. The repo uses manifest-mode `vcpkg`.
+
+### Remaining missing environment items
+
+At the moment, the environment check only reports two missing items:
+
+- `DOSBox-X`
+- `OpenWatcom`
+
+Interpretation:
+
+- `DOSBox-X` is needed for better DOS-side runtime investigation/debugging than the bundled DOSBox.
+- `OpenWatcom` is needed only if you want to experiment with the historic build directly.
+
+These are reference-track tools, not blockers for starting the modern SDL2/CMake port.
+
+### Immediate next recommended step
+
+The next engineering step should be:
+
+1. create the initial `port/` CMake skeleton,
+2. wire it to the existing `vcpkg.json`,
+3. add a tiny SDL2 smoke-test executable,
+4. confirm a clean native build from `dev-shell.ps1`.
+
+After that, the first real implementation milestone should be:
+
+- load one original asset path from `LBA2_ORIGINAL_CD_ROOT`,
+- then build a minimal data-loading pipeline before attempting gameplay systems.
+
+### Important git note
+
+The repo underwent a light filesystem reorganization. As a result, `git status` will show a large move/delete/add set until staged.
+
+That is expected.
+
+Do not revert those moves casually. They were intentional to separate:
+
+- `reference/`
+- `work/`
+- `docs/`
+- `port/`
+
+from one another.

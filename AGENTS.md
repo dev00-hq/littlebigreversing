@@ -1,4 +1,4 @@
-## Hard-Cut Product Policy
+# Hard-Cut Product Policy
 
 - This application currently has no external installed user base; optimize for one canonical current-state implementation, not compatibility with historical local states.
 - Do not preserve or introduce compatibility bridges, migration shims, fallback paths, compact adapters, or dual behavior for old local states unless the user explicitly asks for that support.

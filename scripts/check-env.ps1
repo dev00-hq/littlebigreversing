@@ -144,12 +144,14 @@ $openWatcom = Find-FirstExistingPath -Candidates @(
     "C:\OpenWatcom\BINNT\wmake.exe"
 )
 $sdl2Header = Find-FirstExistingPath -Candidates @(
+    (Join-Path $repoRoot "vcpkg_installed\x64-windows\include\SDL2\SDL.h"),
     "C:\SDL2\include\SDL.h",
     "C:\SDL2\include\SDL2\SDL.h",
     "C:\vcpkg\installed\x64-windows\include\SDL2\SDL.h",
     "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\installed\x64-windows\include\SDL2\SDL.h"
 )
 $sdl2Lib = Find-FirstExistingPath -Candidates @(
+    (Join-Path $repoRoot "vcpkg_installed\x64-windows\lib\SDL2.lib"),
     "C:\SDL2\lib\x64\SDL2.lib",
     "C:\vcpkg\installed\x64-windows\lib\SDL2.lib",
     "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\installed\x64-windows\lib\SDL2.lib"
