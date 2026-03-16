@@ -47,3 +47,7 @@ discourse-downloader/topic-*.txt
 littlebigreversing/mbn_tools/*/
 !littlebigreversing/mbn_tools/mbn_tools.tar.zst
 dist/
+_innoextract_full/
+_installer_extract/
+lba2-classic/
+setup_twinsens_little_big_adventure_2_classic_3.2.4.3_(61767).exe
