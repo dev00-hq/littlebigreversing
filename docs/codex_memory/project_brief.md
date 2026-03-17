@@ -15,6 +15,7 @@ This repository is a reverse-engineering and port-planning workspace for Twinsen
 ## Canonical Sources
 
 - `docs/PORTING_REPORT.md` is the main high-level porting assessment.
+- `docs/LBA2_ZIG_PORT_PLAN.md` is the canonical implementation roadmap and work-package boundary.
 - `docs/mbn_reference/README.md` names the canonical MBN corpus snapshot.
 - `tools/mbn_workbench.py` is the existing pattern for "checked-in source material + generated SQLite state".
 - `port/README.md` states that `port/` is the destination for the future modern implementation.

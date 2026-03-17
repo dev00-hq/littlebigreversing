@@ -23,3 +23,6 @@ reference/lba2-classic/
 reference/installers/setup_twinsens_little_big_adventure_2_classic_3.2.4.3_(61767).exe
 build/
 vcpkg_installed/
+.zig-cache/
+zig-out/
+port/hello-world/

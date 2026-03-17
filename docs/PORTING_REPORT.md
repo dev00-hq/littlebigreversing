@@ -4,6 +4,12 @@
 
 This report is oriented toward a graduation-project goal: producing a modern port of **Twinsen's Little Big Adventure 2** using the materials already present in this workspace and the tooling available under `D:\repos\reverse`.
 
+## Status Note
+
+This report remains the canonical high-level feasibility and evidence survey.
+
+The canonical implementation roadmap, runtime target, and first work-package boundary now live in `docs/LBA2_ZIG_PORT_PLAN.md`. Treat any older C++ or CMake-specific implementation guidance below as historical assessment context, not as the current execution plan.
+
 It is based on:
 
 - the extracted GOG installer payload,
@@ -322,197 +328,25 @@ Use them for:
 
 These are triage accelerators, not primary research environments.
 
-## Recommended Port Strategy
+## Planning Ownership
 
-## Recommendation
+This report now stops at feasibility, evidence, workspace inventory, and risks.
 
-The best project shape is:
+The canonical execution plan lives in `docs/LBA2_ZIG_PORT_PLAN.md`, including:
 
-**source-assisted reimplementation with extracted original assets and tool-assisted format validation**
+- the Zig 0.15.2 + SDL2 target runtime
+- delivery structure and replan gates
+- roadmap phases
+- stable module boundaries
+- the `Foundation + asset CLI` first work package
+- the current test plan
 
-That means:
+At a high level, the recommended implementation posture remains:
 
-- do not try to make the 1997 code compile as your final target,
-- do not try to reverse the DOS binary from zero,
-- do use the historic code as the authoritative behavioral map,
-- do write a new modern runtime around documented and validated content formats.
-
-This is the best tradeoff between:
-
-- technical credibility,
-- time-to-results,
-- explainability in an academic setting,
-- and the ability to demo a real modern port.
-
-## What "modern port" should mean here
-
-For this project, a modern port should probably aim for:
-
-- native desktop build on a modern OS,
-- modern windowing/input/audio stack,
-- data-driven loading of the original game assets,
-- no DOSBox dependency for the final runtime,
-- faithful scene/script/gameplay behavior,
-- enough rendering modernization to be maintainable without changing the original game design.
-
-That is a better framing than "make the old code compile."
-
-## A practical architecture
-
-Suggested engine layers:
-
-1. **Asset layer**
-   - HQR reader
-   - ILE/OBL readers
-   - VOX/music/video metadata readers
-   - decompression support
-
-2. **Data model layer**
-   - scene representation
-   - actor/zone/track representation
-   - room/grid/world representation
-   - animation/body/model representation
-
-3. **Runtime layer**
-   - script interpreter
-   - object update loop
-   - collision and movement
-   - event/trigger system
-   - save/load
-
-4. **Platform layer**
-   - rendering
-   - input
-   - audio
-   - filesystem
-   - timing
-
-5. **Validation/tooling layer**
-   - comparison tools against original outputs
-   - golden scenes
-   - debug visualizations
-
-## Why this is better than a straight source port
-
-A straight source port will drag in:
-
-- old compiler assumptions,
-- DOS memory model assumptions,
-- assembly dependencies,
-- proprietary library gaps,
-- and platform APIs that are not worth preserving.
-
-A reimplementation guided by the source avoids most of that while preserving behavior.
-
-## Suggested Work Breakdown
-
-## Phase 1: Establish the canonical corpus
-
-Use as canonical inputs:
-
-- original CD data from `...LBA2_cdrom\LBA2`
-- extracted GOG data for comparison
-- historic source from `lba2-classic\SOURCES`
-
-Deliverables:
-
-- a documented asset inventory,
-- per-format notes,
-- a file map from original CD paths to modern runtime expectations.
-
-## Phase 2: Recover format knowledge
-
-Priority formats:
-
-- `HQR`
-- `SCENE.HQR`
-- `RESS.HQR`
-- `ANIM.HQR`
-- `BODY.HQR`
-- `SPRITES.HQR`
-- `LBA_BKG.HQR`
-- `ILE` / `OBL`
-- `VOX`
-
-Use:
-
-- Package Editor
-- WinHQR
-- Scene Manager
-- Story Coder
-- Screen Viewer
-- Xtract
-
-Deliverables:
-
-- parsers or parser notes,
-- small fixtures for each format,
-- known-good decoded outputs.
-
-## Phase 3: Build the world loader
-
-Target:
-
-- load rooms/grids,
-- load scene definitions,
-- spawn actors,
-- display static world correctly.
-
-Use:
-
-- LBArchitect for room/grid understanding,
-- Scene Manager for scene semantics,
-- Screen Viewer / model viewers for visual spot checks.
-
-Deliverables:
-
-- a scene viewer in your target engine,
-- camera movement through at least one room,
-- actor placement matching original data.
-
-## Phase 4: Implement scripts and gameplay
-
-This is likely the hardest phase.
-
-Target:
-
-- life/move/story script interpretation,
-- triggers/zones,
-- object behavior,
-- transitions between rooms/scenes,
-- inventory/state progression.
-
-Use:
-
-- `lba2-classic\SOURCES` as the primary behavioral reference,
-- Scene Manager and Story Coder for structure and validation,
-- Ghidra only where source and assets still leave ambiguity.
-
-Deliverables:
-
-- a playable slice,
-- deterministic comparisons against the original for selected scenes.
-
-## Phase 5: Audio, video, save/load, and polish
-
-Target:
-
-- music,
-- voices,
-- cutscenes,
-- menus,
-- savegame compatibility if desired.
-
-Use:
-
-- Xtract for video understanding,
-- source tree for subsystem logic,
-- Screen Viewer and package tools for media validation.
-
-Deliverables:
-
-- vertical slice with one full gameplay segment,
-- stable boot-to-play flow.
+- use the historic source tree as a behavioral reference
+- use extracted original assets as canonical runtime inputs
+- use preserved MBN tools and RE tooling as validators, not as architecture drivers
+- build a new runtime instead of trying to preserve the original build environment
 
 ## How to Use the Available Tools Effectively
 
@@ -599,35 +433,9 @@ Mitigation:
 - ship a vertical slice early,
 - postpone nonessential enhancements.
 
-## Concrete Recommendation
+## Execution Plan Pointer
 
-If this were my project, I would choose the following path:
-
-1. Use `lba2-classic\SOURCES` as the architectural map.
-2. Use `...LBA2_cdrom\LBA2` as the canonical original data set.
-3. Implement a new asset-loading layer for `HQR`, scenes, grids, models, animations, and media metadata.
-4. Build a debug-first viewer for rooms, actors, and zones.
-5. Implement script execution and gameplay incrementally.
-6. Use MBN tools as validators at each layer.
-7. Use Ghidra only where the source tree or tools leave holes.
-
-This gives you the strongest academic story:
-
-- you are not just recompiling old code,
-- you are not wasting time rediscovering known structure,
-- and you are producing a maintainable modern runtime backed by a documented reverse-engineering process.
-
-## Immediate Next Steps
-
-The next high-value tasks are:
-
-1. Write a machine-readable asset inventory from `LBA2_cdrom\LBA2`.
-2. Identify the minimum format set needed to render one room and one actor.
-3. Trace how `SCENE.HQR`, `LBA_BKG.HQR`, `BODY.HQR`, `ANIM.HQR`, and `SPRITES.HQR` connect.
-4. Read the corresponding modules in `lba2-classic\SOURCES`.
-5. Decide the target runtime stack for the port itself.
-
-For the runtime stack, the safest choice is a modern C++ engine layer with SDL2/OpenGL or SDL2/software rendering, because it maps more naturally onto the existing source and data than a radically different stack.
+For current implementation direction and next steps, use `docs/LBA2_ZIG_PORT_PLAN.md` rather than this report.
 
 ## Final Assessment
 
