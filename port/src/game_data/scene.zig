@@ -1,5 +1,7 @@
 const std = @import("std");
 const hqr = @import("../assets/hqr.zig");
+const asset_fixtures = @import("../assets/fixtures.zig");
+const paths_mod = @import("../foundation/paths.zig");
 
 const anim_3ds_flag = 1 << 18;
 
@@ -424,6 +426,20 @@ fn buildSyntheticScenePayload(allocator: std.mem.Allocator) ![]u8 {
     return bytes.toOwnedSlice(allocator);
 }
 
+fn fixtureTargetById(target_id: []const u8) !asset_fixtures.FixtureTarget {
+    for (asset_fixtures.fixture_targets) |target| {
+        if (std.mem.eql(u8, target.target_id, target_id)) return target;
+    }
+    return error.MissingFixtureTarget;
+}
+
+fn resolveSceneArchivePathForTests(allocator: std.mem.Allocator, relative_path: []const u8) ![]u8 {
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    return std.fs.path.join(allocator, &.{ resolved.asset_root, relative_path });
+}
+
 test "scene payload parsing follows the classic loader layout" {
     const allocator = std.testing.allocator;
     const payload = try buildSyntheticScenePayload(allocator);
@@ -448,4 +464,101 @@ test "scene payload parsing follows the classic loader layout" {
     try std.testing.expectEqual(@as(i16, 5), metadata.zones[0].type_id);
     try std.testing.expectEqual(@as(i32, 6000), metadata.tracks[1].z);
     try std.testing.expectEqual(@as(i16, 99), metadata.patches[0].offset);
+}
+
+test "real scene 2 metadata matches canonical asset bytes" {
+    const allocator = std.testing.allocator;
+    const target = try fixtureTargetById("interior-room-twinsens-house-scene");
+    const archive_path = try resolveSceneArchivePathForTests(allocator, target.asset_path);
+    defer allocator.free(archive_path);
+
+    const metadata = try loadSceneMetadata(allocator, archive_path, target.entry_index);
+    defer metadata.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 2), metadata.entry_index);
+    try std.testing.expectEqual(@as(u32, 1412), metadata.compressed_header.size_file);
+    try std.testing.expectEqual(@as(u32, 778), metadata.compressed_header.compressed_size_file);
+    try std.testing.expectEqual(@as(u16, 1), metadata.compressed_header.compress_method);
+    try std.testing.expectEqualStrings("interior", metadata.sceneKind());
+    try std.testing.expectEqual(@as(u8, 0), metadata.island);
+    try std.testing.expectEqual(@as(u8, 12), metadata.shadow_level);
+    try std.testing.expectEqual(@as(i16, 414), metadata.alpha_light);
+    try std.testing.expectEqual(@as(i16, 136), metadata.beta_light);
+    try std.testing.expectEqual(@as(i16, 9724), metadata.hero_start.x);
+    try std.testing.expectEqual(@as(i16, 1024), metadata.hero_start.y);
+    try std.testing.expectEqual(@as(i16, 782), metadata.hero_start.z);
+    try std.testing.expectEqual(@as(u16, 203), metadata.hero_start.life_byte_length);
+    try std.testing.expectEqual(@as(usize, 9), metadata.object_count);
+    try std.testing.expectEqual(@as(usize, 10), metadata.zone_count);
+    try std.testing.expectEqual(@as(usize, 4), metadata.track_count);
+    try std.testing.expectEqual(@as(usize, 4), metadata.patch_count);
+    try std.testing.expectEqual(@as(u32, 34887), metadata.objects[0].flags);
+    try std.testing.expectEqual(@as(i16, 14), metadata.objects[0].file3d_index);
+    try std.testing.expectEqual(@as(u8, 7), metadata.objects[0].move);
+    try std.testing.expectEqual(@as(i16, 0), metadata.zones[0].type_id);
+    try std.testing.expectEqual(@as(i16, 284), metadata.zones[6].num);
+    try std.testing.expectEqual(@as(i32, 10736), metadata.tracks[3].z);
+    try std.testing.expectEqual(@as(i16, 521), metadata.patches[3].offset);
+}
+
+test "real scene 4 metadata stays aligned on a larger payload" {
+    const allocator = std.testing.allocator;
+    const target = try fixtureTargetById("exterior-area-citadel-cliffs-scene");
+    const archive_path = try resolveSceneArchivePathForTests(allocator, target.asset_path);
+    defer allocator.free(archive_path);
+
+    const metadata = try loadSceneMetadata(allocator, archive_path, target.entry_index);
+    defer metadata.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 4), metadata.entry_index);
+    try std.testing.expectEqual(@as(u32, 8389), metadata.compressed_header.size_file);
+    try std.testing.expectEqual(@as(u32, 5716), metadata.compressed_header.compressed_size_file);
+    try std.testing.expectEqual(@as(u16, 1), metadata.compressed_header.compress_method);
+    try std.testing.expectEqual(@as(i16, 568), metadata.alpha_light);
+    try std.testing.expectEqual(@as(i16, 4068), metadata.beta_light);
+    try std.testing.expectEqual(@as(i16, 6619), metadata.hero_start.x);
+    try std.testing.expectEqual(@as(i16, 15109), metadata.hero_start.z);
+    try std.testing.expectEqual(@as(usize, 22), metadata.object_count);
+    try std.testing.expectEqual(@as(usize, 13), metadata.zone_count);
+    try std.testing.expectEqual(@as(usize, 35), metadata.track_count);
+    try std.testing.expectEqual(@as(usize, 115), metadata.patch_count);
+    try std.testing.expectEqual(@as(i16, 104), metadata.objects[1].sprite);
+    try std.testing.expectEqual(@as(i16, 4), metadata.zones[1].num);
+    try std.testing.expectEqual(@as(i32, 10960), metadata.tracks[34].z);
+    try std.testing.expectEqual(@as(i16, 6523), metadata.patches[114].offset);
+}
+
+test "scene payload rejects trailing bytes" {
+    const allocator = std.testing.allocator;
+    const payload = try buildSyntheticScenePayload(allocator);
+    defer allocator.free(payload);
+
+    const padded = try allocator.alloc(u8, payload.len + 1);
+    defer allocator.free(padded);
+    @memcpy(padded[0..payload.len], payload);
+    padded[payload.len] = 0xFF;
+
+    try std.testing.expectError(
+        error.TrailingScenePayloadBytes,
+        parseScenePayload(allocator, 7, .{
+            .size_file = @intCast(padded.len),
+            .compressed_size_file = @intCast(padded.len),
+            .compress_method = 0,
+        }, padded),
+    );
+}
+
+test "scene payload rejects truncated bytes" {
+    const allocator = std.testing.allocator;
+    const payload = try buildSyntheticScenePayload(allocator);
+    defer allocator.free(payload);
+
+    try std.testing.expectError(
+        error.TruncatedScenePayload,
+        parseScenePayload(allocator, 7, .{
+            .size_file = @intCast(payload.len - 1),
+            .compressed_size_file = @intCast(payload.len - 1),
+            .compress_method = 0,
+        }, payload[0 .. payload.len - 1]),
+    );
 }

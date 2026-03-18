@@ -1,6 +1,7 @@
 const std = @import("std");
 const paths_mod = @import("../foundation/paths.zig");
 const fixture_bytes = @import("../testing/fixtures.zig");
+const asset_fixtures = @import("fixtures.zig");
 
 pub const HqrEntry = struct {
     index: usize,
@@ -306,6 +307,20 @@ fn expandLzAlloc(allocator: std.mem.Allocator, source: []const u8, decompressed_
     return output;
 }
 
+fn fixtureTargetById(target_id: []const u8) !asset_fixtures.FixtureTarget {
+    for (asset_fixtures.fixture_targets) |target| {
+        if (std.mem.eql(u8, target.target_id, target_id)) return target;
+    }
+    return error.MissingFixtureTarget;
+}
+
+fn resolveAssetArchivePathForTests(allocator: std.mem.Allocator, relative_path: []const u8) ![]u8 {
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    return std.fs.path.join(allocator, &.{ resolved.asset_root, relative_path });
+}
+
 test "parse synthetic archive with empty entry" {
     const allocator = std.testing.allocator;
     const parsed = try parseTableFromBytes(allocator, fixture_bytes.sample_hqr_with_hole[0..]);
@@ -341,6 +356,61 @@ test "resource header parsing and decompression follow classic HQR semantics" {
     defer allocator.free(decoded);
 
     try std.testing.expectEqualStrings("ABABA", decoded);
+}
+
+test "real SCENE.HQR entry 2 decompresses through the wrapped resource header" {
+    const allocator = std.testing.allocator;
+    const target = try fixtureTargetById("interior-room-twinsens-house-scene");
+    const archive_path = try resolveAssetArchivePathForTests(allocator, target.asset_path);
+    defer allocator.free(archive_path);
+
+    const raw_entry = try extractEntryToBytes(allocator, archive_path, target.entry_index);
+    defer allocator.free(raw_entry);
+
+    const header = try parseResourceHeader(raw_entry);
+    try std.testing.expectEqual(@as(u32, 1412), header.size_file);
+    try std.testing.expectEqual(@as(u32, 778), header.compressed_size_file);
+    try std.testing.expectEqual(@as(u16, 1), header.compress_method);
+    try std.testing.expect(raw_entry.len >= resource_header_size + header.compressed_size_file);
+
+    const payload = try decodeResourceEntryBytes(allocator, raw_entry);
+    defer allocator.free(payload);
+
+    try std.testing.expectEqual(@as(usize, 1412), payload.len);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 12, 0, 0, 0, 0x9E, 0x01, 0x88, 0x00 }, payload[0..11]);
+}
+
+test "real SCENE.HQR entry 4 compressed payload expands to the advertised size" {
+    const allocator = std.testing.allocator;
+    const target = try fixtureTargetById("exterior-area-citadel-cliffs-scene");
+    const archive_path = try resolveAssetArchivePathForTests(allocator, target.asset_path);
+    defer allocator.free(archive_path);
+
+    const raw_entry = try extractEntryToBytes(allocator, archive_path, target.entry_index);
+    defer allocator.free(raw_entry);
+
+    const header = try parseResourceHeader(raw_entry);
+    try std.testing.expectEqual(@as(u32, 8389), header.size_file);
+    try std.testing.expectEqual(@as(u32, 5716), header.compressed_size_file);
+    try std.testing.expectEqual(@as(u16, 1), header.compress_method);
+
+    const payload = try decodeResourceEntryBytes(allocator, raw_entry);
+    defer allocator.free(payload);
+
+    try std.testing.expectEqual(@as(usize, 8389), payload.len);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 12, 0, 0, 0 }, payload[0..7]);
+}
+
+test "unsupported resource compression fails fast" {
+    const allocator = std.testing.allocator;
+    const invalid = [_]u8{
+        0x04, 0x00, 0x00, 0x00,
+        0x04, 0x00, 0x00, 0x00,
+        0x09, 0x00,
+        'T', 'E', 'S', 'T',
+    };
+
+    try std.testing.expectError(error.UnsupportedCompressionMethod, decodeResourceEntryBytes(allocator, invalid[0..]));
 }
 
 test "out of range entry access fails" {
