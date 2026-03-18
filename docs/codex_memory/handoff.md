@@ -23,6 +23,7 @@ The repo still has more checked-in research than runtime code overall, but `port
 - The obsolete ignored `port/hello-world/` placeholder workspace has been deleted, so `port/` now has one canonical Phase 1 implementation path on disk as well as in docs.
 - The first Phase 2 slice is now in place: `port/src/assets/hqr.zig` parses the wrapped HQR resource header and expands classic LZ-compressed entries, while `port/src/game_data/scene.zig` parses typed `SCENE.HQR` metadata for the world header, ambience, hero start block, non-hero object prefixes, zones, track points, and patches.
 - `zig build tool -- inspect-scene <entry-index> [--json]` now decodes `SCENE.HQR` through that typed path, and real-asset verification succeeded for entries `2`, `4`, and `5`.
+- `zig build test` now includes both synthetic negative coverage and real asset-backed regression checks for wrapped `SCENE.HQR` entry decompression plus typed scene metadata decoding for the canonical scene targets, instead of relying only on handcrafted fixtures and manual inspection.
 
 ## Open Risks
 
