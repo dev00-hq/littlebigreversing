@@ -66,6 +66,7 @@ Generated Phase 1 outputs now live only under:
 
 These commands were verified successfully on this machine:
 
+- `zig build run`
 - `zig build test`
 - `zig build tool -- inventory-assets`
 - `zig build tool -- inspect-hqr SCENE.HQR --json`
@@ -73,17 +74,17 @@ These commands were verified successfully on this machine:
 - `zig build validate-phase1`
 - `python3 tools/codex_memory.py validate`
 
-`zig build run` was **not** fully verified because Zig could not link the SDL smoke app on this machine.
+`zig build run` now links and runs successfully.
 
-The exact linker failure was:
+The fix was to wire `port/build.zig` to the repo-local SDL2 installation under:
 
-- Zig 0.15.2 could not find the dynamic system library `SDL2`
+- `vcpkg_installed/x64-windows/lib/SDL2.lib`
+- `vcpkg_installed/x64-windows/bin/SDL2.dll`
 
-That means:
+The build now:
 
-- the SDL-facing app code is present
-- the build graph is wired for the smoke app
-- the runtime shell still needs SDL2 installed or exposed on the system library path before `zig build run` can succeed
+- links against the checked-in repo-local import library path
+- installs `SDL2.dll` next to the emitted executable for the smoke-app run step
 
 ## Zig And SDL2 Note
 
@@ -92,14 +93,12 @@ The canonical runtime target is still Zig 0.15.2 plus SDL2.
 The current state is:
 
 - Zig 0.15.2 is installed and was used for all successful CLI and test validation
-- SDL2 headers/libs are **not** currently discoverable by Zig for linking on this machine
+- SDL2 is now resolved through the repo-local `vcpkg_installed/x64-windows` layout
 
-So the correct next step for the smoke app is not code redesign. The missing piece is environment setup:
+So the current smoke-app state is:
 
-- install SDL2 for Windows in a location Zig can find
-- or expose the SDL2 import library and runtime DLL through the expected library search path
-
-Until that is done, `lba2-tool` is the validated executable surface and `lba2` remains source-complete but link-blocked.
+- `lba2-tool` remains the validated CLI surface
+- `lba2` is now also link-verified and run-verified on this machine
 
 ## Surprises Encountered
 

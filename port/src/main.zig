@@ -57,7 +57,7 @@ pub fn main() !void {
 fn parseAssetRootArg(allocator: std.mem.Allocator, args: []const []const u8) !?[]u8 {
     if (args.len == 0) return null;
     if (args.len == 2 and std.mem.eql(u8, args[0], "--asset-root")) {
-        return allocator.dupe(u8, args[1]);
+        return try allocator.dupe(u8, args[1]);
     }
     return error.InvalidArguments;
 }
