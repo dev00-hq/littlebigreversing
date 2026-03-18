@@ -2,7 +2,7 @@
 
 ## Current State
 
-The repo is still stronger on research assets and analysis tooling than on executable port code. The durable center of gravity remains `docs/`, and the canonical implementation roadmap is now the Zig-first plan in `docs/LBA2_ZIG_PORT_PLAN.md`.
+The repo still has more checked-in research than runtime code overall, but `port/` now contains the first canonical Zig workspace for the Phase 1 `Foundation + asset CLI` package. The checked-in phase 0 baseline under `docs/phase0/` remains the planning authority, while deterministic Phase 1 outputs now regenerate under `work/port/phase1/`.
 
 ## Verified Facts
 
@@ -10,15 +10,25 @@ The repo is still stronger on research assets and analysis tooling than on execu
 - `docs/mbn_reference/README.md` explicitly names one canonical corpus snapshot.
 - `port/README.md` now defines the first implementation package as `Foundation + asset CLI` for the Zig 0.15.2 + SDL2 port.
 - `docs/PORTING_REPORT.md` has been trimmed to evidence, tooling, risks, and workspace-state coverage, while `docs/LBA2_ZIG_PORT_PLAN.md` owns execution planning.
+- `tools/lba2_phase0.py` now rebuilds and validates the phase 0 baseline through `build`, `inventory-assets`, `map-source`, `export-evidence`, and `validate`.
+- `docs/phase0/` locks canonical inputs, source ownership, golden targets, and unresolved evidence gaps for the next implementation-planning step.
+- `work/phase0/` now regenerates deterministic `asset_inventory.json`, `source_ownership.json`, `evidence_bundle.json`, and `phase0_manifest.json`.
+- `port/build.zig` now installs `lba2` and `lba2-tool`, with working `tool`, `test`, and `validate-phase1` steps rooted directly at `port/`.
+- `port/src/` now contains the canonical Phase 1 modules for path resolution, diagnostics, SDL bootstrap, deterministic asset cataloging, HQR container inspection, raw entry extraction, fixture generation, and validation.
+- `zig build test`, `zig build tool -- inventory-assets`, `zig build tool -- generate-fixtures`, `zig build tool -- inspect-hqr SCENE.HQR --json`, and `zig build validate-phase1` all pass against the current workspace and asset root.
+- `work/port/phase1/` now regenerates deterministic `asset_catalog.json`, `fixture_manifest.json`, extracted entry bytes, and locked raw fixture dumps.
+- The `RESS.HQR[49]` fixture target is semantically backed by the phase 0 corpus label but physically extracts slot `48`, because the raw container ends with an empty terminal marker while the previous slot contains the movie-name index payload (`ASCENSEU.SMK`, etc.).
+- `docs/PHASE1_IMPLEMENTATION_MEMO.md` now records the implemented Phase 1 workspace surface, validation status, the SDL2 linker limitation on this machine, and the HQR/fixture surprises uncovered during real-asset verification.
 
 ## Open Risks
 
 - The repo has many pre-existing modified files, especially in corpus/reference areas; avoid reverting or normalizing unrelated changes.
 - Without regular updates, Codex state can drift back into chat-only context and stop being durable.
-- `port/` still lacks a checked-in canonical Zig workspace, so future sessions need to avoid treating the untracked placeholder as durable product state.
+- `zig build run` cannot currently be verified on this machine because Zig cannot locate the dynamic `SDL2` system library during link.
+- The player actor target for `SCENE.HQR[2]` is only partially locked: slot `0` is proven, but a direct hero body/animation binding is still unresolved and should not be guessed in phase 1 code.
 
 ## Next 3 Steps
 
 1. Use `python3 tools/codex_memory.py context` at the start of the next substantive task.
-2. Prepare the first implementation spec for `Foundation + asset CLI`.
-3. When `port/` gains the real Zig workspace, update memory to reflect the actual entrypoints, commands, and tests.
+2. Install or expose SDL2 for Zig on Windows, then verify `zig build run` for the smoke app.
+3. Replace the ignored `port/hello-world/` leftover directory on disk when deletion is convenient, then continue Phase 2 typed decoding work from the validated Phase 1 CLI baseline.

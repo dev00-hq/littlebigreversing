@@ -19,10 +19,14 @@ work/_innoextract_full/
 work/_installer_extract/
 work/codex_memory/
 work/mbn_workbench/
+work/phase0/
+work/port/
 reference/lba2-classic/
 reference/installers/setup_twinsens_little_big_adventure_2_classic_3.2.4.3_(61767).exe
 build/
 vcpkg_installed/
 .zig-cache/
 zig-out/
+port/.zig-cache/
+port/zig-out/
 port/hello-world/
