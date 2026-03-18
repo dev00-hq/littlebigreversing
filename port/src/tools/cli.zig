@@ -4,11 +4,13 @@ const paths_mod = @import("../foundation/paths.zig");
 const catalog = @import("../assets/catalog.zig");
 const fixtures = @import("../assets/fixtures.zig");
 const hqr = @import("../assets/hqr.zig");
+const scene_data = @import("../game_data/scene.zig");
 
 const Command = enum {
     inventory_assets,
     inspect_hqr,
     extract_entry,
+    inspect_scene,
     generate_fixtures,
     validate_phase1,
 };
@@ -32,6 +34,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         .inventory_assets => try inventoryAssets(allocator, resolved),
         .inspect_hqr => try inspectHqr(allocator, resolved, parsed.relative_path.?, parsed.output_json),
         .extract_entry => try extractEntry(allocator, resolved, parsed.relative_path.?, parsed.entry_index.?),
+        .inspect_scene => try inspectScene(allocator, resolved, parsed.entry_index.?, parsed.output_json),
         .generate_fixtures => try generateFixtures(allocator, resolved),
         .validate_phase1 => try validatePhase1(allocator, resolved),
     }
@@ -81,6 +84,24 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .relative_path = args[command_index + 1],
             .entry_index = try std.fmt.parseInt(usize, args[command_index + 2], 10),
             .output_json = false,
+        };
+    }
+    if (std.mem.eql(u8, command_name, "inspect-scene")) {
+        if (command_index + 1 >= args.len) return error.MissingEntryIndex;
+        var output_json = false;
+        for (args[(command_index + 2)..]) |arg| {
+            if (std.mem.eql(u8, arg, "--json")) {
+                output_json = true;
+            } else {
+                return error.UnknownOption;
+            }
+        }
+        return .{
+            .command = .inspect_scene,
+            .asset_root_override = asset_root_override,
+            .relative_path = null,
+            .entry_index = try std.fmt.parseInt(usize, args[command_index + 1], 10),
+            .output_json = output_json,
         };
     }
     if (std.mem.eql(u8, command_name, "generate-fixtures")) {
@@ -180,6 +201,87 @@ fn extractEntry(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
     try stderr.flush();
 }
 
+fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, entry_index: usize, output_json: bool) !void {
+    const absolute_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
+    defer allocator.free(absolute_path);
+
+    const scene = try scene_data.loadSceneMetadata(allocator, absolute_path, entry_index);
+    defer scene.deinit(allocator);
+
+    if (output_json) {
+        const payload = .{
+            .entry_index = scene.entry_index,
+            .scene_kind = scene.sceneKind(),
+            .compressed_header = scene.compressed_header,
+            .island = scene.island,
+            .cube_x = scene.cube_x,
+            .cube_y = scene.cube_y,
+            .shadow_level = scene.shadow_level,
+            .mode_labyrinth = scene.mode_labyrinth,
+            .cube_mode = scene.cube_mode,
+            .unused_header_byte = scene.unused_header_byte,
+            .alpha_light = scene.alpha_light,
+            .beta_light = scene.beta_light,
+            .ambient_samples = &scene.ambient_samples,
+            .second_min = scene.second_min,
+            .second_ecart = scene.second_ecart,
+            .cube_jingle = scene.cube_jingle,
+            .hero_start = scene.hero_start,
+            .checksum = scene.checksum,
+            .object_count = scene.object_count,
+            .zone_count = scene.zone_count,
+            .track_count = scene.track_count,
+            .patch_count = scene.patch_count,
+            .objects = scene.objects,
+            .zones = scene.zones,
+            .tracks = scene.tracks,
+            .patches = scene.patches,
+        };
+        const json = try stringifyJsonAlloc(allocator, payload);
+        defer allocator.free(json);
+        try std.fs.File.stdout().writeAll(json);
+        try std.fs.File.stdout().writeAll("\n");
+        return;
+    }
+
+    var stderr_buffer: [4096]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try diagnostics.printLine(stderr, &.{
+        .{ .key = "command", .value = "inspect-scene" },
+        .{ .key = "asset_path", .value = "SCENE.HQR" },
+        .{ .key = "scene_kind", .value = scene.sceneKind() },
+    });
+    try stderr.print(
+        "entry_index={d} cube_mode={d} island={d} cube_x={d} cube_y={d} object_count={d} zone_count={d} track_count={d} patch_count={d}\n",
+        .{ scene.entry_index, scene.cube_mode, scene.island, scene.cube_x, scene.cube_y, scene.object_count, scene.zone_count, scene.track_count, scene.patch_count },
+    );
+    try stderr.print(
+        "hero_x={d} hero_y={d} hero_z={d} hero_track_bytes={d} hero_life_bytes={d}\n",
+        .{ scene.hero_start.x, scene.hero_start.y, scene.hero_start.z, scene.hero_start.track_byte_length, scene.hero_start.life_byte_length },
+    );
+
+    for (scene.objects) |object| {
+        try stderr.print(
+            "object_index={d} flags={d} file3d_index={d} gen_body={d} gen_anim={d} sprite={d} x={d} y={d} z={d} move={d} track_bytes={d} life_bytes={d}\n",
+            .{ object.index, object.flags, object.file3d_index, object.gen_body, object.gen_anim, object.sprite, object.x, object.y, object.z, object.move, object.track_byte_length, object.life_byte_length },
+        );
+    }
+    for (scene.zones) |zone| {
+        try stderr.print(
+            "zone_type={d} zone_num={d} x0={d} y0={d} z0={d} x1={d} y1={d} z1={d}\n",
+            .{ zone.type_id, zone.num, zone.x0, zone.y0, zone.z0, zone.x1, zone.y1, zone.z1 },
+        );
+    }
+    for (scene.tracks) |track| {
+        try stderr.print("track_index={d} x={d} y={d} z={d}\n", .{ track.index, track.x, track.y, track.z });
+    }
+    for (scene.patches) |patch| {
+        try stderr.print("patch_size={d} patch_offset={d}\n", .{ patch.size, patch.offset });
+    }
+    try stderr.flush();
+}
+
 fn generateFixtures(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths) !void {
     const entries = try fixtures.generateFixtures(allocator, resolved);
     defer {
@@ -213,6 +315,16 @@ fn validatePhase1(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPath
     }
     const inventory_json = try catalog.renderCatalogJson(allocator, inventory);
     defer allocator.free(inventory_json);
+
+    const inventory_second = try catalog.generateAssetCatalog(allocator, resolved);
+    defer {
+        for (inventory_second) |entry| entry.deinit(allocator);
+        allocator.free(inventory_second);
+    }
+    const inventory_json_second = try catalog.renderCatalogJson(allocator, inventory_second);
+    defer allocator.free(inventory_json_second);
+
+    if (!std.mem.eql(u8, inventory_json, inventory_json_second)) return error.NonDeterministicAssetCatalog;
 
     const fixtures_first = try fixtures.generateFixtures(allocator, resolved);
     defer {
@@ -297,5 +409,13 @@ test "argument parsing handles asset root override and json output" {
 
     try std.testing.expectEqual(Command.inspect_hqr, parsed.command);
     try std.testing.expectEqualStrings("SCENE.HQR", parsed.relative_path.?);
+    try std.testing.expect(parsed.output_json);
+}
+
+test "argument parsing supports inspect-scene json output" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-scene", "2", "--json" });
+
+    try std.testing.expectEqual(Command.inspect_scene, parsed.command);
+    try std.testing.expectEqual(@as(usize, 2), parsed.entry_index.?);
     try std.testing.expect(parsed.output_json);
 }

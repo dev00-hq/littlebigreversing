@@ -29,6 +29,14 @@ pub const ParsedEntry = struct {
     byte_length: u32,
 };
 
+pub const ResourceHeader = struct {
+    size_file: u32,
+    compressed_size_file: u32,
+    compress_method: u16,
+};
+
+const resource_header_size = 10;
+
 pub fn loadArchive(allocator: std.mem.Allocator, absolute_path: []const u8) !HqrArchive {
     var file = try std.fs.openFileAbsolute(absolute_path, .{});
     defer file.close();
@@ -59,6 +67,44 @@ pub fn loadArchive(allocator: std.mem.Allocator, absolute_path: []const u8) !Hqr
 }
 
 pub fn extractEntryToBytes(allocator: std.mem.Allocator, absolute_path: []const u8, entry_index: usize) ![]u8 {
+    return readRawEntryFromFile(allocator, absolute_path, entry_index);
+}
+
+pub fn decodeEntryToBytes(allocator: std.mem.Allocator, absolute_path: []const u8, entry_index: usize) ![]u8 {
+    const raw_entry = try readRawEntryFromFile(allocator, absolute_path, entry_index);
+    defer allocator.free(raw_entry);
+
+    return decodeResourceEntryBytes(allocator, raw_entry);
+}
+
+pub fn decodeResourceEntryBytes(allocator: std.mem.Allocator, raw_entry: []const u8) ![]u8 {
+    const header = try parseResourceHeader(raw_entry);
+    const payload = raw_entry[resource_header_size..];
+
+    switch (header.compress_method) {
+        0 => {
+            if (payload.len < header.size_file) return error.TruncatedResourcePayload;
+            return allocator.dupe(u8, payload[0..header.size_file]);
+        },
+        1, 2 => {
+            if (payload.len < header.compressed_size_file) return error.TruncatedResourcePayload;
+            return expandLzAlloc(allocator, payload[0..header.compressed_size_file], header.size_file, header.compress_method + 1);
+        },
+        else => return error.UnsupportedCompressionMethod,
+    }
+}
+
+pub fn parseResourceHeader(raw_entry: []const u8) !ResourceHeader {
+    if (raw_entry.len < resource_header_size) return error.TruncatedResourceHeader;
+
+    return .{
+        .size_file = std.mem.readInt(u32, raw_entry[0..4], .little),
+        .compressed_size_file = std.mem.readInt(u32, raw_entry[4..8], .little),
+        .compress_method = std.mem.readInt(u16, raw_entry[8..10], .little),
+    };
+}
+
+fn readRawEntryFromFile(allocator: std.mem.Allocator, absolute_path: []const u8, entry_index: usize) ![]u8 {
     var file = try std.fs.openFileAbsolute(absolute_path, .{});
     defer file.close();
 
@@ -214,6 +260,52 @@ fn hashBytesAlloc(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
     return allocator.dupe(u8, &encoded);
 }
 
+fn expandLzAlloc(allocator: std.mem.Allocator, source: []const u8, decompressed_size: u32, min_block_size: u16) ![]u8 {
+    const output = try allocator.alloc(u8, decompressed_size);
+    errdefer allocator.free(output);
+
+    var src_index: usize = 0;
+    var dst_index: usize = 0;
+
+    while (dst_index < output.len) {
+        if (src_index >= source.len) return error.TruncatedResourcePayload;
+        var info = source[src_index];
+        src_index += 1;
+
+        var remaining_bits: u8 = 8;
+        while (remaining_bits > 0 and dst_index < output.len) : (remaining_bits -= 1) {
+            const is_literal = (info & 1) == 1;
+            info >>= 1;
+
+            if (is_literal) {
+                if (src_index >= source.len) return error.TruncatedResourcePayload;
+                output[dst_index] = source[src_index];
+                src_index += 1;
+                dst_index += 1;
+                continue;
+            }
+
+            if (src_index + 1 >= source.len) return error.TruncatedResourcePayload;
+            const token = std.mem.readInt(u16, source[src_index .. src_index + 2][0..2], .little);
+            src_index += 2;
+
+            const copy_len: usize = @as(usize, token & 0x000F) + min_block_size;
+            const backwards: usize = (@as(usize, token >> 4)) + 1;
+            if (backwards > dst_index) return error.InvalidResourceBackReference;
+
+            var copy_src = dst_index - backwards;
+            for (0..copy_len) |_| {
+                if (dst_index >= output.len) break;
+                output[dst_index] = output[copy_src];
+                dst_index += 1;
+                copy_src += 1;
+            }
+        }
+    }
+
+    return output;
+}
+
 test "parse synthetic archive with empty entry" {
     const allocator = std.testing.allocator;
     const parsed = try parseTableFromBytes(allocator, fixture_bytes.sample_hqr_with_hole[0..]);
@@ -235,6 +327,20 @@ test "invalid table header and offsets fail fast" {
     const allocator = std.testing.allocator;
     try std.testing.expectError(error.InvalidTableHeader, parseTableFromBytes(allocator, fixture_bytes.invalid_header_hqr[0..]));
     try std.testing.expectError(error.InvalidArchiveOffset, parseTableFromBytes(allocator, fixture_bytes.invalid_offset_hqr[0..]));
+}
+
+test "resource header parsing and decompression follow classic HQR semantics" {
+    const allocator = std.testing.allocator;
+    const header = try parseResourceHeader(fixture_bytes.compressed_resource_ababa[0..]);
+
+    try std.testing.expectEqual(@as(u32, 5), header.size_file);
+    try std.testing.expectEqual(@as(u32, 5), header.compressed_size_file);
+    try std.testing.expectEqual(@as(u16, 1), header.compress_method);
+
+    const decoded = try decodeResourceEntryBytes(allocator, fixture_bytes.compressed_resource_ababa[0..]);
+    defer allocator.free(decoded);
+
+    try std.testing.expectEqualStrings("ABABA", decoded);
 }
 
 test "out of range entry access fails" {

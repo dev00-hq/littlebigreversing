@@ -22,3 +22,13 @@ pub const invalid_offset_hqr = [_]u8{
     'A', 'B', 'C', 'D',
     'X', 'Y', 'Z',
 };
+
+pub const compressed_resource_ababa = [_]u8{
+    0x05, 0x00, 0x00, 0x00,
+    0x05, 0x00, 0x00, 0x00,
+    0x01, 0x00,
+    0x03,
+    'A',
+    'B',
+    0x11, 0x00,
+};

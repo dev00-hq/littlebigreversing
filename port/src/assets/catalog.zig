@@ -350,10 +350,87 @@ fn normalizeRelativePath(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return copy;
 }
 
+fn writeTestAssetFile(allocator: std.mem.Allocator, dir: std.fs.Dir, asset_root: []const u8, relative_path: []const u8, data: []const u8) !void {
+    const sub_path = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ asset_root, relative_path });
+    defer allocator.free(sub_path);
+
+    if (std.fs.path.dirname(sub_path)) |parent| try dir.makePath(parent);
+    try dir.writeFile(.{ .sub_path = sub_path, .data = data });
+}
+
+fn expectCatalogEntryEqual(expected: AssetCatalogEntry, actual: AssetCatalogEntry) !void {
+    try std.testing.expectEqualStrings(expected.relative_path, actual.relative_path);
+    try std.testing.expectEqualStrings(expected.asset_class, actual.asset_class);
+    if (expected.locale_bucket) |locale| {
+        try std.testing.expect(actual.locale_bucket != null);
+        try std.testing.expectEqualStrings(locale, actual.locale_bucket.?);
+    } else {
+        try std.testing.expect(actual.locale_bucket == null);
+    }
+    try std.testing.expectEqual(expected.required_for_phase1, actual.required_for_phase1);
+    try std.testing.expectEqual(expected.size_bytes, actual.size_bytes);
+    try std.testing.expectEqualStrings(expected.sha256, actual.sha256);
+}
+
 test "classification and locale detection follow phase0 policy" {
     try std.testing.expectEqualStrings("video-hqr", classifyAsset("VIDEO/VIDEO.HQR"));
     try std.testing.expectEqualStrings("voice-container", classifyAsset("VOX/EN_GAM.VOX"));
     try std.testing.expectEqualStrings("english", detectLocale("VOX/EN_GAM.VOX").?);
     try std.testing.expect(isRequiredPhase1("VOX/EN_GAM.VOX"));
     try std.testing.expect(isRequiredPhase1("ASCENCE.ILE"));
+}
+
+test "catalog generation is deterministic and json stable" {
+    const allocator = std.testing.allocator;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    try tmp.dir.makePath("assets");
+    for (required_phase1_files) |relative_path| {
+        try writeTestAssetFile(allocator, tmp.dir, "assets", relative_path, "phase1");
+    }
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "VOX/FR_GAM.VOX", "voice-fr");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "VOX/EN_GAM.VOX", "voice-en");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "CITADEL.OBL", "island-obl");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "CITADEL.ILE", "island-ile");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "MUSIC/THEME_01.XMI", "music");
+
+    const repo_root = try tmp.dir.realpathAlloc(allocator, ".");
+    const asset_root = try tmp.dir.realpathAlloc(allocator, "assets");
+    const work_root = try std.fs.path.join(allocator, &.{ repo_root, paths_mod.phase1_work_relative });
+    const resolved = paths_mod.ResolvedPaths{
+        .repo_root = repo_root,
+        .asset_root = asset_root,
+        .work_root = work_root,
+    };
+    defer resolved.deinit(allocator);
+
+    const first = try generateAssetCatalog(allocator, resolved);
+    defer {
+        for (first) |entry| entry.deinit(allocator);
+        allocator.free(first);
+    }
+
+    const second = try generateAssetCatalog(allocator, resolved);
+    defer {
+        for (second) |entry| entry.deinit(allocator);
+        allocator.free(second);
+    }
+
+    try std.testing.expectEqual(first.len, second.len);
+    for (first, second) |lhs, rhs| try expectCatalogEntryEqual(lhs, rhs);
+
+    for (1..first.len) |index| {
+        try std.testing.expect(!std.ascii.lessThanIgnoreCase(first[index].relative_path, first[index - 1].relative_path));
+    }
+
+    const json_first = try renderCatalogJson(allocator, first);
+    defer allocator.free(json_first);
+    const json_second = try renderCatalogJson(allocator, second);
+    defer allocator.free(json_second);
+
+    try std.testing.expectEqualStrings(json_first, json_second);
+    try std.testing.expect(std.mem.indexOf(u8, json_first, "\"asset_root\": \"work/_innoextract_full/Speedrun/Windows/LBA2_cdrom/LBA2\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json_first, "\"relative_path\": \"CITADEL.ILE\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json_first, "\"relative_path\": \"VOX/FR_GAM.VOX\"") != null);
 }
