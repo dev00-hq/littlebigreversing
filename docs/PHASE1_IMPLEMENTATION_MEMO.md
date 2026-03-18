@@ -169,4 +169,4 @@ The main outcome is:
 - the asset CLI and validation pipeline are real, not speculative
 - deterministic Phase 1 generated outputs now exist under `work/port/phase1`
 - the HQR parser is validated against the live asset root, including the non-trivial `RESS.HQR` cases
-- the remaining blocker for the smoke app is SDL2 linkage on this machine, not missing workspace code
+- the smoke app is link-verified and run-verified through the repo-local SDL2 wiring, so the next implementation boundary is Phase 2 typed decoding rather than more Phase 1 scaffolding

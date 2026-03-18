@@ -1,0 +1,5 @@
+# Common Agent Traps
+
+- A stale ignored `port/hello-world/` directory can survive on disk after the real Phase 1 workspace is moved to `port/`. If Phase 1 docs claim the placeholder was replaced but the directory still exists locally, delete it instead of preserving the obsolete layout.
+- Raw `SCENE.HQR` entry bytes are not the same thing as the runtime scene payload. The classic loader reads an HQR `COMPRESSED_HEADER` first and may LZ-decompress the entry before parsing scene fields, so typed decoders must decode the resource block before interpreting world/object/zone data.
+- Scene numbering is easy to misread. The classic loader calls `Load_HQR(..., numscene + 1)` because `SCENE.HQR[0]` is reserved for `SizeCube.MAX`, while the current `inspect-scene` command accepts the raw one-based HQR entry index. Keep semantic scene numbers and HQR entry numbers separate, and do not assume the phase 0 `SCENE.HQR[4]` exterior target is already runtime-validated just because that entry decodes cleanly.
