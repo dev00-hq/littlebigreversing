@@ -367,7 +367,16 @@ pub const SceneMetadata = struct {
             else => "unknown",
         };
     }
+
+    pub fn classicLoaderSceneNumber(self: SceneMetadata) ?usize {
+        return entryIndexToClassicLoaderSceneNumber(self.entry_index);
+    }
 };
+
+pub fn entryIndexToClassicLoaderSceneNumber(entry_index: usize) ?usize {
+    if (entry_index <= 1) return null;
+    return entry_index - 2;
+}
 
 const RawSceneZone = struct {
     x0: i32,
@@ -944,41 +953,51 @@ test "real scene 2 metadata matches canonical asset bytes" {
     try std.testing.expectEqual(@as(i16, 521), metadata.patches[3].offset);
 }
 
-test "real scene 4 metadata stays aligned on a larger payload" {
+test "real scene 44 metadata matches the canonical citadel exterior target" {
     const allocator = std.testing.allocator;
-    const target = try fixtureTargetById("exterior-area-citadel-cliffs-scene");
+    const target = try fixtureTargetById("exterior-area-citadel-tavern-and-shop-scene");
     const archive_path = try resolveSceneArchivePathForTests(allocator, target.asset_path);
     defer allocator.free(archive_path);
 
     const metadata = try loadSceneMetadata(allocator, archive_path, target.entry_index);
     defer metadata.deinit(allocator);
 
-    try std.testing.expectEqual(@as(usize, 4), metadata.entry_index);
-    try std.testing.expectEqual(@as(u32, 8389), metadata.compressed_header.size_file);
-    try std.testing.expectEqual(@as(u32, 5716), metadata.compressed_header.compressed_size_file);
+    try std.testing.expectEqual(@as(usize, 44), metadata.entry_index);
+    try std.testing.expectEqual(@as(?usize, 42), metadata.classicLoaderSceneNumber());
+    try std.testing.expectEqual(@as(u32, 9338), metadata.compressed_header.size_file);
+    try std.testing.expectEqual(@as(u32, 5917), metadata.compressed_header.compressed_size_file);
     try std.testing.expectEqual(@as(u16, 1), metadata.compressed_header.compress_method);
-    try std.testing.expectEqual(@as(i16, 568), metadata.alpha_light);
-    try std.testing.expectEqual(@as(i16, 4068), metadata.beta_light);
-    try std.testing.expectEqual(@as(i16, 6619), metadata.hero_start.x);
-    try std.testing.expectEqual(@as(i16, 15109), metadata.hero_start.z);
-    try std.testing.expectEqual(@as(usize, 22), metadata.object_count);
-    try std.testing.expectEqual(@as(usize, 13), metadata.zone_count);
-    try std.testing.expectEqual(@as(usize, 35), metadata.track_count);
-    try std.testing.expectEqual(@as(usize, 115), metadata.patch_count);
-    try std.testing.expectEqual(@as(i16, 104), metadata.objects[1].sprite);
-    try std.testing.expectEqual(ZoneType.change_cube, metadata.zones[1].zone_type);
-    try std.testing.expectEqual(@as(i16, 4), metadata.zones[1].semantics.change_cube.destination_cube);
-    try std.testing.expectEqual(@as(i32, 512), metadata.zones[1].semantics.change_cube.destination_x);
-    try std.testing.expectEqual(ZoneType.camera, metadata.zones[7].zone_type);
-    try std.testing.expectEqual(@as(i32, 12), metadata.zones[7].semantics.camera.anchor_x);
-    try std.testing.expectEqual(@as(?i32, null), metadata.zones[7].semantics.camera.alpha);
-    try std.testing.expect(metadata.zones[7].semantics.camera.initially_on);
-    try std.testing.expectEqual(ZoneType.message, metadata.zones[10].zone_type);
-    try std.testing.expectEqual(MessageDirection.west, metadata.zones[10].semantics.message.facing_direction);
-    try std.testing.expectEqual(ZoneType.giver, metadata.zones[12].zone_type);
-    try std.testing.expectEqual(@as(i32, 1), metadata.zones[12].semantics.giver.quantity);
-    try std.testing.expectEqual(@as(i32, 10960), metadata.tracks[34].z);
-    try std.testing.expectEqual(@as(i16, 6523), metadata.patches[114].offset);
+    try std.testing.expectEqualStrings("exterior", metadata.sceneKind());
+    try std.testing.expectEqual(@as(u8, 0), metadata.island);
+    try std.testing.expectEqual(@as(u8, 7), metadata.cube_x);
+    try std.testing.expectEqual(@as(u8, 9), metadata.cube_y);
+    try std.testing.expectEqual(@as(i16, 356), metadata.alpha_light);
+    try std.testing.expectEqual(@as(i16, 3411), metadata.beta_light);
+    try std.testing.expectEqual(@as(i16, 19607), metadata.hero_start.x);
+    try std.testing.expectEqual(@as(i16, 13818), metadata.hero_start.z);
+    try std.testing.expectEqual(@as(usize, 20), metadata.object_count);
+    try std.testing.expectEqual(@as(usize, 22), metadata.zone_count);
+    try std.testing.expectEqual(@as(usize, 31), metadata.track_count);
+    try std.testing.expectEqual(@as(usize, 154), metadata.patch_count);
+    try std.testing.expectEqual(@as(i16, 106), metadata.objects[1].file3d_index);
+    try std.testing.expectEqual(ZoneType.change_cube, metadata.zones[0].zone_type);
+    try std.testing.expectEqual(@as(i16, 42), metadata.zones[0].semantics.change_cube.destination_cube);
+    try std.testing.expectEqual(@as(i32, 512), metadata.zones[0].semantics.change_cube.destination_x);
+    try std.testing.expectEqual(ZoneType.camera, metadata.zones[3].zone_type);
+    try std.testing.expectEqual(@as(i32, 34), metadata.zones[3].semantics.camera.anchor_x);
+    try std.testing.expectEqual(@as(?i32, 168), metadata.zones[3].semantics.camera.alpha);
+    try std.testing.expect(metadata.zones[3].semantics.camera.initially_on);
+    try std.testing.expectEqual(ZoneType.message, metadata.zones[7].zone_type);
+    try std.testing.expectEqual(MessageDirection.north, metadata.zones[7].semantics.message.facing_direction);
+    try std.testing.expectEqual(@as(?i32, 2), metadata.zones[7].semantics.message.linked_camera_zone_id);
+    try std.testing.expectEqual(@as(i32, 11232), metadata.tracks[30].z);
+    try std.testing.expectEqual(@as(i16, 7007), metadata.patches[153].offset);
+}
+
+test "classic loader scene numbers stay distinct from raw SCENE.HQR entry indices" {
+    try std.testing.expectEqual(@as(?usize, null), entryIndexToClassicLoaderSceneNumber(1));
+    try std.testing.expectEqual(@as(?usize, 0), entryIndexToClassicLoaderSceneNumber(2));
+    try std.testing.expectEqual(@as(?usize, 42), entryIndexToClassicLoaderSceneNumber(44));
 }
 
 test "real scene 5 metadata keeps non-golden zone regressions aligned" {

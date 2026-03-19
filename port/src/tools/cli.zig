@@ -211,6 +211,7 @@ fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
     if (output_json) {
         const payload = .{
             .entry_index = scene.entry_index,
+            .classic_loader_scene_number = scene.classicLoaderSceneNumber(),
             .scene_kind = scene.sceneKind(),
             .compressed_header = scene.compressed_header,
             .island = scene.island,
@@ -252,10 +253,17 @@ fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
         .{ .key = "asset_path", .value = "SCENE.HQR" },
         .{ .key = "scene_kind", .value = scene.sceneKind() },
     });
-    try stderr.print(
-        "entry_index={d} cube_mode={d} island={d} cube_x={d} cube_y={d} object_count={d} zone_count={d} track_count={d} patch_count={d}\n",
-        .{ scene.entry_index, scene.cube_mode, scene.island, scene.cube_x, scene.cube_y, scene.object_count, scene.zone_count, scene.track_count, scene.patch_count },
-    );
+    if (scene.classicLoaderSceneNumber()) |loader_scene_number| {
+        try stderr.print(
+            "entry_index={d} classic_loader_scene_number={d} cube_mode={d} island={d} cube_x={d} cube_y={d} object_count={d} zone_count={d} track_count={d} patch_count={d}\n",
+            .{ scene.entry_index, loader_scene_number, scene.cube_mode, scene.island, scene.cube_x, scene.cube_y, scene.object_count, scene.zone_count, scene.track_count, scene.patch_count },
+        );
+    } else {
+        try stderr.print(
+            "entry_index={d} classic_loader_scene_number=reserved-header cube_mode={d} island={d} cube_x={d} cube_y={d} object_count={d} zone_count={d} track_count={d} patch_count={d}\n",
+            .{ scene.entry_index, scene.cube_mode, scene.island, scene.cube_x, scene.cube_y, scene.object_count, scene.zone_count, scene.track_count, scene.patch_count },
+        );
+    }
     try stderr.print(
         "hero_x={d} hero_y={d} hero_z={d} hero_track_bytes={d} hero_life_bytes={d}\n",
         .{ scene.hero_start.x, scene.hero_start.y, scene.hero_start.z, scene.hero_start.track_byte_length, scene.hero_start.life_byte_length },

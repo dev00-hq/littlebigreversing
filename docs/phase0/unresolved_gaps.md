@@ -5,7 +5,7 @@ Phase 0 keeps these open as explicit evidence gaps instead of filling them with 
 ## Current Gaps
 
 - actor target: the player actor slot in `SCENE.HQR[2]` is fixed to slot `0`, but no direct hero body or animation entry is proven from the scene payload yet
-- exterior target: `SCENE.HQR[4]` is locked, but the exact phase 1 scene-to-island asset linkage still needs a tighter evidence path into the relevant `.ILE` and `.OBL` payloads
+- exterior numbering: the classic loader uses `LoadScene(numscene + 1)` while `inspect-scene` takes raw HQR entry indices; keep those two number spaces explicit and do not reintroduce the old `SCENE.HQR[4]` exterior misclassification
 - scene-5 regression: `SCENE.HQR[5]` is useful for zone-semantics regression checks, but it is not part of the locked phase 0 golden target set yet
 - dialog target: the English voice entry is locked, but the exact `TEXT.HQR` subtitle pairing remains provisional
 

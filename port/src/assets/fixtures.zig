@@ -25,7 +25,7 @@ pub const FixtureTarget = struct {
 pub const fixture_targets = [_]FixtureTarget{
     .{ .target_id = "interior-room-twinsens-house-scene", .asset_path = "SCENE.HQR", .entry_index = 2 },
     .{ .target_id = "interior-room-twinsens-house-background", .asset_path = "LBA_BKG.HQR", .entry_index = 2 },
-    .{ .target_id = "exterior-area-citadel-cliffs-scene", .asset_path = "SCENE.HQR", .entry_index = 4 },
+    .{ .target_id = "exterior-area-citadel-tavern-and-shop-scene", .asset_path = "SCENE.HQR", .entry_index = 44 },
     .{ .target_id = "dialog-voice-holomap", .asset_path = "VOX/EN_GAM.VOX", .entry_index = 1 },
     .{ .target_id = "cutscene-ascenseu-video", .asset_path = "VIDEO/VIDEO.HQR", .entry_index = 1 },
     // The corpus evidence names the movie index as RESS.HQR[49], but the raw
@@ -95,6 +95,7 @@ pub fn renderFixtureManifestJson(allocator: std.mem.Allocator, entries: []const 
 
 test "fixture targets stay locked to phase0 selections" {
     try std.testing.expectEqual(@as(usize, 6), fixture_targets.len);
+    try std.testing.expectEqual(@as(usize, 44), fixture_targets[2].entry_index);
     try std.testing.expectEqualStrings("VOX/EN_GAM.VOX", fixture_targets[3].asset_path);
     try std.testing.expectEqual(@as(usize, 49), fixture_targets[5].entry_index);
 }

@@ -25,7 +25,7 @@ Generated outputs:
 Locked golden target ids:
 
 - `interior-room-twinsens-house`
-- `exterior-area-citadel-cliffs`
+- `exterior-area-citadel-tavern-and-shop`
 - `actor-player-scene2`
 - `dialog-voice-holomap`
 - `cutscene-ascenseu`

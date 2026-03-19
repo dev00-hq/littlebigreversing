@@ -11,14 +11,16 @@ These are the locked phase 0 targets. They may change only through an explicit r
   - `evidence`: `10614` for the explicit `LBA_BKG.HQR[2]` to `scene #2` pairing
 - current stance: strong enough to keep for phase 1
 
-## `exterior-area-citadel-cliffs`
+## `exterior-area-citadel-tavern-and-shop`
 
-- semantic label: Citadel Island cliffs, Raph and Tralu scene
-- asset reference: `SCENE.HQR[4]`
+- semantic label: Citadel Island exterior scene with the tavern and the shop
+- asset reference: `SCENE.HQR[44]`
 - evidence anchors:
-  - `asset_entries`: `SCENE.HQR[4]` from topic `6707`, post `177798`
-  - `evidence`: `10609` for the named scene description
-- current stance: keep the target, but do not treat it as the canonical basis for exterior-camera or other exterior-specific semantics until the scene-number vs HQR-entry mapping is reconciled
+  - `asset_entries`: `SCENE.HQR[44]` from topic `6707`, post `177798`
+  - `evidence`: `10609` for the explicit `~2` outside-scene classification and named scene description in the same `SCENE.HQR` list
+  - classic source: `LoadScene(numscene)` loads `SCENE.HQR[numscene + 1]`, so this raw entry is loader scene `42`
+  - classic source: island `0` maps through `IleLst[Island]` to `citadel`, and the exterior loader then opens the paired `CITADEL.ILE` / `CITADEL.OBL` resources
+- current stance: this replaces the old misclassified `SCENE.HQR[4]` exterior target. `SCENE.HQR[44]` is the canonical first exterior target because the corpus marks it as `~2` outside-scene data, the live decoder reports `cube_mode == 1`, and the decoded island/cube coordinates are source-backed loader inputs rather than guessed labels
 
 ## `actor-player-scene2`
 

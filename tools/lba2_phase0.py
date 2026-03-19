@@ -528,18 +528,19 @@ def generate_evidence_bundle() -> dict[str, Any]:
             },
             {
                 "asset_references": [
-                    {"entry_index": 4, "path": "SCENE.HQR"},
+                    {"entry_index": 44, "path": "SCENE.HQR"},
                 ],
-                "confidence_level": "medium",
-                "semantic_label": "Citadel Island cliffs, Raph and Tralu scene",
+                "confidence_level": "high",
+                "semantic_label": "Citadel Island exterior scene with the tavern and the shop",
                 "supporting_evidence": [
-                    asset_entry_ref(conn, "SCENE.HQR", 4),
+                    asset_entry_ref(conn, "SCENE.HQR", 44),
                     evidence_ref(conn, 10609),
+                    find_first_line(SOURCE_ROOT / "DISKFUNC.CPP", r"numscene\+1"),
+                    find_first_line(SOURCE_ROOT / "EXTFUNC.CPP", r"char\s+\*IleLst\[\]\s*="),
+                    find_first_line(SOURCE_ROOT / "EXTFUNC.CPP", r"\"citadel\""),
                 ],
-                "target_id": "exterior-area-citadel-cliffs",
-                "unresolved_questions": [
-                    "The exact scene-to-island payload link for the first exterior slice is still provisional.",
-                ],
+                "target_id": "exterior-area-citadel-tavern-and-shop",
+                "unresolved_questions": [],
             },
             {
                 "actor_binding": {
@@ -611,17 +612,15 @@ def generate_evidence_bundle() -> dict[str, Any]:
         "phase1_replan_gate": {
             "blocking_gaps": [
                 "Scene-level player body and animation linkage for SCENE.HQR entry 2 remains unresolved.",
-                "The first exterior scene still needs a tighter scene-to-island payload proof for implementation planning.",
                 "The first English voice target still needs a locked subtitle pairing proof.",
             ],
             "keep_targets": [
                 "interior-room-twinsens-house",
-                "exterior-area-citadel-cliffs",
+                "exterior-area-citadel-tavern-and-shop",
                 "dialog-voice-holomap",
                 "cutscene-ascenseu",
             ],
             "provisional_facts": [
-                "Exterior scene asset linkage beyond SCENE.HQR entry 4 is provisional.",
                 "TEXT.HQR pairing for VOX/EN_GAM.VOX entry 1 is provisional.",
                 "Hero body/animation linkage for SCENE.HQR entry 2 is provisional.",
             ],

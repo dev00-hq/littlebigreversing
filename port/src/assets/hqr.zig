@@ -380,9 +380,9 @@ test "real SCENE.HQR entry 2 decompresses through the wrapped resource header" {
     try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 12, 0, 0, 0, 0x9E, 0x01, 0x88, 0x00 }, payload[0..11]);
 }
 
-test "real SCENE.HQR entry 4 compressed payload expands to the advertised size" {
+test "real SCENE.HQR entry 44 compressed payload expands to the advertised size" {
     const allocator = std.testing.allocator;
-    const target = try fixtureTargetById("exterior-area-citadel-cliffs-scene");
+    const target = try fixtureTargetById("exterior-area-citadel-tavern-and-shop-scene");
     const archive_path = try resolveAssetArchivePathForTests(allocator, target.asset_path);
     defer allocator.free(archive_path);
 
@@ -390,15 +390,15 @@ test "real SCENE.HQR entry 4 compressed payload expands to the advertised size" 
     defer allocator.free(raw_entry);
 
     const header = try parseResourceHeader(raw_entry);
-    try std.testing.expectEqual(@as(u32, 8389), header.size_file);
-    try std.testing.expectEqual(@as(u32, 5716), header.compressed_size_file);
+    try std.testing.expectEqual(@as(u32, 9338), header.size_file);
+    try std.testing.expectEqual(@as(u32, 5917), header.compressed_size_file);
     try std.testing.expectEqual(@as(u16, 1), header.compress_method);
 
     const payload = try decodeResourceEntryBytes(allocator, raw_entry);
     defer allocator.free(payload);
 
-    try std.testing.expectEqual(@as(usize, 8389), payload.len);
-    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 12, 0, 0, 0 }, payload[0..7]);
+    try std.testing.expectEqual(@as(usize, 9338), payload.len);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 7, 9, 12, 0, 1, 1 }, payload[0..7]);
 }
 
 test "unsupported resource compression fails fast" {
