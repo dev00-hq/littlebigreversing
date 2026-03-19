@@ -34,6 +34,9 @@ The next bounded Phase 2 slice is now implemented on top of that workspace: `SCE
 - `tools/lba2_phase0.py build`, `zig build test`, `zig build tool -- generate-fixtures`, `zig build validate-phase1`, and `zig build tool -- inspect-scene 44 --json` all pass with the corrected exterior target in place.
 - `docs/PROMPT.md` now tightens the upcoming typed zone-semantics slice so it preserves the source-backed change-cube control selector in `raw_info[4]`, treats GRM state as `Info2`-backed on/off instead of inventing a redraw-state field, models rail semantics as switch state rather than a generic enable flag, names camera `Info0..Info2` conservatively as anchor/start-cube fields, and keeps scene `5` regression coverage out of the locked phase 0 fixture target set.
 - A 2026-03-19 readiness review confirmed the typed zone-semantics prompt is executable against the current workspace: `zig build test`, `zig build validate-phase1`, and `zig build tool -- inspect-scene {2,4,5} --json` all pass, and the remaining execution caveats are to keep camera `Info0..Info2` conservatively tied to start-cube semantics, map GRM on/off state from raw `Info2`, and remember that the test gate depends on the canonical extracted asset tree plus the repo-local SDL2 install.
+- A 2026-03-19 multi-agent structure review concluded that `port/src/game_data/scene.zig` can be split safely if it remains the stable public facade, with the strongest seams being `scene/zones.zig`, `scene/model.zig`, and `scene/parser.zig`; only `port/src/tools/cli.zig` and `port/src/root.zig` currently depend on its exported surface.
+- `port/src/game_data/scene.zig` is now that thin public facade, with production code split into `port/src/game_data/scene/model.zig`, `port/src/game_data/scene/zones.zig`, and `port/src/game_data/scene/parser.zig`, while synthetic and asset-backed scene tests now live in `port/src/game_data/scene/tests.zig`.
+- The scene production modules no longer import test-only fixture/path helpers, but the coverage bar stayed intact: `zig build test` and `zig build tool -- inspect-scene 44 --json` both pass after the split, and the asset-backed scene assertions still exercise entries `2`, `5`, and `44`.
 
 ## Open Risks
 
@@ -47,5 +50,5 @@ The next bounded Phase 2 slice is now implemented on top of that workspace: `SCE
 ## Next 3 Steps
 
 1. Use `python3 tools/codex_memory.py context` at the start of the next substantive task.
-2. Extend `port/src/game_data/scene.zig` so hero and object track blobs stop being skipped and become preserved raw payloads in the typed scene model.
-3. Add a narrow track decoder/disassembler and `inspect-scene` output for hero/object track programs before attempting any life-script interpretation.
+2. Extend the scene decoder so hero and object track blobs stop being skipped and become preserved raw payloads in the typed scene model.
+3. Add a narrow track decoder/disassembler plus `inspect-scene` output for hero/object track programs before attempting any life-script interpretation.
