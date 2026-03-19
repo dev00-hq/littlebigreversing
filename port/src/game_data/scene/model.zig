@@ -10,12 +10,64 @@ pub const AmbientSample = struct {
     volume: i16,
 };
 
+pub const SceneProgramBlob = struct {
+    bytes: []u8,
+
+    pub fn deinit(self: SceneProgramBlob, allocator: std.mem.Allocator) void {
+        allocator.free(self.bytes);
+    }
+
+    pub fn byteLength(self: SceneProgramBlob) u16 {
+        return std.math.cast(u16, self.bytes.len) orelse unreachable;
+    }
+};
+
+fn writeProgramBytesJson(jw: anytype, bytes: []const u8) !void {
+    try jw.beginArray();
+    for (bytes) |byte| {
+        try jw.write(byte);
+    }
+    try jw.endArray();
+}
+
 pub const HeroStart = struct {
     x: i16,
     y: i16,
     z: i16,
-    track_byte_length: u16,
-    life_byte_length: u16,
+    track: SceneProgramBlob,
+    life: SceneProgramBlob,
+
+    pub fn deinit(self: HeroStart, allocator: std.mem.Allocator) void {
+        self.track.deinit(allocator);
+        self.life.deinit(allocator);
+    }
+
+    pub fn trackByteLength(self: HeroStart) u16 {
+        return self.track.byteLength();
+    }
+
+    pub fn lifeByteLength(self: HeroStart) u16 {
+        return self.life.byteLength();
+    }
+
+    pub fn jsonStringify(self: HeroStart, jw: anytype) !void {
+        try jw.beginObject();
+        try jw.objectField("x");
+        try jw.write(self.x);
+        try jw.objectField("y");
+        try jw.write(self.y);
+        try jw.objectField("z");
+        try jw.write(self.z);
+        try jw.objectField("track_byte_length");
+        try jw.write(self.trackByteLength());
+        try jw.objectField("track_bytes");
+        try writeProgramBytesJson(jw, self.track.bytes);
+        try jw.objectField("life_byte_length");
+        try jw.write(self.lifeByteLength());
+        try jw.objectField("life_bytes");
+        try writeProgramBytesJson(jw, self.life.bytes);
+        try jw.endObject();
+    }
 };
 
 pub const SceneObject = struct {
@@ -41,10 +93,84 @@ pub const SceneObject = struct {
     dominant_color: u8,
     armor: u8,
     life_points: u8,
-    track_byte_length: u16,
-    life_byte_length: u16,
+    track: SceneProgramBlob,
+    life: SceneProgramBlob,
     anim_3ds_index: ?u32,
     anim_3ds_fps: ?i16,
+
+    pub fn deinit(self: SceneObject, allocator: std.mem.Allocator) void {
+        self.track.deinit(allocator);
+        self.life.deinit(allocator);
+    }
+
+    pub fn trackByteLength(self: SceneObject) u16 {
+        return self.track.byteLength();
+    }
+
+    pub fn lifeByteLength(self: SceneObject) u16 {
+        return self.life.byteLength();
+    }
+
+    pub fn jsonStringify(self: SceneObject, jw: anytype) !void {
+        try jw.beginObject();
+        try jw.objectField("index");
+        try jw.write(self.index);
+        try jw.objectField("flags");
+        try jw.write(self.flags);
+        try jw.objectField("file3d_index");
+        try jw.write(self.file3d_index);
+        try jw.objectField("gen_body");
+        try jw.write(self.gen_body);
+        try jw.objectField("gen_anim");
+        try jw.write(self.gen_anim);
+        try jw.objectField("sprite");
+        try jw.write(self.sprite);
+        try jw.objectField("x");
+        try jw.write(self.x);
+        try jw.objectField("y");
+        try jw.write(self.y);
+        try jw.objectField("z");
+        try jw.write(self.z);
+        try jw.objectField("hit_force");
+        try jw.write(self.hit_force);
+        try jw.objectField("option_flags");
+        try jw.write(self.option_flags);
+        try jw.objectField("beta");
+        try jw.write(self.beta);
+        try jw.objectField("speed_rotation");
+        try jw.write(self.speed_rotation);
+        try jw.objectField("move");
+        try jw.write(self.move);
+        try jw.objectField("info");
+        try jw.write(self.info);
+        try jw.objectField("info1");
+        try jw.write(self.info1);
+        try jw.objectField("info2");
+        try jw.write(self.info2);
+        try jw.objectField("info3");
+        try jw.write(self.info3);
+        try jw.objectField("bonus_count");
+        try jw.write(self.bonus_count);
+        try jw.objectField("dominant_color");
+        try jw.write(self.dominant_color);
+        try jw.objectField("armor");
+        try jw.write(self.armor);
+        try jw.objectField("life_points");
+        try jw.write(self.life_points);
+        try jw.objectField("track_byte_length");
+        try jw.write(self.trackByteLength());
+        try jw.objectField("track_bytes");
+        try writeProgramBytesJson(jw, self.track.bytes);
+        try jw.objectField("life_byte_length");
+        try jw.write(self.lifeByteLength());
+        try jw.objectField("life_bytes");
+        try writeProgramBytesJson(jw, self.life.bytes);
+        try jw.objectField("anim_3ds_index");
+        try jw.write(self.anim_3ds_index);
+        try jw.objectField("anim_3ds_fps");
+        try jw.write(self.anim_3ds_fps);
+        try jw.endObject();
+    }
 };
 
 pub const TrackPoint = struct {
@@ -87,6 +213,8 @@ pub const SceneMetadata = struct {
     patches: []Patch,
 
     pub fn deinit(self: SceneMetadata, allocator: std.mem.Allocator) void {
+        self.hero_start.deinit(allocator);
+        for (self.objects) |object| object.deinit(allocator);
         allocator.free(self.objects);
         allocator.free(self.zones);
         allocator.free(self.tracks);

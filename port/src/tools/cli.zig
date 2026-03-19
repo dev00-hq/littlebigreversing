@@ -266,13 +266,13 @@ fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
     }
     try stderr.print(
         "hero_x={d} hero_y={d} hero_z={d} hero_track_bytes={d} hero_life_bytes={d}\n",
-        .{ scene.hero_start.x, scene.hero_start.y, scene.hero_start.z, scene.hero_start.track_byte_length, scene.hero_start.life_byte_length },
+        .{ scene.hero_start.x, scene.hero_start.y, scene.hero_start.z, scene.hero_start.trackByteLength(), scene.hero_start.lifeByteLength() },
     );
 
     for (scene.objects) |object| {
         try stderr.print(
             "object_index={d} flags={d} file3d_index={d} gen_body={d} gen_anim={d} sprite={d} x={d} y={d} z={d} move={d} track_bytes={d} life_bytes={d}\n",
-            .{ object.index, object.flags, object.file3d_index, object.gen_body, object.gen_anim, object.sprite, object.x, object.y, object.z, object.move, object.track_byte_length, object.life_byte_length },
+            .{ object.index, object.flags, object.file3d_index, object.gen_body, object.gen_anim, object.sprite, object.x, object.y, object.z, object.move, object.trackByteLength(), object.lifeByteLength() },
         );
     }
     for (scene.zones) |zone| {

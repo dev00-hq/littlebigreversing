@@ -3,7 +3,7 @@
 ## Current State
 
 The repo still has more checked-in research than runtime code overall, but `port/` now contains the first canonical Zig workspace for the Phase 1 `Foundation + asset CLI` package. The checked-in phase 0 baseline under `docs/phase0/` remains the planning authority, while deterministic Phase 1 outputs now regenerate under `work/port/phase1/`.
-The next bounded Phase 2 slice is now implemented on top of that workspace: `SCENE.HQR` zones decode into a typed, source-backed zone model that preserves raw payload fields alongside normalized load-time semantics. The old phase 0 exterior target ambiguity is now resolved: the misclassified `SCENE.HQR[4]` room scene has been retired in favor of the canonical exterior target `SCENE.HQR[44]`.
+The next bounded Phase 2 slice is now implemented on top of that workspace: `SCENE.HQR` now preserves hero/object track blobs and life-script blobs as owned raw program data in the typed scene model, and `inspect-scene --json` surfaces both the derived byte lengths and the raw byte arrays without changing the compact text output. The old phase 0 exterior target ambiguity is now resolved: the misclassified `SCENE.HQR[4]` room scene has been retired in favor of the canonical exterior target `SCENE.HQR[44]`.
 
 ## Verified Facts
 
@@ -38,6 +38,11 @@ The next bounded Phase 2 slice is now implemented on top of that workspace: `SCE
 - `port/src/game_data/scene.zig` is now that thin public facade, with production code split into `port/src/game_data/scene/model.zig`, `port/src/game_data/scene/zones.zig`, and `port/src/game_data/scene/parser.zig`, while synthetic and asset-backed scene tests now live in `port/src/game_data/scene/tests.zig`.
 - The scene production modules no longer import test-only fixture/path helpers, but the coverage bar stayed intact: `zig build test` and `zig build tool -- inspect-scene 44 --json` both pass after the split, and the asset-backed scene assertions still exercise entries `2`, `5`, and `44`.
 - Scene test coverage is now stronger at the module boundary too: the facade re-export contract is asserted directly, zone JSON stringify output is pinned for both synthetic and asset-backed cases, and parser failure coverage now explicitly includes the zero-object-count path in addition to truncation and trailing-byte checks.
+- `port/src/game_data/scene/model.zig` now exposes a canonical `SceneProgramBlob` wrapper, `HeroStart` and `SceneObject` own raw track/life blobs instead of just storing declared lengths, and `SceneMetadata.deinit` frees those nested allocations before freeing top-level arrays.
+- `port/src/game_data/scene/parser.zig` now replaces the four old `skip(...)` calls with one exact-byte owned-reader helper for hero/object track and life program blobs, preserving bytes eagerly and keeping the existing truncation failure path.
+- `zig build tool -- inspect-scene --json` now emits `track_byte_length`, `track_bytes`, `life_byte_length`, and `life_bytes` for the hero start block and each non-hero object, while text mode still prints only the byte-length summaries.
+- `zig build test` now proves exact synthetic raw-byte preservation, explicit truncation inside a preserved program blob, JSON-shape coverage for raw program arrays, and asset-backed raw-length regressions for scenes `2`, `5`, and `44`.
+- `docs/PROMPT.md` now points at the next bounded step: a narrow scene-local track-program disassembler that layers on top of the preserved raw bytes instead of replacing them.
 
 ## Open Risks
 
@@ -46,10 +51,10 @@ The next bounded Phase 2 slice is now implemented on top of that workspace: `SCE
 - `zig build test` is not hermetic yet: the real-asset scene regressions require the canonical extracted asset tree, and `port/build.zig` still hard-fails if the repo-local SDL2 layout is missing.
 - The player actor target for `SCENE.HQR[2]` is only partially locked: slot `0` is proven, but a direct hero body/animation binding is still unresolved and should not be guessed in phase 1 code.
 - Giver semantics are still intentionally conservative: the loader can expose allowed bonus kinds from `Info0`, but the final spawned bonus remains runtime-dependent through `WhichBonus()` and should not be collapsed into one canonical load-time value without stronger evidence.
-- The next decoder slice still needs to respect the existing boundary: track blobs can be surfaced and decoded as scene-local metadata, but life-script interpretation is still coupled to broader runtime state and should stay deferred.
+- The next decoder slice still needs to respect the existing boundary: track blobs can now be surfaced and decoded as scene-local metadata, but life-script interpretation is still coupled to broader runtime state and should stay deferred.
 
 ## Next 3 Steps
 
 1. Use `python3 tools/codex_memory.py context` at the start of the next substantive task.
-2. Extend the scene decoder so hero and object track blobs stop being skipped and become preserved raw payloads in the typed scene model.
-3. Add a narrow track decoder/disassembler plus `inspect-scene` output for hero/object track programs before attempting any life-script interpretation.
+2. Add a narrow track decoder/disassembler plus `inspect-scene` output for hero/object track programs on top of the preserved raw blobs.
+3. Keep life-script bytes opaque until stronger evidence or a later runtime slice justifies interpreting them.

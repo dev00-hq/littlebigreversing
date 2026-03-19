@@ -50,66 +50,97 @@ pub fn parseScenePayload(
     const second_ecart = try reader.readInt(i16);
     const cube_jingle = try reader.readInt(u8);
 
+    const hero_x = try reader.readInt(i16);
+    const hero_y = try reader.readInt(i16);
+    const hero_z = try reader.readInt(i16);
+    const hero_track = try reader.readProgramBlob(allocator);
+    errdefer hero_track.deinit(allocator);
+    const hero_life = try reader.readProgramBlob(allocator);
+    errdefer hero_life.deinit(allocator);
+
     const hero_start = model.HeroStart{
-        .x = try reader.readInt(i16),
-        .y = try reader.readInt(i16),
-        .z = try reader.readInt(i16),
-        .track_byte_length = try reader.readInt(u16),
-        .life_byte_length = undefined,
+        .x = hero_x,
+        .y = hero_y,
+        .z = hero_z,
+        .track = hero_track,
+        .life = hero_life,
     };
-    try reader.skip(hero_start.track_byte_length);
-    var hero = hero_start;
-    hero.life_byte_length = try reader.readInt(u16);
-    try reader.skip(hero.life_byte_length);
 
     const object_count = try reader.readInt(u16);
     if (object_count == 0) return error.InvalidSceneObjectCount;
 
     const objects = try allocator.alloc(model.SceneObject, object_count - 1);
-    errdefer allocator.free(objects);
+    var parsed_object_count: usize = 0;
+    errdefer {
+        for (objects[0..parsed_object_count]) |object| object.deinit(allocator);
+        allocator.free(objects);
+    }
 
     for (objects, 1..) |*object, index| {
         const flags = try reader.readInt(u32);
+        var anim_3ds_index: ?u32 = null;
+        var anim_3ds_fps: ?i16 = null;
+
+        const file3d_index = try reader.readInt(i16);
+        const gen_body = try reader.readInt(u8);
+        const gen_anim = try reader.readInt(i16);
+        const sprite = try reader.readInt(i16);
+        const x = try reader.readInt(i16);
+        const y = try reader.readInt(i16);
+        const z = try reader.readInt(i16);
+        const hit_force = try reader.readInt(u8);
+        const option_flags = try reader.readInt(i16);
+        const beta = try reader.readInt(i16);
+        const speed_rotation = try reader.readInt(i16);
+        const move = try reader.readInt(u8);
+        const info = try reader.readInt(i16);
+        const info1 = try reader.readInt(i16);
+        const info2 = try reader.readInt(i16);
+        const info3 = try reader.readInt(i16);
+        const bonus_count = try reader.readInt(i16);
+        const dominant_color = try reader.readInt(u8);
+
+        if ((flags & anim_3ds_flag) != 0) {
+            anim_3ds_index = try reader.readInt(u32);
+            anim_3ds_fps = try reader.readInt(i16);
+        }
+
+        const armor = try reader.readInt(u8);
+        const life_points = try reader.readInt(u8);
+        const track = try reader.readProgramBlob(allocator);
+        errdefer track.deinit(allocator);
+        const life = try reader.readProgramBlob(allocator);
+        errdefer life.deinit(allocator);
+
         object.* = .{
             .index = index,
             .flags = flags,
-            .file3d_index = try reader.readInt(i16),
-            .gen_body = try reader.readInt(u8),
-            .gen_anim = try reader.readInt(i16),
-            .sprite = try reader.readInt(i16),
-            .x = try reader.readInt(i16),
-            .y = try reader.readInt(i16),
-            .z = try reader.readInt(i16),
-            .hit_force = try reader.readInt(u8),
-            .option_flags = try reader.readInt(i16),
-            .beta = try reader.readInt(i16),
-            .speed_rotation = try reader.readInt(i16),
-            .move = try reader.readInt(u8),
-            .info = try reader.readInt(i16),
-            .info1 = try reader.readInt(i16),
-            .info2 = try reader.readInt(i16),
-            .info3 = try reader.readInt(i16),
-            .bonus_count = try reader.readInt(i16),
-            .dominant_color = try reader.readInt(u8),
-            .armor = 0,
-            .life_points = 0,
-            .track_byte_length = 0,
-            .life_byte_length = 0,
-            .anim_3ds_index = null,
-            .anim_3ds_fps = null,
+            .file3d_index = file3d_index,
+            .gen_body = gen_body,
+            .gen_anim = gen_anim,
+            .sprite = sprite,
+            .x = x,
+            .y = y,
+            .z = z,
+            .hit_force = hit_force,
+            .option_flags = option_flags,
+            .beta = beta,
+            .speed_rotation = speed_rotation,
+            .move = move,
+            .info = info,
+            .info1 = info1,
+            .info2 = info2,
+            .info3 = info3,
+            .bonus_count = bonus_count,
+            .dominant_color = dominant_color,
+            .armor = armor,
+            .life_points = life_points,
+            .track = track,
+            .life = life,
+            .anim_3ds_index = anim_3ds_index,
+            .anim_3ds_fps = anim_3ds_fps,
         };
-
-        if ((flags & anim_3ds_flag) != 0) {
-            object.anim_3ds_index = try reader.readInt(u32);
-            object.anim_3ds_fps = try reader.readInt(i16);
-        }
-
-        object.armor = try reader.readInt(u8);
-        object.life_points = try reader.readInt(u8);
-        object.track_byte_length = try reader.readInt(u16);
-        try reader.skip(object.track_byte_length);
-        object.life_byte_length = try reader.readInt(u16);
-        try reader.skip(object.life_byte_length);
+        parsed_object_count += 1;
     }
 
     const checksum = try reader.readInt(u32);
@@ -181,7 +212,7 @@ pub fn parseScenePayload(
         .second_min = second_min,
         .second_ecart = second_ecart,
         .cube_jingle = cube_jingle,
-        .hero_start = hero,
+        .hero_start = hero_start,
         .checksum = checksum,
         .object_count = object_count,
         .zone_count = zone_count,
@@ -206,9 +237,16 @@ const Reader = struct {
         return value;
     }
 
-    fn skip(self: *Reader, count: usize) !void {
-        if (self.offset + count > self.bytes.len) return error.TruncatedScenePayload;
-        self.offset += count;
+    fn readProgramBlob(self: *Reader, allocator: std.mem.Allocator) !model.SceneProgramBlob {
+        const byte_length = try self.readInt(u16);
+        if (self.offset + byte_length > self.bytes.len) return error.TruncatedScenePayload;
+
+        const bytes = try allocator.alloc(u8, byte_length);
+        errdefer allocator.free(bytes);
+        @memcpy(bytes, self.bytes[self.offset .. self.offset + byte_length]);
+        self.offset += byte_length;
+
+        return .{ .bytes = bytes };
     }
 
     fn remaining(self: Reader) usize {

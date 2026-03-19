@@ -155,12 +155,19 @@ test "scene payload parsing follows the classic loader layout" {
     try std.testing.expectEqual(@as(usize, 7), metadata.entry_index);
     try std.testing.expectEqual(@as(u8, 0), metadata.island);
     try std.testing.expectEqual(@as(i16, 414), metadata.alpha_light);
-    try std.testing.expectEqual(@as(u16, 2), metadata.hero_start.life_byte_length);
+    try std.testing.expectEqual(@as(u16, 1), metadata.hero_start.trackByteLength());
+    try std.testing.expectEqualSlices(u8, &.{0x7F}, metadata.hero_start.track.bytes);
+    try std.testing.expectEqual(@as(u16, 2), metadata.hero_start.lifeByteLength());
+    try std.testing.expectEqualSlices(u8, &.{ 0xAA, 0xBB }, metadata.hero_start.life.bytes);
     try std.testing.expectEqual(@as(usize, 2), metadata.object_count);
     try std.testing.expectEqual(@as(usize, 1), metadata.zone_count);
     try std.testing.expectEqual(@as(usize, 2), metadata.track_count);
     try std.testing.expectEqual(@as(usize, 1), metadata.patch_count);
     try std.testing.expectEqual(@as(i16, 700), metadata.objects[0].x);
+    try std.testing.expectEqual(@as(u16, 1), metadata.objects[0].trackByteLength());
+    try std.testing.expectEqualSlices(u8, &.{0x01}, metadata.objects[0].track.bytes);
+    try std.testing.expectEqual(@as(u16, 1), metadata.objects[0].lifeByteLength());
+    try std.testing.expectEqualSlices(u8, &.{0x02}, metadata.objects[0].life.bytes);
     try std.testing.expectEqual(zones.ZoneType.message, metadata.zones[0].zone_type);
     try std.testing.expectEqualSlices(i32, &.{ 70, 71, 1, 73, 74, 75, 76, 77 }, &metadata.zones[0].raw_info);
     try std.testing.expectEqual(@as(i16, 6), metadata.zones[0].num);
@@ -183,6 +190,44 @@ test "zone json stringify keeps the stable tooling shape" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"dialog_id\": 431") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"linked_camera_zone_id\": 2") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"facing_direction\": \"north\"") != null);
+}
+
+test "scene json stringify exposes raw program bytes and derived lengths" {
+    const allocator = std.testing.allocator;
+    const payload = try buildSyntheticScenePayload(allocator);
+    defer allocator.free(payload);
+
+    const metadata = try parser.parseScenePayload(allocator, 7, .{
+        .size_file = @intCast(payload.len),
+        .compressed_size_file = @intCast(payload.len),
+        .compress_method = 0,
+    }, payload);
+    defer metadata.deinit(allocator);
+
+    const json = try stringifyJsonAlloc(allocator, .{
+        .hero_start = metadata.hero_start,
+        .objects = metadata.objects,
+    });
+    defer allocator.free(json);
+
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, json, .{});
+    defer parsed.deinit();
+
+    const root = parsed.value.object;
+    const hero_start = root.get("hero_start").?.object;
+    try std.testing.expectEqual(@as(i64, 1), hero_start.get("track_byte_length").?.integer);
+    try std.testing.expectEqual(@as(i64, 2), hero_start.get("life_byte_length").?.integer);
+    try std.testing.expectEqual(@as(usize, 1), hero_start.get("track_bytes").?.array.items.len);
+    try std.testing.expectEqual(@as(i64, 0x7F), hero_start.get("track_bytes").?.array.items[0].integer);
+    try std.testing.expectEqual(@as(usize, 2), hero_start.get("life_bytes").?.array.items.len);
+    try std.testing.expectEqual(@as(i64, 0xAA), hero_start.get("life_bytes").?.array.items[0].integer);
+    try std.testing.expectEqual(@as(i64, 0xBB), hero_start.get("life_bytes").?.array.items[1].integer);
+
+    const objects = root.get("objects").?.array.items;
+    try std.testing.expectEqual(@as(usize, 1), objects[0].object.get("track_bytes").?.array.items.len);
+    try std.testing.expectEqual(@as(i64, 0x01), objects[0].object.get("track_bytes").?.array.items[0].integer);
+    try std.testing.expectEqual(@as(usize, 1), objects[0].object.get("life_bytes").?.array.items.len);
+    try std.testing.expectEqual(@as(i64, 0x02), objects[0].object.get("life_bytes").?.array.items[0].integer);
 }
 
 test "zone decoder normalizes source-backed load-time semantics" {
@@ -253,7 +298,10 @@ test "real scene 2 metadata matches canonical asset bytes" {
     try std.testing.expectEqual(@as(i16, 9724), metadata.hero_start.x);
     try std.testing.expectEqual(@as(i16, 1024), metadata.hero_start.y);
     try std.testing.expectEqual(@as(i16, 782), metadata.hero_start.z);
-    try std.testing.expectEqual(@as(u16, 203), metadata.hero_start.life_byte_length);
+    try std.testing.expectEqual(@as(u16, 1), metadata.hero_start.trackByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.hero_start.trackByteLength()), metadata.hero_start.track.bytes.len);
+    try std.testing.expectEqual(@as(u16, 203), metadata.hero_start.lifeByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.hero_start.lifeByteLength()), metadata.hero_start.life.bytes.len);
     try std.testing.expectEqual(@as(usize, 9), metadata.object_count);
     try std.testing.expectEqual(@as(usize, 10), metadata.zone_count);
     try std.testing.expectEqual(@as(usize, 4), metadata.track_count);
@@ -271,6 +319,11 @@ test "real scene 2 metadata matches canonical asset bytes" {
     try std.testing.expect(metadata.zones[2].semantics.giver.bonus_kinds.life);
     try std.testing.expect(metadata.zones[2].semantics.giver.bonus_kinds.magic);
     try std.testing.expectEqual(@as(i32, 2), metadata.zones[2].semantics.giver.quantity);
+    try std.testing.expectEqual(@as(usize, 5), metadata.objects[4].index);
+    try std.testing.expectEqual(@as(u16, 12), metadata.objects[4].trackByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.objects[4].trackByteLength()), metadata.objects[4].track.bytes.len);
+    try std.testing.expectEqual(@as(u16, 51), metadata.objects[4].lifeByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.objects[4].lifeByteLength()), metadata.objects[4].life.bytes.len);
     try std.testing.expectEqual(zones.ZoneType.message, metadata.zones[6].zone_type);
     try std.testing.expectEqual(@as(i16, 284), metadata.zones[6].num);
     try std.testing.expectEqual(zones.MessageDirection.north, metadata.zones[6].semantics.message.facing_direction);
@@ -302,11 +355,20 @@ test "real scene 44 metadata matches the canonical citadel exterior target" {
     try std.testing.expectEqual(@as(i16, 3411), metadata.beta_light);
     try std.testing.expectEqual(@as(i16, 19607), metadata.hero_start.x);
     try std.testing.expectEqual(@as(i16, 13818), metadata.hero_start.z);
+    try std.testing.expectEqual(@as(u16, 48), metadata.hero_start.trackByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.hero_start.trackByteLength()), metadata.hero_start.track.bytes.len);
+    try std.testing.expectEqual(@as(u16, 823), metadata.hero_start.lifeByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.hero_start.lifeByteLength()), metadata.hero_start.life.bytes.len);
     try std.testing.expectEqual(@as(usize, 20), metadata.object_count);
     try std.testing.expectEqual(@as(usize, 22), metadata.zone_count);
     try std.testing.expectEqual(@as(usize, 31), metadata.track_count);
     try std.testing.expectEqual(@as(usize, 154), metadata.patch_count);
     try std.testing.expectEqual(@as(i16, 106), metadata.objects[1].file3d_index);
+    try std.testing.expectEqual(@as(usize, 2), metadata.objects[1].index);
+    try std.testing.expectEqual(@as(u16, 85), metadata.objects[1].trackByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.objects[1].trackByteLength()), metadata.objects[1].track.bytes.len);
+    try std.testing.expectEqual(@as(u16, 329), metadata.objects[1].lifeByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.objects[1].lifeByteLength()), metadata.objects[1].life.bytes.len);
     try std.testing.expectEqual(zones.ZoneType.change_cube, metadata.zones[0].zone_type);
     try std.testing.expectEqual(@as(i16, 42), metadata.zones[0].semantics.change_cube.destination_cube);
     try std.testing.expectEqual(@as(i32, 512), metadata.zones[0].semantics.change_cube.destination_x);
@@ -336,7 +398,16 @@ test "real scene 5 metadata keeps non-golden zone regressions aligned" {
     defer metadata.deinit(allocator);
 
     try std.testing.expectEqual(@as(usize, 5), metadata.entry_index);
+    try std.testing.expectEqual(@as(u16, 13), metadata.hero_start.trackByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.hero_start.trackByteLength()), metadata.hero_start.track.bytes.len);
+    try std.testing.expectEqual(@as(u16, 61), metadata.hero_start.lifeByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.hero_start.lifeByteLength()), metadata.hero_start.life.bytes.len);
     try std.testing.expectEqual(@as(usize, 12), metadata.zone_count);
+    try std.testing.expectEqual(@as(usize, 2), metadata.objects[1].index);
+    try std.testing.expectEqual(@as(u16, 170), metadata.objects[1].trackByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.objects[1].trackByteLength()), metadata.objects[1].track.bytes.len);
+    try std.testing.expectEqual(@as(u16, 194), metadata.objects[1].lifeByteLength());
+    try std.testing.expectEqual(@as(usize, metadata.objects[1].lifeByteLength()), metadata.objects[1].life.bytes.len);
     try std.testing.expectEqual(zones.ZoneType.change_cube, metadata.zones[0].zone_type);
     try std.testing.expectEqual(@as(i16, 3), metadata.zones[0].semantics.change_cube.destination_cube);
     try std.testing.expectEqual(zones.ZoneType.change_cube, metadata.zones[1].zone_type);
@@ -401,6 +472,21 @@ test "scene payload rejects truncated bytes" {
             .compressed_size_file = @intCast(payload.len - 1),
             .compress_method = 0,
         }, payload[0 .. payload.len - 1]),
+    );
+}
+
+test "scene payload rejects truncation inside a preserved program blob" {
+    const allocator = std.testing.allocator;
+    const payload = try buildSyntheticScenePayload(allocator);
+    defer allocator.free(payload);
+
+    try std.testing.expectError(
+        error.TruncatedScenePayload,
+        parser.parseScenePayload(allocator, 7, .{
+            .size_file = 68,
+            .compressed_size_file = 68,
+            .compress_method = 0,
+        }, payload[0..68]),
     );
 }
 
