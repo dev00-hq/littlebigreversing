@@ -18,7 +18,7 @@ These are the locked phase 0 targets. They may change only through an explicit r
 - evidence anchors:
   - `asset_entries`: `SCENE.HQR[4]` from topic `6707`, post `177798`
   - `evidence`: `10609` for the named scene description
-- current stance: keep the target, but phase 1 still needs the explicit scene-to-island payload link recorded
+- current stance: keep the target, but do not treat it as the canonical basis for exterior-camera or other exterior-specific semantics until the scene-number vs HQR-entry mapping is reconciled
 
 ## `actor-player-scene2`
 

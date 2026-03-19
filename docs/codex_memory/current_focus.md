@@ -5,7 +5,7 @@
 - Use this Codex memory system as the default handoff and state-externalization path for future repo work.
 - Preserve the repo's existing split between canonical checked-in knowledge and rebuildable generated state.
 - Keep reverse-engineering findings, task decisions, and next steps cheap for a new Codex session to reload.
-- Align implementation planning around the Zig 0.15.2 + SDL2 port direction and the `Foundation + asset CLI` first package.
+- Align implementation planning around the Zig 0.15.2 + SDL2 port direction and execute the typed zone-semantics slice as the next bounded Phase 2 step.
 
 ## Active Streams
 
@@ -16,7 +16,7 @@
 ## Blocked Items
 
 - Phase 2 typed asset decoding has started with `SCENE.HQR` metadata parsing, but typed decoding for scene scripts, actor script blobs, and related cross-asset links is still open.
-- The worktree is intentionally dirty in several corpus/reference areas, so new work must avoid reverting unrelated changes.
+- The worktree currently has a small number of active user edits; new work must still avoid reverting unrelated changes.
 
 ## Next Actions
 

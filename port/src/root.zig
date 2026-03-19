@@ -27,6 +27,12 @@ pub const HqrArchive = assets.hqr.HqrArchive;
 pub const HqrEntry = assets.hqr.HqrEntry;
 pub const FixtureManifestEntry = assets.fixtures.FixtureManifestEntry;
 pub const SceneMetadata = game_data.scene.SceneMetadata;
+pub const SceneZone = game_data.scene.SceneZone;
+pub const ZoneType = game_data.scene.ZoneType;
+pub const ZoneSemantics = game_data.scene.ZoneSemantics;
+pub const MessageDirection = game_data.scene.MessageDirection;
+pub const EscalatorDirection = game_data.scene.EscalatorDirection;
+pub const GiverBonusKinds = game_data.scene.GiverBonusKinds;
 
 test {
     _ = @import("foundation/paths.zig");

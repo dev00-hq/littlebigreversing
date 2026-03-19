@@ -21,6 +21,232 @@ pub const HeroStart = struct {
     life_byte_length: u16,
 };
 
+const zone_init_on_mask = 1;
+const zone_obligatory_mask = 8;
+
+pub const ZoneType = enum(i16) {
+    change_cube = 0,
+    camera = 1,
+    scenario = 2,
+    grm = 3,
+    giver = 4,
+    message = 5,
+    ladder = 6,
+    escalator = 7,
+    hit = 8,
+    rail = 9,
+
+    pub fn name(self: ZoneType) []const u8 {
+        return @tagName(self);
+    }
+};
+
+pub const MessageDirection = enum(i32) {
+    north = 1,
+    south = 2,
+    east = 4,
+    west = 8,
+
+    pub fn name(self: MessageDirection) []const u8 {
+        return @tagName(self);
+    }
+};
+
+pub const EscalatorDirection = enum(i32) {
+    north = 1,
+    south = 2,
+    east = 4,
+    west = 8,
+
+    pub fn name(self: EscalatorDirection) []const u8 {
+        return @tagName(self);
+    }
+};
+
+pub const GiverBonusKinds = struct {
+    money: bool,
+    life: bool,
+    magic: bool,
+    key: bool,
+    clover: bool,
+
+    fn fromFlags(flags: i32) GiverBonusKinds {
+        return .{
+            .money = (flags & (1 << 4)) != 0,
+            .life = (flags & (1 << 5)) != 0,
+            .magic = (flags & (1 << 6)) != 0,
+            .key = (flags & (1 << 7)) != 0,
+            .clover = (flags & (1 << 8)) != 0,
+        };
+    }
+};
+
+pub const ChangeCubeSemantics = struct {
+    destination_cube: i16,
+    destination_x: i32,
+    destination_y: i32,
+    destination_z: i32,
+    yaw: i32,
+    test_brick: bool,
+    dont_readjust_twinsen: bool,
+    initially_on: bool,
+};
+
+pub const CameraSemantics = struct {
+    anchor_x: i32,
+    anchor_y: i32,
+    anchor_z: i32,
+    alpha: ?i32,
+    beta: ?i32,
+    gamma: ?i32,
+    distance: ?i32,
+    initially_on: bool,
+    obligatory: bool,
+};
+
+pub const GrmSemantics = struct {
+    grm_index: i32,
+    initially_on: bool,
+};
+
+pub const GiverSemantics = struct {
+    bonus_kinds: GiverBonusKinds,
+    quantity: i32,
+    already_taken: bool,
+};
+
+pub const MessageSemantics = struct {
+    dialog_id: i16,
+    linked_camera_zone_id: ?i32,
+    facing_direction: MessageDirection,
+};
+
+pub const LadderSemantics = struct {
+    enabled_on_load: bool,
+};
+
+pub const EscalatorSemantics = struct {
+    enabled: bool,
+    direction: EscalatorDirection,
+};
+
+pub const HitSemantics = struct {
+    damage: i32,
+    cooldown_raw_value: i32,
+    initial_timer: i32,
+};
+
+pub const RailSemantics = struct {
+    switch_state_on_load: bool,
+};
+
+pub const ZoneSemantics = union(ZoneType) {
+    change_cube: ChangeCubeSemantics,
+    camera: CameraSemantics,
+    scenario: void,
+    grm: GrmSemantics,
+    giver: GiverSemantics,
+    message: MessageSemantics,
+    ladder: LadderSemantics,
+    escalator: EscalatorSemantics,
+    hit: HitSemantics,
+    rail: RailSemantics,
+
+    pub fn jsonStringify(self: @This(), jws: anytype) !void {
+        try jws.beginObject();
+        try jws.objectField("kind");
+        try jws.write(@tagName(std.meta.activeTag(self)));
+
+        switch (self) {
+            .change_cube => |semantics| {
+                try jws.objectField("destination_cube");
+                try jws.write(semantics.destination_cube);
+                try jws.objectField("destination_x");
+                try jws.write(semantics.destination_x);
+                try jws.objectField("destination_y");
+                try jws.write(semantics.destination_y);
+                try jws.objectField("destination_z");
+                try jws.write(semantics.destination_z);
+                try jws.objectField("yaw");
+                try jws.write(semantics.yaw);
+                try jws.objectField("test_brick");
+                try jws.write(semantics.test_brick);
+                try jws.objectField("dont_readjust_twinsen");
+                try jws.write(semantics.dont_readjust_twinsen);
+                try jws.objectField("initially_on");
+                try jws.write(semantics.initially_on);
+            },
+            .camera => |semantics| {
+                try jws.objectField("anchor_x");
+                try jws.write(semantics.anchor_x);
+                try jws.objectField("anchor_y");
+                try jws.write(semantics.anchor_y);
+                try jws.objectField("anchor_z");
+                try jws.write(semantics.anchor_z);
+                try jws.objectField("alpha");
+                try jws.write(semantics.alpha);
+                try jws.objectField("beta");
+                try jws.write(semantics.beta);
+                try jws.objectField("gamma");
+                try jws.write(semantics.gamma);
+                try jws.objectField("distance");
+                try jws.write(semantics.distance);
+                try jws.objectField("initially_on");
+                try jws.write(semantics.initially_on);
+                try jws.objectField("obligatory");
+                try jws.write(semantics.obligatory);
+            },
+            .scenario => {},
+            .grm => |semantics| {
+                try jws.objectField("grm_index");
+                try jws.write(semantics.grm_index);
+                try jws.objectField("initially_on");
+                try jws.write(semantics.initially_on);
+            },
+            .giver => |semantics| {
+                try jws.objectField("bonus_kinds");
+                try jws.write(semantics.bonus_kinds);
+                try jws.objectField("quantity");
+                try jws.write(semantics.quantity);
+                try jws.objectField("already_taken");
+                try jws.write(semantics.already_taken);
+            },
+            .message => |semantics| {
+                try jws.objectField("dialog_id");
+                try jws.write(semantics.dialog_id);
+                try jws.objectField("linked_camera_zone_id");
+                try jws.write(semantics.linked_camera_zone_id);
+                try jws.objectField("facing_direction");
+                try jws.write(semantics.facing_direction.name());
+            },
+            .ladder => |semantics| {
+                try jws.objectField("enabled_on_load");
+                try jws.write(semantics.enabled_on_load);
+            },
+            .escalator => |semantics| {
+                try jws.objectField("enabled");
+                try jws.write(semantics.enabled);
+                try jws.objectField("direction");
+                try jws.write(semantics.direction.name());
+            },
+            .hit => |semantics| {
+                try jws.objectField("damage");
+                try jws.write(semantics.damage);
+                try jws.objectField("cooldown_raw_value");
+                try jws.write(semantics.cooldown_raw_value);
+                try jws.objectField("initial_timer");
+                try jws.write(semantics.initial_timer);
+            },
+            .rail => |semantics| {
+                try jws.objectField("switch_state_on_load");
+                try jws.write(semantics.switch_state_on_load);
+            },
+        }
+
+        try jws.endObject();
+    }
+};
+
 pub const SceneObject = struct {
     index: usize,
     flags: u32,
@@ -57,16 +283,35 @@ pub const SceneZone = struct {
     x1: i32,
     y1: i32,
     z1: i32,
-    info0: i32,
-    info1: i32,
-    info2: i32,
-    info3: i32,
-    info4: i32,
-    info5: i32,
-    info6: i32,
-    info7: i32,
-    type_id: i16,
+    raw_info: [8]i32,
+    zone_type: ZoneType,
     num: i16,
+    semantics: ZoneSemantics,
+
+    pub fn jsonStringify(self: @This(), jws: anytype) !void {
+        try jws.beginObject();
+        try jws.objectField("x0");
+        try jws.write(self.x0);
+        try jws.objectField("y0");
+        try jws.write(self.y0);
+        try jws.objectField("z0");
+        try jws.write(self.z0);
+        try jws.objectField("x1");
+        try jws.write(self.x1);
+        try jws.objectField("y1");
+        try jws.write(self.y1);
+        try jws.objectField("z1");
+        try jws.write(self.z1);
+        try jws.objectField("raw_info");
+        try jws.write(self.raw_info);
+        try jws.objectField("zone_type");
+        try jws.write(self.zone_type.name());
+        try jws.objectField("num");
+        try jws.write(self.num);
+        try jws.objectField("semantics");
+        try jws.write(self.semantics);
+        try jws.endObject();
+    }
 };
 
 pub const TrackPoint = struct {
@@ -122,6 +367,18 @@ pub const SceneMetadata = struct {
             else => "unknown",
         };
     }
+};
+
+const RawSceneZone = struct {
+    x0: i32,
+    y0: i32,
+    z0: i32,
+    x1: i32,
+    y1: i32,
+    z1: i32,
+    raw_info: [8]i32,
+    type_id: i16,
+    num: i16,
 };
 
 pub fn loadSceneMetadata(allocator: std.mem.Allocator, absolute_path: []const u8, entry_index: usize) !SceneMetadata {
@@ -237,24 +494,27 @@ pub fn parseScenePayload(
     const zones = try allocator.alloc(SceneZone, zone_count);
     errdefer allocator.free(zones);
     for (zones) |*zone| {
-        zone.* = .{
+        const raw_zone = RawSceneZone{
             .x0 = try reader.readInt(i32),
             .y0 = try reader.readInt(i32),
             .z0 = try reader.readInt(i32),
             .x1 = try reader.readInt(i32),
             .y1 = try reader.readInt(i32),
             .z1 = try reader.readInt(i32),
-            .info0 = try reader.readInt(i32),
-            .info1 = try reader.readInt(i32),
-            .info2 = try reader.readInt(i32),
-            .info3 = try reader.readInt(i32),
-            .info4 = try reader.readInt(i32),
-            .info5 = try reader.readInt(i32),
-            .info6 = try reader.readInt(i32),
-            .info7 = try reader.readInt(i32),
+            .raw_info = .{
+                try reader.readInt(i32),
+                try reader.readInt(i32),
+                try reader.readInt(i32),
+                try reader.readInt(i32),
+                try reader.readInt(i32),
+                try reader.readInt(i32),
+                try reader.readInt(i32),
+                try reader.readInt(i32),
+            },
             .type_id = try reader.readInt(i16),
             .num = try reader.readInt(i16),
         };
+        zone.* = try decodeZone(raw_zone, cube_mode);
     }
 
     const track_count = try reader.readInt(u16);
@@ -332,6 +592,110 @@ const Reader = struct {
     }
 };
 
+fn decodeZone(raw_zone: RawSceneZone, cube_mode: u8) !SceneZone {
+    const zone_type = try decodeZoneType(raw_zone.type_id);
+    return .{
+        .x0 = raw_zone.x0,
+        .y0 = raw_zone.y0,
+        .z0 = raw_zone.z0,
+        .x1 = raw_zone.x1,
+        .y1 = raw_zone.y1,
+        .z1 = raw_zone.z1,
+        .raw_info = raw_zone.raw_info,
+        .zone_type = zone_type,
+        .num = raw_zone.num,
+        .semantics = switch (zone_type) {
+            .change_cube => .{ .change_cube = .{
+                .destination_cube = raw_zone.num,
+                .destination_x = raw_zone.raw_info[0],
+                .destination_y = raw_zone.raw_info[1],
+                .destination_z = raw_zone.raw_info[2],
+                .yaw = raw_zone.raw_info[3],
+                .test_brick = (raw_zone.raw_info[5] & zone_init_on_mask) != 0,
+                .dont_readjust_twinsen = (raw_zone.raw_info[6] & zone_init_on_mask) != 0,
+                .initially_on = (raw_zone.raw_info[7] & zone_init_on_mask) != 0,
+            } },
+            .camera => .{ .camera = .{
+                .anchor_x = raw_zone.raw_info[0],
+                .anchor_y = raw_zone.raw_info[1],
+                .anchor_z = raw_zone.raw_info[2],
+                .alpha = if (cube_mode == 1) raw_zone.raw_info[3] else null,
+                .beta = if (cube_mode == 1) raw_zone.raw_info[4] else null,
+                .gamma = if (cube_mode == 1) raw_zone.raw_info[5] else null,
+                .distance = if (cube_mode == 1) raw_zone.raw_info[6] else null,
+                .initially_on = (raw_zone.raw_info[7] & zone_init_on_mask) != 0,
+                .obligatory = (raw_zone.raw_info[7] & zone_obligatory_mask) != 0,
+            } },
+            .scenario => .scenario,
+            .grm => .{ .grm = .{
+                .grm_index = raw_zone.raw_info[0],
+                .initially_on = raw_zone.raw_info[2] != 0,
+            } },
+            .giver => .{ .giver = .{
+                .bonus_kinds = GiverBonusKinds.fromFlags(raw_zone.raw_info[0]),
+                .quantity = raw_zone.raw_info[1],
+                .already_taken = false,
+            } },
+            .message => .{ .message = .{
+                .dialog_id = raw_zone.num,
+                .linked_camera_zone_id = if (raw_zone.raw_info[1] == 0) null else raw_zone.raw_info[1],
+                .facing_direction = try decodeMessageDirection(raw_zone.raw_info[2]),
+            } },
+            .ladder => .{ .ladder = .{
+                .enabled_on_load = raw_zone.raw_info[0] != 0,
+            } },
+            .escalator => .{ .escalator = .{
+                .enabled = raw_zone.raw_info[1] != 0,
+                .direction = try decodeEscalatorDirection(raw_zone.raw_info[2]),
+            } },
+            .hit => .{ .hit = .{
+                .damage = raw_zone.raw_info[1],
+                .cooldown_raw_value = raw_zone.raw_info[2],
+                .initial_timer = 0,
+            } },
+            .rail => .{ .rail = .{
+                .switch_state_on_load = raw_zone.raw_info[0] != 0,
+            } },
+        },
+    };
+}
+
+fn decodeZoneType(type_id: i16) !ZoneType {
+    return switch (type_id) {
+        0 => .change_cube,
+        1 => .camera,
+        2 => .scenario,
+        3 => .grm,
+        4 => .giver,
+        5 => .message,
+        6 => .ladder,
+        7 => .escalator,
+        8 => .hit,
+        9 => .rail,
+        else => error.UnsupportedSceneZoneType,
+    };
+}
+
+fn decodeMessageDirection(raw_value: i32) !MessageDirection {
+    return switch (raw_value) {
+        1 => .north,
+        2 => .south,
+        4 => .east,
+        8 => .west,
+        else => error.UnsupportedSceneZoneMessageDirection,
+    };
+}
+
+fn decodeEscalatorDirection(raw_value: i32) !EscalatorDirection {
+    return switch (raw_value) {
+        1 => .north,
+        2 => .south,
+        4 => .east,
+        8 => .west,
+        else => error.UnsupportedSceneZoneEscalatorDirection,
+    };
+}
+
 fn appendInt(list: *std.ArrayList(u8), value: anytype) !void {
     const T = @TypeOf(value);
     var buffer: [@sizeOf(T)]u8 = undefined;
@@ -402,7 +766,7 @@ fn buildSyntheticScenePayload(allocator: std.mem.Allocator) ![]u8 {
     try appendInt(&bytes, @as(i32, 60));
     try appendInt(&bytes, @as(i32, 70));
     try appendInt(&bytes, @as(i32, 71));
-    try appendInt(&bytes, @as(i32, 72));
+    try appendInt(&bytes, @as(i32, 1));
     try appendInt(&bytes, @as(i32, 73));
     try appendInt(&bytes, @as(i32, 74));
     try appendInt(&bytes, @as(i32, 75));
@@ -440,6 +804,20 @@ fn resolveSceneArchivePathForTests(allocator: std.mem.Allocator, relative_path: 
     return std.fs.path.join(allocator, &.{ resolved.asset_root, relative_path });
 }
 
+fn makeRawZone(zone_type: i16, num: i16, raw_info: [8]i32) RawSceneZone {
+    return .{
+        .x0 = 10,
+        .y0 = 20,
+        .z0 = 30,
+        .x1 = 40,
+        .y1 = 50,
+        .z1 = 60,
+        .raw_info = raw_info,
+        .type_id = zone_type,
+        .num = num,
+    };
+}
+
 test "scene payload parsing follows the classic loader layout" {
     const allocator = std.testing.allocator;
     const payload = try buildSyntheticScenePayload(allocator);
@@ -461,9 +839,61 @@ test "scene payload parsing follows the classic loader layout" {
     try std.testing.expectEqual(@as(usize, 2), metadata.track_count);
     try std.testing.expectEqual(@as(usize, 1), metadata.patch_count);
     try std.testing.expectEqual(@as(i16, 700), metadata.objects[0].x);
-    try std.testing.expectEqual(@as(i16, 5), metadata.zones[0].type_id);
+    try std.testing.expectEqual(ZoneType.message, metadata.zones[0].zone_type);
+    try std.testing.expectEqualSlices(i32, &.{ 70, 71, 1, 73, 74, 75, 76, 77 }, &metadata.zones[0].raw_info);
+    try std.testing.expectEqual(@as(i16, 6), metadata.zones[0].num);
+    try std.testing.expectEqual(@as(i16, 6), metadata.zones[0].semantics.message.dialog_id);
+    try std.testing.expectEqual(@as(?i32, 71), metadata.zones[0].semantics.message.linked_camera_zone_id);
+    try std.testing.expectEqual(MessageDirection.north, metadata.zones[0].semantics.message.facing_direction);
     try std.testing.expectEqual(@as(i32, 6000), metadata.tracks[1].z);
     try std.testing.expectEqual(@as(i16, 99), metadata.patches[0].offset);
+}
+
+test "zone decoder normalizes source-backed load-time semantics" {
+    const change_cube = try decodeZone(makeRawZone(0, 42, .{ 17408, 256, 7680, 3, 9, 1, 1, 1 }), 0);
+    try std.testing.expectEqual(ZoneType.change_cube, change_cube.zone_type);
+    try std.testing.expectEqual(@as(i32, 9), change_cube.raw_info[4]);
+    try std.testing.expectEqual(@as(i16, 42), change_cube.semantics.change_cube.destination_cube);
+    try std.testing.expect(change_cube.semantics.change_cube.test_brick);
+    try std.testing.expect(change_cube.semantics.change_cube.dont_readjust_twinsen);
+    try std.testing.expect(change_cube.semantics.change_cube.initially_on);
+
+    const camera = try decodeZone(makeRawZone(1, 7, .{ 2, 5, 19, 341, 3908, 0, 10500, 9 }), 1);
+    try std.testing.expectEqual(ZoneType.camera, camera.zone_type);
+    try std.testing.expectEqual(@as(?i32, 341), camera.semantics.camera.alpha);
+    try std.testing.expectEqual(@as(?i32, 3908), camera.semantics.camera.beta);
+    try std.testing.expectEqual(@as(?i32, 0), camera.semantics.camera.gamma);
+    try std.testing.expectEqual(@as(?i32, 10500), camera.semantics.camera.distance);
+    try std.testing.expect(camera.semantics.camera.initially_on);
+    try std.testing.expect(camera.semantics.camera.obligatory);
+
+    const grm = try decodeZone(makeRawZone(3, 5, .{ 12, 0, 1, 0, 0, 0, 0, 0 }), 0);
+    try std.testing.expectEqual(@as(i32, 12), grm.semantics.grm.grm_index);
+    try std.testing.expect(grm.semantics.grm.initially_on);
+
+    const giver = try decodeZone(makeRawZone(4, 0, .{ 112, 2, 99, 0, 0, 0, 0, 0 }), 0);
+    try std.testing.expect(giver.semantics.giver.bonus_kinds.money);
+    try std.testing.expect(giver.semantics.giver.bonus_kinds.life);
+    try std.testing.expect(giver.semantics.giver.bonus_kinds.magic);
+    try std.testing.expectEqual(@as(i32, 2), giver.semantics.giver.quantity);
+    try std.testing.expect(!giver.semantics.giver.already_taken);
+
+    const ladder = try decodeZone(makeRawZone(6, 1, .{ 1, 0, 0, 0, 0, 0, 0, 0 }), 0);
+    try std.testing.expect(ladder.semantics.ladder.enabled_on_load);
+
+    const hit = try decodeZone(makeRawZone(8, 1, .{ 0, 3, 9, 22, 0, 0, 0, 0 }), 0);
+    try std.testing.expectEqual(@as(i32, 3), hit.semantics.hit.damage);
+    try std.testing.expectEqual(@as(i32, 9), hit.semantics.hit.cooldown_raw_value);
+    try std.testing.expectEqual(@as(i32, 0), hit.semantics.hit.initial_timer);
+
+    const rail = try decodeZone(makeRawZone(9, 2, .{ 1, 0, 0, 0, 0, 0, 0, 0 }), 0);
+    try std.testing.expect(rail.semantics.rail.switch_state_on_load);
+}
+
+test "zone decoder rejects unsupported types and directions" {
+    try std.testing.expectError(error.UnsupportedSceneZoneType, decodeZone(makeRawZone(99, 0, .{ 0, 0, 0, 0, 0, 0, 0, 0 }), 0));
+    try std.testing.expectError(error.UnsupportedSceneZoneMessageDirection, decodeZone(makeRawZone(5, 0, .{ 12, 0, 3, 0, 0, 0, 0, 0 }), 0));
+    try std.testing.expectError(error.UnsupportedSceneZoneEscalatorDirection, decodeZone(makeRawZone(7, 0, .{ 0, 1, 3, 0, 0, 0, 0, 0 }), 0));
 }
 
 test "real scene 2 metadata matches canonical asset bytes" {
@@ -495,8 +925,21 @@ test "real scene 2 metadata matches canonical asset bytes" {
     try std.testing.expectEqual(@as(u32, 34887), metadata.objects[0].flags);
     try std.testing.expectEqual(@as(i16, 14), metadata.objects[0].file3d_index);
     try std.testing.expectEqual(@as(u8, 7), metadata.objects[0].move);
-    try std.testing.expectEqual(@as(i16, 0), metadata.zones[0].type_id);
+    try std.testing.expectEqual(ZoneType.change_cube, metadata.zones[0].zone_type);
+    try std.testing.expectEqual(@as(i16, 0), metadata.zones[0].semantics.change_cube.destination_cube);
+    try std.testing.expectEqual(@as(i32, 2560), metadata.zones[0].semantics.change_cube.destination_x);
+    try std.testing.expect(metadata.zones[0].semantics.change_cube.initially_on);
+    try std.testing.expectEqual(ZoneType.scenario, metadata.zones[1].zone_type);
+    try std.testing.expectEqual(ZoneType.giver, metadata.zones[2].zone_type);
+    try std.testing.expect(metadata.zones[2].semantics.giver.bonus_kinds.money);
+    try std.testing.expect(metadata.zones[2].semantics.giver.bonus_kinds.life);
+    try std.testing.expect(metadata.zones[2].semantics.giver.bonus_kinds.magic);
+    try std.testing.expectEqual(@as(i32, 2), metadata.zones[2].semantics.giver.quantity);
+    try std.testing.expectEqual(ZoneType.message, metadata.zones[6].zone_type);
     try std.testing.expectEqual(@as(i16, 284), metadata.zones[6].num);
+    try std.testing.expectEqual(MessageDirection.north, metadata.zones[6].semantics.message.facing_direction);
+    try std.testing.expectEqual(@as(?i32, null), metadata.zones[6].semantics.message.linked_camera_zone_id);
+    try std.testing.expectEqual(MessageDirection.west, metadata.zones[7].semantics.message.facing_direction);
     try std.testing.expectEqual(@as(i32, 10736), metadata.tracks[3].z);
     try std.testing.expectEqual(@as(i16, 521), metadata.patches[3].offset);
 }
@@ -523,9 +966,40 @@ test "real scene 4 metadata stays aligned on a larger payload" {
     try std.testing.expectEqual(@as(usize, 35), metadata.track_count);
     try std.testing.expectEqual(@as(usize, 115), metadata.patch_count);
     try std.testing.expectEqual(@as(i16, 104), metadata.objects[1].sprite);
-    try std.testing.expectEqual(@as(i16, 4), metadata.zones[1].num);
+    try std.testing.expectEqual(ZoneType.change_cube, metadata.zones[1].zone_type);
+    try std.testing.expectEqual(@as(i16, 4), metadata.zones[1].semantics.change_cube.destination_cube);
+    try std.testing.expectEqual(@as(i32, 512), metadata.zones[1].semantics.change_cube.destination_x);
+    try std.testing.expectEqual(ZoneType.camera, metadata.zones[7].zone_type);
+    try std.testing.expectEqual(@as(i32, 12), metadata.zones[7].semantics.camera.anchor_x);
+    try std.testing.expectEqual(@as(?i32, null), metadata.zones[7].semantics.camera.alpha);
+    try std.testing.expect(metadata.zones[7].semantics.camera.initially_on);
+    try std.testing.expectEqual(ZoneType.message, metadata.zones[10].zone_type);
+    try std.testing.expectEqual(MessageDirection.west, metadata.zones[10].semantics.message.facing_direction);
+    try std.testing.expectEqual(ZoneType.giver, metadata.zones[12].zone_type);
+    try std.testing.expectEqual(@as(i32, 1), metadata.zones[12].semantics.giver.quantity);
     try std.testing.expectEqual(@as(i32, 10960), metadata.tracks[34].z);
     try std.testing.expectEqual(@as(i16, 6523), metadata.patches[114].offset);
+}
+
+test "real scene 5 metadata keeps non-golden zone regressions aligned" {
+    const allocator = std.testing.allocator;
+    const archive_path = try resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
+    defer allocator.free(archive_path);
+
+    const metadata = try loadSceneMetadata(allocator, archive_path, 5);
+    defer metadata.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 5), metadata.entry_index);
+    try std.testing.expectEqual(@as(usize, 12), metadata.zone_count);
+    try std.testing.expectEqual(ZoneType.change_cube, metadata.zones[0].zone_type);
+    try std.testing.expectEqual(@as(i16, 3), metadata.zones[0].semantics.change_cube.destination_cube);
+    try std.testing.expectEqual(ZoneType.change_cube, metadata.zones[1].zone_type);
+    try std.testing.expect(metadata.zones[1].semantics.change_cube.dont_readjust_twinsen);
+    try std.testing.expectEqual(ZoneType.giver, metadata.zones[2].zone_type);
+    try std.testing.expectEqual(@as(i32, 7), metadata.zones[2].semantics.giver.quantity);
+    try std.testing.expectEqual(ZoneType.scenario, metadata.zones[6].zone_type);
+    try std.testing.expectEqual(ZoneType.scenario, metadata.zones[7].zone_type);
+    try std.testing.expectEqual(@as(i32, 6), metadata.zones[11].semantics.giver.quantity);
 }
 
 test "scene payload rejects trailing bytes" {

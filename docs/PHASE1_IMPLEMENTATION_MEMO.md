@@ -11,7 +11,7 @@ The target package boundary remains:
 
 Phase 1 stays intentionally narrow:
 
-- no typed scene/body/anim decoding
+- no typed scene/body/anim decoding in the Phase 1 package itself; typed `SCENE.HQR` scene metadata arrived later in Phase 2
 - no viewer
 - no gameplay
 - no compatibility paths for alternate layouts or older local states

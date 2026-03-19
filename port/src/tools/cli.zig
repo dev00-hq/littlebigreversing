@@ -268,10 +268,7 @@ fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
         );
     }
     for (scene.zones) |zone| {
-        try stderr.print(
-            "zone_type={d} zone_num={d} x0={d} y0={d} z0={d} x1={d} y1={d} z1={d}\n",
-            .{ zone.type_id, zone.num, zone.x0, zone.y0, zone.z0, zone.x1, zone.y1, zone.z1 },
-        );
+        try printZone(stderr, zone);
     }
     for (scene.tracks) |track| {
         try stderr.print("track_index={d} x={d} y={d} z={d}\n", .{ track.index, track.x, track.y, track.z });
@@ -280,6 +277,101 @@ fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
         try stderr.print("patch_size={d} patch_offset={d}\n", .{ patch.size, patch.offset });
     }
     try stderr.flush();
+}
+
+fn printZone(stderr: anytype, zone: scene_data.SceneZone) !void {
+    try stderr.print(
+        "zone_type={s} zone_num={d} x0={d} y0={d} z0={d} x1={d} y1={d} z1={d}",
+        .{ zone.zone_type.name(), zone.num, zone.x0, zone.y0, zone.z0, zone.x1, zone.y1, zone.z1 },
+    );
+
+    switch (zone.semantics) {
+        .change_cube => |semantics| {
+            try stderr.print(
+                " destination_cube={d} destination_x={d} destination_y={d} destination_z={d} yaw={d} initially_on={}\n",
+                .{
+                    semantics.destination_cube,
+                    semantics.destination_x,
+                    semantics.destination_y,
+                    semantics.destination_z,
+                    semantics.yaw,
+                    semantics.initially_on,
+                },
+            );
+        },
+        .camera => |semantics| {
+            try stderr.print(
+                " anchor_x={d} anchor_y={d} anchor_z={d} initially_on={} obligatory={}\n",
+                .{
+                    semantics.anchor_x,
+                    semantics.anchor_y,
+                    semantics.anchor_z,
+                    semantics.initially_on,
+                    semantics.obligatory,
+                },
+            );
+        },
+        .scenario => {
+            try stderr.writeAll(" semantics=scenario\n");
+        },
+        .grm => |semantics| {
+            try stderr.print(
+                " grm_index={d} initially_on={}\n",
+                .{ semantics.grm_index, semantics.initially_on },
+            );
+        },
+        .giver => |semantics| {
+            try stderr.print(
+                " quantity={d} already_taken={} bonus_kinds={s}\n",
+                .{
+                    semantics.quantity,
+                    semantics.already_taken,
+                    formatBonusKinds(&semantics.bonus_kinds),
+                },
+            );
+        },
+        .message => |semantics| {
+            try stderr.print(
+                " dialog_id={d} linked_camera_zone_id={any} facing_direction={s}\n",
+                .{
+                    semantics.dialog_id,
+                    semantics.linked_camera_zone_id,
+                    semantics.facing_direction.name(),
+                },
+            );
+        },
+        .ladder => |semantics| {
+            try stderr.print(" enabled_on_load={}\n", .{semantics.enabled_on_load});
+        },
+        .escalator => |semantics| {
+            try stderr.print(
+                " enabled={} direction={s}\n",
+                .{ semantics.enabled, semantics.direction.name() },
+            );
+        },
+        .hit => |semantics| {
+            try stderr.print(
+                " damage={d} cooldown_raw_value={d} initial_timer={d}\n",
+                .{ semantics.damage, semantics.cooldown_raw_value, semantics.initial_timer },
+            );
+        },
+        .rail => |semantics| {
+            try stderr.print(" switch_state_on_load={}\n", .{semantics.switch_state_on_load});
+        },
+    }
+}
+
+fn formatBonusKinds(kinds: *const scene_data.GiverBonusKinds) []const u8 {
+    if (kinds.money and kinds.life and kinds.magic and !kinds.key and !kinds.clover) return "money|life|magic";
+    if (kinds.money and !kinds.life and !kinds.magic and !kinds.key and !kinds.clover) return "money";
+    if (!kinds.money and kinds.life and !kinds.magic and !kinds.key and !kinds.clover) return "life";
+    if (!kinds.money and !kinds.life and kinds.magic and !kinds.key and !kinds.clover) return "magic";
+    if (!kinds.money and !kinds.life and !kinds.magic and kinds.key and !kinds.clover) return "key";
+    if (!kinds.money and !kinds.life and !kinds.magic and !kinds.key and kinds.clover) return "clover";
+    if (kinds.money and kinds.life and !kinds.magic and !kinds.key and !kinds.clover) return "money|life";
+    if (kinds.money and !kinds.life and kinds.magic and !kinds.key and !kinds.clover) return "money|magic";
+    if (!kinds.money and kinds.life and kinds.magic and !kinds.key and !kinds.clover) return "life|magic";
+    return "mixed";
 }
 
 fn generateFixtures(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths) !void {
