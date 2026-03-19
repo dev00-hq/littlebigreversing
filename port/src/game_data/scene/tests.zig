@@ -6,6 +6,18 @@ const model = @import("model.zig");
 const parser = @import("parser.zig");
 const zones = @import("zones.zig");
 
+fn stringifyJsonAlloc(allocator: std.mem.Allocator, value: anytype) ![]u8 {
+    var out: std.io.Writer.Allocating = .init(allocator);
+    defer out.deinit();
+
+    var stringify: std.json.Stringify = .{
+        .writer = &out.writer,
+        .options = .{ .whitespace = .indent_2 },
+    };
+    try stringify.write(value);
+    return allocator.dupe(u8, out.written());
+}
+
 fn appendInt(list: *std.ArrayList(u8), allocator: std.mem.Allocator, value: anytype) !void {
     const T = @TypeOf(value);
     var buffer: [@sizeOf(T)]u8 = undefined;
@@ -157,6 +169,20 @@ test "scene payload parsing follows the classic loader layout" {
     try std.testing.expectEqual(zones.MessageDirection.north, metadata.zones[0].semantics.message.facing_direction);
     try std.testing.expectEqual(@as(i32, 6000), metadata.tracks[1].z);
     try std.testing.expectEqual(@as(i16, 99), metadata.patches[0].offset);
+}
+
+test "zone json stringify keeps the stable tooling shape" {
+    const allocator = std.testing.allocator;
+    const zone = try zones.decodeZone(makeRawZone(5, 431, .{ 12, 2, 1, 0, 0, 0, 15000, 1 }), 1);
+    const json = try stringifyJsonAlloc(allocator, zone);
+    defer allocator.free(json);
+
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"zone_type\": \"message\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"num\": 431") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"kind\": \"message\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"dialog_id\": 431") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"linked_camera_zone_id\": 2") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"facing_direction\": \"north\"") != null);
 }
 
 test "zone decoder normalizes source-backed load-time semantics" {
@@ -342,6 +368,27 @@ test "scene payload rejects trailing bytes" {
     );
 }
 
+test "scene payload rejects zero object count" {
+    const allocator = std.testing.allocator;
+    const payload = try buildSyntheticScenePayload(allocator);
+    defer allocator.free(payload);
+
+    const patched = try allocator.dupe(u8, payload);
+    defer allocator.free(patched);
+
+    patched[69] = 0;
+    patched[70] = 0;
+
+    try std.testing.expectError(
+        error.InvalidSceneObjectCount,
+        parser.parseScenePayload(allocator, 7, .{
+            .size_file = @intCast(patched.len),
+            .compressed_size_file = @intCast(patched.len),
+            .compress_method = 0,
+        }, patched),
+    );
+}
+
 test "scene payload rejects truncated bytes" {
     const allocator = std.testing.allocator;
     const payload = try buildSyntheticScenePayload(allocator);
@@ -376,4 +423,22 @@ test "scene payload preserves wrapped header fields across module split" {
     try std.testing.expectEqual(header.size_file, metadata.compressed_header.size_file);
     try std.testing.expectEqual(header.compressed_size_file, metadata.compressed_header.compressed_size_file);
     try std.testing.expectEqual(header.compress_method, metadata.compressed_header.compress_method);
+}
+
+test "asset-backed scene zone json retains raw and semantic fields" {
+    const allocator = std.testing.allocator;
+    const target = try fixtureTargetById("exterior-area-citadel-tavern-and-shop-scene");
+    const archive_path = try resolveSceneArchivePathForTests(allocator, target.asset_path);
+    defer allocator.free(archive_path);
+
+    const metadata = try parser.loadSceneMetadata(allocator, archive_path, target.entry_index);
+    defer metadata.deinit(allocator);
+
+    const json = try stringifyJsonAlloc(allocator, metadata.zones[7]);
+    defer allocator.free(json);
+
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"zone_type\": \"message\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"raw_info\": [") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"kind\": \"message\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"linked_camera_zone_id\": 2") != null);
 }

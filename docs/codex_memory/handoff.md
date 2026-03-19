@@ -37,6 +37,7 @@ The next bounded Phase 2 slice is now implemented on top of that workspace: `SCE
 - A 2026-03-19 multi-agent structure review concluded that `port/src/game_data/scene.zig` can be split safely if it remains the stable public facade, with the strongest seams being `scene/zones.zig`, `scene/model.zig`, and `scene/parser.zig`; only `port/src/tools/cli.zig` and `port/src/root.zig` currently depend on its exported surface.
 - `port/src/game_data/scene.zig` is now that thin public facade, with production code split into `port/src/game_data/scene/model.zig`, `port/src/game_data/scene/zones.zig`, and `port/src/game_data/scene/parser.zig`, while synthetic and asset-backed scene tests now live in `port/src/game_data/scene/tests.zig`.
 - The scene production modules no longer import test-only fixture/path helpers, but the coverage bar stayed intact: `zig build test` and `zig build tool -- inspect-scene 44 --json` both pass after the split, and the asset-backed scene assertions still exercise entries `2`, `5`, and `44`.
+- Scene test coverage is now stronger at the module boundary too: the facade re-export contract is asserted directly, zone JSON stringify output is pinned for both synthetic and asset-backed cases, and parser failure coverage now explicitly includes the zero-object-count path in addition to truncation and trailing-byte checks.
 
 ## Open Risks
 
