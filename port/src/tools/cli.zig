@@ -23,12 +23,33 @@ const ParsedArgs = struct {
     asset_root_override: ?[]u8,
     relative_path: ?[]const u8,
     entry_index: ?usize,
+    audit_scene_entry_indices: ?[]usize,
+    audit_all_scene_entries: bool,
     output_json: bool,
+
+    fn deinit(self: ParsedArgs, allocator: std.mem.Allocator) void {
+        if (self.asset_root_override) |value| allocator.free(value);
+        if (self.audit_scene_entry_indices) |value| allocator.free(value);
+    }
+
+    fn lifeAuditSelection(self: ParsedArgs) life_audit.AuditSceneSelection {
+        if (self.audit_scene_entry_indices) |scene_entry_indices| {
+            return .{ .explicit_entries = scene_entry_indices };
+        }
+        if (self.audit_all_scene_entries) return .{ .all_scene_entries = {} };
+        return .{ .canonical = {} };
+    }
+
+    fn lifeAuditSelectionMode(self: ParsedArgs) []const u8 {
+        if (self.audit_scene_entry_indices != null) return "explicit_entries";
+        if (self.audit_all_scene_entries) return "all_scene_entries";
+        return "canonical";
+    }
 };
 
 pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     const parsed = try parseArgs(allocator, args);
-    defer if (parsed.asset_root_override) |value| allocator.free(value);
+    defer parsed.deinit(allocator);
 
     const resolved = try paths_mod.resolveFromExecutable(allocator, parsed.asset_root_override);
     defer resolved.deinit(allocator);
@@ -38,7 +59,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         .inspect_hqr => try inspectHqr(allocator, resolved, parsed.relative_path.?, parsed.output_json),
         .extract_entry => try extractEntry(allocator, resolved, parsed.relative_path.?, parsed.entry_index.?),
         .inspect_scene => try inspectScene(allocator, resolved, parsed.entry_index.?, parsed.output_json),
-        .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed.output_json),
+        .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed),
         .generate_fixtures => try generateFixtures(allocator, resolved),
         .validate_phase1 => try validatePhase1(allocator, resolved),
     }
@@ -48,6 +69,8 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
     if (args.len == 0) return error.MissingCommand;
 
     var asset_root_override: ?[]u8 = null;
+    errdefer if (asset_root_override) |value| allocator.free(value);
+
     var command_index: usize = 0;
     while (command_index < args.len and std.mem.startsWith(u8, args[command_index], "--")) {
         if (!std.mem.eql(u8, args[command_index], "--asset-root")) return error.UnknownOption;
@@ -60,7 +83,7 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
     const command_name = args[command_index];
 
     if (std.mem.eql(u8, command_name, "inventory-assets")) {
-        return .{ .command = .inventory_assets, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .output_json = false };
+        return .{ .command = .inventory_assets, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .audit_scene_entry_indices = null, .audit_all_scene_entries = false, .output_json = false };
     }
     if (std.mem.eql(u8, command_name, "inspect-hqr")) {
         if (command_index + 1 >= args.len) return error.MissingRelativePath;
@@ -77,6 +100,8 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .asset_root_override = asset_root_override,
             .relative_path = args[command_index + 1],
             .entry_index = null,
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
             .output_json = output_json,
         };
     }
@@ -87,6 +112,8 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .asset_root_override = asset_root_override,
             .relative_path = args[command_index + 1],
             .entry_index = try std.fmt.parseInt(usize, args[command_index + 2], 10),
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
             .output_json = false,
         };
     }
@@ -105,31 +132,53 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .asset_root_override = asset_root_override,
             .relative_path = null,
             .entry_index = try std.fmt.parseInt(usize, args[command_index + 1], 10),
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
             .output_json = output_json,
         };
     }
     if (std.mem.eql(u8, command_name, "audit-life-programs")) {
         var output_json = false;
-        for (args[(command_index + 1)..]) |arg| {
+        var audit_all_scene_entries = false;
+        var scene_entry_indices: std.ArrayList(usize) = .empty;
+        errdefer scene_entry_indices.deinit(allocator);
+
+        var index = command_index + 1;
+        while (index < args.len) {
+            const arg = args[index];
             if (std.mem.eql(u8, arg, "--json")) {
                 output_json = true;
+                index += 1;
+            } else if (std.mem.eql(u8, arg, "--all-scene-entries")) {
+                if (scene_entry_indices.items.len != 0) return error.ConflictingAuditSceneSelection;
+                audit_all_scene_entries = true;
+                index += 1;
+            } else if (std.mem.eql(u8, arg, "--scene-entry")) {
+                if (audit_all_scene_entries) return error.ConflictingAuditSceneSelection;
+                if (index + 1 >= args.len) return error.MissingSceneEntryIndex;
+                const entry_index = try std.fmt.parseInt(usize, args[index + 1], 10);
+                try appendSceneEntry(&scene_entry_indices, allocator, entry_index);
+                index += 2;
             } else {
                 return error.UnknownOption;
             }
         }
+
         return .{
             .command = .audit_life_programs,
             .asset_root_override = asset_root_override,
             .relative_path = null,
             .entry_index = null,
+            .audit_scene_entry_indices = if (audit_all_scene_entries or scene_entry_indices.items.len == 0) null else try scene_entry_indices.toOwnedSlice(allocator),
+            .audit_all_scene_entries = audit_all_scene_entries,
             .output_json = output_json,
         };
     }
     if (std.mem.eql(u8, command_name, "generate-fixtures")) {
-        return .{ .command = .generate_fixtures, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .output_json = false };
+        return .{ .command = .generate_fixtures, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .audit_scene_entry_indices = null, .audit_all_scene_entries = false, .output_json = false };
     }
     if (std.mem.eql(u8, command_name, "validate-phase1")) {
-        return .{ .command = .validate_phase1, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .output_json = false };
+        return .{ .command = .validate_phase1, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .audit_scene_entry_indices = null, .audit_all_scene_entries = false, .output_json = false };
     }
     return error.UnknownCommand;
 }
@@ -311,27 +360,34 @@ fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
     try stderr.flush();
 }
 
-fn auditLifePrograms(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, output_json: bool) !void {
+fn auditLifePrograms(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, parsed: ParsedArgs) !void {
     const absolute_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
     defer allocator.free(absolute_path);
 
-    const audits = try life_audit.auditCanonicalSceneLifePrograms(allocator, absolute_path);
+    const scene_entry_indices = try life_audit.resolveSceneEntryIndicesAlloc(allocator, absolute_path, parsed.lifeAuditSelection());
+    defer allocator.free(scene_entry_indices);
+
+    const audits = try life_audit.auditSceneLifeProgramsForEntryIndices(allocator, absolute_path, scene_entry_indices);
     defer allocator.free(audits);
 
     const unsupported_summary = try buildUnsupportedLifeSummary(allocator, audits);
     defer allocator.free(unsupported_summary);
+    const scene_entry_summary = try formatSceneEntryIndicesAlloc(allocator, scene_entry_indices);
+    defer allocator.free(scene_entry_summary);
+
     var unsupported_blob_count: usize = 0;
     for (audits) |audit| {
         if (audit.status == .unsupported_opcode) unsupported_blob_count += 1;
     }
 
-    if (output_json) {
+    if (parsed.output_json) {
         const json_samples = try buildLifeAuditJsonSamples(allocator, audits);
         defer allocator.free(json_samples);
 
         const payload = .{
             .asset_path = "SCENE.HQR",
-            .scene_entry_indices = &life_audit.canonical_scene_entry_indices,
+            .selection_mode = parsed.lifeAuditSelectionMode(),
+            .scene_entry_indices = scene_entry_indices,
             .blob_count = audits.len,
             .unsupported_blob_count = unsupported_blob_count,
             .unsupported_unique_opcode_count = unsupported_summary.len,
@@ -353,8 +409,8 @@ fn auditLifePrograms(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
         .{ .key = "asset_path", .value = "SCENE.HQR" },
     });
     try stderr.print(
-        "scene_entries={s} blob_count={d} unsupported_blobs={d} unsupported_unique_opcodes={d}\n",
-        .{ "2|5|44", audits.len, unsupported_blob_count, unsupported_summary.len },
+        "selection_mode={s} scene_entries={s} blob_count={d} unsupported_blobs={d} unsupported_unique_opcodes={d}\n",
+        .{ parsed.lifeAuditSelectionMode(), scene_entry_summary, audits.len, unsupported_blob_count, unsupported_summary.len },
     );
     if (unsupported_summary.len == 0) {
         try stderr.writeAll("unsupported_opcodes=none\n");
@@ -429,6 +485,32 @@ fn auditLifePrograms(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
         }
     }
     try stderr.flush();
+}
+
+fn appendSceneEntry(
+    scene_entry_indices: *std.ArrayList(usize),
+    allocator: std.mem.Allocator,
+    entry_index: usize,
+) !void {
+    if (entry_index < 2) return error.InvalidSceneEntryIndex;
+
+    for (scene_entry_indices.items) |existing_entry_index| {
+        if (existing_entry_index == entry_index) return error.DuplicateSceneEntryIndex;
+    }
+    try scene_entry_indices.append(allocator, entry_index);
+}
+
+fn formatSceneEntryIndicesAlloc(allocator: std.mem.Allocator, scene_entry_indices: []const usize) ![]u8 {
+    var output: std.ArrayList(u8) = .empty;
+    errdefer output.deinit(allocator);
+
+    const writer = output.writer(allocator);
+    for (scene_entry_indices, 0..) |entry_index, index| {
+        if (index != 0) try writer.writeAll("|");
+        try writer.print("{d}", .{entry_index});
+    }
+
+    return output.toOwnedSlice(allocator);
 }
 
 fn printTrackInstructionSummary(stderr: anytype, label: []const u8, instructions: []const scene_data.TrackInstruction) !void {
@@ -802,7 +884,7 @@ fn lifeAuditStatusName(status: life_program.LifeProgramAuditStatus) []const u8 {
 
 test "argument parsing handles asset root override and json output" {
     const parsed = try parseArgs(std.testing.allocator, &.{ "--asset-root", "D:/assets", "inspect-hqr", "SCENE.HQR", "--json" });
-    defer if (parsed.asset_root_override) |value| std.testing.allocator.free(value);
+    defer parsed.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(Command.inspect_hqr, parsed.command);
     try std.testing.expectEqualStrings("SCENE.HQR", parsed.relative_path.?);
@@ -811,6 +893,7 @@ test "argument parsing handles asset root override and json output" {
 
 test "argument parsing supports inspect-scene json output" {
     const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-scene", "2", "--json" });
+    defer parsed.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(Command.inspect_scene, parsed.command);
     try std.testing.expectEqual(@as(usize, 2), parsed.entry_index.?);
@@ -819,7 +902,41 @@ test "argument parsing supports inspect-scene json output" {
 
 test "argument parsing supports audit-life-programs json output" {
     const parsed = try parseArgs(std.testing.allocator, &.{ "audit-life-programs", "--json" });
+    defer parsed.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(Command.audit_life_programs, parsed.command);
     try std.testing.expect(parsed.output_json);
+}
+
+test "argument parsing supports explicit audit-life-program scene selection" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "audit-life-programs", "--scene-entry", "2", "--scene-entry", "44" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.audit_life_programs, parsed.command);
+    try std.testing.expect(!parsed.audit_all_scene_entries);
+    try std.testing.expectEqualSlices(usize, &.{ 2, 44 }, parsed.audit_scene_entry_indices.?);
+}
+
+test "argument parsing supports all-scene-entry audit-life-program selection" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "audit-life-programs", "--all-scene-entries", "--json" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.audit_life_programs, parsed.command);
+    try std.testing.expect(parsed.audit_all_scene_entries);
+    try std.testing.expect(parsed.audit_scene_entry_indices == null);
+    try std.testing.expect(parsed.output_json);
+}
+
+test "argument parsing rejects duplicate audit-life-program scene entries" {
+    try std.testing.expectError(
+        error.DuplicateSceneEntryIndex,
+        parseArgs(std.testing.allocator, &.{ "audit-life-programs", "--scene-entry", "44", "--scene-entry", "44" }),
+    );
+}
+
+test "argument parsing rejects mixed audit-life-program selection flags" {
+    try std.testing.expectError(
+        error.ConflictingAuditSceneSelection,
+        parseArgs(std.testing.allocator, &.{ "audit-life-programs", "--all-scene-entries", "--scene-entry", "44" }),
+    );
 }

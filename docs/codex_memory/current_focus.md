@@ -5,7 +5,7 @@
 - Use this Codex memory system as the default handoff and state-externalization path for future repo work.
 - Preserve the repo's existing split between canonical checked-in knowledge and rebuildable generated state.
 - Keep reverse-engineering findings, task decisions, and next steps cheap for a new Codex session to reload.
-- Align implementation planning around the Zig 0.15.2 + SDL2 port direction, keep the offline life decoder plus audit path canonical, and use the verified `LM_DEFAULT`/`LM_END_SWITCH` real-asset hits to decide the next life-program source pass before any scene integration lands there.
+- Align implementation planning around the Zig 0.15.2 + SDL2 port direction, keep the offline life decoder plus audit path canonical, and treat the verified full-archive `LM_DEFAULT`/`LM_END_SWITCH` hits as the only current unsupported real-asset life blockers unless stronger checked-in evidence appears.
 
 ## Active Streams
 
@@ -15,7 +15,7 @@
 
 ## Blocked Items
 
-- Phase 2 typed asset decoding now has both an unwired offline `life_program.zig` decoder and a separate `audit-life-programs` path, but scene-surface life integration is still blocked: the canonical sample set reaches unsupported `LM_DEFAULT` and `LM_END_SWITCH` in real hero/object blobs, and the header inventory still contains six other named ids without live runtime cases.
+- Phase 2 typed asset decoding now has both an unwired offline `life_program.zig` decoder and a separate `audit-life-programs` path, but scene-surface life integration is still blocked: the full-archive audit now finds unsupported `LM_DEFAULT` and `LM_END_SWITCH` across `145` of `221` non-header scene entries (`394` of `3109` life blobs), the switch-family source pass found no structural evidence beyond header names plus the `LM_BREAK` destination comment, and the other six named unsupported ids still lack live runtime cases even though they do not appear in the current asset tree.
 - `zig build test` is still a real-asset gate that depends on the canonical extracted asset tree and the repo-local SDL2 layout.
 
 ## Next Actions
@@ -26,5 +26,5 @@
 - Keep raw HQR entry indices and classic loader scene numbers explicit when working with `SCENE.HQR` targets.
 - Use `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md`, `port/src/game_data/scene/life_program.zig`, and `port/src/game_data/scene/life_audit.zig` as the boundary documents/code when touching life decoding.
 - Use `zig build tool -- audit-life-programs` as the executable report for canonical real-asset blockers before proposing parser or CLI integration.
-- Audit checked-in source specifically for the now-confirmed switch-family blockers `LM_DEFAULT` and `LM_END_SWITCH` before widening the supported decoder boundary.
+- Use the broadened audit results to keep any future life-evidence work tightly scoped to `LM_DEFAULT` and `LM_END_SWITCH`; the other named unsupported ids are not current real-asset blockers.
 - Keep raw `life_bytes` canonical and do not add `life_instructions` to scene parsing or CLI until unsupported real-asset cases are either proven or deliberately rejected by the product boundary.

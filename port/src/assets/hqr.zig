@@ -67,6 +67,25 @@ pub fn loadArchive(allocator: std.mem.Allocator, absolute_path: []const u8) !Hqr
     };
 }
 
+pub fn listNonEmptyEntryIndices(allocator: std.mem.Allocator, absolute_path: []const u8) ![]usize {
+    var file = try std.fs.openFileAbsolute(absolute_path, .{});
+    defer file.close();
+
+    const size = try file.getEndPos();
+    const parsed = try parseTableFromFile(allocator, &file, size);
+    defer allocator.free(parsed);
+
+    var entry_indices: std.ArrayList(usize) = .empty;
+    errdefer entry_indices.deinit(allocator);
+
+    for (parsed) |entry| {
+        if (entry.offset == 0 or entry.byte_length == 0) continue;
+        try entry_indices.append(allocator, entry.index);
+    }
+
+    return entry_indices.toOwnedSlice(allocator);
+}
+
 pub fn extractEntryToBytes(allocator: std.mem.Allocator, absolute_path: []const u8, entry_index: usize) ![]u8 {
     return readRawEntryFromFile(allocator, absolute_path, entry_index);
 }
@@ -344,6 +363,21 @@ test "invalid table header and offsets fail fast" {
     try std.testing.expectError(error.InvalidArchiveOffset, parseTableFromBytes(allocator, fixture_bytes.invalid_offset_hqr[0..]));
 }
 
+test "listNonEmptyEntryIndices skips empty entries" {
+    const allocator = std.testing.allocator;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    try tmp.dir.writeFile(.{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
+    const absolute = try tmp.dir.realpathAlloc(allocator, "fixture.hqr");
+    defer allocator.free(absolute);
+
+    const entry_indices = try listNonEmptyEntryIndices(allocator, absolute);
+    defer allocator.free(entry_indices);
+
+    try std.testing.expectEqualSlices(usize, &.{ 1, 3 }, entry_indices);
+}
+
 test "resource header parsing and decompression follow classic HQR semantics" {
     const allocator = std.testing.allocator;
     const header = try parseResourceHeader(fixture_bytes.compressed_resource_ababa[0..]);
@@ -406,8 +440,8 @@ test "unsupported resource compression fails fast" {
     const invalid = [_]u8{
         0x04, 0x00, 0x00, 0x00,
         0x04, 0x00, 0x00, 0x00,
-        0x09, 0x00,
-        'T', 'E', 'S', 'T',
+        0x09, 0x00, 'T',  'E',
+        'S',  'T',
     };
 
     try std.testing.expectError(error.UnsupportedCompressionMethod, decodeResourceEntryBytes(allocator, invalid[0..]));
