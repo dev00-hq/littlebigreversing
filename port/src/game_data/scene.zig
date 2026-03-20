@@ -1,10 +1,14 @@
 const std = @import("std");
 const model = @import("scene/model.zig");
 const parser = @import("scene/parser.zig");
+const track_program = @import("scene/track_program.zig");
 const zones = @import("scene/zones.zig");
 
 pub const AmbientSample = model.AmbientSample;
 pub const SceneProgramBlob = model.SceneProgramBlob;
+pub const TrackOperandLayout = track_program.TrackOperandLayout;
+pub const TrackOpcode = track_program.TrackOpcode;
+pub const TrackInstruction = track_program.TrackInstruction;
 pub const HeroStart = model.HeroStart;
 pub const SceneObject = model.SceneObject;
 pub const TrackPoint = model.TrackPoint;
@@ -35,6 +39,8 @@ test "scene facade reexports the stable public API" {
     comptime {
         if (AmbientSample != model.AmbientSample) @compileError("AmbientSample facade drifted");
         if (SceneProgramBlob != model.SceneProgramBlob) @compileError("SceneProgramBlob facade drifted");
+        if (TrackOpcode != track_program.TrackOpcode) @compileError("TrackOpcode facade drifted");
+        if (TrackInstruction != track_program.TrackInstruction) @compileError("TrackInstruction facade drifted");
         if (HeroStart != model.HeroStart) @compileError("HeroStart facade drifted");
         if (SceneObject != model.SceneObject) @compileError("SceneObject facade drifted");
         if (TrackPoint != model.TrackPoint) @compileError("TrackPoint facade drifted");

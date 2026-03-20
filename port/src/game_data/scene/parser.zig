@@ -1,6 +1,7 @@
 const std = @import("std");
 const hqr = @import("../../assets/hqr.zig");
 const model = @import("model.zig");
+const track_program = @import("track_program.zig");
 const zones = @import("zones.zig");
 
 const anim_3ds_flag = 1 << 18;
@@ -55,6 +56,8 @@ pub fn parseScenePayload(
     const hero_z = try reader.readInt(i16);
     const hero_track = try reader.readProgramBlob(allocator);
     errdefer hero_track.deinit(allocator);
+    const hero_track_instructions = try track_program.decodeTrackProgram(allocator, hero_track.bytes);
+    errdefer allocator.free(hero_track_instructions);
     const hero_life = try reader.readProgramBlob(allocator);
     errdefer hero_life.deinit(allocator);
 
@@ -63,6 +66,7 @@ pub fn parseScenePayload(
         .y = hero_y,
         .z = hero_z,
         .track = hero_track,
+        .track_instructions = hero_track_instructions,
         .life = hero_life,
     };
 
@@ -109,6 +113,8 @@ pub fn parseScenePayload(
         const life_points = try reader.readInt(u8);
         const track = try reader.readProgramBlob(allocator);
         errdefer track.deinit(allocator);
+        const track_instructions = try track_program.decodeTrackProgram(allocator, track.bytes);
+        errdefer allocator.free(track_instructions);
         const life = try reader.readProgramBlob(allocator);
         errdefer life.deinit(allocator);
 
@@ -136,6 +142,7 @@ pub fn parseScenePayload(
             .armor = armor,
             .life_points = life_points,
             .track = track,
+            .track_instructions = track_instructions,
             .life = life,
             .anim_3ds_index = anim_3ds_index,
             .anim_3ds_fps = anim_3ds_fps,

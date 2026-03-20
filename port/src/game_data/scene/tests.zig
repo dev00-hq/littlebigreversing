@@ -4,6 +4,7 @@ const hqr = @import("../../assets/hqr.zig");
 const paths_mod = @import("../../foundation/paths.zig");
 const model = @import("model.zig");
 const parser = @import("parser.zig");
+const track_program = @import("track_program.zig");
 const zones = @import("zones.zig");
 
 fn stringifyJsonAlloc(allocator: std.mem.Allocator, value: anytype) ![]u8 {
@@ -47,7 +48,7 @@ fn buildSyntheticScenePayload(allocator: std.mem.Allocator) ![]u8 {
     try appendInt(&bytes, allocator, @as(i16, 200));
     try appendInt(&bytes, allocator, @as(i16, 300));
     try appendInt(&bytes, allocator, @as(u16, 1));
-    try bytes.append(allocator, 0x7F);
+    try bytes.append(allocator, 0x00);
     try appendInt(&bytes, allocator, @as(u16, 2));
     try bytes.appendSlice(allocator, &.{ 0xAA, 0xBB });
 
@@ -140,6 +141,125 @@ fn makeRawZone(zone_type: i16, num: i16, raw_info: [8]i32) zones.RawSceneZone {
     };
 }
 
+fn instructionStreamByteLength(instructions: []const track_program.TrackInstruction) !usize {
+    var total: usize = 0;
+    for (instructions) |instruction| {
+        try std.testing.expectEqual(total, instruction.offset);
+        total += instruction.byte_length;
+    }
+    return total;
+}
+
+fn buildInstructionSample(allocator: std.mem.Allocator, opcode: track_program.TrackOpcode) ![]u8 {
+    var bytes: std.ArrayList(u8) = .empty;
+    errdefer bytes.deinit(allocator);
+
+    try bytes.append(allocator, @intFromEnum(opcode));
+    switch (opcode.operandLayout()) {
+        .none => {},
+        .u8 => try bytes.append(allocator, 7),
+        .u16 => try appendInt(&bytes, allocator, @as(u16, 513)),
+        .i16 => try appendInt(&bytes, allocator, @as(i16, -1234)),
+        .background => try bytes.append(allocator, 1),
+        .label => try bytes.append(allocator, 42),
+        .wait_nb_anim => try bytes.appendSlice(allocator, &.{ 4, 1 }),
+        .wait_timer => {
+            try bytes.append(allocator, 9);
+            try appendInt(&bytes, allocator, @as(u32, 0x12345678));
+        },
+        .loop => {
+            try bytes.appendSlice(allocator, &.{ 5, 3 });
+            try appendInt(&bytes, allocator, @as(i16, 300));
+        },
+        .angle => try appendInt(&bytes, allocator, @as(u16, 0x8123)),
+        .face_twinsen => try appendInt(&bytes, allocator, @as(i16, -1)),
+        .angle_rnd => {
+            try appendInt(&bytes, allocator, @as(i16, 120));
+            try appendInt(&bytes, allocator, @as(i16, -1));
+        },
+        .string => try bytes.appendSlice(allocator, &.{ 'I', 'N', 'T', 'R', 'O', 0 }),
+        .point_index => unreachable,
+    }
+
+    return bytes.toOwnedSlice(allocator);
+}
+
+test "track decoder handles multiple opcode families and preserves mutable fields structurally" {
+    const allocator = std.testing.allocator;
+    const bytes = try allocator.dupe(u8, &.{
+        @intFromEnum(track_program.TrackOpcode.body), 4,
+        @intFromEnum(track_program.TrackOpcode.wait_nb_anim), 3, 1,
+        @intFromEnum(track_program.TrackOpcode.wait_nb_second_rnd), 9, 0x78, 0x56, 0x34, 0x12,
+        @intFromEnum(track_program.TrackOpcode.loop), 5, 3, 0x2C, 0x01,
+        @intFromEnum(track_program.TrackOpcode.angle), 0x23, 0x81,
+        @intFromEnum(track_program.TrackOpcode.face_twinsen), 0xFF, 0xFF,
+        @intFromEnum(track_program.TrackOpcode.angle_rnd), 0x78, 0x00, 0xFF, 0xFF,
+        @intFromEnum(track_program.TrackOpcode.play_acf), 'I', 'N', 'T', 'R', 'O', 0,
+        @intFromEnum(track_program.TrackOpcode.end),
+    });
+    defer allocator.free(bytes);
+
+    const instructions = try track_program.decodeTrackProgram(allocator, bytes);
+    defer allocator.free(instructions);
+
+    try std.testing.expectEqual(@as(usize, 9), instructions.len);
+    try std.testing.expectEqual(@as(usize, bytes.len), try instructionStreamByteLength(instructions));
+    try std.testing.expectEqual(track_program.TrackOpcode.body, instructions[0].opcode);
+    try std.testing.expectEqual(track_program.TrackOpcode.wait_nb_anim, instructions[1].opcode);
+    try std.testing.expectEqual(track_program.TrackOpcode.wait_nb_second_rnd, instructions[2].opcode);
+    try std.testing.expectEqual(track_program.TrackOpcode.loop, instructions[3].opcode);
+    try std.testing.expectEqual(track_program.TrackOpcode.angle, instructions[4].opcode);
+    try std.testing.expectEqual(track_program.TrackOpcode.face_twinsen, instructions[5].opcode);
+    try std.testing.expectEqual(track_program.TrackOpcode.angle_rnd, instructions[6].opcode);
+    try std.testing.expectEqual(track_program.TrackOpcode.play_acf, instructions[7].opcode);
+    try std.testing.expectEqual(track_program.TrackOpcode.end, instructions[8].opcode);
+
+    try std.testing.expectEqual(@as(usize, 2), instructions[0].byte_length);
+    try std.testing.expectEqual(@as(usize, 3), instructions[1].byte_length);
+    try std.testing.expectEqual(@as(usize, 6), instructions[2].byte_length);
+    try std.testing.expectEqual(@as(usize, 5), instructions[3].byte_length);
+    try std.testing.expectEqual(@as(usize, 3), instructions[4].byte_length);
+    try std.testing.expectEqual(@as(usize, 3), instructions[5].byte_length);
+    try std.testing.expectEqual(@as(usize, 5), instructions[6].byte_length);
+    try std.testing.expectEqual(@as(usize, 7), instructions[7].byte_length);
+    try std.testing.expectEqual(@as(usize, 1), instructions[8].byte_length);
+
+    try std.testing.expectEqual(@as(u16, 0x0123), instructions[4].operands.angle.target_angle);
+    try std.testing.expect(instructions[4].operands.angle.rotation_started);
+    try std.testing.expectEqual(@as(i16, -1), instructions[5].operands.face_twinsen.cached_angle);
+    try std.testing.expectEqual(@as(i16, 120), instructions[6].operands.angle_rnd.delta_angle);
+    try std.testing.expectEqual(@as(i16, -1), instructions[6].operands.angle_rnd.cached_angle);
+    try std.testing.expectEqualStrings("INTRO", instructions[7].operands.string);
+}
+
+test "track decoder exhaustively recognizes opcode ids 0 through 52" {
+    const allocator = std.testing.allocator;
+
+    for (0..53) |opcode_id| {
+        const opcode = try std.meta.intToEnum(track_program.TrackOpcode, @as(u8, @intCast(opcode_id)));
+        const bytes = try buildInstructionSample(allocator, opcode);
+        defer allocator.free(bytes);
+
+        const instructions = try track_program.decodeTrackProgram(allocator, bytes);
+        defer allocator.free(instructions);
+
+        try std.testing.expectEqual(@as(usize, 1), instructions.len);
+        try std.testing.expectEqual(opcode, instructions[0].opcode);
+        try std.testing.expectEqual(@as(usize, bytes.len), instructions[0].byte_length);
+    }
+}
+
+test "track decoder rejects truncated operands and malformed strings" {
+    const allocator = std.testing.allocator;
+
+    try std.testing.expectError(error.TruncatedTrackOperand, track_program.decodeTrackProgram(allocator, &.{@intFromEnum(track_program.TrackOpcode.body)}));
+    try std.testing.expectError(error.TruncatedTrackOperand, track_program.decodeTrackProgram(allocator, &.{ @intFromEnum(track_program.TrackOpcode.anim), 0x01 }));
+    try std.testing.expectError(error.TruncatedTrackOperand, track_program.decodeTrackProgram(allocator, &.{ @intFromEnum(track_program.TrackOpcode.angle_rnd), 0x01, 0x00, 0x02 }));
+    try std.testing.expectError(error.TruncatedTrackOperand, track_program.decodeTrackProgram(allocator, &.{ @intFromEnum(track_program.TrackOpcode.wait_nb_second), 0x03, 0x01, 0x02, 0x03 }));
+    try std.testing.expectError(error.MalformedTrackStringOperand, track_program.decodeTrackProgram(allocator, &.{ @intFromEnum(track_program.TrackOpcode.play_acf), 'B', 'A', 'D' }));
+    try std.testing.expectError(error.UnknownTrackOpcode, track_program.decodeTrackProgram(allocator, &.{0x7F}));
+}
+
 test "scene payload parsing follows the classic loader layout" {
     const allocator = std.testing.allocator;
     const payload = try buildSyntheticScenePayload(allocator);
@@ -156,7 +276,9 @@ test "scene payload parsing follows the classic loader layout" {
     try std.testing.expectEqual(@as(u8, 0), metadata.island);
     try std.testing.expectEqual(@as(i16, 414), metadata.alpha_light);
     try std.testing.expectEqual(@as(u16, 1), metadata.hero_start.trackByteLength());
-    try std.testing.expectEqualSlices(u8, &.{0x7F}, metadata.hero_start.track.bytes);
+    try std.testing.expectEqualSlices(u8, &.{0x00}, metadata.hero_start.track.bytes);
+    try std.testing.expectEqual(@as(usize, 1), metadata.hero_start.track_instructions.len);
+    try std.testing.expectEqual(track_program.TrackOpcode.end, metadata.hero_start.track_instructions[0].opcode);
     try std.testing.expectEqual(@as(u16, 2), metadata.hero_start.lifeByteLength());
     try std.testing.expectEqualSlices(u8, &.{ 0xAA, 0xBB }, metadata.hero_start.life.bytes);
     try std.testing.expectEqual(@as(usize, 2), metadata.object_count);
@@ -166,6 +288,8 @@ test "scene payload parsing follows the classic loader layout" {
     try std.testing.expectEqual(@as(i16, 700), metadata.objects[0].x);
     try std.testing.expectEqual(@as(u16, 1), metadata.objects[0].trackByteLength());
     try std.testing.expectEqualSlices(u8, &.{0x01}, metadata.objects[0].track.bytes);
+    try std.testing.expectEqual(@as(usize, 1), metadata.objects[0].track_instructions.len);
+    try std.testing.expectEqual(track_program.TrackOpcode.nop, metadata.objects[0].track_instructions[0].opcode);
     try std.testing.expectEqual(@as(u16, 1), metadata.objects[0].lifeByteLength());
     try std.testing.expectEqualSlices(u8, &.{0x02}, metadata.objects[0].life.bytes);
     try std.testing.expectEqual(zones.ZoneType.message, metadata.zones[0].zone_type);
@@ -218,7 +342,9 @@ test "scene json stringify exposes raw program bytes and derived lengths" {
     try std.testing.expectEqual(@as(i64, 1), hero_start.get("track_byte_length").?.integer);
     try std.testing.expectEqual(@as(i64, 2), hero_start.get("life_byte_length").?.integer);
     try std.testing.expectEqual(@as(usize, 1), hero_start.get("track_bytes").?.array.items.len);
-    try std.testing.expectEqual(@as(i64, 0x7F), hero_start.get("track_bytes").?.array.items[0].integer);
+    try std.testing.expectEqual(@as(i64, 0x00), hero_start.get("track_bytes").?.array.items[0].integer);
+    try std.testing.expectEqual(@as(usize, 1), hero_start.get("track_instructions").?.array.items.len);
+    try std.testing.expectEqualStrings("TM_END", hero_start.get("track_instructions").?.array.items[0].object.get("mnemonic").?.string);
     try std.testing.expectEqual(@as(usize, 2), hero_start.get("life_bytes").?.array.items.len);
     try std.testing.expectEqual(@as(i64, 0xAA), hero_start.get("life_bytes").?.array.items[0].integer);
     try std.testing.expectEqual(@as(i64, 0xBB), hero_start.get("life_bytes").?.array.items[1].integer);
@@ -226,6 +352,8 @@ test "scene json stringify exposes raw program bytes and derived lengths" {
     const objects = root.get("objects").?.array.items;
     try std.testing.expectEqual(@as(usize, 1), objects[0].object.get("track_bytes").?.array.items.len);
     try std.testing.expectEqual(@as(i64, 0x01), objects[0].object.get("track_bytes").?.array.items[0].integer);
+    try std.testing.expectEqual(@as(usize, 1), objects[0].object.get("track_instructions").?.array.items.len);
+    try std.testing.expectEqualStrings("TM_NOP", objects[0].object.get("track_instructions").?.array.items[0].object.get("mnemonic").?.string);
     try std.testing.expectEqual(@as(usize, 1), objects[0].object.get("life_bytes").?.array.items.len);
     try std.testing.expectEqual(@as(i64, 0x02), objects[0].object.get("life_bytes").?.array.items[0].integer);
 }
@@ -300,6 +428,8 @@ test "real scene 2 metadata matches canonical asset bytes" {
     try std.testing.expectEqual(@as(i16, 782), metadata.hero_start.z);
     try std.testing.expectEqual(@as(u16, 1), metadata.hero_start.trackByteLength());
     try std.testing.expectEqual(@as(usize, metadata.hero_start.trackByteLength()), metadata.hero_start.track.bytes.len);
+    try std.testing.expectEqual(@as(usize, 1), metadata.hero_start.track_instructions.len);
+    try std.testing.expectEqual(@as(usize, metadata.hero_start.track.bytes.len), try instructionStreamByteLength(metadata.hero_start.track_instructions));
     try std.testing.expectEqual(@as(u16, 203), metadata.hero_start.lifeByteLength());
     try std.testing.expectEqual(@as(usize, metadata.hero_start.lifeByteLength()), metadata.hero_start.life.bytes.len);
     try std.testing.expectEqual(@as(usize, 9), metadata.object_count);
@@ -322,6 +452,8 @@ test "real scene 2 metadata matches canonical asset bytes" {
     try std.testing.expectEqual(@as(usize, 5), metadata.objects[4].index);
     try std.testing.expectEqual(@as(u16, 12), metadata.objects[4].trackByteLength());
     try std.testing.expectEqual(@as(usize, metadata.objects[4].trackByteLength()), metadata.objects[4].track.bytes.len);
+    try std.testing.expectEqual(@as(usize, 5), metadata.objects[4].track_instructions.len);
+    try std.testing.expectEqual(@as(usize, metadata.objects[4].track.bytes.len), try instructionStreamByteLength(metadata.objects[4].track_instructions));
     try std.testing.expectEqual(@as(u16, 51), metadata.objects[4].lifeByteLength());
     try std.testing.expectEqual(@as(usize, metadata.objects[4].lifeByteLength()), metadata.objects[4].life.bytes.len);
     try std.testing.expectEqual(zones.ZoneType.message, metadata.zones[6].zone_type);
@@ -357,6 +489,8 @@ test "real scene 44 metadata matches the canonical citadel exterior target" {
     try std.testing.expectEqual(@as(i16, 13818), metadata.hero_start.z);
     try std.testing.expectEqual(@as(u16, 48), metadata.hero_start.trackByteLength());
     try std.testing.expectEqual(@as(usize, metadata.hero_start.trackByteLength()), metadata.hero_start.track.bytes.len);
+    try std.testing.expectEqual(@as(usize, 20), metadata.hero_start.track_instructions.len);
+    try std.testing.expectEqual(@as(usize, metadata.hero_start.track.bytes.len), try instructionStreamByteLength(metadata.hero_start.track_instructions));
     try std.testing.expectEqual(@as(u16, 823), metadata.hero_start.lifeByteLength());
     try std.testing.expectEqual(@as(usize, metadata.hero_start.lifeByteLength()), metadata.hero_start.life.bytes.len);
     try std.testing.expectEqual(@as(usize, 20), metadata.object_count);
@@ -367,6 +501,8 @@ test "real scene 44 metadata matches the canonical citadel exterior target" {
     try std.testing.expectEqual(@as(usize, 2), metadata.objects[1].index);
     try std.testing.expectEqual(@as(u16, 85), metadata.objects[1].trackByteLength());
     try std.testing.expectEqual(@as(usize, metadata.objects[1].trackByteLength()), metadata.objects[1].track.bytes.len);
+    try std.testing.expectEqual(@as(usize, 34), metadata.objects[1].track_instructions.len);
+    try std.testing.expectEqual(@as(usize, metadata.objects[1].track.bytes.len), try instructionStreamByteLength(metadata.objects[1].track_instructions));
     try std.testing.expectEqual(@as(u16, 329), metadata.objects[1].lifeByteLength());
     try std.testing.expectEqual(@as(usize, metadata.objects[1].lifeByteLength()), metadata.objects[1].life.bytes.len);
     try std.testing.expectEqual(zones.ZoneType.change_cube, metadata.zones[0].zone_type);
@@ -400,12 +536,16 @@ test "real scene 5 metadata keeps non-golden zone regressions aligned" {
     try std.testing.expectEqual(@as(usize, 5), metadata.entry_index);
     try std.testing.expectEqual(@as(u16, 13), metadata.hero_start.trackByteLength());
     try std.testing.expectEqual(@as(usize, metadata.hero_start.trackByteLength()), metadata.hero_start.track.bytes.len);
+    try std.testing.expectEqual(@as(usize, 7), metadata.hero_start.track_instructions.len);
+    try std.testing.expectEqual(@as(usize, metadata.hero_start.track.bytes.len), try instructionStreamByteLength(metadata.hero_start.track_instructions));
     try std.testing.expectEqual(@as(u16, 61), metadata.hero_start.lifeByteLength());
     try std.testing.expectEqual(@as(usize, metadata.hero_start.lifeByteLength()), metadata.hero_start.life.bytes.len);
     try std.testing.expectEqual(@as(usize, 12), metadata.zone_count);
     try std.testing.expectEqual(@as(usize, 2), metadata.objects[1].index);
     try std.testing.expectEqual(@as(u16, 170), metadata.objects[1].trackByteLength());
     try std.testing.expectEqual(@as(usize, metadata.objects[1].trackByteLength()), metadata.objects[1].track.bytes.len);
+    try std.testing.expectEqual(@as(usize, 76), metadata.objects[1].track_instructions.len);
+    try std.testing.expectEqual(@as(usize, metadata.objects[1].track.bytes.len), try instructionStreamByteLength(metadata.objects[1].track_instructions));
     try std.testing.expectEqual(@as(u16, 194), metadata.objects[1].lifeByteLength());
     try std.testing.expectEqual(@as(usize, metadata.objects[1].lifeByteLength()), metadata.objects[1].life.bytes.len);
     try std.testing.expectEqual(zones.ZoneType.change_cube, metadata.zones[0].zone_type);

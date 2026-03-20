@@ -268,12 +268,15 @@ fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
         "hero_x={d} hero_y={d} hero_z={d} hero_track_bytes={d} hero_life_bytes={d}\n",
         .{ scene.hero_start.x, scene.hero_start.y, scene.hero_start.z, scene.hero_start.trackByteLength(), scene.hero_start.lifeByteLength() },
     );
+    try printTrackInstructionSummary(stderr, "hero_track_instructions", scene.hero_start.track_instructions);
 
     for (scene.objects) |object| {
         try stderr.print(
             "object_index={d} flags={d} file3d_index={d} gen_body={d} gen_anim={d} sprite={d} x={d} y={d} z={d} move={d} track_bytes={d} life_bytes={d}\n",
             .{ object.index, object.flags, object.file3d_index, object.gen_body, object.gen_anim, object.sprite, object.x, object.y, object.z, object.move, object.trackByteLength(), object.lifeByteLength() },
         );
+        try stderr.print("object_index={d} ", .{object.index});
+        try printTrackInstructionSummary(stderr, "track_instructions", object.track_instructions);
     }
     for (scene.zones) |zone| {
         try printZone(stderr, zone);
@@ -285,6 +288,15 @@ fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
         try stderr.print("patch_size={d} patch_offset={d}\n", .{ patch.size, patch.offset });
     }
     try stderr.flush();
+}
+
+fn printTrackInstructionSummary(stderr: anytype, label: []const u8, instructions: []const scene_data.TrackInstruction) !void {
+    try stderr.print("{s}={d} mnemonics=", .{ label, instructions.len });
+    for (instructions, 0..) |instruction, index| {
+        if (index != 0) try stderr.writeAll("|");
+        try stderr.writeAll(instruction.opcode.mnemonic());
+    }
+    try stderr.writeAll("\n");
 }
 
 fn printZone(stderr: anytype, zone: scene_data.SceneZone) !void {

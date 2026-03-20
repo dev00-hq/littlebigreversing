@@ -3,7 +3,7 @@
 ## Current State
 
 The repo still has more checked-in research than runtime code overall, but `port/` now contains the first canonical Zig workspace for the Phase 1 `Foundation + asset CLI` package. The checked-in phase 0 baseline under `docs/phase0/` remains the planning authority, while deterministic Phase 1 outputs now regenerate under `work/port/phase1/`.
-The next bounded Phase 2 slice is now implemented on top of that workspace: `SCENE.HQR` now preserves hero/object track blobs and life-script blobs as owned raw program data in the typed scene model, and `inspect-scene --json` surfaces both the derived byte lengths and the raw byte arrays without changing the compact text output. The old phase 0 exterior target ambiguity is now resolved: the misclassified `SCENE.HQR[4]` room scene has been retired in favor of the canonical exterior target `SCENE.HQR[44]`.
+The next bounded Phase 2 slice is now implemented on top of that workspace: `SCENE.HQR` still preserves hero/object track blobs and life-script blobs as owned raw program data in the typed scene model, and the new `port/src/game_data/scene/track_program.zig` layer now decodes the full 53-id `TM_*` table into typed instruction slices attached to the hero/object model. `inspect-scene --json` surfaces both the raw `track_bytes` and derived `track_instructions`, while text mode keeps the existing byte-length lines and adds compact mnemonic summaries. Life blobs remain raw and opaque. The old phase 0 exterior target ambiguity is now resolved: the misclassified `SCENE.HQR[4]` room scene has been retired in favor of the canonical exterior target `SCENE.HQR[44]`.
 
 ## Verified Facts
 
@@ -42,7 +42,13 @@ The next bounded Phase 2 slice is now implemented on top of that workspace: `SCE
 - `port/src/game_data/scene/parser.zig` now replaces the four old `skip(...)` calls with one exact-byte owned-reader helper for hero/object track and life program blobs, preserving bytes eagerly and keeping the existing truncation failure path.
 - `zig build tool -- inspect-scene --json` now emits `track_byte_length`, `track_bytes`, `life_byte_length`, and `life_bytes` for the hero start block and each non-hero object, while text mode still prints only the byte-length summaries.
 - `zig build test` now proves exact synthetic raw-byte preservation, explicit truncation inside a preserved program blob, JSON-shape coverage for raw program arrays, and asset-backed raw-length regressions for scenes `2`, `5`, and `44`.
-- `docs/PROMPT.md` now points at the next bounded step: a narrow scene-local track-program disassembler that layers on top of the preserved raw bytes instead of replacing them.
+- `port/src/game_data/scene/track_program.zig` now decodes all `TM_*` opcode ids `0..52` into typed instructions with source-backed operand layouts where the checked-in classic code proves them, keeps mutable wait/loop/angle storage fields structural instead of normalizing them away, and still treats raw `track_bytes` as the canonical input.
+- `port/src/game_data/scene/model.zig` and `port/src/game_data/scene/parser.zig` now keep owned `track_instructions` slices beside each preserved hero/object track blob, freeing them in the existing deinit paths and decoding them eagerly during scene parsing.
+- `port/src/tools/cli.zig` now exposes `hero_start.track_instructions` and `objects[].track_instructions` in JSON output, while text mode prints one compact mnemonic summary line per hero/object track program.
+- `zig build test` now covers multi-family synthetic track decoding, null-terminated `TM_PLAY_ACF`, truncation in 1/2/4/5-byte and string operands, unknown opcode rejection, full table recognition for opcode ids `0..52`, and asset-backed instruction-count/byte-coverage regressions for scenes `2`, `5`, and `44`.
+- Real-asset verification now proves stable decoded instruction counts for the selected blobs: scene `2` hero/object `5` = `1`/`5`, scene `5` hero/object `2` = `7`/`76`, and scene `44` hero/object `2` = `20`/`34`.
+- A live CLI check confirmed that scene `44`'s hero track starts with repeated `TM_REM` opcodes even though `GERETRAK.CPP` does not spell out a runtime switch case for them, so the opcode table in `COMMON.H` plus `DoTrack` is not the full layout-evidence story on its own.
+- `docs/PROMPT.md` now points at the next bounded step: a source-backed life-program evidence pass that keeps raw `life_bytes` canonical until a defensible decoder boundary is proven.
 
 ## Open Risks
 
@@ -51,10 +57,11 @@ The next bounded Phase 2 slice is now implemented on top of that workspace: `SCE
 - `zig build test` is not hermetic yet: the real-asset scene regressions require the canonical extracted asset tree, and `port/build.zig` still hard-fails if the repo-local SDL2 layout is missing.
 - The player actor target for `SCENE.HQR[2]` is only partially locked: slot `0` is proven, but a direct hero body/animation binding is still unresolved and should not be guessed in phase 1 code.
 - Giver semantics are still intentionally conservative: the loader can expose allowed bonus kinds from `Info0`, but the final spawned bonus remains runtime-dependent through `WhichBonus()` and should not be collapsed into one canonical load-time value without stronger evidence.
-- The next decoder slice still needs to respect the existing boundary: track blobs can now be surfaced and decoded as scene-local metadata, but life-script interpretation is still coupled to broader runtime state and should stay deferred.
+- A few track opcodes still lack explicit layout coverage in the checked-in runtime switch (`TM_NOP`, `TM_DO`, and `TM_AFF_TIMER` remain unproven there, while `TM_REM` appears in real assets without a matching `DoTrack` case), so future work should not inflate their semantics beyond the current structural byte-level treatment without stronger evidence.
+- The next decoder slice still needs to respect the existing boundary: track blobs can now be surfaced and decoded as scene-local metadata, but life-script interpretation is still coupled to broader runtime state and should stay evidence-first.
 
 ## Next 3 Steps
 
 1. Use `python3 tools/codex_memory.py context` at the start of the next substantive task.
-2. Add a narrow track decoder/disassembler plus `inspect-scene` output for hero/object track programs on top of the preserved raw blobs.
-3. Keep life-script bytes opaque until stronger evidence or a later runtime slice justifies interpreting them.
+2. Audit the checked-in `LM_*` life-program evidence and write down a source-backed opcode/layout matrix before adding any scene-local life decoder.
+3. Keep raw `life_bytes` canonical and avoid emitting typed life-program output until that evidence pass proves a clean decoder boundary.

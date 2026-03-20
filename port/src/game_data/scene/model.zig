@@ -1,5 +1,6 @@
 const std = @import("std");
 const hqr = @import("../../assets/hqr.zig");
+const track_program = @import("track_program.zig");
 const zones = @import("zones.zig");
 
 pub const AmbientSample = struct {
@@ -22,10 +23,21 @@ pub const SceneProgramBlob = struct {
     }
 };
 
+pub const TrackOpcode = track_program.TrackOpcode;
+pub const TrackInstruction = track_program.TrackInstruction;
+
 fn writeProgramBytesJson(jw: anytype, bytes: []const u8) !void {
     try jw.beginArray();
     for (bytes) |byte| {
         try jw.write(byte);
+    }
+    try jw.endArray();
+}
+
+fn writeTrackInstructionsJson(jw: anytype, instructions: []const TrackInstruction) !void {
+    try jw.beginArray();
+    for (instructions) |instruction| {
+        try jw.write(instruction);
     }
     try jw.endArray();
 }
@@ -35,9 +47,11 @@ pub const HeroStart = struct {
     y: i16,
     z: i16,
     track: SceneProgramBlob,
+    track_instructions: []TrackInstruction,
     life: SceneProgramBlob,
 
     pub fn deinit(self: HeroStart, allocator: std.mem.Allocator) void {
+        allocator.free(self.track_instructions);
         self.track.deinit(allocator);
         self.life.deinit(allocator);
     }
@@ -62,6 +76,8 @@ pub const HeroStart = struct {
         try jw.write(self.trackByteLength());
         try jw.objectField("track_bytes");
         try writeProgramBytesJson(jw, self.track.bytes);
+        try jw.objectField("track_instructions");
+        try writeTrackInstructionsJson(jw, self.track_instructions);
         try jw.objectField("life_byte_length");
         try jw.write(self.lifeByteLength());
         try jw.objectField("life_bytes");
@@ -94,11 +110,13 @@ pub const SceneObject = struct {
     armor: u8,
     life_points: u8,
     track: SceneProgramBlob,
+    track_instructions: []TrackInstruction,
     life: SceneProgramBlob,
     anim_3ds_index: ?u32,
     anim_3ds_fps: ?i16,
 
     pub fn deinit(self: SceneObject, allocator: std.mem.Allocator) void {
+        allocator.free(self.track_instructions);
         self.track.deinit(allocator);
         self.life.deinit(allocator);
     }
@@ -161,6 +179,8 @@ pub const SceneObject = struct {
         try jw.write(self.trackByteLength());
         try jw.objectField("track_bytes");
         try writeProgramBytesJson(jw, self.track.bytes);
+        try jw.objectField("track_instructions");
+        try writeTrackInstructionsJson(jw, self.track_instructions);
         try jw.objectField("life_byte_length");
         try jw.write(self.lifeByteLength());
         try jw.objectField("life_bytes");
