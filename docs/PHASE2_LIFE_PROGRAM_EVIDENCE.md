@@ -21,6 +21,7 @@ The goal here is structural byte-layout evidence only. This memo does not claim 
 - Four live object-scoped opcodes are easy to miss when summarizing the switch because they sit far from their non-object variants: `LM_STOP_L_TRACK_OBJ`, `LM_RESTORE_L_TRACK_OBJ`, `LM_SAVE_COMPORTEMENT_OBJ`, and `LM_RESTORE_COMPORTEMENT_OBJ` each consume one `object_index_u8`.
 - Life control flow is not a flat opcode stream. `LM_IF`/`LM_SWITCH`-family opcodes embed an `LF_*` function call parsed by `DoFuncLife`, then a comparison parsed by `DoTest`, then one or more jump offsets.
 - Some control-flow opcodes mutate the program bytes in place at runtime: `LM_SWIF` rewrites itself to `LM_SNIF`, `LM_SNIF` rewrites back to `LM_SWIF`, and `LM_ONEIF` rewrites itself to `LM_NEVERIF`.
+- The new offline audit path at `zig build tool -- audit-life-programs [--json]` now proves that unsupported ids appear across the selected canonical scene set, not just in one blob: scene `2` hero reaches `LM_DEFAULT` at byte offset `170`, scene `5` hero reaches `LM_END_SWITCH` at offset `46`, scene `44` hero reaches `LM_END_SWITCH` at offset `713`, and scene `44` objects `2` and `3` reach `LM_DEFAULT` at offsets `274` and `43`.
 - The checked-in source is strong enough to justify a future strict offline structural decoder, but not to justify wiring typed `life_instructions` into scene parsing or `inspect-scene` yet.
 
 ## Canonical Boundary After This Audit
@@ -312,4 +313,4 @@ The first safe implementation step is now in place as the unwired offline decode
 - reject the eight named-but-unimplemented `LM_*` ids fail-fast
 - leave `SceneProgramBlob.life` and `inspect-scene` unchanged until stronger evidence justifies scene-surface integration
 
-The next safe follow-up is not parser or CLI integration yet. Real asset-backed checks now show that supported decoding and fail-fast rejection can both occur on canonical scene data, so the next bounded slice should audit unsupported named opcodes that still appear in actual life blobs before any scene-model integration is attempted.
+The next safe follow-up is still not parser or CLI integration. The separate offline audit path at `port/src/game_data/scene/life_audit.zig` now proves that canonical real scene data reaches unsupported `LM_DEFAULT` and `LM_END_SWITCH` in multiple hero/object blobs, so the next bounded slice should focus on whether checked-in source can prove those switch-family ids structurally or whether the product boundary should keep them deliberately unsupported.

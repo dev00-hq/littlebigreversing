@@ -5,12 +5,15 @@ const catalog = @import("../assets/catalog.zig");
 const fixtures = @import("../assets/fixtures.zig");
 const hqr = @import("../assets/hqr.zig");
 const scene_data = @import("../game_data/scene.zig");
+const life_program = @import("../game_data/scene/life_program.zig");
+const life_audit = @import("../game_data/scene/life_audit.zig");
 
 const Command = enum {
     inventory_assets,
     inspect_hqr,
     extract_entry,
     inspect_scene,
+    audit_life_programs,
     generate_fixtures,
     validate_phase1,
 };
@@ -35,6 +38,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         .inspect_hqr => try inspectHqr(allocator, resolved, parsed.relative_path.?, parsed.output_json),
         .extract_entry => try extractEntry(allocator, resolved, parsed.relative_path.?, parsed.entry_index.?),
         .inspect_scene => try inspectScene(allocator, resolved, parsed.entry_index.?, parsed.output_json),
+        .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed.output_json),
         .generate_fixtures => try generateFixtures(allocator, resolved),
         .validate_phase1 => try validatePhase1(allocator, resolved),
     }
@@ -101,6 +105,23 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .asset_root_override = asset_root_override,
             .relative_path = null,
             .entry_index = try std.fmt.parseInt(usize, args[command_index + 1], 10),
+            .output_json = output_json,
+        };
+    }
+    if (std.mem.eql(u8, command_name, "audit-life-programs")) {
+        var output_json = false;
+        for (args[(command_index + 1)..]) |arg| {
+            if (std.mem.eql(u8, arg, "--json")) {
+                output_json = true;
+            } else {
+                return error.UnknownOption;
+            }
+        }
+        return .{
+            .command = .audit_life_programs,
+            .asset_root_override = asset_root_override,
+            .relative_path = null,
+            .entry_index = null,
             .output_json = output_json,
         };
     }
@@ -286,6 +307,126 @@ fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
     }
     for (scene.patches) |patch| {
         try stderr.print("patch_size={d} patch_offset={d}\n", .{ patch.size, patch.offset });
+    }
+    try stderr.flush();
+}
+
+fn auditLifePrograms(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, output_json: bool) !void {
+    const absolute_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
+    defer allocator.free(absolute_path);
+
+    const audits = try life_audit.auditCanonicalSceneLifePrograms(allocator, absolute_path);
+    defer allocator.free(audits);
+
+    const unsupported_summary = try buildUnsupportedLifeSummary(allocator, audits);
+    defer allocator.free(unsupported_summary);
+    var unsupported_blob_count: usize = 0;
+    for (audits) |audit| {
+        if (audit.status == .unsupported_opcode) unsupported_blob_count += 1;
+    }
+
+    if (output_json) {
+        const json_samples = try buildLifeAuditJsonSamples(allocator, audits);
+        defer allocator.free(json_samples);
+
+        const payload = .{
+            .asset_path = "SCENE.HQR",
+            .scene_entry_indices = &life_audit.canonical_scene_entry_indices,
+            .blob_count = audits.len,
+            .unsupported_blob_count = unsupported_blob_count,
+            .unsupported_unique_opcode_count = unsupported_summary.len,
+            .unsupported_opcodes = unsupported_summary,
+            .samples = json_samples,
+        };
+        const json = try stringifyJsonAlloc(allocator, payload);
+        defer allocator.free(json);
+        try std.fs.File.stdout().writeAll(json);
+        try std.fs.File.stdout().writeAll("\n");
+        return;
+    }
+
+    var stderr_buffer: [4096]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try diagnostics.printLine(stderr, &.{
+        .{ .key = "command", .value = "audit-life-programs" },
+        .{ .key = "asset_path", .value = "SCENE.HQR" },
+    });
+    try stderr.print(
+        "scene_entries={s} blob_count={d} unsupported_blobs={d} unsupported_unique_opcodes={d}\n",
+        .{ "2|5|44", audits.len, unsupported_blob_count, unsupported_summary.len },
+    );
+    if (unsupported_summary.len == 0) {
+        try stderr.writeAll("unsupported_opcodes=none\n");
+    } else {
+        try stderr.writeAll("unsupported_opcodes=");
+        for (unsupported_summary, 0..) |entry, index| {
+            if (index != 0) try stderr.writeAll("|");
+            try stderr.writeAll(entry.mnemonic);
+        }
+        try stderr.writeAll("\n");
+    }
+
+    for (audits) |audit| {
+        switch (audit.status) {
+            .unsupported_opcode => |unsupported| {
+                try stderr.print(
+                    "scene_entry_index={d} classic_loader_scene_number={any} scene_kind={s} owner={s} object_index={any} life_bytes={d} decoded_instructions={d} decoded_bytes={d} unsupported_opcode={s} opcode_id={d} offset={d}\n",
+                    .{
+                        audit.scene_entry_index,
+                        audit.classic_loader_scene_number,
+                        audit.scene_kind,
+                        lifeOwnerKind(audit.owner),
+                        lifeOwnerObjectIndex(audit.owner),
+                        audit.life_byte_length,
+                        audit.instruction_count,
+                        audit.decoded_byte_length,
+                        unsupported.opcode.mnemonic(),
+                        unsupported.opcode_id,
+                        unsupported.offset,
+                    },
+                );
+            },
+            .unknown_opcode => |unknown| {
+                try stderr.print(
+                    "scene_entry_index={d} classic_loader_scene_number={any} scene_kind={s} owner={s} object_index={any} life_bytes={d} decoded_instructions={d} decoded_bytes={d} status=unknown_opcode opcode_id={d} offset={d}\n",
+                    .{
+                        audit.scene_entry_index,
+                        audit.classic_loader_scene_number,
+                        audit.scene_kind,
+                        lifeOwnerKind(audit.owner),
+                        lifeOwnerObjectIndex(audit.owner),
+                        audit.life_byte_length,
+                        audit.instruction_count,
+                        audit.decoded_byte_length,
+                        unknown.opcode_id,
+                        unknown.offset,
+                    },
+                );
+            },
+            .truncated_operand,
+            .malformed_string_operand,
+            .missing_switch_context,
+            .unknown_life_function,
+            .unknown_life_comparator,
+            => {
+                try stderr.print(
+                    "scene_entry_index={d} classic_loader_scene_number={any} scene_kind={s} owner={s} object_index={any} life_bytes={d} decoded_instructions={d} decoded_bytes={d} status={s}\n",
+                    .{
+                        audit.scene_entry_index,
+                        audit.classic_loader_scene_number,
+                        audit.scene_kind,
+                        lifeOwnerKind(audit.owner),
+                        lifeOwnerObjectIndex(audit.owner),
+                        audit.life_byte_length,
+                        audit.instruction_count,
+                        audit.decoded_byte_length,
+                        lifeAuditStatusName(audit.status),
+                    },
+                );
+            },
+            .decoded => {},
+        }
     }
     try stderr.flush();
 }
@@ -515,6 +656,150 @@ fn stringifyJsonAlloc(allocator: std.mem.Allocator, value: anytype) ![]u8 {
     return allocator.dupe(u8, out.written());
 }
 
+const UnsupportedLifeSummaryEntry = struct {
+    opcode_id: u8,
+    mnemonic: []const u8,
+    occurrence_count: usize,
+};
+
+const LifeAuditJsonFailure = struct {
+    kind: []const u8,
+    opcode_id: ?u8 = null,
+    offset: ?usize = null,
+};
+
+const LifeAuditJsonUnsupported = struct {
+    opcode_id: u8,
+    mnemonic: []const u8,
+    offset: usize,
+};
+
+const LifeAuditJsonSample = struct {
+    scene_entry_index: usize,
+    classic_loader_scene_number: ?usize,
+    scene_kind: []const u8,
+    owner_kind: []const u8,
+    object_index: ?usize,
+    life_byte_length: usize,
+    instruction_count: usize,
+    decoded_byte_length: usize,
+    status: []const u8,
+    unsupported: ?LifeAuditJsonUnsupported,
+    failure: ?LifeAuditJsonFailure,
+};
+
+fn buildUnsupportedLifeSummary(
+    allocator: std.mem.Allocator,
+    audits: []const life_audit.SceneLifeProgramAudit,
+) ![]UnsupportedLifeSummaryEntry {
+    var summary: std.ArrayList(UnsupportedLifeSummaryEntry) = .empty;
+    errdefer summary.deinit(allocator);
+
+    for (audits) |audit| {
+        if (audit.status != .unsupported_opcode) continue;
+        const unsupported = audit.status.unsupported_opcode;
+
+        var found = false;
+        for (summary.items) |*entry| {
+            if (entry.opcode_id == unsupported.opcode_id) {
+                entry.occurrence_count += 1;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            try summary.append(allocator, .{
+                .opcode_id = unsupported.opcode_id,
+                .mnemonic = unsupported.opcode.mnemonic(),
+                .occurrence_count = 1,
+            });
+        }
+    }
+
+    std.mem.sort(UnsupportedLifeSummaryEntry, summary.items, {}, struct {
+        fn lessThan(_: void, lhs: UnsupportedLifeSummaryEntry, rhs: UnsupportedLifeSummaryEntry) bool {
+            return lhs.opcode_id < rhs.opcode_id;
+        }
+    }.lessThan);
+
+    return summary.toOwnedSlice(allocator);
+}
+
+fn buildLifeAuditJsonSamples(
+    allocator: std.mem.Allocator,
+    audits: []const life_audit.SceneLifeProgramAudit,
+) ![]LifeAuditJsonSample {
+    var samples: std.ArrayList(LifeAuditJsonSample) = .empty;
+    errdefer samples.deinit(allocator);
+
+    for (audits) |audit| {
+        var unsupported: ?LifeAuditJsonUnsupported = null;
+        var failure: ?LifeAuditJsonFailure = null;
+        switch (audit.status) {
+            .decoded => {},
+            .unsupported_opcode => |hit| unsupported = .{
+                .opcode_id = hit.opcode_id,
+                .mnemonic = hit.opcode.mnemonic(),
+                .offset = hit.offset,
+            },
+            .unknown_opcode => |hit| failure = .{
+                .kind = lifeAuditStatusName(audit.status),
+                .opcode_id = hit.opcode_id,
+                .offset = hit.offset,
+            },
+            .truncated_operand,
+            .malformed_string_operand,
+            .missing_switch_context,
+            .unknown_life_function,
+            .unknown_life_comparator,
+            => failure = .{ .kind = lifeAuditStatusName(audit.status) },
+        }
+
+        try samples.append(allocator, .{
+            .scene_entry_index = audit.scene_entry_index,
+            .classic_loader_scene_number = audit.classic_loader_scene_number,
+            .scene_kind = audit.scene_kind,
+            .owner_kind = lifeOwnerKind(audit.owner),
+            .object_index = lifeOwnerObjectIndex(audit.owner),
+            .life_byte_length = audit.life_byte_length,
+            .instruction_count = audit.instruction_count,
+            .decoded_byte_length = audit.decoded_byte_length,
+            .status = lifeAuditStatusName(audit.status),
+            .unsupported = unsupported,
+            .failure = failure,
+        });
+    }
+
+    return samples.toOwnedSlice(allocator);
+}
+
+fn lifeOwnerKind(owner: life_audit.LifeBlobOwner) []const u8 {
+    return switch (owner) {
+        .hero => "hero",
+        .object => "object",
+    };
+}
+
+fn lifeOwnerObjectIndex(owner: life_audit.LifeBlobOwner) ?usize {
+    return switch (owner) {
+        .hero => null,
+        .object => |object_index| object_index,
+    };
+}
+
+fn lifeAuditStatusName(status: life_program.LifeProgramAuditStatus) []const u8 {
+    return switch (status) {
+        .decoded => "decoded",
+        .unsupported_opcode => "unsupported_opcode",
+        .unknown_opcode => "unknown_opcode",
+        .truncated_operand => "truncated_operand",
+        .malformed_string_operand => "malformed_string_operand",
+        .missing_switch_context => "missing_switch_context",
+        .unknown_life_function => "unknown_life_function",
+        .unknown_life_comparator => "unknown_life_comparator",
+    };
+}
+
 test "argument parsing handles asset root override and json output" {
     const parsed = try parseArgs(std.testing.allocator, &.{ "--asset-root", "D:/assets", "inspect-hqr", "SCENE.HQR", "--json" });
     defer if (parsed.asset_root_override) |value| std.testing.allocator.free(value);
@@ -529,5 +814,12 @@ test "argument parsing supports inspect-scene json output" {
 
     try std.testing.expectEqual(Command.inspect_scene, parsed.command);
     try std.testing.expectEqual(@as(usize, 2), parsed.entry_index.?);
+    try std.testing.expect(parsed.output_json);
+}
+
+test "argument parsing supports audit-life-programs json output" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "audit-life-programs", "--json" });
+
+    try std.testing.expectEqual(Command.audit_life_programs, parsed.command);
     try std.testing.expect(parsed.output_json);
 }

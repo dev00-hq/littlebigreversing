@@ -630,6 +630,34 @@ pub const LifeInstruction = struct {
     }
 };
 
+pub const UnsupportedLifeOpcodeHit = struct {
+    offset: usize,
+    opcode_id: u8,
+    opcode: LifeOpcode,
+};
+
+pub const UnknownLifeOpcodeHit = struct {
+    offset: usize,
+    opcode_id: u8,
+};
+
+pub const LifeProgramAuditStatus = union(enum) {
+    decoded: void,
+    unsupported_opcode: UnsupportedLifeOpcodeHit,
+    unknown_opcode: UnknownLifeOpcodeHit,
+    truncated_operand: void,
+    malformed_string_operand: void,
+    missing_switch_context: void,
+    unknown_life_function: void,
+    unknown_life_comparator: void,
+};
+
+pub const LifeProgramAudit = struct {
+    instruction_count: usize,
+    decoded_byte_length: usize,
+    status: LifeProgramAuditStatus,
+};
+
 pub fn decodeLifeProgram(allocator: std.mem.Allocator, bytes: []const u8) ![]LifeInstruction {
     var instructions: std.ArrayList(LifeInstruction) = .empty;
     errdefer instructions.deinit(allocator);
@@ -644,6 +672,63 @@ pub fn decodeLifeProgram(allocator: std.mem.Allocator, bytes: []const u8) ![]Lif
     }
 
     return instructions.toOwnedSlice(allocator);
+}
+
+pub fn auditLifeProgram(bytes: []const u8) LifeProgramAudit {
+    var active_switch_return_type: ?LifeReturnType = null;
+    var offset: usize = 0;
+    var instruction_count: usize = 0;
+
+    while (offset < bytes.len) {
+        const opcode_id = readScalar(bytes, offset) catch return .{
+            .instruction_count = instruction_count,
+            .decoded_byte_length = offset,
+            .status = .truncated_operand,
+        };
+        const opcode = std.meta.intToEnum(LifeOpcode, opcode_id) catch return .{
+            .instruction_count = instruction_count,
+            .decoded_byte_length = offset,
+            .status = .{ .unknown_opcode = .{
+                .offset = offset,
+                .opcode_id = opcode_id,
+            } },
+        };
+
+        if (!opcode.isSupported()) {
+            return .{
+                .instruction_count = instruction_count,
+                .decoded_byte_length = offset,
+                .status = .{ .unsupported_opcode = .{
+                    .offset = offset,
+                    .opcode_id = opcode_id,
+                    .opcode = opcode,
+                } },
+            };
+        }
+
+        const decoded = decodeInstruction(bytes, offset, active_switch_return_type) catch |err| return .{
+            .instruction_count = instruction_count,
+            .decoded_byte_length = offset,
+            .status = switch (err) {
+                error.TruncatedLifeOperand => .truncated_operand,
+                error.MalformedLifeStringOperand => .malformed_string_operand,
+                error.MissingLifeSwitchContext => .missing_switch_context,
+                error.UnknownLifeFunction => .unknown_life_function,
+                error.UnknownLifeComparator => .unknown_life_comparator,
+                else => unreachable,
+            },
+        };
+
+        active_switch_return_type = decoded.active_switch_return_type;
+        offset += decoded.instruction.byte_length;
+        instruction_count += 1;
+    }
+
+    return .{
+        .instruction_count = instruction_count,
+        .decoded_byte_length = offset,
+        .status = .decoded,
+    };
 }
 
 const DecodedInstruction = struct {
