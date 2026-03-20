@@ -165,15 +165,59 @@ fn buildInstructionSample(allocator: std.mem.Allocator, opcode: track_program.Tr
     errdefer bytes.deinit(allocator);
 
     try bytes.append(allocator, @intFromEnum(opcode));
-    switch (opcode.operandLayout()) {
-        .none => {},
-        .u8 => try bytes.append(allocator, 7),
-        .u16 => try appendInt(&bytes, allocator, @as(u16, 513)),
-        .i16 => try appendInt(&bytes, allocator, @as(i16, -1234)),
+    switch (opcode) {
+        .end,
+        .nop,
+        .wait_anim,
+        .stop,
+        .no_body,
+        .close,
+        .wait_door,
+        .rem,
+        .do,
+        .aff_timer,
+        .stop_anim_3ds,
+        .wait_anim_3ds,
+        => {},
+        .body,
+        .goto_point,
+        .goto_point_3d,
+        .goto_sym_point,
+        .pos_point,
+        .set_frame,
+        .set_frame_3ds,
+        .set_start_3ds,
+        .set_end_3ds,
+        .start_anim_3ds,
+        .wait_frame_3ds,
+        .volume,
+        => try bytes.append(allocator, 7),
+        .anim => try appendInt(&bytes, allocator, @as(u16, 513)),
+        .sample,
+        .sample_rnd,
+        .sample_always,
+        .sample_stop,
+        .repeat_sample,
+        .simple_sample,
+        .speed,
+        .beta,
+        .open_left,
+        .open_right,
+        .open_up,
+        .open_down,
+        .goto,
+        .sprite,
+        .decalage,
+        .frequence,
+        => try appendInt(&bytes, allocator, @as(i16, -1234)),
         .background => try bytes.append(allocator, 1),
         .label => try bytes.append(allocator, 42),
         .wait_nb_anim => try bytes.appendSlice(allocator, &.{ 4, 1 }),
-        .wait_timer => {
+        .wait_nb_second,
+        .wait_nb_second_rnd,
+        .wait_nb_dizieme,
+        .wait_nb_dizieme_rnd,
+        => {
             try bytes.append(allocator, 9);
             try appendInt(&bytes, allocator, @as(u32, 0x12345678));
         },
@@ -187,18 +231,85 @@ fn buildInstructionSample(allocator: std.mem.Allocator, opcode: track_program.Tr
             try appendInt(&bytes, allocator, @as(i16, 120));
             try appendInt(&bytes, allocator, @as(i16, -1));
         },
-        .string => try bytes.appendSlice(allocator, &.{ 'I', 'N', 'T', 'R', 'O', 0 }),
-        .point_index => unreachable,
+        .play_acf => try bytes.appendSlice(allocator, &.{ 'I', 'N', 'T', 'R', 'O', 0 }),
     }
 
     return bytes.toOwnedSlice(allocator);
 }
 
+fn expectedTrackInstructionByteLengthIndependent(opcode: track_program.TrackOpcode) usize {
+    return switch (opcode) {
+        .end,
+        .nop,
+        .wait_anim,
+        .stop,
+        .no_body,
+        .close,
+        .wait_door,
+        .rem,
+        .do,
+        .aff_timer,
+        .stop_anim_3ds,
+        .wait_anim_3ds,
+        => 1,
+
+        .body,
+        .goto_point,
+        .goto_point_3d,
+        .goto_sym_point,
+        .pos_point,
+        .set_frame,
+        .set_frame_3ds,
+        .set_start_3ds,
+        .set_end_3ds,
+        .start_anim_3ds,
+        .wait_frame_3ds,
+        .volume,
+        .background,
+        .label,
+        => 2,
+
+        .anim,
+        .sample,
+        .sample_rnd,
+        .sample_always,
+        .sample_stop,
+        .repeat_sample,
+        .simple_sample,
+        .speed,
+        .beta,
+        .open_left,
+        .open_right,
+        .open_up,
+        .open_down,
+        .goto,
+        .sprite,
+        .decalage,
+        .frequence,
+        .wait_nb_anim,
+        .angle,
+        .face_twinsen,
+        => 3,
+
+        .loop => 5,
+        .angle_rnd => 5,
+
+        .wait_nb_second,
+        .wait_nb_second_rnd,
+        .wait_nb_dizieme,
+        .wait_nb_dizieme_rnd,
+        => 6,
+
+        .play_acf => 7,
+    };
+}
+
 fn appendLifeFunctionSample(list: *std.ArrayList(u8), allocator: std.mem.Allocator, function: life_program.LifeFunction) !void {
     try list.append(allocator, @intFromEnum(function));
-    switch (function.operandLayout()) {
-        .none => {},
-        .u8 => try list.append(allocator, 7),
+    switch (function) {
+        .LF_VAR_CUBE => try list.append(allocator, 7),
+        .LF_VAR_GAME => try list.append(allocator, 3),
+        else => {},
     }
 }
 
@@ -221,8 +332,10 @@ fn buildLifeInstructionSample(allocator: std.mem.Allocator, opcode: life_program
     var bytes: std.ArrayList(u8) = .empty;
     errdefer bytes.deinit(allocator);
 
-    switch (opcode.operandLayout()) {
-        .case_branch => {
+    switch (opcode) {
+        .LM_CASE,
+        .LM_OR_CASE,
+        => {
             try bytes.append(allocator, @intFromEnum(life_program.LifeOpcode.LM_SWITCH));
             try appendLifeFunctionSample(&bytes, allocator, .LF_VAR_GAME);
             try bytes.append(allocator, @intFromEnum(opcode));
@@ -233,63 +346,388 @@ fn buildLifeInstructionSample(allocator: std.mem.Allocator, opcode: life_program
         else => try bytes.append(allocator, @intFromEnum(opcode)),
     }
 
-    switch (opcode.operandLayout()) {
-        .none => {},
-        .u8 => try bytes.append(allocator, 7),
-        .i8 => try bytes.append(allocator, @bitCast(@as(i8, -7))),
-        .u16 => try appendInt(&bytes, allocator, @as(u16, 513)),
-        .i16 => try appendInt(&bytes, allocator, @as(i16, -1234)),
-        .u8_pair => try bytes.appendSlice(allocator, &.{ 3, 9 }),
-        .u8_i8 => {
+    switch (opcode) {
+        .LM_END,
+        .LM_RETURN,
+        .LM_END_COMPORTEMENT,
+        .LM_SUICIDE,
+        .LM_END_LIFE,
+        .LM_STOP_L_TRACK,
+        .LM_RESTORE_L_TRACK,
+        .LM_INC_CHAPTER,
+        .LM_USE_ONE_LITTLE_KEY,
+        .LM_INC_CLOVER_BOX,
+        .LM_FULL_POINT,
+        .LM_GAME_OVER,
+        .LM_THE_END,
+        .LM_BRUTAL_EXIT,
+        .LM_SAVE_COMPORTEMENT,
+        .LM_RESTORE_COMPORTEMENT,
+        .LM_INVERSE_BETA,
+        .LM_NO_BODY,
+        .LM_POPCORN,
+        .LM_SAVE_HERO,
+        .LM_RESTORE_HERO,
+        .LM_ACTION,
+        .LM_END_MESSAGE,
+        => {},
+        .LM_COMPORTEMENT,
+        .LM_FALLABLE,
+        .LM_COMPORTEMENT_HERO,
+        .LM_SET_MAGIC_LEVEL,
+        .LM_SUB_MAGIC_POINT,
+        .LM_CAM_FOLLOW,
+        .LM_KILL_OBJ,
+        .LM_BODY,
+        .LM_SET_USED_INVENTORY,
+        .LM_FOUND_OBJECT,
+        .LM_CHANGE_CUBE,
+        .LM_ADD_FUEL,
+        .LM_SUB_FUEL,
+        .LM_SET_HOLO_POS,
+        .LM_CLR_HOLO_POS,
+        .LM_OBJ_COL,
+        .LM_INVISIBLE,
+        .LM_BRICK_COL,
+        .LM_POS_POINT,
+        .LM_BULLE,
+        .LM_PLAY_MUSIC,
+        .LM_PALETTE,
+        .LM_FADE_TO_PAL,
+        .LM_CAMERA_CENTER,
+        .LM_MEMO_ARDOISE,
+        .LM_TRACK_TO_VAR_GAME,
+        .LM_VAR_GAME_TO_TRACK,
+        .LM_SET_FRAME,
+        .LM_SET_FRAME_3DS,
+        .LM_NO_CHOC,
+        .LM_CINEMA_MODE,
+        .LM_ANIM_TEXTURE,
+        .LM_END_MESSAGE_OBJ,
+        .LM_INIT_BUGGY,
+        .LM_ECLAIR,
+        .LM_PLUIE,
+        .LM_BACKGROUND,
+        .LM_GIVE_BONUS,
+        .LM_STOP_L_TRACK_OBJ,
+        .LM_RESTORE_L_TRACK_OBJ,
+        .LM_SAVE_COMPORTEMENT_OBJ,
+        .LM_RESTORE_COMPORTEMENT_OBJ,
+        => try bytes.append(allocator, 7),
+        .LM_SET_ARMURE => try bytes.append(allocator, @bitCast(@as(i8, -7))),
+        .LM_SET_LIFE_POINT_OBJ,
+        .LM_SUB_LIFE_POINT_OBJ,
+        .LM_ADD_LIFE_POINT_OBJ,
+        .LM_HIT_OBJ,
+        .LM_BODY_OBJ,
+        .LM_SET_VAR_CUBE,
+        .LM_ADD_VAR_CUBE,
+        .LM_SUB_VAR_CUBE,
+        .LM_STATE_INVENTORY,
+        .LM_ECHELLE,
+        .LM_SET_HIT_ZONE,
+        .LM_SET_GRM,
+        .LM_SET_CHANGE_CUBE,
+        .LM_FLOW_POINT,
+        .LM_PCX,
+        .LM_SET_CAMERA,
+        .LM_SET_RAIL,
+        .LM_SHADOW_OBJ,
+        .LM_FLOW_OBJ,
+        .LM_POS_OBJ_AROUND,
+        .LM_ESCALATOR,
+        => try bytes.appendSlice(allocator, &.{ 3, 9 }),
+        .LM_SET_COMPORTEMENT,
+        .LM_SET_TRACK,
+        .LM_MESSAGE,
+        .LM_ADD_MESSAGE,
+        .LM_MESSAGE_ZOE,
+        .LM_GIVE_GOLD_PIECES,
+        .LM_ADD_GOLD_PIECES,
+        .LM_SET_DOOR_LEFT,
+        .LM_SET_DOOR_RIGHT,
+        .LM_SET_DOOR_UP,
+        .LM_SET_DOOR_DOWN,
+        .LM_ADD_CHOICE,
+        .LM_ASK_CHOICE,
+        .LM_BETA,
+        .LM_SAMPLE,
+        .LM_SAMPLE_RND,
+        .LM_SAMPLE_ALWAYS,
+        .LM_SAMPLE_STOP,
+        .LM_SET_SPRITE,
+        .LM_OFFSET,
+        .LM_ELSE,
+        .LM_BREAK,
+        => try appendInt(&bytes, allocator, @as(i16, -1234)),
+        .LM_ANIM,
+        .LM_ANIM_SET,
+        .LM_SET_ANIM_DIAL,
+        => try appendInt(&bytes, allocator, @as(u16, 513)),
+        .LM_SET_ARMURE_OBJ => {
             try bytes.append(allocator, 5);
             try bytes.append(allocator, @bitCast(@as(i8, -2)));
         },
-        .u8_i16 => {
+        .LM_SET_COMPORTEMENT_OBJ,
+        .LM_SET_TRACK_OBJ,
+        .LM_MESSAGE_OBJ,
+        .LM_ADD_MESSAGE_OBJ,
+        .LM_SET_VAR_GAME,
+        .LM_ADD_VAR_GAME,
+        .LM_SUB_VAR_GAME,
+        .LM_ASK_CHOICE_OBJ,
+        => {
             try bytes.append(allocator, 5);
             try appendInt(&bytes, allocator, @as(i16, -111));
         },
-        .i16_u8 => {
+        .LM_REPEAT_SAMPLE => {
             try appendInt(&bytes, allocator, @as(i16, 44));
             try bytes.append(allocator, 2);
         },
-        .u8_u16 => {
+        .LM_IMPACT_POINT,
+        .LM_ANIM_OBJ,
+        => {
             try bytes.append(allocator, 5);
             try appendInt(&bytes, allocator, @as(u16, 88));
         },
-        .u8_u16_i16 => {
+        .LM_IMPACT_OBJ => {
             try bytes.append(allocator, 5);
             try appendInt(&bytes, allocator, @as(u16, 88));
             try appendInt(&bytes, allocator, @as(i16, -30));
         },
-        .u8_u8_u8_i16 => {
+        .LM_PCX_MESS_OBJ => {
             try bytes.appendSlice(allocator, &.{ 1, 2, 3 });
             try appendInt(&bytes, allocator, @as(i16, 77));
         },
-        .i16_u8_i16 => {
+        .LM_PARM_SAMPLE => {
             try appendInt(&bytes, allocator, @as(i16, 11));
             try bytes.append(allocator, 4);
             try appendInt(&bytes, allocator, @as(i16, 22));
         },
-        .i16_i16_u8_i16 => {
+        .LM_NEW_SAMPLE => {
             try appendInt(&bytes, allocator, @as(i16, 11));
             try appendInt(&bytes, allocator, @as(i16, 22));
             try bytes.append(allocator, 4);
             try appendInt(&bytes, allocator, @as(i16, 33));
         },
-        .move => try bytes.appendSlice(allocator, &.{ 2, 7 }),
-        .move_obj => try bytes.appendSlice(allocator, &.{ 5, 2, 7 }),
-        .string => try bytes.appendSlice(allocator, &.{ 'A', 'C', 'F', 0 }),
-        .condition => {
+        .LM_SET_DIR => try bytes.appendSlice(allocator, &.{ 2, 7 }),
+        .LM_SET_DIR_OBJ => try bytes.appendSlice(allocator, &.{ 5, 2, 7 }),
+        .LM_PLAY_ACF => try bytes.appendSlice(allocator, &.{ 'A', 'C', 'F', 0 }),
+        .LM_IF,
+        .LM_AND_IF,
+        .LM_OR_IF,
+        .LM_SWIF,
+        .LM_SNIF,
+        .LM_ONEIF,
+        .LM_NEVERIF,
+        => {
             try appendLifeFunctionSample(&bytes, allocator, .LF_VAR_CUBE);
             try appendLifeTestSample(&bytes, allocator, .LT_EQUAL, .RET_U8);
             try appendInt(&bytes, allocator, @as(i16, 123));
         },
-        .switch_expr => try appendLifeFunctionSample(&bytes, allocator, .LF_VAR_GAME),
-        .case_branch => unreachable,
-        .unsupported => unreachable,
+        .LM_SWITCH => try appendLifeFunctionSample(&bytes, allocator, .LF_VAR_GAME),
+        .LM_CASE,
+        .LM_OR_CASE,
+        => unreachable,
+        .LM_NOP,
+        .LM_ENDIF,
+        .LM_REM,
+        .LM_DEFAULT,
+        .LM_END_SWITCH,
+        .LM_SPY,
+        .LM_DEBUG,
+        .LM_DEBUG_OBJ,
+        => unreachable,
     }
 
     return bytes.toOwnedSlice(allocator);
+}
+
+fn expectedLifeInstructionByteLengthIndependent(opcode: life_program.LifeOpcode) usize {
+    return switch (opcode) {
+        .LM_END,
+        .LM_RETURN,
+        .LM_END_COMPORTEMENT,
+        .LM_SUICIDE,
+        .LM_END_LIFE,
+        .LM_STOP_L_TRACK,
+        .LM_RESTORE_L_TRACK,
+        .LM_INC_CHAPTER,
+        .LM_USE_ONE_LITTLE_KEY,
+        .LM_INC_CLOVER_BOX,
+        .LM_FULL_POINT,
+        .LM_GAME_OVER,
+        .LM_THE_END,
+        .LM_BRUTAL_EXIT,
+        .LM_SAVE_COMPORTEMENT,
+        .LM_RESTORE_COMPORTEMENT,
+        .LM_INVERSE_BETA,
+        .LM_NO_BODY,
+        .LM_POPCORN,
+        .LM_SAVE_HERO,
+        .LM_RESTORE_HERO,
+        .LM_ACTION,
+        .LM_END_MESSAGE,
+        => 1,
+
+        .LM_COMPORTEMENT,
+        .LM_FALLABLE,
+        .LM_COMPORTEMENT_HERO,
+        .LM_SET_MAGIC_LEVEL,
+        .LM_SUB_MAGIC_POINT,
+        .LM_CAM_FOLLOW,
+        .LM_KILL_OBJ,
+        .LM_BODY,
+        .LM_SET_USED_INVENTORY,
+        .LM_FOUND_OBJECT,
+        .LM_CHANGE_CUBE,
+        .LM_ADD_FUEL,
+        .LM_SUB_FUEL,
+        .LM_SET_HOLO_POS,
+        .LM_CLR_HOLO_POS,
+        .LM_OBJ_COL,
+        .LM_INVISIBLE,
+        .LM_BRICK_COL,
+        .LM_POS_POINT,
+        .LM_BULLE,
+        .LM_PLAY_MUSIC,
+        .LM_PALETTE,
+        .LM_FADE_TO_PAL,
+        .LM_CAMERA_CENTER,
+        .LM_MEMO_ARDOISE,
+        .LM_TRACK_TO_VAR_GAME,
+        .LM_VAR_GAME_TO_TRACK,
+        .LM_SET_FRAME,
+        .LM_SET_FRAME_3DS,
+        .LM_NO_CHOC,
+        .LM_CINEMA_MODE,
+        .LM_ANIM_TEXTURE,
+        .LM_END_MESSAGE_OBJ,
+        .LM_INIT_BUGGY,
+        .LM_ECLAIR,
+        .LM_PLUIE,
+        .LM_BACKGROUND,
+        .LM_GIVE_BONUS,
+        .LM_STOP_L_TRACK_OBJ,
+        .LM_RESTORE_L_TRACK_OBJ,
+        .LM_SAVE_COMPORTEMENT_OBJ,
+        .LM_RESTORE_COMPORTEMENT_OBJ,
+        => 2,
+
+        .LM_SET_ARMURE => 2,
+
+        .LM_SET_LIFE_POINT_OBJ,
+        .LM_SUB_LIFE_POINT_OBJ,
+        .LM_ADD_LIFE_POINT_OBJ,
+        .LM_HIT_OBJ,
+        .LM_BODY_OBJ,
+        .LM_SET_VAR_CUBE,
+        .LM_ADD_VAR_CUBE,
+        .LM_SUB_VAR_CUBE,
+        .LM_STATE_INVENTORY,
+        .LM_ECHELLE,
+        .LM_SET_HIT_ZONE,
+        .LM_SET_GRM,
+        .LM_SET_CHANGE_CUBE,
+        .LM_FLOW_POINT,
+        .LM_PCX,
+        .LM_SET_CAMERA,
+        .LM_SET_RAIL,
+        .LM_SHADOW_OBJ,
+        .LM_FLOW_OBJ,
+        .LM_POS_OBJ_AROUND,
+        .LM_ESCALATOR,
+        .LM_SET_COMPORTEMENT,
+        .LM_SET_TRACK,
+        .LM_MESSAGE,
+        .LM_ADD_MESSAGE,
+        .LM_MESSAGE_ZOE,
+        .LM_GIVE_GOLD_PIECES,
+        .LM_ADD_GOLD_PIECES,
+        .LM_SET_DOOR_LEFT,
+        .LM_SET_DOOR_RIGHT,
+        .LM_SET_DOOR_UP,
+        .LM_SET_DOOR_DOWN,
+        .LM_ADD_CHOICE,
+        .LM_ASK_CHOICE,
+        .LM_BETA,
+        .LM_SAMPLE,
+        .LM_SAMPLE_RND,
+        .LM_SAMPLE_ALWAYS,
+        .LM_SAMPLE_STOP,
+        .LM_SET_SPRITE,
+        .LM_OFFSET,
+        .LM_ELSE,
+        .LM_BREAK,
+        .LM_ANIM,
+        .LM_ANIM_SET,
+        .LM_SET_ANIM_DIAL,
+        .LM_SET_ARMURE_OBJ,
+        => 3,
+
+        .LM_SET_COMPORTEMENT_OBJ,
+        .LM_SET_TRACK_OBJ,
+        .LM_MESSAGE_OBJ,
+        .LM_ADD_MESSAGE_OBJ,
+        .LM_SET_VAR_GAME,
+        .LM_ADD_VAR_GAME,
+        .LM_SUB_VAR_GAME,
+        .LM_ASK_CHOICE_OBJ,
+        .LM_REPEAT_SAMPLE,
+        .LM_IMPACT_POINT,
+        .LM_ANIM_OBJ,
+        => 4,
+
+        .LM_SWITCH => 3,
+
+        .LM_IMPACT_OBJ,
+        .LM_PCX_MESS_OBJ,
+        => 6,
+
+        .LM_PARM_SAMPLE => 6,
+        .LM_NEW_SAMPLE => 8,
+        .LM_SET_DIR => 3,
+        .LM_SET_DIR_OBJ => 4,
+        .LM_PLAY_ACF => 5,
+
+        .LM_IF,
+        .LM_AND_IF,
+        .LM_OR_IF,
+        .LM_SWIF,
+        .LM_SNIF,
+        .LM_ONEIF,
+        .LM_NEVERIF,
+        => 7,
+
+        .LM_CASE,
+        .LM_OR_CASE,
+        => 6,
+
+        .LM_NOP,
+        .LM_ENDIF,
+        .LM_REM,
+        .LM_DEFAULT,
+        .LM_END_SWITCH,
+        .LM_SPY,
+        .LM_DEBUG,
+        .LM_DEBUG_OBJ,
+        => unreachable,
+    };
+}
+
+fn isLifeOpcodeSupportedIndependent(opcode: life_program.LifeOpcode) bool {
+    return switch (opcode) {
+        .LM_NOP,
+        .LM_ENDIF,
+        .LM_REM,
+        .LM_DEFAULT,
+        .LM_END_SWITCH,
+        .LM_SPY,
+        .LM_DEBUG,
+        .LM_DEBUG_OBJ,
+        => false,
+        else => true,
+    };
 }
 
 test "track decoder handles multiple opcode families and preserves mutable fields structurally" {
@@ -354,6 +792,7 @@ test "track decoder exhaustively recognizes opcode ids 0 through 52" {
 
     for (0..53) |opcode_id| {
         const opcode = try std.meta.intToEnum(track_program.TrackOpcode, @as(u8, @intCast(opcode_id)));
+        const expected_len = expectedTrackInstructionByteLengthIndependent(opcode);
         const bytes = try buildInstructionSample(allocator, opcode);
         defer allocator.free(bytes);
 
@@ -362,7 +801,8 @@ test "track decoder exhaustively recognizes opcode ids 0 through 52" {
 
         try std.testing.expectEqual(@as(usize, 1), instructions.len);
         try std.testing.expectEqual(opcode, instructions[0].opcode);
-        try std.testing.expectEqual(@as(usize, bytes.len), instructions[0].byte_length);
+        try std.testing.expectEqual(expected_len, instructions[0].byte_length);
+        try std.testing.expectEqual(expected_len, bytes.len);
     }
 }
 
@@ -466,21 +906,25 @@ test "life decoder recognizes every live opcode id from the checked-in runtime" 
 
     inline for (std.meta.fields(life_program.LifeOpcode)) |field| {
         const opcode: life_program.LifeOpcode = @enumFromInt(field.value);
-        if (opcode.isSupported()) {
+        if (isLifeOpcodeSupportedIndependent(opcode)) {
             const bytes = try buildLifeInstructionSample(allocator, opcode);
             defer allocator.free(bytes);
 
             const instructions = try life_program.decodeLifeProgram(allocator, bytes);
             defer allocator.free(instructions);
 
-            if (opcode.operandLayout() == .case_branch) {
+            if (opcode == .LM_CASE or opcode == .LM_OR_CASE) {
                 try std.testing.expectEqual(@as(usize, 2), instructions.len);
                 try std.testing.expectEqual(life_program.LifeOpcode.LM_SWITCH, instructions[0].opcode);
                 try std.testing.expectEqual(opcode, instructions[1].opcode);
+                try std.testing.expectEqual(@as(usize, 3), instructions[0].byte_length);
+                try std.testing.expectEqual(expectedLifeInstructionByteLengthIndependent(opcode), instructions[1].byte_length);
+                try std.testing.expectEqual(@as(usize, 9), bytes.len);
             } else {
                 try std.testing.expectEqual(@as(usize, 1), instructions.len);
                 try std.testing.expectEqual(opcode, instructions[0].opcode);
-                try std.testing.expectEqual(@as(usize, bytes.len), instructions[0].byte_length);
+                try std.testing.expectEqual(expectedLifeInstructionByteLengthIndependent(opcode), instructions[0].byte_length);
+                try std.testing.expectEqual(expectedLifeInstructionByteLengthIndependent(opcode), bytes.len);
             }
         }
     }
