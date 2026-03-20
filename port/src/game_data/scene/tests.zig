@@ -2,6 +2,7 @@ const std = @import("std");
 const asset_fixtures = @import("../../assets/fixtures.zig");
 const hqr = @import("../../assets/hqr.zig");
 const paths_mod = @import("../../foundation/paths.zig");
+const life_program = @import("life_program.zig");
 const model = @import("model.zig");
 const parser = @import("parser.zig");
 const track_program = @import("track_program.zig");
@@ -150,6 +151,15 @@ fn instructionStreamByteLength(instructions: []const track_program.TrackInstruct
     return total;
 }
 
+fn lifeInstructionStreamByteLength(instructions: []const life_program.LifeInstruction) !usize {
+    var total: usize = 0;
+    for (instructions) |instruction| {
+        try std.testing.expectEqual(total, instruction.offset);
+        total += instruction.byte_length;
+    }
+    return total;
+}
+
 fn buildInstructionSample(allocator: std.mem.Allocator, opcode: track_program.TrackOpcode) ![]u8 {
     var bytes: std.ArrayList(u8) = .empty;
     errdefer bytes.deinit(allocator);
@@ -184,17 +194,124 @@ fn buildInstructionSample(allocator: std.mem.Allocator, opcode: track_program.Tr
     return bytes.toOwnedSlice(allocator);
 }
 
+fn appendLifeFunctionSample(list: *std.ArrayList(u8), allocator: std.mem.Allocator, function: life_program.LifeFunction) !void {
+    try list.append(allocator, @intFromEnum(function));
+    switch (function.operandLayout()) {
+        .none => {},
+        .u8 => try list.append(allocator, 7),
+    }
+}
+
+fn appendLifeTestSample(
+    list: *std.ArrayList(u8),
+    allocator: std.mem.Allocator,
+    comparator: life_program.LifeComparator,
+    return_type: life_program.LifeReturnType,
+) !void {
+    try list.append(allocator, @intFromEnum(comparator));
+    switch (return_type) {
+        .RET_S8 => try list.append(allocator, @bitCast(@as(i8, -4))),
+        .RET_U8 => try list.append(allocator, 4),
+        .RET_S16 => try appendInt(list, allocator, @as(i16, -321)),
+        .RET_STRING => try list.appendSlice(allocator, &.{ 'Z', 'O', 'E', 0 }),
+    }
+}
+
+fn buildLifeInstructionSample(allocator: std.mem.Allocator, opcode: life_program.LifeOpcode) ![]u8 {
+    var bytes: std.ArrayList(u8) = .empty;
+    errdefer bytes.deinit(allocator);
+
+    switch (opcode.operandLayout()) {
+        .case_branch => {
+            try bytes.append(allocator, @intFromEnum(life_program.LifeOpcode.LM_SWITCH));
+            try appendLifeFunctionSample(&bytes, allocator, .LF_VAR_GAME);
+            try bytes.append(allocator, @intFromEnum(opcode));
+            try appendInt(&bytes, allocator, @as(i16, 123));
+            try appendLifeTestSample(&bytes, allocator, .LT_EQUAL, .RET_S16);
+            return bytes.toOwnedSlice(allocator);
+        },
+        else => try bytes.append(allocator, @intFromEnum(opcode)),
+    }
+
+    switch (opcode.operandLayout()) {
+        .none => {},
+        .u8 => try bytes.append(allocator, 7),
+        .i8 => try bytes.append(allocator, @bitCast(@as(i8, -7))),
+        .u16 => try appendInt(&bytes, allocator, @as(u16, 513)),
+        .i16 => try appendInt(&bytes, allocator, @as(i16, -1234)),
+        .u8_pair => try bytes.appendSlice(allocator, &.{ 3, 9 }),
+        .u8_i8 => {
+            try bytes.append(allocator, 5);
+            try bytes.append(allocator, @bitCast(@as(i8, -2)));
+        },
+        .u8_i16 => {
+            try bytes.append(allocator, 5);
+            try appendInt(&bytes, allocator, @as(i16, -111));
+        },
+        .i16_u8 => {
+            try appendInt(&bytes, allocator, @as(i16, 44));
+            try bytes.append(allocator, 2);
+        },
+        .u8_u16 => {
+            try bytes.append(allocator, 5);
+            try appendInt(&bytes, allocator, @as(u16, 88));
+        },
+        .u8_u16_i16 => {
+            try bytes.append(allocator, 5);
+            try appendInt(&bytes, allocator, @as(u16, 88));
+            try appendInt(&bytes, allocator, @as(i16, -30));
+        },
+        .u8_u8_u8_i16 => {
+            try bytes.appendSlice(allocator, &.{ 1, 2, 3 });
+            try appendInt(&bytes, allocator, @as(i16, 77));
+        },
+        .i16_u8_i16 => {
+            try appendInt(&bytes, allocator, @as(i16, 11));
+            try bytes.append(allocator, 4);
+            try appendInt(&bytes, allocator, @as(i16, 22));
+        },
+        .i16_i16_u8_i16 => {
+            try appendInt(&bytes, allocator, @as(i16, 11));
+            try appendInt(&bytes, allocator, @as(i16, 22));
+            try bytes.append(allocator, 4);
+            try appendInt(&bytes, allocator, @as(i16, 33));
+        },
+        .move => try bytes.appendSlice(allocator, &.{ 2, 7 }),
+        .move_obj => try bytes.appendSlice(allocator, &.{ 5, 2, 7 }),
+        .string => try bytes.appendSlice(allocator, &.{ 'A', 'C', 'F', 0 }),
+        .condition => {
+            try appendLifeFunctionSample(&bytes, allocator, .LF_VAR_CUBE);
+            try appendLifeTestSample(&bytes, allocator, .LT_EQUAL, .RET_U8);
+            try appendInt(&bytes, allocator, @as(i16, 123));
+        },
+        .switch_expr => try appendLifeFunctionSample(&bytes, allocator, .LF_VAR_GAME),
+        .case_branch => unreachable,
+        .unsupported => unreachable,
+    }
+
+    return bytes.toOwnedSlice(allocator);
+}
+
 test "track decoder handles multiple opcode families and preserves mutable fields structurally" {
     const allocator = std.testing.allocator;
     const bytes = try allocator.dupe(u8, &.{
-        @intFromEnum(track_program.TrackOpcode.body), 4,
-        @intFromEnum(track_program.TrackOpcode.wait_nb_anim), 3, 1,
-        @intFromEnum(track_program.TrackOpcode.wait_nb_second_rnd), 9, 0x78, 0x56, 0x34, 0x12,
-        @intFromEnum(track_program.TrackOpcode.loop), 5, 3, 0x2C, 0x01,
-        @intFromEnum(track_program.TrackOpcode.angle), 0x23, 0x81,
-        @intFromEnum(track_program.TrackOpcode.face_twinsen), 0xFF, 0xFF,
-        @intFromEnum(track_program.TrackOpcode.angle_rnd), 0x78, 0x00, 0xFF, 0xFF,
-        @intFromEnum(track_program.TrackOpcode.play_acf), 'I', 'N', 'T', 'R', 'O', 0,
+        @intFromEnum(track_program.TrackOpcode.body),         4,
+        @intFromEnum(track_program.TrackOpcode.wait_nb_anim), 3,
+        1,                                                    @intFromEnum(track_program.TrackOpcode.wait_nb_second_rnd),
+        9,                                                    0x78,
+        0x56,                                                 0x34,
+        0x12,                                                 @intFromEnum(track_program.TrackOpcode.loop),
+        5,                                                    3,
+        0x2C,                                                 0x01,
+        @intFromEnum(track_program.TrackOpcode.angle),        0x23,
+        0x81,                                                 @intFromEnum(track_program.TrackOpcode.face_twinsen),
+        0xFF,                                                 0xFF,
+        @intFromEnum(track_program.TrackOpcode.angle_rnd),    0x78,
+        0x00,                                                 0xFF,
+        0xFF,                                                 @intFromEnum(track_program.TrackOpcode.play_acf),
+        'I',                                                  'N',
+        'T',                                                  'R',
+        'O',                                                  0,
         @intFromEnum(track_program.TrackOpcode.end),
     });
     defer allocator.free(bytes);
@@ -258,6 +375,145 @@ test "track decoder rejects truncated operands and malformed strings" {
     try std.testing.expectError(error.TruncatedTrackOperand, track_program.decodeTrackProgram(allocator, &.{ @intFromEnum(track_program.TrackOpcode.wait_nb_second), 0x03, 0x01, 0x02, 0x03 }));
     try std.testing.expectError(error.MalformedTrackStringOperand, track_program.decodeTrackProgram(allocator, &.{ @intFromEnum(track_program.TrackOpcode.play_acf), 'B', 'A', 'D' }));
     try std.testing.expectError(error.UnknownTrackOpcode, track_program.decodeTrackProgram(allocator, &.{0x7F}));
+}
+
+test "life decoder preserves nested control-flow layout and switch case context structurally" {
+    const allocator = std.testing.allocator;
+    const bytes = try allocator.dupe(u8, &.{
+        @intFromEnum(life_program.LifeOpcode.LM_IF),
+        @intFromEnum(life_program.LifeFunction.LF_VAR_CUBE),
+        7,
+        @intFromEnum(life_program.LifeComparator.LT_EQUAL),
+        4,
+        0x34,
+        0x12,
+        @intFromEnum(life_program.LifeOpcode.LM_SWITCH),
+        @intFromEnum(life_program.LifeFunction.LF_VAR_GAME),
+        3,
+        @intFromEnum(life_program.LifeOpcode.LM_CASE),
+        0x78,
+        0x56,
+        @intFromEnum(life_program.LifeComparator.LT_EQUAL),
+        0x9A,
+        0xBC,
+        @intFromEnum(life_program.LifeOpcode.LM_PLAY_ACF),
+        'A',
+        'C',
+        'F',
+        0,
+    });
+    defer allocator.free(bytes);
+
+    const instructions = try life_program.decodeLifeProgram(allocator, bytes);
+    defer allocator.free(instructions);
+
+    try std.testing.expectEqual(@as(usize, 4), instructions.len);
+    try std.testing.expectEqual(@as(usize, bytes.len), try lifeInstructionStreamByteLength(instructions));
+
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_IF, instructions[0].opcode);
+    try std.testing.expectEqual(life_program.LifeFunction.LF_VAR_CUBE, instructions[0].operands.condition.function.function);
+    try std.testing.expectEqual(life_program.LifeReturnType.RET_U8, instructions[0].operands.condition.function.return_type);
+    try std.testing.expectEqual(life_program.LifeComparator.LT_EQUAL, instructions[0].operands.condition.comparison.comparator);
+    try std.testing.expectEqual(@as(u8, 4), instructions[0].operands.condition.comparison.literal.u8_value);
+    try std.testing.expectEqual(@as(i16, 0x1234), instructions[0].operands.condition.jump_offset);
+
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_SWITCH, instructions[1].opcode);
+    try std.testing.expectEqual(life_program.LifeFunction.LF_VAR_GAME, instructions[1].operands.switch_expr.function.function);
+    try std.testing.expectEqual(life_program.LifeReturnType.RET_S16, instructions[1].operands.switch_expr.function.return_type);
+
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_CASE, instructions[2].opcode);
+    try std.testing.expectEqual(life_program.LifeReturnType.RET_S16, instructions[2].operands.case_branch.switch_return_type);
+    try std.testing.expectEqual(@as(i16, 0x5678), instructions[2].operands.case_branch.jump_offset);
+    try std.testing.expectEqual(@as(i16, @bitCast(@as(u16, 0xBC9A))), instructions[2].operands.case_branch.comparison.literal.s16_value);
+
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_PLAY_ACF, instructions[3].opcode);
+    try std.testing.expectEqualStrings("ACF", instructions[3].operands.string);
+}
+
+test "life decoder handles move operands and source-backed return-width quirks" {
+    const allocator = std.testing.allocator;
+    const bytes = try allocator.dupe(u8, &.{
+        @intFromEnum(life_program.LifeOpcode.LM_SET_DIR),          2,                                           9,
+        @intFromEnum(life_program.LifeOpcode.LM_SET_DIR_OBJ),      4,                                           6,
+        11,                                                        @intFromEnum(life_program.LifeOpcode.LM_IF), @intFromEnum(life_program.LifeFunction.LF_FUEL),
+        @intFromEnum(life_program.LifeComparator.LT_EQUAL),        0x34,                                        0x12,
+        0x10,                                                      0x00,                                        @intFromEnum(life_program.LifeOpcode.LM_IF),
+        @intFromEnum(life_program.LifeFunction.LF_COL_DECORS_OBJ), 3,                                           @intFromEnum(life_program.LifeComparator.LT_DIFFERENT),
+        2,                                                         0x20,                                        0x00,
+    });
+    defer allocator.free(bytes);
+
+    const instructions = try life_program.decodeLifeProgram(allocator, bytes);
+    defer allocator.free(instructions);
+
+    try std.testing.expectEqual(@as(usize, 4), instructions.len);
+    try std.testing.expectEqual(@as(u8, 2), instructions[0].operands.move.move_id);
+    try std.testing.expectEqual(@as(?u8, 9), instructions[0].operands.move.point_index);
+    try std.testing.expectEqual(@as(u8, 4), instructions[1].operands.move_obj.object_index);
+    try std.testing.expectEqual(@as(u8, 6), instructions[1].operands.move_obj.move_id);
+    try std.testing.expectEqual(@as(?u8, 11), instructions[1].operands.move_obj.point_index);
+
+    try std.testing.expectEqual(life_program.LifeReturnType.RET_S16, instructions[2].operands.condition.function.return_type);
+    try std.testing.expectEqual(@as(i16, 0x1234), instructions[2].operands.condition.comparison.literal.s16_value);
+
+    try std.testing.expectEqual(life_program.LifeReturnType.RET_S8, instructions[3].operands.condition.function.return_type);
+    try std.testing.expectEqual(@as(i8, 2), instructions[3].operands.condition.comparison.literal.s8_value);
+}
+
+test "life decoder recognizes every live opcode id from the checked-in runtime" {
+    const allocator = std.testing.allocator;
+    @setEvalBranchQuota(20_000);
+
+    inline for (std.meta.fields(life_program.LifeOpcode)) |field| {
+        const opcode: life_program.LifeOpcode = @enumFromInt(field.value);
+        if (opcode.isSupported()) {
+            const bytes = try buildLifeInstructionSample(allocator, opcode);
+            defer allocator.free(bytes);
+
+            const instructions = try life_program.decodeLifeProgram(allocator, bytes);
+            defer allocator.free(instructions);
+
+            if (opcode.operandLayout() == .case_branch) {
+                try std.testing.expectEqual(@as(usize, 2), instructions.len);
+                try std.testing.expectEqual(life_program.LifeOpcode.LM_SWITCH, instructions[0].opcode);
+                try std.testing.expectEqual(opcode, instructions[1].opcode);
+            } else {
+                try std.testing.expectEqual(@as(usize, 1), instructions.len);
+                try std.testing.expectEqual(opcode, instructions[0].opcode);
+                try std.testing.expectEqual(@as(usize, bytes.len), instructions[0].byte_length);
+            }
+        }
+    }
+}
+
+test "life decoder rejects unsupported ids, missing switch context, truncation, and malformed strings" {
+    const allocator = std.testing.allocator;
+
+    try std.testing.expectError(error.UnsupportedLifeOpcode, life_program.decodeLifeProgram(allocator, &.{@intFromEnum(life_program.LifeOpcode.LM_NOP)}));
+    try std.testing.expectError(error.UnknownLifeOpcode, life_program.decodeLifeProgram(allocator, &.{5}));
+    try std.testing.expectError(error.MissingLifeSwitchContext, life_program.decodeLifeProgram(allocator, &.{ @intFromEnum(life_program.LifeOpcode.LM_CASE), 0x01, 0x00, @intFromEnum(life_program.LifeComparator.LT_EQUAL), 0x01 }));
+    try std.testing.expectError(error.TruncatedLifeOperand, life_program.decodeLifeProgram(allocator, &.{ @intFromEnum(life_program.LifeOpcode.LM_SET_TRACK), 0x01 }));
+    try std.testing.expectError(error.TruncatedLifeOperand, life_program.decodeLifeProgram(allocator, &.{ @intFromEnum(life_program.LifeOpcode.LM_SET_DIR), 2 }));
+    try std.testing.expectError(error.TruncatedLifeOperand, life_program.decodeLifeProgram(allocator, &.{ @intFromEnum(life_program.LifeOpcode.LM_IF), @intFromEnum(life_program.LifeFunction.LF_VAR_GAME), 3, @intFromEnum(life_program.LifeComparator.LT_EQUAL), 0x02 }));
+    try std.testing.expectError(error.MalformedLifeStringOperand, life_program.decodeLifeProgram(allocator, &.{ @intFromEnum(life_program.LifeOpcode.LM_PLAY_ACF), 'B', 'A', 'D' }));
+    try std.testing.expectError(error.UnknownLifeFunction, life_program.decodeLifeProgram(allocator, &.{ @intFromEnum(life_program.LifeOpcode.LM_SWITCH), 255 }));
+    try std.testing.expectError(error.UnknownLifeComparator, life_program.decodeLifeProgram(allocator, &.{ @intFromEnum(life_program.LifeOpcode.LM_IF), @intFromEnum(life_program.LifeFunction.LF_VAR_CUBE), 7, 255, 1, 0, 0 }));
+}
+
+test "life decoder covers selected real scene blobs without changing the scene surface" {
+    const allocator = std.testing.allocator;
+
+    const scene2_target = try fixtureTargetById("interior-room-twinsens-house-scene");
+    const scene2_path = try resolveSceneArchivePathForTests(allocator, scene2_target.asset_path);
+    defer allocator.free(scene2_path);
+    const scene2 = try parser.loadSceneMetadata(allocator, scene2_path, scene2_target.entry_index);
+    defer scene2.deinit(allocator);
+
+    try std.testing.expectError(error.UnsupportedLifeOpcode, life_program.decodeLifeProgram(allocator, scene2.hero_start.life.bytes));
+
+    const scene2_object5_life = try life_program.decodeLifeProgram(allocator, scene2.objects[4].life.bytes);
+    defer allocator.free(scene2_object5_life);
+    try std.testing.expectEqual(@as(usize, scene2.objects[4].life.bytes.len), try lifeInstructionStreamByteLength(scene2_object5_life));
 }
 
 test "scene payload parsing follows the classic loader layout" {

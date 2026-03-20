@@ -1,61 +1,47 @@
-# Decode Scene-Local Track Programs
+# Next Step: Unsupported Real-Asset Life Opcode Audit
 
 ## Summary
 
-Implement one bounded Phase 2 slice: decode preserved hero/object track program blobs into a typed instruction stream and expose that disassembly through `inspect-scene`.
+The strict offline decoder now exists at `port/src/game_data/scene/life_program.zig`, and it stays off the scene/parser/CLI surface by design. The next bounded step is to use that decoder to audit unsupported named life opcodes that still appear in canonical real asset blobs before any scene integration is considered.
 
-This task stops at structural track-program decoding. It does **not** include life-script interpretation, gameplay semantics for track opcodes, or any changes to the existing scene-global `tracks` point table.
+This slice should:
+- keep `life_program.zig` offline and leave the current scene parser, typed scene model, and CLI output unchanged
+- inventory unsupported named `LM_*` ids that appear in selected canonical real-asset life blobs, starting with scene `2` hero `LM_DEFAULT`
+- tighten the evidence/docs around any unsupported ids that appear in real data, including whether checked-in source proves them or still leaves them unimplemented
+- add decoder-focused coverage that locks both successful structural decoding and intentional fail-fast rejection on real asset samples
 
-## Implementation Changes
+## Key Changes
 
-### Track decoder boundary
+- Add a narrow offline audit path on top of `life_program.zig` rather than widening the scene surface.
+  - Use `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md` as the source boundary and the decoder as the executable structural oracle.
+  - Report unsupported named opcode ids, byte offsets, and owning scene/object blob identity for selected canonical samples.
+  - Keep the reporting offline: no `life_instructions` on `SceneProgramBlob`, no parser wiring, no CLI JSON/text surface changes unless the new path is explicitly a separate offline tool.
 
-- Keep the preserved raw program bytes as the canonical source of truth.
-- Add a track-program decoder in the scene module that consumes a `SceneProgramBlob` and produces a typed instruction list for hero/object track programs only.
-- Make the decoder boundary explicit:
-  - scene-global `tracks` point coordinates remain a separate concept
-  - life-script blobs remain opaque raw bytes in this slice
-  - decoded track instructions are derived from preserved raw bytes, not a replacement for them
-- Fail fast on truncated operands, trailing partial instructions, or unsupported opcode layouts instead of guessing.
+- Treat unsupported real-asset hits as evidence, not decode failures to paper over.
+  - Keep rejecting `LM_NOP`, `LM_ENDIF`, `LM_REM`, `LM_DEFAULT`, `LM_END_SWITCH`, `LM_SPY`, `LM_DEBUG`, and `LM_DEBUG_OBJ` unless stronger checked-in evidence appears.
+  - If a canonical blob reaches one of those ids, record that fact in docs/tests instead of adding a compatibility path or silently skipping it.
+  - Keep `LM_MESSAGE_CHAPTER` out of scope; it remains commented dead code rather than live evidence.
 
-### CLI and JSON surface
-
-- Keep text-mode `inspect-scene` compact:
-  - keep the current hero/object byte-length summary lines
-  - add a compact decoded-track summary for hero/object programs
-  - do not dump life-script bytes in text mode
-- Expand `inspect-scene --json` to expose decoded track instructions beside the preserved raw bytes:
-  - `hero_start.track_instructions`
-  - `objects[].track_instructions`
-- Keep the existing JSON shape otherwise stable: preserved raw bytes stay present, zones stay unchanged, `classic_loader_scene_number` stays explicit, and scene-global `tracks`/patches stay as they are.
-
-### Docs and durable state
-
-- Refresh `docs/PROMPT.md` so it no longer claims raw blob preservation is the next action.
-- Update `docs/codex_memory/handoff.md` and append a task event after the slice lands.
-- Append a decision record only if the decoded-track boundary is being treated as a durable model decision.
-- Run `python3 tools/codex_memory.py validate` after the memory/doc updates.
-- Do not touch `ISSUES.md` unless implementation uncovers a new reusable trap beyond the current scene-numbering / non-hermetic-test warnings.
+- Refresh durable docs after implementation.
+  - Update `docs/PROMPT.md` to the next slice only after the unsupported-opcode audit changes the boundary.
+  - Update `docs/codex_memory/handoff.md` and append a task event.
+  - Append a decision record if the audit confirms that scene integration must stay blocked on unsupported named ids in real assets.
+  - Run `python3 tools/codex_memory.py validate` after the memory/doc updates.
 
 ## Test Plan
 
 - Keep `zig build test` as the primary gate.
-- Add synthetic decoder coverage for:
-  - one short hero track blob with multiple instructions
-  - one object track blob with a different opcode mix
-  - explicit truncation inside an instruction operand
-  - explicit failure on unsupported opcode layout if the decoder does not yet support the full corpus
-- Add JSON-shape tests that pin `track_instructions` for hero/object output while keeping the existing raw-byte arrays present.
-- Add asset-backed regression assertions for representative preserved track blobs from scenes `2`, `5`, and `44`.
-- For the asset-backed checks in this slice, assert decoder stability at the structural level:
-  - the instruction stream covers the full raw track blob without gaps
-  - decoded instruction counts stay fixed for the chosen sample blobs
-  - raw life blobs remain untouched and opaque
+- Add decoder tests for:
+  - real-asset success cases that fully decode through the current supported subset
+  - real-asset fail-fast cases that intentionally hit unsupported named ids such as `LM_DEFAULT`
+  - fixed-width operand decoding, null-terminated `LM_PLAY_ACF`, and nested `LF_*` + `DoTest()` parsing stay covered so the audit rides on a locked decoder
+- Acceptance commands:
+  - `zig build test`
+  - `zig build tool -- inspect-scene 2 --json`
 
-## Assumptions and Defaults
+## Assumptions
 
-- Raw preservation is already complete; the next step is a narrow track disassembler.
-- JSON should keep both preserved raw bytes and decoded track instructions.
-- Life-script bytes remain preserved but uninterpreted in this slice.
-- No compatibility layer is needed; use one canonical preserved-bytes-plus-decoded-track path.
-- `zig build test` remains a real-asset, non-hermetic gate that depends on the repo-local SDL2 layout and canonical extracted asset tree.
+- The next blocker is unsupported real-asset life opcodes, not missing structural coverage for the already-supported subset.
+- The checked-in evidence memo is authoritative for supported layouts, but the live `GERELIFE.CPP` switch still wins if the memo and source drift.
+- Raw `life_bytes` remain the canonical source of truth, and the offline decoder stays derived until unsupported real-asset ids are resolved.
+- The local acceptance gate is still environment-dependent: `zig build test` and `inspect-scene` depend on the canonical extracted asset tree and the repo-local SDL2 layout on this machine.
