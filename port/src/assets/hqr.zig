@@ -97,6 +97,17 @@ pub fn decodeEntryToBytes(allocator: std.mem.Allocator, absolute_path: []const u
     return decodeResourceEntryBytes(allocator, raw_entry);
 }
 
+pub fn extractClassicEntryToBytes(allocator: std.mem.Allocator, absolute_path: []const u8, classic_index: usize) ![]u8 {
+    return readRawClassicEntryFromFile(allocator, absolute_path, classic_index);
+}
+
+pub fn decodeClassicEntryToBytes(allocator: std.mem.Allocator, absolute_path: []const u8, classic_index: usize) ![]u8 {
+    const raw_entry = try readRawClassicEntryFromFile(allocator, absolute_path, classic_index);
+    defer allocator.free(raw_entry);
+
+    return decodeResourceEntryBytes(allocator, raw_entry);
+}
+
 pub fn decodeResourceEntryBytes(allocator: std.mem.Allocator, raw_entry: []const u8) ![]u8 {
     const header = try parseResourceHeader(raw_entry);
     const payload = raw_entry[resource_header_size..];
@@ -134,6 +145,21 @@ fn readRawEntryFromFile(allocator: std.mem.Allocator, absolute_path: []const u8,
 
     if (entry_index == 0 or entry_index > parsed.len) return error.EntryIndexOutOfRange;
     const entry = parsed[entry_index - 1];
+    const bytes = try allocator.alloc(u8, entry.byte_length);
+    errdefer allocator.free(bytes);
+
+    try file.seekTo(entry.offset);
+    const read = try file.readAll(bytes);
+    if (read != bytes.len) return error.UnexpectedEndOfFile;
+    return bytes;
+}
+
+fn readRawClassicEntryFromFile(allocator: std.mem.Allocator, absolute_path: []const u8, classic_index: usize) ![]u8 {
+    var file = try std.fs.openFileAbsolute(absolute_path, .{});
+    defer file.close();
+
+    const size = try file.getEndPos();
+    const entry = try parseClassicEntryRangeFromFile(&file, size, classic_index);
     const bytes = try allocator.alloc(u8, entry.byte_length);
     errdefer allocator.free(bytes);
 
@@ -197,6 +223,40 @@ fn parseTableFromFile(allocator: std.mem.Allocator, file: *std.fs.File, size: u6
             _ = try self.file.preadAll(buffer, offset);
         }
     }{ .file = file });
+}
+
+fn parseClassicEntryRangeFromFile(file: *std.fs.File, size: u64, classic_index: usize) !ParsedEntry {
+    if (size < 8) return error.InvalidArchiveSize;
+
+    var header: [4]u8 = undefined;
+    _ = try file.preadAll(&header, 0);
+    const table_end = std.mem.readInt(u32, &header, .little);
+    if (table_end < 8 or table_end % 4 != 0 or table_end > size) return error.InvalidTableHeader;
+
+    const entry_table_offset = @as(u64, @intCast(classic_index)) * 4;
+    if (entry_table_offset >= table_end) return error.EntryIndexOutOfRange;
+
+    _ = try file.preadAll(&header, entry_table_offset);
+    const offset = std.mem.readInt(u32, &header, .little);
+    if (offset == 0) return error.EntryIndexOutOfRange;
+    if (offset < table_end or offset > size) return error.InvalidArchiveOffset;
+
+    var next_offset: u64 = size;
+    var search_offset = entry_table_offset + 4;
+    while (search_offset < table_end) : (search_offset += 4) {
+        _ = try file.preadAll(&header, search_offset);
+        const candidate = std.mem.readInt(u32, &header, .little);
+        if (candidate == 0 or candidate <= offset) continue;
+        if (candidate > size) return error.InvalidArchiveOffset;
+        next_offset = @min(next_offset, candidate);
+    }
+    if (next_offset < offset) return error.InvalidArchiveOffset;
+
+    return .{
+        .index = classic_index,
+        .offset = offset,
+        .byte_length = @intCast(next_offset - offset),
+    };
 }
 
 fn parseTable(allocator: std.mem.Allocator, size: u64, reader_ctx: anytype) ![]ParsedEntry {
@@ -433,6 +493,40 @@ test "real SCENE.HQR entry 44 compressed payload expands to the advertised size"
 
     try std.testing.expectEqual(@as(usize, 9338), payload.len);
     try std.testing.expectEqualSlices(u8, &.{ 0, 7, 9, 12, 0, 1, 1 }, payload[0..7]);
+}
+
+test "classic entry access exposes the skipped header payloads" {
+    const allocator = std.testing.allocator;
+
+    const bkg_archive = try resolveAssetArchivePathForTests(allocator, "LBA_BKG.HQR");
+    defer allocator.free(bkg_archive);
+    const bkg_raw = try extractClassicEntryToBytes(allocator, bkg_archive, 0);
+    defer allocator.free(bkg_raw);
+    const bkg_header = try parseResourceHeader(bkg_raw);
+    const bkg_payload = try decodeClassicEntryToBytes(allocator, bkg_archive, 0);
+    defer allocator.free(bkg_payload);
+
+    try std.testing.expectEqual(@as(usize, 38), bkg_raw.len);
+    try std.testing.expectEqual(@as(u32, 28), bkg_header.size_file);
+    try std.testing.expectEqual(@as(u32, 28), bkg_header.compressed_size_file);
+    try std.testing.expectEqual(@as(u16, 0), bkg_header.compress_method);
+    try std.testing.expectEqual(@as(usize, 28), bkg_payload.len);
+    try std.testing.expectEqual(@as(u16, 1), std.mem.readInt(u16, bkg_payload[0..2], .little));
+
+    const scene_archive = try resolveAssetArchivePathForTests(allocator, "SCENE.HQR");
+    defer allocator.free(scene_archive);
+    const scene_raw = try extractClassicEntryToBytes(allocator, scene_archive, 0);
+    defer allocator.free(scene_raw);
+    const scene_header = try parseResourceHeader(scene_raw);
+    const scene_payload = try decodeClassicEntryToBytes(allocator, scene_archive, 0);
+    defer allocator.free(scene_payload);
+
+    try std.testing.expectEqual(@as(usize, 14), scene_raw.len);
+    try std.testing.expectEqual(@as(u32, 4), scene_header.size_file);
+    try std.testing.expectEqual(@as(u32, 4), scene_header.compressed_size_file);
+    try std.testing.expectEqual(@as(u16, 0), scene_header.compress_method);
+    try std.testing.expectEqual(@as(usize, 4), scene_payload.len);
+    try std.testing.expectEqual(@as(u32, 20447), std.mem.readInt(u32, scene_payload[0..4], .little));
 }
 
 test "unsupported resource compression fails fast" {

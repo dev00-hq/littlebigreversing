@@ -4,6 +4,7 @@ const paths_mod = @import("../foundation/paths.zig");
 const catalog = @import("../assets/catalog.zig");
 const fixtures = @import("../assets/fixtures.zig");
 const hqr = @import("../assets/hqr.zig");
+const background_data = @import("../game_data/background.zig");
 const scene_data = @import("../game_data/scene.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
@@ -11,6 +12,7 @@ const life_audit = @import("../game_data/scene/life_audit.zig");
 const Command = enum {
     inventory_assets,
     inspect_hqr,
+    inspect_background,
     extract_entry,
     inspect_scene,
     audit_life_programs,
@@ -57,6 +59,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     switch (parsed.command) {
         .inventory_assets => try inventoryAssets(allocator, resolved),
         .inspect_hqr => try inspectHqr(allocator, resolved, parsed.relative_path.?, parsed.output_json),
+        .inspect_background => try inspectBackground(allocator, resolved, parsed.entry_index.?, parsed.output_json),
         .extract_entry => try extractEntry(allocator, resolved, parsed.relative_path.?, parsed.entry_index.?),
         .inspect_scene => try inspectScene(allocator, resolved, parsed.entry_index.?, parsed.output_json),
         .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed),
@@ -115,6 +118,26 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .audit_scene_entry_indices = null,
             .audit_all_scene_entries = false,
             .output_json = false,
+        };
+    }
+    if (std.mem.eql(u8, command_name, "inspect-background")) {
+        if (command_index + 1 >= args.len) return error.MissingEntryIndex;
+        var output_json = false;
+        for (args[(command_index + 2)..]) |arg| {
+            if (std.mem.eql(u8, arg, "--json")) {
+                output_json = true;
+            } else {
+                return error.UnknownOption;
+            }
+        }
+        return .{
+            .command = .inspect_background,
+            .asset_root_override = asset_root_override,
+            .relative_path = null,
+            .entry_index = try std.fmt.parseInt(usize, args[command_index + 1], 10),
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
+            .output_json = output_json,
         };
     }
     if (std.mem.eql(u8, command_name, "inspect-scene")) {
@@ -268,6 +291,109 @@ fn extractEntry(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
         .{ .key = "command", .value = "extract-entry" },
         .{ .key = "sha256", .value = sha },
     });
+    try stderr.flush();
+}
+
+fn inspectBackground(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, entry_index: usize, output_json: bool) !void {
+    const absolute_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "LBA_BKG.HQR" });
+    defer allocator.free(absolute_path);
+
+    const metadata = try background_data.loadBackgroundMetadata(allocator, absolute_path, entry_index);
+    defer metadata.deinit(allocator);
+
+    if (output_json) {
+        const payload = .{
+            .entry_index = metadata.entry_index,
+            .header_entry_index = metadata.header_entry_index,
+            .header_compressed_header = metadata.header_compressed_header,
+            .bkg_header = metadata.bkg_header,
+            .tab_all_cube_entry_index = metadata.tab_all_cube_entry_index,
+            .tab_all_cube_compressed_header = metadata.tab_all_cube_compressed_header,
+            .tab_all_cube_entry_count = metadata.tab_all_cube_entry_count,
+            .tab_all_cube = metadata.tab_all_cube,
+            .remapped_cube_index = metadata.remapped_cube_index,
+            .gri_entry_index = metadata.gri_entry_index,
+            .gri_compressed_header = metadata.gri_compressed_header,
+            .gri_header = metadata.gri_header,
+            .used_blocks = metadata.used_blocks,
+            .column_table = metadata.column_table,
+            .grm_entry_index = metadata.grm_entry_index,
+            .bll_entry_index = metadata.bll_entry_index,
+            .bll_compressed_header = metadata.bll_compressed_header,
+            .bll = metadata.bll,
+        };
+        const json = try stringifyJsonAlloc(allocator, payload);
+        defer allocator.free(json);
+        try std.fs.File.stdout().writeAll(json);
+        try std.fs.File.stdout().writeAll("\n");
+        return;
+    }
+
+    var stderr_buffer: [4096]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try diagnostics.printLine(stderr, &.{
+        .{ .key = "command", .value = "inspect-background" },
+        .{ .key = "asset_path", .value = "LBA_BKG.HQR" },
+    });
+    try stderr.print(
+        "entry_index={d} header_entry_index={d} remapped_cube_index={d} gri_entry_index={d} grm_entry_index={d} bll_entry_index={d}\n",
+        .{
+            metadata.entry_index,
+            metadata.header_entry_index,
+            metadata.remapped_cube_index,
+            metadata.gri_entry_index,
+            metadata.grm_entry_index,
+            metadata.bll_entry_index,
+        },
+    );
+    try stderr.print(
+        "bkg_header gri_start={d} grm_start={d} bll_start={d} brk_start={d} max_brk={d} forbiden_brick={d} max_size_gri={d} max_size_bll={d} max_size_brick_cube={d} max_size_mask_brick_cube={d}\n",
+        .{
+            metadata.bkg_header.gri_start,
+            metadata.bkg_header.grm_start,
+            metadata.bkg_header.bll_start,
+            metadata.bkg_header.brk_start,
+            metadata.bkg_header.max_brk,
+            metadata.bkg_header.forbiden_brick,
+            metadata.bkg_header.max_size_gri,
+            metadata.bkg_header.max_size_bll,
+            metadata.bkg_header.max_size_brick_cube,
+            metadata.bkg_header.max_size_mask_brick_cube,
+        },
+    );
+    try stderr.print(
+        "tab_all_cube entry_index={d} entry_count={d} type_id={d} num={d}\n",
+        .{
+            metadata.tab_all_cube_entry_index,
+            metadata.tab_all_cube_entry_count,
+            metadata.tab_all_cube.type_id,
+            metadata.tab_all_cube.num,
+        },
+    );
+    try stderr.print(
+        "gri my_bll={d} my_grm={d} used_block_count={d} column_table={d}x{d} min_offset={d} max_offset={d} data_bytes={d}\n",
+        .{
+            metadata.gri_header.my_bll,
+            metadata.gri_header.my_grm,
+            metadata.used_blocks.used_block_ids.len,
+            metadata.column_table.width,
+            metadata.column_table.depth,
+            metadata.column_table.min_offset,
+            metadata.column_table.max_offset,
+            metadata.column_table.data_byte_length,
+        },
+    );
+    try printUsedBlockSummary(stderr, metadata.used_blocks.used_block_ids);
+    try stderr.print(
+        "bll block_count={d} table_bytes={d} first_block_offset={d} last_block_offset={d}\n",
+        .{
+            metadata.bll.block_count,
+            metadata.bll.table_byte_length,
+            metadata.bll.first_block_offset,
+            metadata.bll.last_block_offset,
+        },
+    );
     try stderr.flush();
 }
 
@@ -518,6 +644,15 @@ fn printTrackInstructionSummary(stderr: anytype, label: []const u8, instructions
     for (instructions, 0..) |instruction, index| {
         if (index != 0) try stderr.writeAll("|");
         try stderr.writeAll(instruction.opcode.mnemonic());
+    }
+    try stderr.writeAll("\n");
+}
+
+fn printUsedBlockSummary(stderr: anytype, used_block_ids: []const u8) !void {
+    try stderr.print("used_block_ids={d} values=", .{used_block_ids.len});
+    for (used_block_ids, 0..) |block_id, index| {
+        if (index != 0) try stderr.writeAll("|");
+        try stderr.print("{d}", .{block_id});
     }
     try stderr.writeAll("\n");
 }
@@ -896,6 +1031,15 @@ test "argument parsing supports inspect-scene json output" {
     defer parsed.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(Command.inspect_scene, parsed.command);
+    try std.testing.expectEqual(@as(usize, 2), parsed.entry_index.?);
+    try std.testing.expect(parsed.output_json);
+}
+
+test "argument parsing supports inspect-background json output" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-background", "2", "--json" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.inspect_background, parsed.command);
     try std.testing.expectEqual(@as(usize, 2), parsed.entry_index.?);
     try std.testing.expect(parsed.output_json);
 }

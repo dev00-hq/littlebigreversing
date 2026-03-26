@@ -1,60 +1,56 @@
-# Next Step: Targeted Switch-Family Life Evidence Pass
+# Next Step: First Interior Background Decoder
 
 ## Summary
 
-The repo now has a broader offline audit path at `zig build tool -- audit-life-programs [--json]` on top of `port/src/game_data/scene/life_program.zig`. That command still defaults to the canonical scene set, but it can now also audit explicit scene-entry lists or the full `SCENE.HQR` archive through explicit flags.
+The targeted `LM_DEFAULT` / `LM_END_SWITCH` evidence pass is already complete, and life integration remains blocked on those two unsupported real-asset opcodes.
 
-The widened audit slice is complete and it materially narrowed the remaining blocker set:
+The next bounded subsystem should therefore move sideways into the first viewer dependency: typed interior background decoding for the canonical room target instead of more blocked life work.
 
-- the canonical default report is unchanged: scenes `2`, `5`, and `44` still hit unsupported `LM_DEFAULT` and `LM_END_SWITCH`
-- the explicit `--all-scene-entries` report audited all `221` non-header `SCENE.HQR` entries (`2..222`) and `3109` life blobs
-- that full-archive run found `394` unsupported blobs across `145` scenes
-- only two unsupported opcodes appeared anywhere in current real assets: `LM_DEFAULT` (`188` hits) and `LM_END_SWITCH` (`206` hits)
-- the other six named-but-unimplemented `LM_*` ids still lack checked-in runtime evidence, but they did not appear in the current full-archive audit
+Phase 0 already locks the first interior room as `SCENE.HQR[2]` paired with `LBA_BKG.HQR[2]`, but the checked-in classic loader shows that interior background loading is not just "decode entry 2 in isolation". The source-backed boundary is:
 
-The switch-family source pass is also still in force: checked-in source does not prove structural handling for `LM_DEFAULT` or `LM_END_SWITCH` beyond the `COMMON.H` names and the `LM_BREAK` comment `saute au END_SWITCH`.
+- `LBA_BKG.HQR[0]` is the typed `T_BKG_HEADER` root loaded by `InitBufferCube()`
+- `TabAllCube` loads from entry `BkgHeader.Brk_Start + BkgHeader.Max_Brk`
+- `InitGrille(numcube)` first remaps through `TabAllCube[numcube].Num`
+- the selected `GRI` payload lives at `BkgHeader.Gri_Start + remapped_cube`
+- each `GRI` payload begins with `T_GRI_HEADER` (`My_Bll`, `My_Grm`, `UsedBlock[32]`) and then carries the interior column-offset table used by `CopyMapToCube()`
+- the selected `BLL` payload lives at `BkgHeader.Bll_Start + GriHeader.My_Bll`
 
-The next bounded step is therefore no longer a broad inventory task. It is a tightly scoped evidence pass for `LM_DEFAULT` and `LM_END_SWITCH` only, aimed at deciding whether stronger non-header evidence exists for their structural layout or whether they should stay deliberately outside the supported decoder boundary.
+For this slice, treat background indices in the classic `LBA_BKG.HQR[...]` number space, not the current `inspect-scene` raw one-based physical-entry number space. `inspect-background 2` should therefore mean classic `LBA_BKG.HQR[2]`, while `LBA_BKG.HQR[0]` remains the special header block at the HQR table boundary rather than a normal one-based extracted entry.
 
-This slice should:
-- keep `life_program.zig`, `life_audit.zig`, `audit-life-programs`, the scene parser/model, and `inspect-scene` unchanged
-- focus only on `LM_DEFAULT` and `LM_END_SWITCH`
-- preserve raw `life_bytes` as the canonical scene surface
-- treat the full-archive audit result as the current real-asset truth: no other unsupported named `LM_*` ids are active blockers until stronger evidence says otherwise
-- keep the current fail-fast behavior for unsupported ids instead of adding skip logic or speculative marker layouts
+This slice should implement a typed, fail-fast interior background decoder and a separate inspection surface that make the room/background linkage executable without expanding into rendering, exterior terrain, or gameplay.
 
 ## Key Changes
 
-- Audit stronger evidence sources specifically for switch-family structure.
-  - Re-check the classic source, disassembly notes, or other stronger checked-in/runtime-adjacent evidence only for `LM_DEFAULT` and `LM_END_SWITCH`.
-  - Do not spend time on the other six named unsupported ids unless the current asset-backed audit changes.
-  - If no stronger evidence exists, document that clearly instead of inferring operand widths or zero-byte markers from names alone.
+- Add a dedicated interior background surface.
+  - Introduce a stable `game_data` facade for interior background decoding, following the same public-surface pattern used for `scene.zig`.
+  - Add `zig build tool -- inspect-background <entry-index> [--json]` as the canonical CLI for this slice, where `<entry-index>` is the classic `LBA_BKG.HQR[...]` index for the requested interior cube/background target.
+  - Keep the scene and background inspection surfaces separate; do not stuff background decoding into `inspect-scene`.
 
-- Keep the product boundary honest.
-  - Do not widen `inspect-scene`, `SceneProgramBlob`, or parser-owned scene state.
-  - Do not change `audit-life-programs` output shape or selection behavior as part of this slice.
-  - Do not add compatibility skipping for unsupported ids just to continue decoding later bytes.
-  - Keep `LM_DEFAULT` and `LM_END_SWITCH` explicitly unsupported unless the same diff adds concrete structural evidence.
+- Decode source-backed interior metadata only.
+  - Materialize `T_BKG_HEADER` from classic entry `0`, the `TabAllCube` indirection entry, the selected `T_GRI_HEADER`, and the selected `BLL` linkage for the requested interior background entry.
+  - Expose structural facts that are already source-backed, such as remapped cube id, selected `GRI`/`BLL`/`GRM` indices, the used-block bitset summary, and the expected `64 x 64` column table shape.
+  - Treat raw HQR entry bytes as the canonical input and fail fast on truncation, inconsistent offsets, or unsupported interior shapes.
+  - Prove the locked canonical pair `SCENE.HQR[2]` / `LBA_BKG.HQR[2]` for this slice, but do not widen the work into a general scene-to-background mapping layer.
 
-- Refresh durable docs after the evidence pass lands.
-  - Update `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md` with the switch-family conclusion.
-  - Update `docs/PROMPT.md` again only after that conclusion changes the next boundary.
-  - Update `docs/codex_memory/handoff.md`, append a task event, and append a decision record if the supported/unsupported boundary changes or is reaffirmed.
-  - Run `python3 tools/codex_memory.py validate` after the memory/doc updates.
+- Keep the slice intentionally narrower than a viewer.
+  - Do not implement exterior `.ILE` / `.OBL` loading.
+  - Do not implement brick raster decoding, mask generation, GRM redraw behavior, or SDL rendering in this slice unless a tiny amount of structural decoding is strictly required for metadata correctness.
+  - Do not guess hero or object `BODY.HQR` / `ANIM.HQR` bindings from scene `2`.
+  - Do not revisit `life_program.zig`, `life_audit.zig`, or the life-script prompt boundary as part of this work.
 
 ## Test Plan
 
-- Keep `zig build test` as the primary gate.
-- Keep `zig build tool -- audit-life-programs --json --all-scene-entries` as the executable evidence report that proves the narrowed blocker set.
-- Add coverage only if the new evidence changes the supported decoder boundary; otherwise keep the current fail-fast tests and broader audit regressions intact.
+- Keep `zig build test` as the primary validation gate.
+- Add synthetic parser coverage for header, `GRI`, and indirection-table truncation or shape failures.
+- Add an asset-backed regression on the canonical interior pair so the new CLI proves the scene/background linkage on the current asset tree.
 - Acceptance commands:
   - `zig build test`
-  - `zig build tool -- audit-life-programs --json --all-scene-entries`
-  - `zig build tool -- inspect-scene 2 --json`
+  - `zig build tool -- inspect-background 2 --json`
+  - `zig build tool -- inspect-scene 2 --json` as a cross-check only; do not merge background decoding into the scene CLI surface.
 
 ## Assumptions
 
-- The full-archive audit already answered the broad inventory question: only `LM_DEFAULT` and `LM_END_SWITCH` are current real-asset blockers.
-- Checked-in classic source still outranks header names and previous summaries if they drift, and the latest source pass did not prove `LM_DEFAULT` or `LM_END_SWITCH`.
-- Raw `life_bytes` remain the canonical source of truth until unsupported real-asset life cases are either structurally proven or deliberately kept outside the product boundary.
-- The local acceptance gate is still environment-dependent: `zig build test`, `audit-life-programs`, and `inspect-scene` depend on the canonical extracted asset tree and the repo-local SDL2 layout on this machine.
+- The canonical extracted asset tree still contains the checked-in `SCENE.HQR` / `LBA_BKG.HQR` pair used by phase 0.
+- `docs/phase0/golden_targets.md`, `reference/lba2-classic/SOURCES/GRILLE.CPP`, `reference/lba2-classic/SOURCES/DISKFUNC.CPP`, `reference/lba2-classic/SOURCES/INTEXT.CPP`, and `reference/lba2-classic/SOURCES/DEFINES.H` remain the primary evidence boundary for this slice.
+- The first interior background decoder only needs typed metadata and linkage; full viewer rendering, exterior terrain, and actor visual binding are separate later slices.
+- The local acceptance gate is still environment-dependent: `zig build test`, `inspect-background`, and `inspect-scene` depend on the canonical extracted asset tree and the repo-local SDL2 layout on this machine.

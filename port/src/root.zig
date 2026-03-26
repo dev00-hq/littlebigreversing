@@ -14,6 +14,7 @@ pub const assets = struct {
 };
 
 pub const game_data = struct {
+    pub const background = @import("game_data/background.zig");
     pub const scene = @import("game_data/scene.zig");
 };
 
@@ -26,6 +27,7 @@ pub const AssetCatalogEntry = assets.catalog.AssetCatalogEntry;
 pub const HqrArchive = assets.hqr.HqrArchive;
 pub const HqrEntry = assets.hqr.HqrEntry;
 pub const FixtureManifestEntry = assets.fixtures.FixtureManifestEntry;
+pub const BackgroundMetadata = game_data.background.BackgroundMetadata;
 pub const SceneMetadata = game_data.scene.SceneMetadata;
 pub const SceneZone = game_data.scene.SceneZone;
 pub const ZoneType = game_data.scene.ZoneType;
@@ -39,6 +41,7 @@ test {
     _ = @import("assets/catalog.zig");
     _ = @import("assets/hqr.zig");
     _ = @import("assets/fixtures.zig");
+    _ = @import("game_data/background.zig");
     _ = @import("game_data/scene.zig");
     _ = @import("tools/cli.zig");
 }
