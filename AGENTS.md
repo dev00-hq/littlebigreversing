@@ -38,9 +38,9 @@
 - The role of the `ISSUES.md` file is to describe common mistakes and confusion points that the agents might encounter as they work in this project. If you ever counter something in the project that surprises you, please alert the developer working with you and indicate that this is the case in the ISSUES.md file tp help future agents from having the same issue.
 
 # Shell specific tools
-- Run `pwsh -c 'Write-Host "PowerShell"' 2>$null || echo "Bash"` to know wether we are on powershell or bash
+- Run `pwsh -c 'Write-Host "PowerShell"' 2>$null || echo "Linux Bash"` to know wether we are on powershell or linux bash
 
-## On Bash
+## On Linux Bash
 - Prefer these tools: ripgrep (rg), ast-grep (sg), jq (json processor), fzf (fuzzy finder)
 
 ## On Powershell
