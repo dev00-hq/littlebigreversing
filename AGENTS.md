@@ -36,3 +36,15 @@
 
 # Issues logging
 - The role of the `ISSUES.md` file is to describe common mistakes and confusion points that the agents might encounter as they work in this project. If you ever counter something in the project that surprises you, please alert the developer working with you and indicate that this is the case in the ISSUES.md file tp help future agents from having the same issue.
+
+# Shell specific tools
+- Run `pwsh -c 'Write-Host "PowerShell"' 2>$null || echo "Bash"` to know wether we are on powershell or bash
+
+## On Bash
+- Prefer these tools: ripgrep (rg), ast-grep (sg), jq (json processor), fzf (fuzzy finder)
+
+## On Powershell
+- Prefer the bundled bash helpers (`bash -lc`) when invoking shell commands; always set the `workdir` parameter.
+- Use rg/rg --files for searches; fall back only if unavailable.
+- Use the `apply_patch` to edit files, fallback to sed.
+- Use jq for json processing
