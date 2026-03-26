@@ -29,3 +29,4 @@ vcpkg_installed/
 zig-out/
 port/.zig-cache/
 port/zig-out/
+.old_memory/
