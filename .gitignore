@@ -17,7 +17,6 @@ reference/littlebigreversing/mbn_tools/*/
 dist/
 work/_innoextract_full/
 work/_installer_extract/
-work/codex_memory/
 work/mbn_workbench/
 work/phase0/
 work/port/

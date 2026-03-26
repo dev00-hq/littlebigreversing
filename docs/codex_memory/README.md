@@ -1,42 +1,39 @@
 # Codex Memory
 
-This directory is the canonical repo-scoped memory for Codex work in this repository.
-
 ## Workflow
 
-1. Read `project_brief.md`, `current_focus.md`, and `handoff.md` before major work, or run `python3 tools/codex_memory.py context`.
-2. Record durable conclusions in `decision_log.jsonl`.
-3. Record meaningful task checkpoints in `task_log.jsonl`.
-4. Keep `handoff.md` current enough that a new Codex session can resume work without rereading the full repo.
-5. Rebuild generated retrieval state with `python3 tools/codex_memory.py build-index`.
+1. Read `project_brief.md` and `current_focus.md` at task start.
+2. Load only the subsystem packs needed for the task, or use `python3 tools/codex_memory.py context --path ...`.
+3. Use typed JSONL history only when current state or a blocked question needs durable history.
+4. Update `current_focus.md` only when active repo status changes, and append typed records for durable conclusions, blockers, or task state.
+5. If a new recurring repo trap is discovered, update `ISSUES.md` and keep the architecture subsystem pack consistent with it.
 
 ## Commands
 
 ```bash
 python3 tools/codex_memory.py validate
 python3 tools/codex_memory.py context
-python3 tools/codex_memory.py add-decision \
-  --topic codex-memory \
-  --status accepted \
-  --statement "Keep canonical memory under docs/codex_memory and derived state under work/codex_memory." \
-  --rationale "Matches the repo's existing docs/work split and keeps memory rebuildable." \
-  --evidence-ref docs/PORTING_REPORT.md \
-  --affected-path docs/codex_memory \
-  --affected-path tools/codex_memory.py
-python3 tools/codex_memory.py add-task-event \
-  --task-id codex-memory-bootstrap \
-  --title "Bootstrap repo memory system" \
-  --status completed \
-  --summary "Created the initial memory docs, CLI, and validation flow." \
-  --next-action "Use the memory workflow on the next substantive task."
-python3 tools/codex_memory.py build-index
-python3 tools/codex_memory.py refresh-handoff
+python3 tools/codex_memory.py context --path port/src/game_data/background/parser.zig --include-history 3
+python3 tools/codex_memory.py add-policy --topic memory-workflow --status accepted --statement "Use only the v2 memory tree." --rationale "The repo cut over in place." --evidence-ref docs/codex_memory/README.md --affected-path docs/codex_memory/README.md
+python3 tools/codex_memory.py add-fact --subsystem life_scripts --status current --fact "Only LM_DEFAULT and LM_END_SWITCH block current real-asset life decoding." --rationale "The full-archive audit found no other unsupported life ids in the current asset tree." --evidence-ref docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md --affected-path docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md
+python3 tools/codex_memory.py add-investigation --subsystem life_scripts --status blocked --question "How should LM_DEFAULT and LM_END_SWITCH be handled?" --current-best-answer "Keep them outside the supported decoder until stronger checked-in evidence appears or the product boundary rejects them." --confidence high --next-probe "Revisit only if source evidence or canonical assets change." --evidence-ref docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md --affected-path port/src/game_data/scene/life_program.zig
+python3 tools/codex_memory.py add-compat-event --subsystem architecture --status removed --title "Retire v1 memory tree" --summary "Removed handoff.md, mixed logs, and generated mirrors from the canonical design." --evidence-ref tools/codex_memory.py --affected-path tools/codex_memory.py
+python3 tools/codex_memory.py add-task-event --stream viewer-prep --status blocked --summary "Scene-surface life integration remains blocked on switch-family evidence." --next-action "Keep life work on explicit evidence probes or deliberate rejection only." --evidence-ref docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md --affected-path port/src/game_data/scene/life_program.zig
 ```
 
 ## Write Rules
 
-- `project_brief.md`, `current_focus.md`, and `handoff.md` are compact Markdown intended for humans and Codex.
-- `decision_log.jsonl` and `task_log.jsonl` are append-only structured records.
-- Generated state under `work/codex_memory/` is never canonical.
-- Schema/version mismatches should fail fast instead of falling back.
-- This system is repo-scoped only. Do not store cross-repo personal memory or chat transcripts here.
+- `project_brief.md` and `current_focus.md` are the only always-loaded Markdown files.
+- Subsystem packs own durable current-state truth for their subsystem; do not turn them into append-only changelogs.
+- Typed JSONL files are the only structured history layer.
+- `ISSUES.md` is a companion trap log, not a replacement for packs or typed history; keep it linked through the architecture subsystem.
+- All paths in JSONL records must be repo-relative and schema-valid.
+- Do not restore `handoff.md`, `decision_log.jsonl`, `task_log.jsonl`, or `work/codex_memory/`.
+
+## Budgets
+
+- `project_brief.md`: `<= 2 KB`
+- `current_focus.md`: `<= 3 KB`
+- each subsystem pack: `<= 4 KB`
+- summary-like JSONL fields: `<= 240` chars
+- `rationale` and `current_best_answer`: `<= 600` chars

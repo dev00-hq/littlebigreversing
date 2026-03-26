@@ -5,88 +5,117 @@ import argparse
 import hashlib
 import json
 import re
-import sqlite3
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
-
-SCHEMA_VERSION = "codex-memory-v1"
-DECISION_STATUSES = {"accepted", "proposed", "provisional", "rejected", "superseded"}
-TASK_STATUSES = {"planned", "in_progress", "blocked", "completed", "cancelled"}
-
+SCHEMA_VERSION = "codex-memory-v2"
 DEFAULT_REPO_ROOT = Path(__file__).resolve().parent.parent
-
-MARKDOWN_SPECS: dict[str, tuple[str, ...]] = {
-    "README.md": ("Workflow", "Commands", "Write Rules"),
-    "project_brief.md": ("Purpose", "Repo Map", "Canonical Sources", "Invariants", "Non-Goals"),
-    "current_focus.md": ("Current Priorities", "Active Streams", "Blocked Items", "Next Actions"),
-    "handoff.md": ("Current State", "Verified Facts", "Open Risks", "Next 3 Steps"),
+EXPECTED_SUBSYSTEMS = (
+    "assets",
+    "mbn_corpus",
+    "phase0_baseline",
+    "scene_decode",
+    "life_scripts",
+    "backgrounds",
+    "platform_windows",
+    "platform_linux",
+    "architecture",
+)
+MARKDOWN_SPECS = {
+    "README.md": (("Workflow", "Commands", "Write Rules", "Budgets"), None),
+    "project_brief.md": (("Purpose", "Repo Map", "Canonical Sources", "Invariants", "Non-Goals"), 2048),
+    "current_focus.md": (
+        ("Current Priorities", "Active Streams", "Blocked Items", "Next Actions", "Relevant Subsystem Packs"),
+        3072,
+    ),
 }
-
-DECISION_REQUIRED_FIELDS = (
-    "schema_version",
-    "decision_id",
-    "timestamp_utc",
-    "topic",
-    "status",
-    "statement",
-    "rationale",
-    "evidence_refs",
-    "affected_paths",
-    "supersedes",
-    "author",
+INDEX_SECTIONS = ("Pack List", "Path Mapping Rules")
+SUBSYSTEM_SECTIONS = (
+    "Purpose",
+    "Invariants",
+    "Current Parity Status",
+    "Known Traps",
+    "Canonical Entry Points",
+    "Important Files",
+    "Test / Probe Commands",
+    "Open Unknowns",
 )
-TASK_REQUIRED_FIELDS = (
-    "schema_version",
-    "event_id",
-    "timestamp_utc",
-    "task_id",
-    "title",
-    "status",
-    "summary",
-    "next_actions",
-    "affected_paths",
-    "author",
+SUBSYSTEM_BUDGET = 4096
+HISTORY_FILES = (
+    "policies.jsonl",
+    "subsystem_facts.jsonl",
+    "investigations.jsonl",
+    "compat_events.jsonl",
+    "task_events.jsonl",
 )
+OBSOLETE_PATHS = (
+    "docs/codex_memory/handoff.md",
+    "docs/codex_memory/decision_log.jsonl",
+    "docs/codex_memory/task_log.jsonl",
+    "work/codex_memory",
+)
+STATUSES = {
+    "policies": {"accepted", "active", "superseded", "rejected"},
+    "subsystem_facts": {"current", "provisional", "superseded", "rejected"},
+    "investigations": {"open", "blocked", "resolved", "rejected"},
+    "compat_events": {"active", "retired", "removed"},
+    "task_events": {"planned", "in_progress", "blocked", "completed", "cancelled"},
+}
+ID_FIELDS = {
+    "policies": ("topic", "statement"),
+    "subsystem_facts": ("subsystem", "fact"),
+    "investigations": ("subsystem", "question"),
+    "compat_events": ("subsystem", "title"),
+    "task_events": ("stream", "summary"),
+}
+PREFIXES = {
+    "policies": "policy",
+    "subsystem_facts": "fact",
+    "investigations": "investigation",
+    "compat_events": "compat",
+    "task_events": "task",
+}
+FIELD_RULES = {
+    "policies": {"required": ("status", "topic", "statement", "rationale", "supersedes"), "short": ("topic", "statement"), "long": ("rationale",), "list": ("supersedes",)},
+    "subsystem_facts": {"required": ("subsystem", "status", "fact", "rationale", "supersedes"), "short": ("fact",), "long": ("rationale",), "list": ("supersedes",)},
+    "investigations": {"required": ("subsystem", "status", "question", "current_best_answer", "confidence", "next_probe"), "short": ("question", "next_probe"), "long": ("current_best_answer",), "list": ()},
+    "compat_events": {"required": ("subsystem", "status", "title", "summary"), "short": ("title", "summary"), "long": (), "list": ()},
+    "task_events": {"required": ("stream", "status", "summary", "next_actions"), "short": ("stream", "summary"), "long": (), "list": ("next_actions",)},
+}
+COMMON_FIELDS = ("schema_version", "record_id", "timestamp_utc", "author", "affected_paths", "evidence_refs")
 
 
 @dataclass(frozen=True)
 class MemoryPaths:
     repo_root: Path
     docs_dir: Path
-    work_dir: Path
-    db_path: Path
-    handoff_summary_path: Path
+    subsystem_dir: Path
 
     @classmethod
     def defaults(cls, repo_root: Path = DEFAULT_REPO_ROOT) -> "MemoryPaths":
         repo_root = repo_root.resolve()
         docs_dir = repo_root / "docs" / "codex_memory"
-        work_dir = repo_root / "work" / "codex_memory"
-        return cls(
-            repo_root=repo_root,
-            docs_dir=docs_dir,
-            work_dir=work_dir,
-            db_path=work_dir / "codex_memory.sqlite3",
-            handoff_summary_path=work_dir / "handoff_summary.md",
-        )
+        return cls(repo_root=repo_root, docs_dir=docs_dir, subsystem_dir=docs_dir / "subsystems")
 
-    @property
-    def decision_log(self) -> Path:
-        return self.docs_dir / "decision_log.jsonl"
+    def history_path(self, filename: str) -> Path:
+        return self.docs_dir / filename
 
-    @property
-    def task_log(self) -> Path:
-        return self.docs_dir / "task_log.jsonl"
+    def subsystem_path(self, name: str) -> Path:
+        return self.subsystem_dir / f"{name}.md"
 
 
-def utc_now(timestamp: str | None = None) -> str:
-    if timestamp:
-        return parse_timestamp(timestamp)
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+@dataclass(frozen=True)
+class Rule:
+    subsystem: str
+    path: str
+
+    def is_prefix(self) -> bool:
+        return self.path.endswith("/")
+
+    def matches(self, repo_path: str) -> bool:
+        return repo_path.startswith(self.path) if self.is_prefix() else repo_path == self.path
 
 
 def parse_timestamp(value: str) -> str:
@@ -99,197 +128,146 @@ def parse_timestamp(value: str) -> str:
     return parsed.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def compact_timestamp(value: str) -> str:
-    return value.replace("-", "").replace(":", "").replace("+00:00", "Z").replace(".", "")
+def utc_now(value: str | None) -> str:
+    return parse_timestamp(value) if value else datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def stable_hash(payload: Any) -> str:
-    normalized = json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
-    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+def stable_hash(payload) -> str:
+    text = json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def slugify(value: str) -> str:
-    slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
-    return slug or "record"
+def make_id(kind: str, timestamp_utc: str, stable_fields: dict[str, str]) -> str:
+    compact = timestamp_utc.replace("-", "").replace(":", "").replace("+00:00", "Z")
+    return f"{PREFIXES[kind]}-{compact}-{stable_hash(stable_fields)[:10]}"
 
 
-def normalize_path_strings(values: list[str]) -> list[str]:
-    normalized: list[str] = []
-    for raw in values:
-        candidate = raw.strip().replace("\\", "/")
-        if not candidate:
-            raise ValueError("path values must not be empty")
-        path = Path(candidate)
-        if path.is_absolute():
-            raise ValueError(f"path must be repo-relative, not absolute: {raw}")
-        parts = path.parts
-        if any(part == ".." for part in parts):
-            raise ValueError(f"path must stay inside repo: {raw}")
-        normalized.append(path.as_posix())
-    return normalized
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
 
 
-def normalize_string_list(values: list[str], field_name: str) -> list[str]:
-    normalized = [value.strip() for value in values if value.strip()]
-    if len(normalized) != len([value for value in values if value is not None]):
-        raise ValueError(f"{field_name} must not contain empty values")
-    return normalized
+def normalize_text(value: str, field_name: str, max_len: int = 240) -> str:
+    value = value.strip()
+    if not value:
+        raise ValueError(f"{field_name} must be a non-empty string")
+    if len(value) > max_len:
+        raise ValueError(f"{field_name} exceeds {max_len} characters")
+    return value
 
 
-def make_decision_id(topic: str, statement: str, timestamp_utc: str) -> str:
-    digest = stable_hash({"topic": topic, "statement": statement})[:10]
-    return f"decision-{compact_timestamp(timestamp_utc)}-{digest}"
+def normalize_path(value: str) -> str:
+    value = value.strip().replace("\\", "/")
+    had_trailing_slash = value.endswith("/")
+    if not value:
+        raise ValueError("path values must not be empty")
+    path = Path(value)
+    if path.is_absolute():
+        raise ValueError(f"path must be repo-relative, not absolute: {value}")
+    if any(part == ".." for part in path.parts):
+        raise ValueError(f"path must stay inside repo: {value}")
+    value = path.as_posix()
+    return f"{value}/" if had_trailing_slash and not value.endswith("/") else value
 
 
-def make_task_event_id(task_id: str, summary: str, timestamp_utc: str) -> str:
-    digest = stable_hash({"task_id": task_id, "summary": summary})[:10]
-    return f"task-{compact_timestamp(timestamp_utc)}-{digest}"
+def normalize_paths(values: list[str]) -> list[str]:
+    result = []
+    for value in values:
+        result.append(normalize_path(value))
+    return result
 
 
-def write_if_missing(path: Path, content: str) -> None:
-    if not path.exists():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content, encoding="utf-8")
+def normalize_list(values: list[str], field_name: str) -> list[str]:
+    return [normalize_text(value, field_name) for value in values]
 
 
-def generic_templates(paths: MemoryPaths) -> dict[str, str]:
-    repo_name = paths.repo_root.name
-    return {
-        "README.md": """# Codex Memory
-
-## Workflow
-
-1. Read the canonical memory docs or run `python3 tools/codex_memory.py context`.
-2. Record durable conclusions in `decision_log.jsonl`.
-3. Record meaningful task checkpoints in `task_log.jsonl`.
-4. Rebuild generated state with `python3 tools/codex_memory.py build-index`.
-
-## Commands
-
-```bash
-python3 tools/codex_memory.py validate
-python3 tools/codex_memory.py context
-python3 tools/codex_memory.py build-index
-python3 tools/codex_memory.py refresh-handoff
-```
-
-## Write Rules
-
-- Checked-in memory is canonical.
-- Generated state is rebuildable and non-canonical.
-- Use the current schema version only.
-""",
-        "project_brief.md": f"""# Project Brief
-
-## Purpose
-
-Durable Codex memory for `{repo_name}`.
-
-## Repo Map
-
-- `docs/`: canonical checked-in knowledge
-- `tools/`: local tooling
-- `work/`: generated state
-
-## Canonical Sources
-
-- Add the primary sources of truth here.
-
-## Invariants
-
-- Keep canonical memory in `docs/codex_memory/`.
-- Keep generated memory state in `work/codex_memory/`.
-
-## Non-Goals
-
-- Cross-repo personal memory
-- Automatic migration of older memory schemas
-""",
-        "current_focus.md": """# Current Focus
-
-## Current Priorities
-
-- Keep durable task state out of chat-only context.
-
-## Active Streams
-
-- Fill this in for the repository.
-
-## Blocked Items
-
-- Fill this in when needed.
-
-## Next Actions
-
-- Update this file before major handoffs.
-""",
-        "handoff.md": """# Handoff
-
-## Current State
-
-- Summarize the latest durable repo state.
-
-## Verified Facts
-
-- Add verified facts only.
-
-## Open Risks
-
-- List active risks and sources of uncertainty.
-
-## Next 3 Steps
-
-1. Replace this scaffold with real next steps.
-2. Keep them explicit.
-3. Keep them short.
-""",
-        "decision_log.jsonl": "",
-        "task_log.jsonl": "",
-    }
-
-
-def init_memory(paths: MemoryPaths) -> None:
-    paths.docs_dir.mkdir(parents=True, exist_ok=True)
-    paths.work_dir.mkdir(parents=True, exist_ok=True)
-    templates = generic_templates(paths)
-    for filename, content in templates.items():
-        write_if_missing(paths.docs_dir / filename, content)
-
-
-def extract_h2_sections(content: str) -> dict[str, str]:
-    sections: dict[str, list[str]] = {}
-    current: str | None = None
+def sections(content: str) -> dict[str, str]:
+    result: dict[str, list[str]] = {}
+    current = None
     for line in content.splitlines():
         if line.startswith("## "):
             current = line[3:].strip()
-            sections[current] = []
-            continue
-        if current is not None:
-            sections[current].append(line)
-    return {key: "\n".join(value).strip() for key, value in sections.items()}
+            result[current] = []
+        elif current is not None:
+            result[current].append(line)
+    return {name: "\n".join(lines).strip() for name, lines in result.items()}
 
 
-def validate_markdown_file(path: Path, required_sections: tuple[str, ...]) -> list[str]:
-    errors: list[str] = []
+def validate_markdown(path: Path, required: tuple[str, ...], budget: int | None) -> list[str]:
     if not path.exists():
         return [f"missing file: {path}"]
-    content = path.read_text(encoding="utf-8")
-    if not content.startswith("# "):
-        errors.append(f"{path}: missing top-level heading")
-    sections = extract_h2_sections(content)
-    for section in required_sections:
-        if section not in sections or not sections[section].strip():
-            errors.append(f"{path}: missing or empty ## {section}")
+    content = read_text(path)
+    errors = [] if content.startswith("# ") else [f"{path}: missing top-level heading"]
+    parsed = sections(content)
+    for name in required:
+        if name not in parsed or not parsed[name]:
+            errors.append(f"{path}: missing or empty ## {name}")
+    if budget is not None and len(content.encode("utf-8")) > budget:
+        errors.append(f"{path}: exceeds {budget} byte budget")
     return errors
 
 
-def load_jsonl(path: Path) -> list[dict[str, Any]]:
+def parse_named_bullets(body: str, label: str) -> dict[str, str]:
+    parsed = {}
+    rx = re.compile(r"^- `([a-z0-9_]+)`: (.+)$")
+    for raw in body.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        match = rx.match(line)
+        if not match:
+            raise ValueError(f"{label}: unsupported line format: {raw}")
+        name, value = match.groups()
+        if name in parsed:
+            raise ValueError(f"{label}: duplicate entry for {name}")
+        parsed[name] = value.strip()
+    return parsed
+
+
+def load_index(paths: MemoryPaths) -> tuple[list[str], list[Rule]]:
+    parsed = sections(read_text(paths.subsystem_dir / "INDEX.md"))
+    packs = parse_named_bullets(parsed["Pack List"], "Pack List")
+    mapping = parse_named_bullets(parsed["Path Mapping Rules"], "Path Mapping Rules")
+    rules = []
+    for subsystem, body in mapping.items():
+        if subsystem not in packs:
+            raise ValueError(f"Path Mapping Rules: unknown subsystem {subsystem}")
+        for token in re.findall(r"`([^`]+)`", body):
+            token = token.strip()
+            if not token:
+                raise ValueError("Path Mapping Rules: empty mapping token")
+            token = token.replace("\\", "/")
+            if Path(token).is_absolute() or ".." in Path(token).parts:
+                raise ValueError(f"Path Mapping Rules: invalid repo path {token}")
+            rules.append(Rule(subsystem, token))
+    return list(packs.keys()), rules
+
+
+def rule_overlap(left: Rule, right: Rule) -> bool:
+    if left.subsystem == right.subsystem:
+        return False
+    if left.path == right.path:
+        return True
+    if left.is_prefix() and right.is_prefix():
+        return left.path.startswith(right.path) or right.path.startswith(left.path)
+    if left.is_prefix():
+        return right.path.startswith(left.path)
+    if right.is_prefix():
+        return left.path.startswith(right.path)
+    return False
+
+
+def resolve_subsystems(repo_path: str, rules: list[Rule]) -> list[str]:
+    repo_path = normalize_path(repo_path)
+    return sorted({rule.subsystem for rule in rules if rule.matches(repo_path)})
+
+
+def load_jsonl(path: Path) -> list[tuple[int, dict]]:
     if not path.exists():
         raise ValueError(f"missing file: {path}")
-    records: list[dict[str, Any]] = []
+    rows = []
     with path.open(encoding="utf-8") as handle:
-        for line_no, raw_line in enumerate(handle, start=1):
-            line = raw_line.strip()
+        for line_no, raw in enumerate(handle, start=1):
+            line = raw.strip()
             if not line:
                 continue
             try:
@@ -298,473 +276,435 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
                 raise ValueError(f"{path}:{line_no}: invalid JSON: {exc.msg}") from exc
             if not isinstance(payload, dict):
                 raise ValueError(f"{path}:{line_no}: record must be an object")
-            records.append(payload)
-    return records
+            rows.append((line_no, payload))
+    return rows
 
 
-def validate_decision_record(record: dict[str, Any], path: Path, line_no: int) -> list[str]:
-    errors: list[str] = []
-    for field_name in DECISION_REQUIRED_FIELDS:
-        if field_name not in record:
-            errors.append(f"{path}:{line_no}: missing field {field_name}")
+def validate_record(kind: str, record: dict, path: Path, line_no: int, subsystems: set[str]) -> list[str]:
+    errors = []
+    for field in COMMON_FIELDS + FIELD_RULES[kind]["required"]:
+        if field not in record:
+            errors.append(f"{path}:{line_no}: missing field {field}")
     if errors:
         return errors
     if record["schema_version"] != SCHEMA_VERSION:
         errors.append(f"{path}:{line_no}: unsupported schema_version {record['schema_version']}")
-    if record["status"] not in DECISION_STATUSES:
-        errors.append(f"{path}:{line_no}: unsupported decision status {record['status']}")
-    for field_name in ("evidence_refs", "affected_paths", "supersedes"):
-        if not isinstance(record[field_name], list) or any(not isinstance(item, str) or not item.strip() for item in record[field_name]):
-            errors.append(f"{path}:{line_no}: {field_name} must be a list of non-empty strings")
-    if not isinstance(record["statement"], str) or not record["statement"].strip():
-        errors.append(f"{path}:{line_no}: statement must be a non-empty string")
-    if not isinstance(record["rationale"], str) or not record["rationale"].strip():
-        errors.append(f"{path}:{line_no}: rationale must be a non-empty string")
     try:
         parse_timestamp(record["timestamp_utc"])
     except ValueError as exc:
         errors.append(f"{path}:{line_no}: {exc}")
-    expected_id = make_decision_id(record["topic"], record["statement"], record["timestamp_utc"])
-    if record["decision_id"] != expected_id:
-        errors.append(f"{path}:{line_no}: decision_id does not match canonical form {expected_id}")
-    return errors
-
-
-def validate_task_record(record: dict[str, Any], path: Path, line_no: int) -> list[str]:
-    errors: list[str] = []
-    for field_name in TASK_REQUIRED_FIELDS:
-        if field_name not in record:
-            errors.append(f"{path}:{line_no}: missing field {field_name}")
-    if errors:
-        return errors
-    if record["schema_version"] != SCHEMA_VERSION:
-        errors.append(f"{path}:{line_no}: unsupported schema_version {record['schema_version']}")
-    if record["status"] not in TASK_STATUSES:
-        errors.append(f"{path}:{line_no}: unsupported task status {record['status']}")
-    for field_name in ("next_actions", "affected_paths"):
-        if not isinstance(record[field_name], list) or any(not isinstance(item, str) or not item.strip() for item in record[field_name]):
-            errors.append(f"{path}:{line_no}: {field_name} must be a list of non-empty strings")
-    if not isinstance(record["summary"], str) or not record["summary"].strip():
-        errors.append(f"{path}:{line_no}: summary must be a non-empty string")
-    try:
-        parse_timestamp(record["timestamp_utc"])
-    except ValueError as exc:
-        errors.append(f"{path}:{line_no}: {exc}")
-    expected_id = make_task_event_id(record["task_id"], record["summary"], record["timestamp_utc"])
-    if record["event_id"] != expected_id:
-        errors.append(f"{path}:{line_no}: event_id does not match canonical form {expected_id}")
-    return errors
-
-
-def validate_jsonl_file(path: Path, validator: Any) -> list[str]:
-    errors: list[str] = []
-    if not path.exists():
-        return [f"missing file: {path}"]
-    with path.open(encoding="utf-8") as handle:
-        for line_no, raw_line in enumerate(handle, start=1):
-            line = raw_line.strip()
-            if not line:
+    for field in ("author",):
+        try:
+            normalize_text(record[field], field, 80)
+        except ValueError as exc:
+            errors.append(f"{path}:{line_no}: {exc}")
+    for field in ("affected_paths", "evidence_refs"):
+        if not isinstance(record[field], list):
+            errors.append(f"{path}:{line_no}: {field} must be a list")
+            continue
+        for item in record[field]:
+            if not isinstance(item, str):
+                errors.append(f"{path}:{line_no}: {field} must contain only strings")
                 continue
             try:
-                record = json.loads(line)
-            except json.JSONDecodeError as exc:
-                errors.append(f"{path}:{line_no}: invalid JSON: {exc.msg}")
+                normalize_path(item)
+            except ValueError as exc:
+                errors.append(f"{path}:{line_no}: {exc}")
+    for field in FIELD_RULES[kind]["short"]:
+        try:
+            normalize_text(record[field], field)
+        except ValueError as exc:
+            errors.append(f"{path}:{line_no}: {exc}")
+    for field in FIELD_RULES[kind]["long"]:
+        try:
+            normalize_text(record[field], field, 600)
+        except ValueError as exc:
+            errors.append(f"{path}:{line_no}: {exc}")
+    for field in FIELD_RULES[kind]["list"]:
+        if not isinstance(record[field], list):
+            errors.append(f"{path}:{line_no}: {field} must be a list")
+            continue
+        for item in record[field]:
+            if not isinstance(item, str):
+                errors.append(f"{path}:{line_no}: {field} must contain only strings")
                 continue
-            if not isinstance(record, dict):
-                errors.append(f"{path}:{line_no}: record must be an object")
-                continue
-            errors.extend(validator(record, path, line_no))
+            try:
+                normalize_text(item, field)
+            except ValueError as exc:
+                errors.append(f"{path}:{line_no}: {exc}")
+    if record["status"] not in STATUSES[kind]:
+        errors.append(f"{path}:{line_no}: unsupported {kind[:-1]} status {record['status']}")
+    if "subsystem" in record and record["subsystem"] not in subsystems:
+        errors.append(f"{path}:{line_no}: unknown subsystem {record['subsystem']}")
+    if kind == "investigations" and record["confidence"] not in {"low", "medium", "high"}:
+        errors.append(f"{path}:{line_no}: unsupported confidence {record['confidence']}")
+    stable_fields = {field: record[field] for field in ID_FIELDS[kind]}
+    expected = make_id(kind, record["timestamp_utc"], stable_fields)
+    if record["record_id"] != expected:
+        errors.append(f"{path}:{line_no}: record_id does not match canonical form {expected}")
     return errors
+
+
+def parse_focus_subsystems(paths: MemoryPaths) -> list[str]:
+    body = sections(read_text(paths.docs_dir / "current_focus.md"))["Relevant Subsystem Packs"]
+    result = []
+    for raw in body.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if not line.startswith("- "):
+            raise ValueError(f"current_focus relevant subsystem line must be a bullet: {raw}")
+        name = line[2:].strip().strip("`")
+        if not re.fullmatch(r"[a-z0-9_]+", name):
+            raise ValueError(f"invalid subsystem name in current_focus: {name}")
+        result.append(name)
+    return result
 
 
 def validate_all(paths: MemoryPaths) -> list[str]:
-    errors: list[str] = []
-    for filename, required_sections in MARKDOWN_SPECS.items():
-        errors.extend(validate_markdown_file(paths.docs_dir / filename, required_sections))
-    errors.extend(validate_jsonl_file(paths.decision_log, validate_decision_record))
-    errors.extend(validate_jsonl_file(paths.task_log, validate_task_record))
+    errors = []
+    for rel in OBSOLETE_PATHS:
+        if (paths.repo_root / rel).exists():
+            errors.append(f"obsolete v1 path still present: {paths.repo_root / rel}")
+    for name, (required, budget) in MARKDOWN_SPECS.items():
+        errors.extend(validate_markdown(paths.docs_dir / name, required, budget))
+    errors.extend(validate_markdown(paths.subsystem_dir / "INDEX.md", INDEX_SECTIONS, None))
+    subsystem_names = sorted(path.stem for path in paths.subsystem_dir.glob("*.md") if path.name != "INDEX.md")
+    subsystem_set = set(subsystem_names)
+    if subsystem_set != set(EXPECTED_SUBSYSTEMS):
+        missing = sorted(set(EXPECTED_SUBSYSTEMS) - subsystem_set)
+        extra = sorted(subsystem_set - set(EXPECTED_SUBSYSTEMS))
+        if missing:
+            errors.append(f"{paths.subsystem_dir}: missing required subsystem packs: {', '.join(missing)}")
+        if extra:
+            errors.append(f"{paths.subsystem_dir}: unexpected subsystem packs: {', '.join(extra)}")
+    for name in subsystem_names:
+        errors.extend(validate_markdown(paths.subsystem_path(name), SUBSYSTEM_SECTIONS, SUBSYSTEM_BUDGET))
+    if errors:
+        return errors
+    try:
+        pack_names, rules = load_index(paths)
+    except ValueError as exc:
+        return [str(exc)]
+    if set(pack_names) != subsystem_set:
+        errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: pack list must match subsystem files exactly")
+    for rule in rules:
+        if not (paths.repo_root / rule.path.rstrip("/")).exists():
+            errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: mapping target does not exist: {rule.path}")
+    for i, left in enumerate(rules):
+        for right in rules[i + 1 :]:
+            if rule_overlap(left, right):
+                errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: ambiguous mapping between {left.subsystem}:{left.path} and {right.subsystem}:{right.path}")
+    try:
+        for name in parse_focus_subsystems(paths):
+            if name not in subsystem_set:
+                errors.append(f"{paths.docs_dir / 'current_focus.md'}: unknown subsystem in Relevant Subsystem Packs: {name}")
+    except ValueError as exc:
+        errors.append(f"{paths.docs_dir / 'current_focus.md'}: {exc}")
+    for filename in HISTORY_FILES:
+        kind = filename.replace(".jsonl", "")
+        try:
+            rows = load_jsonl(paths.history_path(filename))
+        except ValueError as exc:
+            errors.append(str(exc))
+            continue
+        for line_no, record in rows:
+            errors.extend(validate_record(kind, record, paths.history_path(filename), line_no, subsystem_set))
     return errors
 
 
-def read_markdown(path: Path) -> str:
-    return path.read_text(encoding="utf-8").strip()
+def select_subsystems(paths: MemoryPaths, names: list[str], repo_paths: list[str]) -> list[str]:
+    pack_names, rules = load_index(paths)
+    allowed = set(pack_names)
+    selected = []
+    for name in names:
+        name = normalize_text(name, "subsystem")
+        if name not in allowed:
+            raise ValueError(f"unknown subsystem: {name}")
+        if name not in selected:
+            selected.append(name)
+    for repo_path in repo_paths:
+        matches = resolve_subsystems(repo_path, rules)
+        if not matches:
+            raise ValueError(f"no subsystem mapping for path: {repo_path}")
+        if len(matches) > 1:
+            raise ValueError(f"ambiguous subsystem mapping for path {repo_path}: {', '.join(matches)}")
+        if matches[0] not in selected:
+            selected.append(matches[0])
+    return selected
 
 
-def recent_records(path: Path, limit: int) -> list[dict[str, Any]]:
-    records = load_jsonl(path)
-    return records[-limit:]
+def history_entries(paths: MemoryPaths, selected: set[str]) -> list[str]:
+    _, rules = load_index(paths)
+    entries = []
+    for filename in HISTORY_FILES:
+        kind = filename.replace(".jsonl", "")
+        for _, record in load_jsonl(paths.history_path(filename)):
+            relevant = record.get("subsystem") in selected
+            if not relevant:
+                for affected in record.get("affected_paths", []):
+                    if any(name in selected for name in resolve_subsystems(affected, rules)):
+                        relevant = True
+                        break
+            if not relevant:
+                continue
+            if kind == "policies":
+                text = f"{record['topic']}: {record['statement']} ({record['status']})"
+            elif kind == "subsystem_facts":
+                text = f"{record['subsystem']}: {record['fact']} ({record['status']})"
+            elif kind == "investigations":
+                text = f"{record['subsystem']}: {record['question']} ({record['status']}, {record['confidence']})"
+            elif kind == "compat_events":
+                text = f"{record['subsystem']}: {record['title']} ({record['status']})"
+            else:
+                text = f"{record['stream']}: {record['summary']} ({record['status']})"
+            entries.append((record["timestamp_utc"], f"- {record['timestamp_utc']} [{kind}] {text}"))
+    entries.sort(key=lambda item: item[0])
+    return [item[1] for item in entries]
 
 
-def render_context(paths: MemoryPaths, recent_limit: int = 5) -> str:
+def render_context(paths: MemoryPaths, subsystem_names: list[str] | None = None, repo_paths: list[str] | None = None, include_history: int = 0) -> str:
     errors = validate_all(paths)
     if errors:
         raise ValueError("\n".join(errors))
-
-    project_sections = extract_h2_sections(read_markdown(paths.docs_dir / "project_brief.md"))
-    focus_sections = extract_h2_sections(read_markdown(paths.docs_dir / "current_focus.md"))
-    handoff_sections = extract_h2_sections(read_markdown(paths.docs_dir / "handoff.md"))
-    decisions = recent_records(paths.decision_log, recent_limit)
-    tasks = recent_records(paths.task_log, recent_limit)
-
-    lines = [
-        "# Codex Context",
-        "",
-        "## Purpose",
-        project_sections["Purpose"],
-        "",
-        "## Repo Map",
-        project_sections["Repo Map"],
-        "",
-        "## Invariants",
-        project_sections["Invariants"],
-        "",
-        "## Current Priorities",
-        focus_sections["Current Priorities"],
-        "",
-        "## Active Streams",
-        focus_sections["Active Streams"],
-        "",
-        "## Current State",
-        handoff_sections["Current State"],
-        "",
-        "## Open Risks",
-        handoff_sections["Open Risks"],
-        "",
-        "## Next 3 Steps",
-        handoff_sections["Next 3 Steps"],
-        "",
-        "## Recent Decisions",
-    ]
-
-    if decisions:
-        for record in decisions:
-            lines.append(
-                f"- {record['timestamp_utc']} {record['decision_id']}: {record['statement']} ({record['status']})"
-            )
-    else:
-        lines.append("- None recorded.")
-
-    lines.extend(["", "## Recent Task Events"])
-    if tasks:
-        for record in tasks:
-            lines.append(
-                f"- {record['timestamp_utc']} {record['task_id']} / {record['status']}: {record['summary']}"
-            )
-    else:
-        lines.append("- None recorded.")
-
-    return "\n".join(lines).strip() + "\n"
+    subsystem_names = subsystem_names or []
+    repo_paths = repo_paths or []
+    selected = select_subsystems(paths, subsystem_names, repo_paths)
+    parts = [read_text(paths.docs_dir / "project_brief.md").strip(), "", read_text(paths.docs_dir / "current_focus.md").strip()]
+    for name in selected:
+        parts.extend(["", read_text(paths.subsystem_path(name)).strip()])
+    if include_history > 0:
+        targets = set(selected or parse_focus_subsystems(paths))
+        items = history_entries(paths, targets)
+        if items:
+            parts.extend(["", "## Recent History", *items[-include_history:]])
+    return "\n".join(parts).strip() + "\n"
 
 
-def connect_db(db_path: Path) -> sqlite3.Connection:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def build_index(paths: MemoryPaths) -> None:
-    errors = validate_all(paths)
-    if errors:
-        raise ValueError("\n".join(errors))
-
-    conn = connect_db(paths.db_path)
-    try:
-        conn.executescript(
-            """
-            DROP TABLE IF EXISTS documents;
-            DROP TABLE IF EXISTS decisions;
-            DROP TABLE IF EXISTS task_events;
-
-            CREATE TABLE documents (
-                name TEXT PRIMARY KEY,
-                path TEXT NOT NULL,
-                title TEXT NOT NULL,
-                body TEXT NOT NULL
-            );
-
-            CREATE TABLE decisions (
-                decision_id TEXT PRIMARY KEY,
-                timestamp_utc TEXT NOT NULL,
-                topic TEXT NOT NULL,
-                status TEXT NOT NULL,
-                statement TEXT NOT NULL,
-                rationale TEXT NOT NULL,
-                evidence_refs_json TEXT NOT NULL,
-                affected_paths_json TEXT NOT NULL,
-                supersedes_json TEXT NOT NULL,
-                author TEXT NOT NULL
-            );
-
-            CREATE TABLE task_events (
-                event_id TEXT PRIMARY KEY,
-                timestamp_utc TEXT NOT NULL,
-                task_id TEXT NOT NULL,
-                title TEXT NOT NULL,
-                status TEXT NOT NULL,
-                summary TEXT NOT NULL,
-                next_actions_json TEXT NOT NULL,
-                affected_paths_json TEXT NOT NULL,
-                author TEXT NOT NULL
-            );
-            """
-        )
-
-        for filename in MARKDOWN_SPECS:
-            path = paths.docs_dir / filename
-            body = read_markdown(path)
-            title = body.splitlines()[0].lstrip("# ").strip()
-            conn.execute(
-                """
-                INSERT INTO documents(name, path, title, body)
-                VALUES (?, ?, ?, ?)
-                """,
-                (filename, path.relative_to(paths.repo_root).as_posix(), title, body),
-            )
-
-        for record in load_jsonl(paths.decision_log):
-            conn.execute(
-                """
-                INSERT INTO decisions(
-                    decision_id, timestamp_utc, topic, status, statement, rationale,
-                    evidence_refs_json, affected_paths_json, supersedes_json, author
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    record["decision_id"],
-                    record["timestamp_utc"],
-                    record["topic"],
-                    record["status"],
-                    record["statement"],
-                    record["rationale"],
-                    json.dumps(record["evidence_refs"], ensure_ascii=True, sort_keys=True),
-                    json.dumps(record["affected_paths"], ensure_ascii=True, sort_keys=True),
-                    json.dumps(record["supersedes"], ensure_ascii=True, sort_keys=True),
-                    record["author"],
-                ),
-            )
-
-        for record in load_jsonl(paths.task_log):
-            conn.execute(
-                """
-                INSERT INTO task_events(
-                    event_id, timestamp_utc, task_id, title, status, summary,
-                    next_actions_json, affected_paths_json, author
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    record["event_id"],
-                    record["timestamp_utc"],
-                    record["task_id"],
-                    record["title"],
-                    record["status"],
-                    record["summary"],
-                    json.dumps(record["next_actions"], ensure_ascii=True, sort_keys=True),
-                    json.dumps(record["affected_paths"], ensure_ascii=True, sort_keys=True),
-                    record["author"],
-                ),
-            )
-        conn.commit()
-    finally:
-        conn.close()
-
-
-def append_jsonl_record(path: Path, record: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+def append_record(path: Path, record: dict) -> None:
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(record, ensure_ascii=True, sort_keys=True))
         handle.write("\n")
 
 
-def add_decision(
-    paths: MemoryPaths,
-    *,
-    topic: str,
-    status: str,
-    statement: str,
-    rationale: str,
-    evidence_refs: list[str],
-    affected_paths: list[str],
-    supersedes: list[str],
-    author: str,
-    timestamp: str | None,
-) -> dict[str, Any]:
-    if status not in DECISION_STATUSES:
-        raise ValueError(f"unsupported decision status: {status}")
+def build_record(paths: MemoryPaths, kind: str, timestamp: str | None, author: str, affected_paths: list[str], evidence_refs: list[str], **fields) -> dict:
     timestamp_utc = utc_now(timestamp)
     record = {
         "schema_version": SCHEMA_VERSION,
-        "decision_id": make_decision_id(topic, statement, timestamp_utc),
         "timestamp_utc": timestamp_utc,
-        "topic": topic.strip(),
-        "status": status,
-        "statement": statement.strip(),
-        "rationale": rationale.strip(),
-        "evidence_refs": normalize_string_list(evidence_refs, "evidence_refs"),
-        "affected_paths": normalize_path_strings(affected_paths),
-        "supersedes": normalize_string_list(supersedes, "supersedes"),
-        "author": author.strip(),
+        "author": normalize_text(author, "author", 80),
+        "affected_paths": normalize_paths(affected_paths),
+        "evidence_refs": normalize_paths(evidence_refs),
+        **fields,
     }
-    errors = validate_decision_record(record, paths.decision_log, 1)
-    if errors:
-        raise ValueError("\n".join(errors))
-    append_jsonl_record(paths.decision_log, record)
+    stable = {field: record[field] for field in ID_FIELDS[kind]}
+    record["record_id"] = make_id(kind, timestamp_utc, stable)
     return record
 
 
-def add_task_event(
-    paths: MemoryPaths,
-    *,
-    task_id: str,
-    title: str,
-    status: str,
-    summary: str,
-    next_actions: list[str],
-    affected_paths: list[str],
-    author: str,
-    timestamp: str | None,
-) -> dict[str, Any]:
-    if status not in TASK_STATUSES:
-        raise ValueError(f"unsupported task status: {status}")
-    timestamp_utc = utc_now(timestamp)
-    normalized_task_id = slugify(task_id)
-    record = {
-        "schema_version": SCHEMA_VERSION,
-        "event_id": make_task_event_id(normalized_task_id, summary, timestamp_utc),
-        "timestamp_utc": timestamp_utc,
-        "task_id": normalized_task_id,
-        "title": title.strip(),
-        "status": status,
-        "summary": summary.strip(),
-        "next_actions": normalize_string_list(next_actions, "next_actions"),
-        "affected_paths": normalize_path_strings(affected_paths),
-        "author": author.strip(),
-    }
-    errors = validate_task_record(record, paths.task_log, 1)
+def write_record(paths: MemoryPaths, filename: str, record: dict) -> dict:
+    errors = validate_all(paths)
     if errors:
         raise ValueError("\n".join(errors))
-    append_jsonl_record(paths.task_log, record)
+    kind = filename.replace(".jsonl", "")
+    record_errors = validate_record(kind, record, paths.history_path(filename), 1, set(load_index(paths)[0]))
+    if record_errors:
+        raise ValueError("\n".join(record_errors))
+    append_record(paths.history_path(filename), record)
     return record
 
 
-def refresh_handoff_summary(paths: MemoryPaths, recent_limit: int = 5) -> Path:
-    context = render_context(paths, recent_limit=recent_limit)
-    lines = context.splitlines()
-    summary_lines = ["# Derived Handoff Summary", "", "Generated from canonical memory files.", ""]
-    summary_lines.extend(lines[2:])
-    paths.handoff_summary_path.parent.mkdir(parents=True, exist_ok=True)
-    paths.handoff_summary_path.write_text("\n".join(summary_lines).strip() + "\n", encoding="utf-8")
-    return paths.handoff_summary_path
+def add_policy(paths: MemoryPaths, *, topic: str, status: str, statement: str, rationale: str, supersedes: list[str], evidence_refs: list[str], affected_paths: list[str], author: str, timestamp: str | None) -> dict:
+    if status not in STATUSES["policies"]:
+        raise ValueError(f"unsupported policy status: {status}")
+    record = build_record(
+        paths,
+        "policies",
+        timestamp,
+        author,
+        affected_paths,
+        evidence_refs,
+        status=status,
+        topic=normalize_text(topic, "topic", 120),
+        statement=normalize_text(statement, "statement"),
+        rationale=normalize_text(rationale, "rationale", 600),
+        supersedes=normalize_list(supersedes, "supersedes"),
+    )
+    return write_record(paths, "policies.jsonl", record)
 
 
-def print_errors(errors: list[str]) -> int:
-    for error in errors:
-        print(error, file=sys.stderr)
-    return 1
+def add_fact(paths: MemoryPaths, *, subsystem: str, status: str, fact: str, rationale: str, supersedes: list[str], evidence_refs: list[str], affected_paths: list[str], author: str, timestamp: str | None) -> dict:
+    if status not in STATUSES["subsystem_facts"]:
+        raise ValueError(f"unsupported fact status: {status}")
+    record = build_record(
+        paths,
+        "subsystem_facts",
+        timestamp,
+        author,
+        affected_paths,
+        evidence_refs,
+        subsystem=normalize_text(subsystem, "subsystem"),
+        status=status,
+        fact=normalize_text(fact, "fact"),
+        rationale=normalize_text(rationale, "rationale", 600),
+        supersedes=normalize_list(supersedes, "supersedes"),
+    )
+    return write_record(paths, "subsystem_facts.jsonl", record)
+
+
+def add_investigation(paths: MemoryPaths, *, subsystem: str, status: str, question: str, current_best_answer: str, confidence: str, next_probe: str, evidence_refs: list[str], affected_paths: list[str], author: str, timestamp: str | None) -> dict:
+    if status not in STATUSES["investigations"]:
+        raise ValueError(f"unsupported investigation status: {status}")
+    if confidence not in {"low", "medium", "high"}:
+        raise ValueError(f"unsupported confidence: {confidence}")
+    record = build_record(
+        paths,
+        "investigations",
+        timestamp,
+        author,
+        affected_paths,
+        evidence_refs,
+        subsystem=normalize_text(subsystem, "subsystem"),
+        status=status,
+        question=normalize_text(question, "question"),
+        current_best_answer=normalize_text(current_best_answer, "current_best_answer", 600),
+        confidence=confidence,
+        next_probe=normalize_text(next_probe, "next_probe"),
+    )
+    return write_record(paths, "investigations.jsonl", record)
+
+
+def add_compat_event(paths: MemoryPaths, *, subsystem: str, status: str, title: str, summary: str, evidence_refs: list[str], affected_paths: list[str], author: str, timestamp: str | None) -> dict:
+    if status not in STATUSES["compat_events"]:
+        raise ValueError(f"unsupported compat_event status: {status}")
+    record = build_record(
+        paths,
+        "compat_events",
+        timestamp,
+        author,
+        affected_paths,
+        evidence_refs,
+        subsystem=normalize_text(subsystem, "subsystem"),
+        status=status,
+        title=normalize_text(title, "title"),
+        summary=normalize_text(summary, "summary"),
+    )
+    return write_record(paths, "compat_events.jsonl", record)
+
+
+def add_task_event(paths: MemoryPaths, *, stream: str, status: str, summary: str, next_actions: list[str], evidence_refs: list[str], affected_paths: list[str], author: str, timestamp: str | None) -> dict:
+    if status not in STATUSES["task_events"]:
+        raise ValueError(f"unsupported task_event status: {status}")
+    record = build_record(
+        paths,
+        "task_events",
+        timestamp,
+        author,
+        affected_paths,
+        evidence_refs,
+        stream=normalize_text(stream, "stream", 120),
+        status=status,
+        summary=normalize_text(summary, "summary"),
+        next_actions=normalize_list(next_actions, "next_actions"),
+    )
+    return write_record(paths, "task_events.jsonl", record)
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Repo-scoped Codex memory utilities")
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser("validate", help="Validate the v2 Codex memory tree")
+    context = sub.add_parser("context", help="Render project/current focus plus selected subsystem packs")
+    context.add_argument("--subsystem", action="append", default=[])
+    context.add_argument("--path", action="append", default=[])
+    context.add_argument("--include-history", type=int, default=0)
 
-    subparsers.add_parser("init", help="Scaffold the Codex memory files if they are missing")
-    subparsers.add_parser("validate", help="Validate canonical memory files")
+    policy = sub.add_parser("add-policy", help="Append a policy record")
+    policy.add_argument("--topic", required=True)
+    policy.add_argument("--status", required=True, choices=sorted(STATUSES["policies"]))
+    policy.add_argument("--statement", required=True)
+    policy.add_argument("--rationale", required=True)
+    policy.add_argument("--supersedes", action="append", default=[])
+    policy.add_argument("--evidence-ref", action="append", default=[])
+    policy.add_argument("--affected-path", action="append", default=[])
+    policy.add_argument("--author", default="codex")
+    policy.add_argument("--timestamp")
 
-    build_index_parser = subparsers.add_parser("build-index", help="Build the derived SQLite index")
-    build_index_parser.add_argument("--print-path", action="store_true", help="Print the index path after success")
+    fact = sub.add_parser("add-fact", help="Append a subsystem fact record")
+    fact.add_argument("--subsystem", required=True)
+    fact.add_argument("--status", required=True, choices=sorted(STATUSES["subsystem_facts"]))
+    fact.add_argument("--fact", required=True)
+    fact.add_argument("--rationale", required=True)
+    fact.add_argument("--supersedes", action="append", default=[])
+    fact.add_argument("--evidence-ref", action="append", default=[])
+    fact.add_argument("--affected-path", action="append", default=[])
+    fact.add_argument("--author", default="codex")
+    fact.add_argument("--timestamp")
 
-    context_parser = subparsers.add_parser("context", help="Render a compact context briefing")
-    context_parser.add_argument("--recent", type=int, default=5, help="Number of recent records to include")
+    investigation = sub.add_parser("add-investigation", help="Append an investigation record")
+    investigation.add_argument("--subsystem", required=True)
+    investigation.add_argument("--status", required=True, choices=sorted(STATUSES["investigations"]))
+    investigation.add_argument("--question", required=True)
+    investigation.add_argument("--current-best-answer", required=True)
+    investigation.add_argument("--confidence", required=True, choices=["high", "low", "medium"])
+    investigation.add_argument("--next-probe", required=True)
+    investigation.add_argument("--evidence-ref", action="append", default=[])
+    investigation.add_argument("--affected-path", action="append", default=[])
+    investigation.add_argument("--author", default="codex")
+    investigation.add_argument("--timestamp")
 
-    decision_parser = subparsers.add_parser("add-decision", help="Append a durable decision record")
-    decision_parser.add_argument("--topic", required=True)
-    decision_parser.add_argument("--status", required=True, choices=sorted(DECISION_STATUSES))
-    decision_parser.add_argument("--statement", required=True)
-    decision_parser.add_argument("--rationale", required=True)
-    decision_parser.add_argument("--evidence-ref", action="append", default=[])
-    decision_parser.add_argument("--affected-path", action="append", default=[])
-    decision_parser.add_argument("--supersedes", action="append", default=[])
-    decision_parser.add_argument("--author", default="codex")
-    decision_parser.add_argument("--timestamp", help="ISO timestamp for deterministic scripting/tests")
+    compat = sub.add_parser("add-compat-event", help="Append a compatibility event record")
+    compat.add_argument("--subsystem", required=True)
+    compat.add_argument("--status", required=True, choices=sorted(STATUSES["compat_events"]))
+    compat.add_argument("--title", required=True)
+    compat.add_argument("--summary", required=True)
+    compat.add_argument("--evidence-ref", action="append", default=[])
+    compat.add_argument("--affected-path", action="append", default=[])
+    compat.add_argument("--author", default="codex")
+    compat.add_argument("--timestamp")
 
-    task_parser = subparsers.add_parser("add-task-event", help="Append a task event record")
-    task_parser.add_argument("--task-id", required=True)
-    task_parser.add_argument("--title", required=True)
-    task_parser.add_argument("--status", required=True, choices=sorted(TASK_STATUSES))
-    task_parser.add_argument("--summary", required=True)
-    task_parser.add_argument("--next-action", action="append", default=[])
-    task_parser.add_argument("--affected-path", action="append", default=[])
-    task_parser.add_argument("--author", default="codex")
-    task_parser.add_argument("--timestamp", help="ISO timestamp for deterministic scripting/tests")
-
-    refresh_parser = subparsers.add_parser("refresh-handoff", help="Write a derived handoff summary under work/")
-    refresh_parser.add_argument("--recent", type=int, default=5, help="Number of recent records to include")
-    refresh_parser.add_argument("--print-path", action="store_true", help="Print the output path after success")
-
+    task = sub.add_parser("add-task-event", help="Append a task event record")
+    task.add_argument("--stream", required=True)
+    task.add_argument("--status", required=True, choices=sorted(STATUSES["task_events"]))
+    task.add_argument("--summary", required=True)
+    task.add_argument("--next-action", action="append", default=[])
+    task.add_argument("--evidence-ref", action="append", default=[])
+    task.add_argument("--affected-path", action="append", default=[])
+    task.add_argument("--author", default="codex")
+    task.add_argument("--timestamp")
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     paths = MemoryPaths.defaults()
-
     try:
-        if args.command == "init":
-            init_memory(paths)
-            print(paths.docs_dir)
-            return 0
         if args.command == "validate":
             errors = validate_all(paths)
             if errors:
-                return print_errors(errors)
+                for error in errors:
+                    print(error, file=sys.stderr)
+                return 1
             print("ok")
             return 0
-        if args.command == "build-index":
-            build_index(paths)
-            if args.print_path:
-                print(paths.db_path)
-            return 0
         if args.command == "context":
-            print(render_context(paths, recent_limit=args.recent), end="")
+            print(render_context(paths, args.subsystem, args.path, args.include_history), end="")
             return 0
-        if args.command == "add-decision":
-            record = add_decision(
-                paths,
-                topic=args.topic,
-                status=args.status,
-                statement=args.statement,
-                rationale=args.rationale,
-                evidence_refs=args.evidence_ref,
-                affected_paths=args.affected_path,
-                supersedes=args.supersedes,
-                author=args.author,
-                timestamp=args.timestamp,
-            )
-            print(record["decision_id"])
-            return 0
-        if args.command == "add-task-event":
-            record = add_task_event(
-                paths,
-                task_id=args.task_id,
-                title=args.title,
-                status=args.status,
-                summary=args.summary,
-                next_actions=args.next_action,
-                affected_paths=args.affected_path,
-                author=args.author,
-                timestamp=args.timestamp,
-            )
-            print(record["event_id"])
-            return 0
-        if args.command == "refresh-handoff":
-            output_path = refresh_handoff_summary(paths, recent_limit=args.recent)
-            if args.print_path:
-                print(output_path)
-            return 0
+        if args.command == "add-policy":
+            record = add_policy(paths, topic=args.topic, status=args.status, statement=args.statement, rationale=args.rationale, supersedes=args.supersedes, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)
+        elif args.command == "add-fact":
+            record = add_fact(paths, subsystem=args.subsystem, status=args.status, fact=args.fact, rationale=args.rationale, supersedes=args.supersedes, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)
+        elif args.command == "add-investigation":
+            record = add_investigation(paths, subsystem=args.subsystem, status=args.status, question=args.question, current_best_answer=args.current_best_answer, confidence=args.confidence, next_probe=args.next_probe, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)
+        elif args.command == "add-compat-event":
+            record = add_compat_event(paths, subsystem=args.subsystem, status=args.status, title=args.title, summary=args.summary, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)
+        else:
+            record = add_task_event(paths, stream=args.stream, status=args.status, summary=args.summary, next_actions=args.next_action, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)
+        print(record["record_id"])
+        return 0
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1
-    return 1
 
 
 if __name__ == "__main__":

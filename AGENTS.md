@@ -22,17 +22,19 @@
 ## Codex Memory System
 
 - Canonical Codex memory for this repo lives under `docs/codex_memory/`.
-- Generated Codex retrieval/index state lives under `work/codex_memory/`.
-- Checked-in memory is canonical; generated state must be rebuildable and can be deleted at any time.
-- Do not add compatibility code for older memory schemas. The only supported schema is `codex-memory-v1`.
+- The only supported memory schema is `codex-memory-v2`.
+- Subsystem packs under `docs/codex_memory/subsystems/` are the on-demand current-state layer.
+- Typed JSONL files under `docs/codex_memory/` are the only durable history layer.
+- `ISSUES.md` is the companion repo trap log for the memory system and is linked through the architecture subsystem.
 
 ### Required workflow for future Codex sessions
 
-1. At task start, read `docs/codex_memory/project_brief.md`, `docs/codex_memory/current_focus.md`, and `docs/codex_memory/handoff.md`, or run `python3 tools/codex_memory.py context`.
-2. Before major planning or implementation, review recent durable state in `docs/codex_memory/decision_log.jsonl` and `docs/codex_memory/task_log.jsonl`.
-3. After meaningful milestones, append a task event and update `docs/codex_memory/handoff.md`.
-4. When a durable conclusion is reached, append a decision record with evidence references and affected paths.
-5. Never store speculative claims as durable memory without marking them provisional in the record status or in the surrounding Markdown.
+1. At task start, read `docs/codex_memory/project_brief.md` and `docs/codex_memory/current_focus.md`, or run `python3 tools/codex_memory.py context`.
+2. Load only the subsystem packs relevant to the task, or use `python3 tools/codex_memory.py context --path <repo-path>`.
+3. Use typed history only when current state or a blocked question needs it.
+4. After meaningful milestones, append the appropriate typed record and update `current_focus.md` only if the active repo status changed.
+5. If you discover a new repo trap or recurring confusion point, update `ISSUES.md` and keep the architecture pack aligned with that trap surface.
+6. Never reintroduce v1 files or schema labels.
 
 # Issues logging
 - The role of the `ISSUES.md` file is to describe common mistakes and confusion points that the agents might encounter as they work in this project. If you ever counter something in the project that surprises you, please alert the developer working with you and indicate that this is the case in the ISSUES.md file tp help future agents from having the same issue.

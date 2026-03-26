@@ -2,34 +2,34 @@
 
 ## Purpose
 
-This repository is a reverse-engineering and port-planning workspace for Twinsen's Little Big Adventure 2. It currently centers on source collection, corpus analysis, tooling, and port-specification work rather than a runnable modern port.
+Reverse-engineering and port-planning workspace for Twinsen's Little Big Adventure 2, with the canonical implementation path moving through the Zig `port/` workspace.
 
 ## Repo Map
 
-- `docs/`: reverse-engineering reports, reference corpora, and canonical checked-in knowledge
-- `tools/`: local Python utilities for derived research state and query workflows
-- `reference/`: imported upstream material, legacy tooling, and preserved external sources
-- `work/`: generated outputs, extracted payloads, and rebuildable machine state
-- `port/`: reserved location for the future canonical port implementation
+- `docs/`: checked-in research, plans, subsystem memory packs, and reference memos
+- `tools/`: repo-local utilities for memory, phase0, and MBN corpus work
+- `reference/`: imported classic source, preserved tooling, and external source material
+- `work/`: rebuildable generated outputs and extracted assets
+- `port/`: canonical modern port implementation
 
 ## Canonical Sources
 
-- `docs/PORTING_REPORT.md` is the main high-level porting assessment.
-- `docs/LBA2_ZIG_PORT_PLAN.md` is the canonical implementation roadmap and work-package boundary.
-- `docs/mbn_reference/README.md` names the canonical MBN corpus snapshot.
-- `tools/mbn_workbench.py` is the existing pattern for "checked-in source material + generated SQLite state".
-- `port/README.md` states that `port/` is the destination for the future modern implementation.
+- `docs/LBA2_ZIG_PORT_PLAN.md`
+- `docs/PORTING_REPORT.md`
+- `docs/mbn_reference/README.md`
+- `docs/phase0/README.md`
+- `port/README.md`
 
 ## Invariants
 
-- Optimize for one canonical current-state implementation, not compatibility with historical local states.
-- Durable Codex memory lives in `docs/codex_memory/`; generated retrieval state lives in `work/codex_memory/`.
-- Derived machine state must be rebuildable from checked-in memory.
-- Prefer fail-fast diagnostics over silent fallback behavior.
+- One canonical current-state codepath per subsystem.
+- Codex memory lives only under `docs/codex_memory/`.
+- Structured history uses only `codex-memory-v2` JSONL files.
+- Fail fast instead of adding silent fallbacks or compatibility glue.
 
 ## Non-Goals
 
-- Cross-repo personal memory
-- Chat transcript archiving
-- Automatic migration of older memory schemas
-- Blending Codex memory into the MBN corpus database or other unrelated research stores
+- cross-repo personal memory
+- transcript archiving
+- v1 memory compatibility
+- canonical generated mirrors or SQLite indexes

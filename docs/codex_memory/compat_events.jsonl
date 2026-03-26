@@ -1,0 +1,2 @@
+
+{"affected_paths": ["AGENTS.md", "docs/codex_memory/README.md", "tools/codex_memory.py"], "author": "codex", "evidence_refs": ["docs/MEM_MIGRATION.md"], "record_id": "compat-20260326T235100Z-8c3bd76163", "schema_version": "codex-memory-v2", "status": "removed", "subsystem": "architecture", "summary": "Removed handoff.md, mixed v1 logs, and the generated mirror from the canonical memory design.", "timestamp_utc": "2026-03-26T23:51:00Z", "title": "Retire v1 memory tree"}
