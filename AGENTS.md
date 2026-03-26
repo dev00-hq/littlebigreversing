@@ -46,8 +46,8 @@
 - Prefer these tools: ripgrep (rg), ast-grep (sg), jq (json processor), fzf (fuzzy finder)
 
 ## On Powershell
-- Prefer native PowerShell for canonical build/test/tool commands. Run `.\scripts\dev-shell.ps1` before modern Zig/MSVC verification when needed.
-- Use the bundled bash helpers (`bash -lc`) for repo inspection and source-oriented commands when convenient; always set the `workdir` parameter.
+- Prefer bundled bash helpers (`bash -lc`), always set the `workdir` parameter. Fallback to native Powershell.
+- Prefer native PowerShell ONLY for canonical build/test/tool commands. Run `.\scripts\dev-shell.ps1` before modern Zig/MSVC verification when needed.
 - Use rg/rg --files for searches; fall back only if unavailable.
 - Use the `apply_patch` to edit files, fallback to sed.
 - Use jq for json processing
