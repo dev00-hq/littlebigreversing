@@ -388,6 +388,10 @@ def validate_all(paths: MemoryPaths) -> list[str]:
         return [str(exc)]
     if set(pack_names) != subsystem_set:
         errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: pack list must match subsystem files exactly")
+    mapped_subsystems = {rule.subsystem for rule in rules}
+    missing_mappings = sorted(subsystem_set - mapped_subsystems)
+    if missing_mappings:
+        errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: missing path mappings for subsystem packs: {', '.join(missing_mappings)}")
     for rule in rules:
         if not (paths.repo_root / rule.path.rstrip("/")).exists():
             errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: mapping target does not exist: {rule.path}")

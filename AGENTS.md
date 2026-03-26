@@ -40,13 +40,14 @@
 - The role of the `ISSUES.md` file is to describe common mistakes and confusion points that the agents might encounter as they work in this project. If you ever counter something in the project that surprises you, please alert the developer working with you and indicate that this is the case in the ISSUES.md file tp help future agents from having the same issue.
 
 # Shell specific tools
-- Run `pwsh -c 'Write-Host "PowerShell"' 2>$null || echo "Linux Bash"` to know wether we are on powershell or linux bash
+- Use the provided environment context to determine whether the current shell is PowerShell or Linux Bash; do not rely on a Bash-evaluated PowerShell redirection snippet.
 
 ## On Linux Bash
 - Prefer these tools: ripgrep (rg), ast-grep (sg), jq (json processor), fzf (fuzzy finder)
 
 ## On Powershell
-- Prefer the bundled bash helpers (`bash -lc`) when invoking shell commands; always set the `workdir` parameter.
+- Prefer native PowerShell for canonical build/test/tool commands. Run `.\scripts\dev-shell.ps1` before modern Zig/MSVC verification when needed.
+- Use the bundled bash helpers (`bash -lc`) for repo inspection and source-oriented commands when convenient; always set the `workdir` parameter.
 - Use rg/rg --files for searches; fall back only if unavailable.
 - Use the `apply_patch` to edit files, fallback to sed.
 - Use jq for json processing

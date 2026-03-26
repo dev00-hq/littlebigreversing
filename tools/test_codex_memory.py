@@ -55,7 +55,7 @@ class CodexMemoryV2Test(unittest.TestCase):
 - {name} unknowns.
 """
 
-    def scaffold(self, paths: codex_memory.MemoryPaths, *, ambiguous: bool = False, obsolete: bool = False) -> None:
+    def scaffold(self, paths: codex_memory.MemoryPaths, *, ambiguous: bool = False, obsolete: bool = False, missing_mapping: bool = False) -> None:
         self.write(
             paths.docs_dir / "README.md",
             """# Codex Memory
@@ -135,6 +135,8 @@ Repo-scoped memory for tests.
 - backgrounds
 """,
         )
+        platform_linux_rule = "" if missing_mapping else "- `platform_linux`: `docs/codex_memory/subsystems/platform_linux.md`\n"
+        architecture_rule = "- `architecture`: `AGENTS.md`, `tools/codex_memory.py`"
         self.write(
             paths.subsystem_dir / "INDEX.md",
             f"""# Subsystem Index
@@ -160,8 +162,7 @@ Repo-scoped memory for tests.
 - `life_scripts`: `port/src/game_data/scene/life_program.zig`
 - `backgrounds`: `port/src/game_data/background/`
 - `platform_windows`: `scripts/check-env.ps1`
-- `platform_linux`: `scripts/linux-notes.md`
-- `architecture`: `AGENTS.md`, `tools/codex_memory.py`
+{platform_linux_rule}{architecture_rule}
 """,
         )
         for name in codex_memory.EXPECTED_SUBSYSTEMS:
@@ -172,7 +173,7 @@ Repo-scoped memory for tests.
         self.write(paths.repo_root / "AGENTS.md", "# agents\n")
         self.write(paths.repo_root / "tools" / "codex_memory.py", "# tool\n")
         self.write(paths.repo_root / "scripts" / "check-env.ps1", "# windows\n")
-        self.write(paths.repo_root / "scripts" / "linux-notes.md", "# linux\n")
+        self.write(paths.repo_root / "docs" / "codex_memory" / "subsystems" / "platform_linux.md", self.pack_doc("Platform Linux"))
         self.write(paths.repo_root / "docs" / "mbn_reference" / "README.md", "# corpus\n")
         self.write(paths.repo_root / "docs" / "phase0" / "README.md", "# phase0\n")
         self.write(paths.repo_root / "port" / "src" / "assets" / "hqr.zig", "// assets\n")
@@ -326,6 +327,12 @@ Repo-scoped memory for tests.
         self.scaffold(paths, ambiguous=True)
         errors = codex_memory.validate_all(paths)
         self.assertTrue(any("ambiguous mapping" in error for error in errors))
+
+    def test_validate_rejects_missing_path_mapping(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths, missing_mapping=True)
+        errors = codex_memory.validate_all(paths)
+        self.assertTrue(any("missing path mappings" in error for error in errors))
 
     def test_validate_rejects_obsolete_v1_paths(self) -> None:
         paths = self.make_paths()

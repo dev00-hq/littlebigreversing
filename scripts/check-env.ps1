@@ -30,7 +30,8 @@ function Add-CheckResult {
         [string]$Name,
         [Parameter(Mandatory = $true)]
         [string]$Status,
-        [string]$Details = ""
+        [string]$Details = "",
+        [bool]$Required = $true
     )
 
     $Results.Add([pscustomobject]@{
@@ -38,6 +39,7 @@ function Add-CheckResult {
         Name     = $Name
         Status   = $Status
         Details  = $Details
+        Required = $Required
     })
 }
 
@@ -114,6 +116,22 @@ $python = Get-Command python -ErrorAction SilentlyContinue
 $java = Get-Command java -ErrorAction SilentlyContinue
 $git = Get-Command git -ErrorAction SilentlyContinue
 $sevenZip = Get-Command 7z -ErrorAction SilentlyContinue
+$zig = Get-Command zig -ErrorAction SilentlyContinue
+
+if ($zig) {
+    $zigDetails = $zig.Source
+    try {
+        $zigVersion = & $zig.Source version
+        if ($zigVersion) {
+            $zigDetails = "{0} (zig {1})" -f $zig.Source, $zigVersion
+        }
+    } catch {
+        $zigDetails = $zig.Source
+    }
+    Add-CheckResult -Results $results -Category "Modern build" -Name "Zig" -Status "OK" -Details $zigDetails
+} else {
+    Add-CheckResult -Results $results -Category "Modern build" -Name "Zig" -Status "Missing" -Details ""
+}
 
 foreach ($cmd in @(
     @{ Name = "Python"; Cmd = $python },
@@ -158,16 +176,17 @@ $sdl2Lib = Find-FirstExistingPath -Candidates @(
 )
 
 foreach ($tool in @(
-    @{ Name = "DOSBox runtime"; Path = $dosbox; Category = "Reference build" },
-    @{ Name = "DOSBox-X"; Path = $dosboxX; Category = "Reference build" },
-    @{ Name = "OpenWatcom"; Path = $openWatcom; Category = "Reference build" },
+    @{ Name = "DOSBox runtime"; Path = $dosbox; Category = "Reference build"; Required = $false },
+    @{ Name = "DOSBox-X"; Path = $dosboxX; Category = "Reference build"; Required = $false },
+    @{ Name = "OpenWatcom"; Path = $openWatcom; Category = "Reference build"; Required = $false },
     @{ Name = "SDL2 headers"; Path = $sdl2Header; Category = "Modern port" },
     @{ Name = "SDL2 library"; Path = $sdl2Lib; Category = "Modern port" }
 )) {
+    $required = if ($tool.ContainsKey("Required")) { [bool]$tool.Required } else { $true }
     if ($tool.Path) {
-        Add-CheckResult -Results $results -Category $tool.Category -Name $tool.Name -Status "OK" -Details $tool.Path
+        Add-CheckResult -Results $results -Category $tool.Category -Name $tool.Name -Status "OK" -Details $tool.Path -Required $required
     } else {
-        Add-CheckResult -Results $results -Category $tool.Category -Name $tool.Name -Status "Missing" -Details ""
+        Add-CheckResult -Results $results -Category $tool.Category -Name $tool.Name -Status "Missing" -Details "" -Required $required
     }
 }
 
@@ -178,24 +197,38 @@ Write-Host ""
 
 $results |
     Sort-Object Category, Name |
-    Format-Table -AutoSize
+    Format-Table Category, Name, Status, Details -AutoSize
 
-$missing = $results | Where-Object { $_.Status -eq "Missing" }
+$missingRequired = $results | Where-Object { $_.Status -eq "Missing" -and $_.Required }
+$missingOptional = $results | Where-Object { $_.Status -eq "Missing" -and -not $_.Required }
 
 Write-Host ""
-if ($missing.Count -eq 0) {
-    Write-Host "No missing items detected in this check." -ForegroundColor Green
+if ($missingRequired.Count -eq 0) {
+    Write-Host "No missing required items detected for the canonical Windows Zig port workflow." -ForegroundColor Green
 } else {
-    Write-Host "Missing items detected:" -ForegroundColor Yellow
-    foreach ($item in $missing) {
+    Write-Host "Missing required items detected:" -ForegroundColor Yellow
+    foreach ($item in $missingRequired) {
         Write-Host ("  - [{0}] {1}" -f $item.Category, $item.Name)
     }
 }
 
 Write-Host ""
-Write-Host "Recommended next installs, in order:" -ForegroundColor Cyan
-Write-Host "  1. DOSBox-X for DOS-side runtime investigation"
-Write-Host "  2. OpenWatcom for historic-build experiments"
-Write-Host "  3. SDL2 development package for the modern port"
+if ($missingOptional.Count -gt 0) {
+    Write-Host "Optional reference-track tools not installed:" -ForegroundColor Cyan
+    foreach ($item in $missingOptional) {
+        Write-Host ("  - [{0}] {1}" -f $item.Category, $item.Name)
+    }
+    Write-Host ""
+}
+
+Write-Host "Required checks for the canonical path:" -ForegroundColor Cyan
+Write-Host "  - Zig on PATH"
+Write-Host "  - Visual Studio toolchain"
+Write-Host "  - SDL2 development package"
+Write-Host "  - Extracted CD data"
 Write-Host ""
-Write-Host "Use .\scripts\dev-shell.ps1 before running modern CMake/MSVC commands."
+Write-Host "Optional installs for reference-track work:" -ForegroundColor Cyan
+Write-Host "  - DOSBox-X for DOS-side runtime investigation"
+Write-Host "  - OpenWatcom for historic-build experiments"
+Write-Host ""
+Write-Host "Use .\scripts\dev-shell.ps1 before running canonical Zig/MSVC commands."

@@ -21,4 +21,5 @@
 - `life_scripts`: `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md`, `port/src/game_data/scene/life_audit.zig`, `port/src/game_data/scene/life_program.zig`, `port/src/game_data/scene/tests/life_audit_tests.zig`, `port/src/game_data/scene/tests/life_program_tests.zig`
 - `backgrounds`: `port/src/game_data/background.zig`, `port/src/game_data/background/`
 - `platform_windows`: `port/build.zig`, `scripts/check-env.ps1`, `scripts/dev-shell.ps1`
+- `platform_linux`: `docs/codex_memory/subsystems/platform_linux.md`
 - `architecture`: `AGENTS.md`, `ISSUES.md`, `docs/LBA2_ZIG_PORT_PLAN.md`, `docs/PORTING_REPORT.md`, `docs/PROMPT.md`, `docs/codex_memory/README.md`, `docs/codex_memory/current_focus.md`, `docs/codex_memory/project_brief.md`, `port/README.md`, `tools/codex_memory.py`, `tools/test_codex_memory.py`

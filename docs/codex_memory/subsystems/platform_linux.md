@@ -23,13 +23,14 @@ Capture the current Linux Bash boundary so repo analysis work does not overclaim
 
 ## Canonical Entry Points
 
-- `AGENTS.md`
+- `docs/codex_memory/subsystems/INDEX.md`
+- `docs/codex_memory/subsystems/platform_linux.md`
 - `docs/LBA2_ZIG_PORT_PLAN.md`
-- `port/build.zig`
 
 ## Important Files
 
 - `docs/PHASE1_IMPLEMENTATION_MEMO.md`
+- `docs/MEMSYS.md`
 - `scripts/check-env.ps1`
 - `scripts/dev-shell.ps1`
 
