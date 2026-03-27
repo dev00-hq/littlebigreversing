@@ -104,11 +104,19 @@ const RoomColumnTableSummary = struct {
     max_offset: u16,
 };
 
+const RoomCompositionSummary = struct {
+    occupied_cell_count: usize,
+    occupied_bounds: ?background_data.GridBounds,
+    layout_count: usize,
+    max_layout_block_count: usize,
+};
+
 const RoomBackgroundSummary = struct {
     entry_index: usize,
     linkage: RoomBackgroundLinkageSummary,
     used_blocks: RoomUsedBlocksSummary,
     column_table: RoomColumnTableSummary,
+    composition: RoomCompositionSummary,
 };
 
 const RoomInspectionPayload = struct {
@@ -417,6 +425,7 @@ fn inspectBackground(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
             .bll_entry_index = metadata.bll_entry_index,
             .bll_compressed_header = metadata.bll_compressed_header,
             .bll = metadata.bll,
+            .composition = metadata.composition,
         };
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
@@ -480,6 +489,31 @@ fn inspectBackground(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
             metadata.column_table.data_byte_length,
         },
     );
+    if (metadata.composition.grid.reference_bounds) |bounds| {
+        try stderr.print(
+            "composition occupied_cells={d} unique_offsets={d} layouts={d} max_layout_blocks={d} bounds=x:{d}..{d} z:{d}..{d}\n",
+            .{
+                metadata.composition.grid.referenced_cell_count,
+                metadata.composition.grid.unique_offset_count,
+                metadata.composition.library.layouts.len,
+                metadata.composition.library.max_layout_block_count,
+                bounds.min_x,
+                bounds.max_x,
+                bounds.min_z,
+                bounds.max_z,
+            },
+        );
+    } else {
+        try stderr.print(
+            "composition occupied_cells={d} unique_offsets={d} layouts={d} max_layout_blocks={d} bounds=none\n",
+            .{
+                metadata.composition.grid.referenced_cell_count,
+                metadata.composition.grid.unique_offset_count,
+                metadata.composition.library.layouts.len,
+                metadata.composition.library.max_layout_block_count,
+            },
+        );
+    }
     try printUsedBlockSummary(stderr, metadata.used_blocks.used_block_ids);
     try stderr.print(
         "bll block_count={d} table_bytes={d} first_block_offset={d} last_block_offset={d}\n",
@@ -650,6 +684,29 @@ fn inspectRoom(
             payload.background.column_table.data_byte_length,
         },
     );
+    if (payload.background.composition.occupied_bounds) |bounds| {
+        try stderr.print(
+            "composition occupied_cells={d} layouts={d} max_layout_blocks={d} bounds=x:{d}..{d} z:{d}..{d}\n",
+            .{
+                payload.background.composition.occupied_cell_count,
+                payload.background.composition.layout_count,
+                payload.background.composition.max_layout_block_count,
+                bounds.min_x,
+                bounds.max_x,
+                bounds.min_z,
+                bounds.max_z,
+            },
+        );
+    } else {
+        try stderr.print(
+            "composition occupied_cells={d} layouts={d} max_layout_blocks={d} bounds=none\n",
+            .{
+                payload.background.composition.occupied_cell_count,
+                payload.background.composition.layout_count,
+                payload.background.composition.max_layout_block_count,
+            },
+        );
+    }
     try printUsedBlockSummary(stderr, payload.background.used_blocks.values);
     try stderr.flush();
 }
@@ -718,6 +775,12 @@ fn buildRoomInspectionPayload(room: RoomInspection) RoomInspectionPayload {
                 .data_byte_length = room.background.column_table.data_byte_length,
                 .min_offset = room.background.column_table.min_offset,
                 .max_offset = room.background.column_table.max_offset,
+            },
+            .composition = .{
+                .occupied_cell_count = room.background.composition.grid.referenced_cell_count,
+                .occupied_bounds = room.background.composition.grid.reference_bounds,
+                .layout_count = room.background.composition.library.layouts.len,
+                .max_layout_block_count = room.background.composition.library.max_layout_block_count,
             },
         },
     };
@@ -1369,6 +1432,15 @@ test "inspect-room composes the canonical interior pair metadata" {
     try std.testing.expectEqual(@as(usize, 4096), payload.background.column_table.offset_count);
     try std.testing.expectEqual(@as(usize, 8192), payload.background.column_table.table_byte_length);
     try std.testing.expect(payload.background.column_table.data_byte_length > 0);
+    try std.testing.expectEqual(@as(usize, 2252), payload.background.composition.occupied_cell_count);
+    try std.testing.expectEqual(@as(?background_data.GridBounds, .{
+        .min_x = 0,
+        .max_x = 63,
+        .min_z = 12,
+        .max_z = 63,
+    }), payload.background.composition.occupied_bounds);
+    try std.testing.expectEqual(@as(usize, 219), payload.background.composition.layout_count);
+    try std.testing.expectEqual(@as(usize, 45), payload.background.composition.max_layout_block_count);
 }
 
 test "inspect-room json keeps the canonical interior pair stable" {
@@ -1392,6 +1464,8 @@ test "inspect-room json keeps the canonical interior pair stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"count\": 105") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"width\": 64") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"depth\": 64") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"occupied_cell_count\": 2252") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"layout_count\": 219") != null);
 }
 
 test "inspect-room rejects exterior scene entries" {

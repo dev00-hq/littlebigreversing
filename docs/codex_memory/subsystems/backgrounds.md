@@ -14,7 +14,9 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`, in
 
 - `inspect-background` is implemented.
 - The canonical interior target `2` is asset-backed through the loader-faithful header and indirection path.
-- Exterior `.ILE/.OBL`, rendering, and actor visual binding are still outside this pack.
+- `GRI` column payloads and `BLL` layout contents are decoded for the canonical interior background path.
+- The viewer now uses a viewer-local composition snapshot to render a height-aware occupied-cell debug view with relief, contour, and shape cues behind the scene overlays for `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`.
+- Exterior `.ILE/.OBL`, fragment application, full brick rasterization, and actor visual binding are still outside this pack.
 
 ## Known Traps
 
@@ -36,9 +38,11 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`, in
 ## Test / Probe Commands
 
 - `cd port && zig build tool -- inspect-background 2 --json`
+- `cd port && zig build tool -- inspect-room 2 2 --json`
+- `cd port && zig build run -- --scene-entry 2 --background-entry 2`
 - `cd port && zig build test`
 
 ## Open Unknowns
 
-- Which next interior-only slice should come after metadata inspection.
+- Which next interior-only slice should come after the height-aware composition debug rendering.
 - When, if ever, interior and exterior background paths should share more runtime surface.

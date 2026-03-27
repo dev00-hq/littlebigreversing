@@ -8,6 +8,19 @@ pub const GriHeader = model.GriHeader;
 pub const UsedBlockSummary = model.UsedBlockSummary;
 pub const ColumnTableMetadata = model.ColumnTableMetadata;
 pub const BllTableMetadata = model.BllTableMetadata;
+pub const GridBounds = model.GridBounds;
+pub const ColumnEncoding = model.ColumnEncoding;
+pub const ColumnBlockRef = model.ColumnBlockRef;
+pub const ColumnSpan = model.ColumnSpan;
+pub const GridCell = model.GridCell;
+pub const GridCompositionSummary = model.GridCompositionSummary;
+pub const GridComposition = model.GridComposition;
+pub const LayoutBlock = model.LayoutBlock;
+pub const Layout = model.Layout;
+pub const LayoutLibrarySummary = model.LayoutLibrarySummary;
+pub const LayoutLibrary = model.LayoutLibrary;
+pub const BackgroundCompositionSummary = model.BackgroundCompositionSummary;
+pub const BackgroundComposition = model.BackgroundComposition;
 pub const BackgroundMetadata = model.BackgroundMetadata;
 
 pub const loadBackgroundMetadata = parser.loadBackgroundMetadata;
@@ -20,6 +33,19 @@ test "background facade reexports the stable public API" {
         if (UsedBlockSummary != model.UsedBlockSummary) @compileError("UsedBlockSummary facade drifted");
         if (ColumnTableMetadata != model.ColumnTableMetadata) @compileError("ColumnTableMetadata facade drifted");
         if (BllTableMetadata != model.BllTableMetadata) @compileError("BllTableMetadata facade drifted");
+        if (GridBounds != model.GridBounds) @compileError("GridBounds facade drifted");
+        if (ColumnEncoding != model.ColumnEncoding) @compileError("ColumnEncoding facade drifted");
+        if (ColumnBlockRef != model.ColumnBlockRef) @compileError("ColumnBlockRef facade drifted");
+        if (ColumnSpan != model.ColumnSpan) @compileError("ColumnSpan facade drifted");
+        if (GridCell != model.GridCell) @compileError("GridCell facade drifted");
+        if (GridCompositionSummary != model.GridCompositionSummary) @compileError("GridCompositionSummary facade drifted");
+        if (GridComposition != model.GridComposition) @compileError("GridComposition facade drifted");
+        if (LayoutBlock != model.LayoutBlock) @compileError("LayoutBlock facade drifted");
+        if (Layout != model.Layout) @compileError("Layout facade drifted");
+        if (LayoutLibrarySummary != model.LayoutLibrarySummary) @compileError("LayoutLibrarySummary facade drifted");
+        if (LayoutLibrary != model.LayoutLibrary) @compileError("LayoutLibrary facade drifted");
+        if (BackgroundCompositionSummary != model.BackgroundCompositionSummary) @compileError("BackgroundCompositionSummary facade drifted");
+        if (BackgroundComposition != model.BackgroundComposition) @compileError("BackgroundComposition facade drifted");
         if (BackgroundMetadata != model.BackgroundMetadata) @compileError("BackgroundMetadata facade drifted");
     }
 }

@@ -61,6 +61,39 @@ test "real background 2 metadata matches the canonical interior linkage" {
     try std.testing.expectEqual(@as(u32, 876), metadata.bll.table_byte_length);
     try std.testing.expectEqual(@as(u32, 876), metadata.bll.first_block_offset);
     try std.testing.expectEqual(@as(u32, 6962), metadata.bll.last_block_offset);
+
+    try std.testing.expectEqual(@as(usize, 4096), metadata.composition.grid.cells.len);
+    try std.testing.expectEqual(@as(usize, 8145), metadata.composition.grid.spans.len);
+    try std.testing.expectEqual(@as(usize, 5849), metadata.composition.grid.block_refs.len);
+    try std.testing.expectEqual(@as(usize, 672), metadata.composition.grid.unique_offset_count);
+    try std.testing.expectEqual(@as(usize, 2252), metadata.composition.grid.referenced_cell_count);
+    try std.testing.expectEqual(@as(?background.GridBounds, .{
+        .min_x = 0,
+        .max_x = 63,
+        .min_z = 12,
+        .max_z = 63,
+    }), metadata.composition.grid.reference_bounds);
+
+    try std.testing.expectEqual(@as(usize, 219), metadata.composition.library.layouts.len);
+    try std.testing.expectEqual(@as(usize, 1362), metadata.composition.library.layout_blocks.len);
+    try std.testing.expectEqual(@as(usize, 45), metadata.composition.library.max_layout_block_count);
+    try std.testing.expectEqual(@as(usize, 1), metadata.composition.library.layouts[0].index);
+    try std.testing.expectEqual(@as(u8, 1), metadata.composition.library.layouts[0].x);
+    try std.testing.expectEqual(@as(u8, 8), metadata.composition.library.layouts[0].y);
+    try std.testing.expectEqual(@as(u8, 1), metadata.composition.library.layouts[0].z);
+    try std.testing.expectEqual(@as(usize, 45), metadata.composition.library.layouts[216].block_count);
+    try std.testing.expectEqual(@as(u8, 3), metadata.composition.library.layouts[216].x);
+    try std.testing.expectEqual(@as(u8, 5), metadata.composition.library.layouts[216].y);
+    try std.testing.expectEqual(@as(u8, 3), metadata.composition.library.layouts[216].z);
+
+    const first_referenced_cell = metadata.composition.grid.cells[12 * 64 + 59];
+    try std.testing.expectEqual(@as(usize, 14), first_referenced_cell.non_empty_block_ref_count);
+    try std.testing.expectEqual(@as(?usize, 1), first_referenced_cell.first_non_empty_block_ref_index);
+    try std.testing.expectEqual(@as(?usize, 14), first_referenced_cell.last_non_empty_block_ref_index);
+
+    const floor_block = metadata.composition.library.layout_blocks[metadata.composition.library.layouts[14].block_start];
+    try std.testing.expectEqual(@as(u8, 1), floor_block.floorType());
+    try std.testing.expectEqual(@as(u16, 667), floor_block.brick_index);
 }
 
 test "background metadata json keeps linkage and table summaries stable" {
@@ -80,4 +113,6 @@ test "background metadata json keeps linkage and table summaries stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"gri_entry_index\": 3") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"bll_entry_index\": 180") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"width\": 64") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"referenced_cell_count\": 2252") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"layout_count\": 219") != null);
 }

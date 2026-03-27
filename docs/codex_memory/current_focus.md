@@ -3,12 +3,12 @@
 ## Current Priorities
 
 - Keep the topology-first `codex-memory-v2` tree canonical and small.
-- Continue the decode-first port path beyond the first rendered interior debug view.
+- Continue the decode-first port path beyond the height-aware interior composition debug view.
 - Keep unsupported life switch-family handling blocked until checked-in evidence changes or the product boundary rejects it explicitly.
 
 ## Active Streams
 
-- Scene and background inspection plus the rendered interior debug viewer as viewer-prep surfaces.
+- Scene and background inspection plus the height-aware interior composition debug viewer as viewer-prep surfaces.
 - MBN corpus and phase0 evidence maintenance.
 - Windows-first port validation with Linux limited to docs and source-oriented work.
 
@@ -19,8 +19,8 @@
 
 ## Next Actions
 
-- Build future viewer work on the viewer-local render snapshot and schematic path, not on a new handoff layer.
-- Keep the next viewer slice scoped to richer interior rendering evidence, not gameplay, life binding, or exterior loading.
+- Build future viewer work on the viewer-local composition snapshot, height cues, and schematic path, not on a new handoff layer.
+- Keep the next viewer slice scoped to fragment-backed interior composition detail or brick-backed raster probes, not gameplay, life binding, or exterior loading.
 - Keep future life work scoped to explicit evidence probes or deliberate rejection of unsupported switch-family opcodes.
 - Update subsystem packs and typed records instead of reviving timeline-heavy summary docs.
 

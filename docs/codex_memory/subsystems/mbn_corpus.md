@@ -20,6 +20,7 @@ Own the checked-in MBN reference corpus, preserved downstream tooling, and the r
 
 - The corpus tree is large and often dirty after local analysis passes; do not infer current repo state from memory docs alone.
 - Preserved `reference/` tooling is useful evidence context but not the canonical source of truth over the checked-in corpus snapshot.
+- The checked-in corpus index is wider than the raw/workbench evidence layer. A thread can be present in `topics_discovered.jsonl` and `topic_classification.jsonl` even when no raw post payload was captured under `corpus/raw/posts/` and no evidence rows are searchable through `tools/mbn_workbench.py`.
 
 ## Canonical Entry Points
 

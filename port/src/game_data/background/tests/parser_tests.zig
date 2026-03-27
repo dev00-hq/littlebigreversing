@@ -40,21 +40,81 @@ test "gri payload validates header and column-table shape" {
         std.mem.writeInt(u16, invalid_offset_payload[byte_offset .. byte_offset + 2][0..2], 32, .little);
     }
     try std.testing.expectError(error.InvalidGriColumnOffset, parser.parseGriPayload(allocator, invalid_offset_payload));
+
+    var invalid_mode_payload = try allocator.alloc(u8, 34 + 8192 + 2);
+    defer allocator.free(invalid_mode_payload);
+    @memset(invalid_mode_payload, 0);
+    invalid_mode_payload[0] = 1;
+    invalid_mode_payload[1] = 2;
+    for (0..4096) |index| {
+        const byte_offset = 34 + (index * 2);
+        std.mem.writeInt(u16, invalid_mode_payload[byte_offset .. byte_offset + 2][0..2], 8192, .little);
+    }
+    invalid_mode_payload[34 + 8192] = 1;
+    invalid_mode_payload[34 + 8193] = 0xC0;
+    try std.testing.expectError(error.UnsupportedGriColumnEncoding, parser.parseGriPayload(allocator, invalid_mode_payload));
+
+    var truncated_column_payload = try allocator.alloc(u8, 34 + 8192 + 2);
+    defer allocator.free(truncated_column_payload);
+    @memset(truncated_column_payload, 0);
+    truncated_column_payload[0] = 1;
+    truncated_column_payload[1] = 2;
+    for (0..4096) |index| {
+        const byte_offset = 34 + (index * 2);
+        std.mem.writeInt(u16, truncated_column_payload[byte_offset .. byte_offset + 2][0..2], 8192, .little);
+    }
+    truncated_column_payload[34 + 8192] = 1;
+    truncated_column_payload[34 + 8193] = 0x40;
+    try std.testing.expectError(error.TruncatedGriColumnPayload, parser.parseGriPayload(allocator, truncated_column_payload));
 }
 
 test "bll payload validates truncation and offset consistency" {
-    try std.testing.expectError(error.TruncatedBllTable, parser.parseBllPayload(&.{ 0x10, 0x00 }));
+    const allocator = std.testing.allocator;
+
+    try std.testing.expectError(error.TruncatedBllTable, parser.parseBllPayload(allocator, &.{ 0x10, 0x00 }));
 
     const invalid_header = [_]u8{
         0x02, 0x00, 0x00, 0x00,
         0x08, 0x00, 0x00, 0x00,
     };
-    try std.testing.expectError(error.InvalidBllTableHeader, parser.parseBllPayload(&invalid_header));
+    try std.testing.expectError(error.InvalidBllTableHeader, parser.parseBllPayload(allocator, &invalid_header));
 
     const invalid_offset = [_]u8{
         0x08, 0x00, 0x00, 0x00,
         0x04, 0x00, 0x00, 0x00,
         0x08, 0x00, 0x00, 0x00,
     };
-    try std.testing.expectError(error.InvalidBllBlockOffset, parser.parseBllPayload(&invalid_offset));
+    try std.testing.expectError(error.InvalidBllBlockOffset, parser.parseBllPayload(allocator, &invalid_offset));
+
+    const zero_dims = [_]u8{
+        0x08, 0x00, 0x00, 0x00,
+        0x08, 0x00, 0x00, 0x00,
+        0x00, 0x01, 0x01,
+    };
+    try std.testing.expectError(error.InvalidBllLayoutDimensions, parser.parseBllPayload(allocator, &zero_dims));
+
+    const truncated_layout = [_]u8{
+        0x08, 0x00, 0x00, 0x00,
+        0x08, 0x00, 0x00, 0x00,
+        0x01, 0x01, 0x01,
+        0x01, 0x00,
+    };
+    try std.testing.expectError(error.TruncatedBllLayoutBlocks, parser.parseBllPayload(allocator, &truncated_layout));
+
+    const valid_payload = [_]u8{
+        0x04, 0x00, 0x00, 0x00,
+        0x01, 0x01, 0x01,
+        0x02, 0x31, 0x34, 0x12,
+    };
+    var parsed = try parser.parseBllPayload(allocator, &valid_payload);
+    defer parsed.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 1), parsed.metadata.block_count);
+    try std.testing.expectEqual(@as(usize, 1), parsed.library.layouts.len);
+    try std.testing.expectEqual(@as(usize, 1), parsed.library.layout_blocks.len);
+    try std.testing.expectEqual(@as(usize, 1), parsed.library.layouts[0].block_count);
+    try std.testing.expectEqual(@as(u8, 2), parsed.library.layout_blocks[0].shape);
+    try std.testing.expectEqual(@as(u8, 3), parsed.library.layout_blocks[0].floorType());
+    try std.testing.expectEqual(@as(u8, 1), parsed.library.layout_blocks[0].soundId());
+    try std.testing.expectEqual(@as(u16, 0x1234), parsed.library.layout_blocks[0].brick_index);
 }

@@ -19,9 +19,20 @@ pub const ParsedGriPayload = struct {
     header: model.GriHeader,
     used_blocks: model.UsedBlockSummary,
     column_table: model.ColumnTableMetadata,
+    grid: model.GridComposition,
 
     pub fn deinit(self: ParsedGriPayload, allocator: std.mem.Allocator) void {
         self.used_blocks.deinit(allocator);
+        self.grid.deinit(allocator);
+    }
+};
+
+pub const ParsedBllPayload = struct {
+    metadata: model.BllTableMetadata,
+    library: model.LayoutLibrary,
+
+    pub fn deinit(self: ParsedBllPayload, allocator: std.mem.Allocator) void {
+        self.library.deinit(allocator);
     }
 };
 
@@ -64,7 +75,10 @@ pub fn loadBackgroundMetadata(
     const bll_compressed_header = try hqr.parseResourceHeader(bll_raw);
     const bll_payload = try hqr.decodeResourceEntryBytes(allocator, bll_raw);
     defer allocator.free(bll_payload);
-    const bll = try parseBllPayload(bll_payload);
+    var bll = try parseBllPayload(allocator, bll_payload);
+    errdefer bll.deinit(allocator);
+
+    try validateGridAgainstLibrary(gri.grid, bll.library);
 
     return .{
         .entry_index = entry_index,
@@ -84,7 +98,11 @@ pub fn loadBackgroundMetadata(
         .grm_entry_index = grm_entry_index,
         .bll_entry_index = bll_entry_index,
         .bll_compressed_header = bll_compressed_header,
-        .bll = bll,
+        .bll = bll.metadata,
+        .composition = .{
+            .grid = gri.grid,
+            .library = bll.library,
+        },
     };
 }
 
@@ -136,6 +154,8 @@ pub fn parseGriPayload(allocator: std.mem.Allocator, payload: []const u8) !Parse
 
     var min_offset: u16 = std.math.maxInt(u16);
     var max_offset: u16 = 0;
+    var unique_offsets = std.AutoHashMap(u16, void).init(allocator);
+    defer unique_offsets.deinit();
     for (0..column_offset_count) |index| {
         const byte_offset = index * @sizeOf(u16);
         const offset = readInt(u16, after_header, byte_offset);
@@ -144,6 +164,53 @@ pub fn parseGriPayload(allocator: std.mem.Allocator, payload: []const u8) !Parse
         }
         min_offset = @min(min_offset, offset);
         max_offset = @max(max_offset, offset);
+        try unique_offsets.put(offset, {});
+    }
+
+    var cells: std.ArrayList(model.GridCell) = .empty;
+    errdefer cells.deinit(allocator);
+
+    var spans: std.ArrayList(model.ColumnSpan) = .empty;
+    errdefer spans.deinit(allocator);
+
+    var block_refs: std.ArrayList(model.ColumnBlockRef) = .empty;
+    errdefer block_refs.deinit(allocator);
+
+    var referenced_cell_count: usize = 0;
+    var reference_bounds: ?model.GridBounds = null;
+
+    for (0..column_offset_count) |index| {
+        const offset = readInt(u16, after_header, index * @sizeOf(u16));
+        const cell = try parseGridCell(
+            allocator,
+            payload,
+            offset,
+            spans.items.len,
+            block_refs.items.len,
+        );
+        if (cell.cell.non_empty_block_ref_count > 0) {
+            referenced_cell_count += 1;
+            const x = index % column_table_width;
+            const z = index / column_table_width;
+            if (reference_bounds) |*bounds| {
+                bounds.min_x = @min(bounds.min_x, x);
+                bounds.max_x = @max(bounds.max_x, x);
+                bounds.min_z = @min(bounds.min_z, z);
+                bounds.max_z = @max(bounds.max_z, z);
+            } else {
+                reference_bounds = .{
+                    .min_x = x,
+                    .max_x = x,
+                    .min_z = z,
+                    .max_z = z,
+                };
+            }
+        }
+        try spans.appendSlice(allocator, cell.spans);
+        try block_refs.appendSlice(allocator, cell.block_refs);
+        try cells.append(allocator, cell.cell);
+        allocator.free(cell.spans);
+        allocator.free(cell.block_refs);
     }
 
     return .{
@@ -162,10 +229,20 @@ pub fn parseGriPayload(allocator: std.mem.Allocator, payload: []const u8) !Parse
             .min_offset = min_offset,
             .max_offset = max_offset,
         },
+        .grid = .{
+            .width = column_table_width,
+            .depth = column_table_depth,
+            .cells = try cells.toOwnedSlice(allocator),
+            .spans = try spans.toOwnedSlice(allocator),
+            .block_refs = try block_refs.toOwnedSlice(allocator),
+            .unique_offset_count = unique_offsets.count(),
+            .referenced_cell_count = referenced_cell_count,
+            .reference_bounds = reference_bounds,
+        },
     };
 }
 
-pub fn parseBllPayload(payload: []const u8) !model.BllTableMetadata {
+pub fn parseBllPayload(allocator: std.mem.Allocator, payload: []const u8) !ParsedBllPayload {
     if (payload.len < @sizeOf(u32)) return error.TruncatedBllTable;
 
     const table_byte_length = readInt(u32, payload, 0);
@@ -193,11 +270,65 @@ pub fn parseBllPayload(payload: []const u8) !model.BllTableMetadata {
         last_block_offset = @max(last_block_offset, offset);
     }
 
+    var layouts: std.ArrayList(model.Layout) = .empty;
+    errdefer layouts.deinit(allocator);
+
+    var layout_blocks: std.ArrayList(model.LayoutBlock) = .empty;
+    errdefer layout_blocks.deinit(allocator);
+
+    var max_layout_block_count: usize = 0;
+
+    for (0..block_count) |index| {
+        const start = readInt(u32, payload, index * @sizeOf(u32));
+        const next = findNextOffset(payload, table_byte_length, index, start);
+        if (start + 3 > next) return error.TruncatedBllLayoutHeader;
+
+        const x = payload[start];
+        const y = payload[start + 1];
+        const z = payload[start + 2];
+        if (x == 0 or y == 0 or z == 0) return error.InvalidBllLayoutDimensions;
+
+        const layout_block_count = @as(usize, x) * @as(usize, y) * @as(usize, z);
+        const expected_byte_length = 3 + (layout_block_count * 4);
+        if (start + expected_byte_length > next) return error.TruncatedBllLayoutBlocks;
+        if (start + expected_byte_length != next) return error.InvalidBllLayoutSize;
+
+        const block_start = layout_blocks.items.len;
+        var pos = start + 3;
+        for (0..layout_block_count) |_| {
+            try layout_blocks.append(allocator, .{
+                .shape = payload[pos],
+                .sound_floor = payload[pos + 1],
+                .brick_index = readInt(u16, payload, pos + 2),
+            });
+            pos += 4;
+        }
+
+        max_layout_block_count = @max(max_layout_block_count, layout_block_count);
+        try layouts.append(allocator, .{
+            .index = index + 1,
+            .start_offset = @intCast(start),
+            .byte_length = expected_byte_length,
+            .x = x,
+            .y = y,
+            .z = z,
+            .block_start = block_start,
+            .block_count = layout_block_count,
+        });
+    }
+
     return .{
-        .block_count = block_count,
-        .table_byte_length = @intCast(table_byte_length),
-        .first_block_offset = if (block_count == 0) 0 else first_block_offset,
-        .last_block_offset = last_block_offset,
+        .metadata = .{
+            .block_count = block_count,
+            .table_byte_length = @intCast(table_byte_length),
+            .first_block_offset = if (block_count == 0) 0 else first_block_offset,
+            .last_block_offset = last_block_offset,
+        },
+        .library = .{
+            .layouts = try layouts.toOwnedSlice(allocator),
+            .layout_blocks = try layout_blocks.toOwnedSlice(allocator),
+            .max_layout_block_count = max_layout_block_count,
+        },
     };
 }
 
@@ -216,6 +347,145 @@ fn decodeUsedBlockSummary(allocator: std.mem.Allocator, used_block: [32]u8) !mod
         .raw_bytes = used_block,
         .used_block_ids = try used_block_ids.toOwnedSlice(allocator),
     };
+}
+
+const ParsedGridCell = struct {
+    cell: model.GridCell,
+    spans: []model.ColumnSpan,
+    block_refs: []model.ColumnBlockRef,
+};
+
+fn parseGridCell(
+    allocator: std.mem.Allocator,
+    payload: []const u8,
+    offset: u16,
+    span_start: usize,
+    block_ref_start: usize,
+) !ParsedGridCell {
+    var local_spans: std.ArrayList(model.ColumnSpan) = .empty;
+    errdefer local_spans.deinit(allocator);
+
+    var local_block_refs: std.ArrayList(model.ColumnBlockRef) = .empty;
+    errdefer local_block_refs.deinit(allocator);
+
+    var cursor: usize = gri_header_size + offset;
+    if (cursor >= payload.len) return error.InvalidGriColumnOffset;
+
+    const span_count = payload[cursor];
+    cursor += 1;
+    if (span_count == 0) return error.InvalidGriColumnSpanCount;
+
+    var total_height: usize = 0;
+    var non_empty_block_ref_count: usize = 0;
+    var first_non_empty_block_ref_index: ?usize = null;
+    var last_non_empty_block_ref_index: ?usize = null;
+
+    for (0..span_count) |_| {
+        if (cursor >= payload.len) return error.TruncatedGriColumnPayload;
+
+        const descriptor = payload[cursor];
+        cursor += 1;
+        const encoding = switch (descriptor >> 6) {
+            0 => model.ColumnEncoding.empty,
+            1 => model.ColumnEncoding.explicit,
+            2 => model.ColumnEncoding.repeated,
+            else => return error.UnsupportedGriColumnEncoding,
+        };
+        const height: u8 = (descriptor & 0x1F) + 1;
+        total_height += height;
+        if (total_height > 25) return error.InvalidGriColumnHeight;
+
+        const span_block_ref_start = block_ref_start + local_block_refs.items.len;
+        switch (encoding) {
+            .empty => {
+                try local_spans.append(allocator, .{
+                    .encoding = encoding,
+                    .height = height,
+                    .block_ref_start = span_block_ref_start,
+                    .block_ref_count = 0,
+                });
+            },
+            .explicit => {
+                if (cursor + (@as(usize, height) * 2) > payload.len) return error.TruncatedGriColumnPayload;
+                const before_refs = local_block_refs.items.len;
+                for (0..height) |_| {
+                    const block_ref_index = block_ref_start + local_block_refs.items.len;
+                    const block_ref = model.ColumnBlockRef{
+                        .layout_index = payload[cursor],
+                        .layout_block_index = payload[cursor + 1],
+                    };
+                    cursor += 2;
+                    try local_block_refs.append(allocator, block_ref);
+                    if (block_ref.layout_index == 0) continue;
+                    non_empty_block_ref_count += 1;
+                    if (first_non_empty_block_ref_index == null) first_non_empty_block_ref_index = block_ref_index;
+                    last_non_empty_block_ref_index = block_ref_index;
+                }
+                try local_spans.append(allocator, .{
+                    .encoding = encoding,
+                    .height = height,
+                    .block_ref_start = span_block_ref_start,
+                    .block_ref_count = local_block_refs.items.len - before_refs,
+                });
+            },
+            .repeated => {
+                if (cursor + 2 > payload.len) return error.TruncatedGriColumnPayload;
+                const block_ref_index = block_ref_start + local_block_refs.items.len;
+                const block_ref = model.ColumnBlockRef{
+                    .layout_index = payload[cursor],
+                    .layout_block_index = payload[cursor + 1],
+                };
+                cursor += 2;
+                try local_block_refs.append(allocator, block_ref);
+                if (block_ref.layout_index != 0) {
+                    non_empty_block_ref_count += height;
+                    if (first_non_empty_block_ref_index == null) first_non_empty_block_ref_index = block_ref_index;
+                    last_non_empty_block_ref_index = block_ref_index;
+                }
+                try local_spans.append(allocator, .{
+                    .encoding = encoding,
+                    .height = height,
+                    .block_ref_start = span_block_ref_start,
+                    .block_ref_count = 1,
+                });
+            },
+        }
+    }
+
+    return .{
+        .cell = .{
+            .offset = offset,
+            .span_start = span_start,
+            .span_count = span_count,
+            .total_height = total_height,
+            .non_empty_block_ref_count = non_empty_block_ref_count,
+            .first_non_empty_block_ref_index = first_non_empty_block_ref_index,
+            .last_non_empty_block_ref_index = last_non_empty_block_ref_index,
+        },
+        .spans = try local_spans.toOwnedSlice(allocator),
+        .block_refs = try local_block_refs.toOwnedSlice(allocator),
+    };
+}
+
+fn findNextOffset(payload: []const u8, table_byte_length: u32, index: usize, offset: u32) usize {
+    var next_offset: usize = payload.len;
+    const block_count = table_byte_length / @sizeOf(u32);
+    var search = index + 1;
+    while (search < block_count) : (search += 1) {
+        const candidate = readInt(u32, payload, search * @sizeOf(u32));
+        if (candidate > offset and candidate < next_offset) next_offset = candidate;
+    }
+    return next_offset;
+}
+
+fn validateGridAgainstLibrary(grid: model.GridComposition, library: model.LayoutLibrary) !void {
+    for (grid.block_refs) |block_ref| {
+        if (block_ref.layout_index == 0) continue;
+        if (block_ref.layout_index > library.layouts.len) return error.InvalidGriLayoutReference;
+
+        const layout = library.layouts[block_ref.layout_index - 1];
+        if (block_ref.layout_block_index >= layout.block_count) return error.InvalidGriLayoutBlockReference;
+    }
 }
 
 fn readInt(comptime T: type, bytes: []const u8, offset: usize) T {
