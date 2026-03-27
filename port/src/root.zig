@@ -7,6 +7,10 @@ pub const platform = struct {
     pub const sdl = @import("platform/sdl.zig");
 };
 
+pub const app = struct {
+    pub const viewer_shell = @import("app/viewer_shell.zig");
+};
+
 pub const assets = struct {
     pub const catalog = @import("assets/catalog.zig");
     pub const fixtures = @import("assets/fixtures.zig");
@@ -38,6 +42,7 @@ pub const GiverBonusKinds = game_data.scene.GiverBonusKinds;
 
 test {
     _ = @import("foundation/paths.zig");
+    _ = @import("app/viewer_shell.zig");
     _ = @import("assets/catalog.zig");
     _ = @import("assets/hqr.zig");
     _ = @import("assets/fixtures.zig");

@@ -2,6 +2,10 @@ const std = @import("std");
 
 const sdl = struct {
     pub const Window = opaque {};
+    pub const Event = extern union {
+        type: u32,
+        padding: [56]u8,
+    };
 
     pub extern fn SDL_Init(flags: u32) c_int;
     pub extern fn SDL_Quit() void;
@@ -15,19 +19,20 @@ const sdl = struct {
         flags: u32,
     ) ?*Window;
     pub extern fn SDL_DestroyWindow(window: *Window) void;
-    pub extern fn SDL_Delay(ms: u32) void;
+    pub extern fn SDL_WaitEvent(event: *Event) c_int;
 
     pub const SDL_INIT_VIDEO: u32 = 0x00000020;
+    pub const SDL_QUIT: u32 = 0x00000100;
     pub const SDL_WINDOW_SHOWN: u32 = 0x00000004;
     pub const SDL_WINDOWPOS_CENTERED: c_int = 0x2FFF0000;
 };
 
-pub fn runSmokeWindow() !void {
+pub fn runWindow(title: [*:0]const u8) !void {
     if (sdl.SDL_Init(sdl.SDL_INIT_VIDEO) != 0) return error.SdlInitFailed;
     defer sdl.SDL_Quit();
 
     const window = sdl.SDL_CreateWindow(
-        "Little Big Adventure 2",
+        title,
         sdl.SDL_WINDOWPOS_CENTERED,
         sdl.SDL_WINDOWPOS_CENTERED,
         960,
@@ -36,7 +41,11 @@ pub fn runSmokeWindow() !void {
     ) orelse return error.SdlCreateWindowFailed;
     defer sdl.SDL_DestroyWindow(window);
 
-    sdl.SDL_Delay(120);
+    var event: sdl.Event = undefined;
+    while (true) {
+        if (sdl.SDL_WaitEvent(&event) == 0) return error.SdlWaitEventFailed;
+        if (event.type == sdl.SDL_QUIT) break;
+    }
 }
 
 pub fn lastError() []const u8 {

@@ -50,7 +50,7 @@ pub fn build(b: *std.Build) void {
     const install_sdl2_dll = b.addInstallBinFile(b.path(sdl_dll_rel), "SDL2.dll");
     b.getInstallStep().dependOn(&install_sdl2_dll.step);
 
-    const run_step = b.step("run", "Run the SDL smoke app");
+    const run_step = b.step("run", "Run the data-backed interior viewer shell");
     const run_cmd = b.addRunArtifact(app);
     run_cmd.step.dependOn(&install_app.step);
     run_cmd.step.dependOn(&install_sdl2_dll.step);

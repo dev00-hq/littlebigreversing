@@ -12,7 +12,7 @@ Current direction:
 Current first package boundary:
 
 - real Zig workspace bootstrap
-- SDL2 application shell
+- data-backed SDL2 interior viewer shell for explicit scene/background pairs
 - canonical asset-root discovery and config
 - HQR base reader and inspection CLI
 - machine-readable asset inventory and golden-fixture pipeline

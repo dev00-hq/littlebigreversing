@@ -9,14 +9,21 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    const asset_root_override = try parseAssetRootArg(allocator, args[1..]);
-    defer if (asset_root_override) |value| allocator.free(value);
+    const parsed = lba2.app.viewer_shell.parseArgs(allocator, args[1..]) catch |err| {
+        var stderr_buffer: [4096]u8 = undefined;
+        var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+        const stderr = &stderr_writer.interface;
+        lba2.foundation.diagnostics.printError(stderr, @errorName(err));
+        stderr.flush() catch {};
+        return err;
+    };
+    defer parsed.deinit(allocator);
 
     var stderr_buffer: [4096]u8 = undefined;
     var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
     const stderr = &stderr_writer.interface;
 
-    const resolved = lba2.foundation.paths.resolveFromExecutable(allocator, asset_root_override) catch |err| {
+    const resolved = lba2.foundation.paths.resolveFromExecutable(allocator, parsed.asset_root_override) catch |err| {
         lba2.foundation.diagnostics.printError(stderr, @errorName(err));
         stderr.flush() catch {};
         return err;
@@ -29,16 +36,25 @@ pub fn main() !void {
         return err;
     };
 
-    try lba2.foundation.diagnostics.printLine(stderr, &.{
-        .{ .key = "event", .value = "startup" },
-        .{ .key = "repo_root", .value = resolved.repo_root },
-        .{ .key = "asset_root", .value = resolved.asset_root },
-        .{ .key = "work_root", .value = resolved.work_root },
-    });
+    const room = lba2.app.viewer_shell.loadRoomSnapshot(
+        allocator,
+        resolved,
+        parsed.scene_entry,
+        parsed.background_entry,
+    ) catch |err| {
+        lba2.foundation.diagnostics.printError(stderr, @errorName(err));
+        stderr.flush() catch {};
+        return err;
+    };
+    defer room.deinit(allocator);
+
+    try lba2.app.viewer_shell.printStartupDiagnostics(stderr, resolved, room);
+    const title = try lba2.app.viewer_shell.formatWindowTitleZ(allocator, room);
+    defer allocator.free(title);
     try stderr.flush();
 
-    lba2.platform.sdl.runSmokeWindow() catch |err| {
-        const message = if (err == error.SdlInitFailed or err == error.SdlCreateWindowFailed)
+    lba2.platform.sdl.runWindow(title) catch |err| {
+        const message = if (err == error.SdlInitFailed or err == error.SdlCreateWindowFailed or err == error.SdlWaitEventFailed)
             lba2.platform.sdl.lastError()
         else
             @errorName(err);
@@ -47,17 +63,9 @@ pub fn main() !void {
         return err;
     };
 
-    try lba2.foundation.diagnostics.printLine(stderr, &.{
-        .{ .key = "status", .value = "ok" },
-        .{ .key = "event", .value = "shutdown" },
-    });
+    try stderr.print(
+        "status=ok event=shutdown scene_entry={d} background_entry={d}\n",
+        .{ parsed.scene_entry, parsed.background_entry },
+    );
     try stderr.flush();
-}
-
-fn parseAssetRootArg(allocator: std.mem.Allocator, args: []const []const u8) !?[]u8 {
-    if (args.len == 0) return null;
-    if (args.len == 2 and std.mem.eql(u8, args[0], "--asset-root")) {
-        return try allocator.dupe(u8, args[1]);
-    }
-    return error.InvalidArguments;
 }
