@@ -23,6 +23,7 @@ Own repo-wide port direction, stable module seams, and the canonical Codex memor
 - `docs/PORTING_REPORT.md` still carries older feasibility context; use it as evidence background, not as the execution owner.
 - The canonical Windows Zig checks should run from native PowerShell, usually after `.\scripts\dev-shell.ps1`; `bash -lc` is fine for inspection work but can miss the actual Windows toolchain layout.
 - `ISSUES.md` must stay aligned with new recurring traps instead of leaving them only in chat or task history.
+- Preserved legacy format docs are evidence, not a numeric ground truth. If an imported spec mixes index bases or disagrees with an asset-backed regression, keep the structural insight but trust the checked-in asset probe or test for exact values.
 
 ## Canonical Entry Points
 
