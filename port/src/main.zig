@@ -49,23 +49,64 @@ pub fn main() !void {
     defer room.deinit(allocator);
 
     try lba2.app.viewer_shell.printStartupDiagnostics(stderr, resolved, room);
+    const render = lba2.app.viewer_shell.buildRenderSnapshot(room);
     const title = try lba2.app.viewer_shell.formatWindowTitleZ(allocator, room);
     defer allocator.free(title);
     try stderr.flush();
 
-    lba2.platform.sdl.runWindow(title) catch |err| {
-        const message = if (err == error.SdlInitFailed or err == error.SdlCreateWindowFailed or err == error.SdlWaitEventFailed)
-            lba2.platform.sdl.lastError()
-        else
-            @errorName(err);
-        lba2.foundation.diagnostics.printError(stderr, message);
+    var canvas = lba2.platform.sdl.Canvas.init(
+        title,
+        lba2.app.viewer_shell.window_width,
+        lba2.app.viewer_shell.window_height,
+    ) catch |err| {
+        lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
         stderr.flush() catch {};
         return err;
     };
+    defer canvas.deinit();
+
+    lba2.app.viewer_shell.renderDebugView(&canvas, render) catch |err| {
+        lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
+        stderr.flush() catch {};
+        return err;
+    };
+
+    while (true) {
+        const event = canvas.waitEvent() catch |err| {
+            lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
+            stderr.flush() catch {};
+            return err;
+        };
+        switch (event) {
+            .quit => break,
+            .redraw => lba2.app.viewer_shell.renderDebugView(&canvas, render) catch |err| {
+                lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
+                stderr.flush() catch {};
+                return err;
+            },
+            .other => {},
+        }
+    }
 
     try stderr.print(
         "status=ok event=shutdown scene_entry={d} background_entry={d}\n",
         .{ parsed.scene_entry, parsed.background_entry },
     );
     try stderr.flush();
+}
+
+fn sdlErrorMessage(err: anyerror) []const u8 {
+    return if (err == error.SdlInitFailed or
+        err == error.SdlCreateWindowFailed or
+        err == error.SdlCreateRendererFailed or
+        err == error.SdlSetRenderBlendModeFailed or
+        err == error.SdlSetRenderDrawColorFailed or
+        err == error.SdlRenderClearFailed or
+        err == error.SdlRenderDrawLineFailed or
+        err == error.SdlRenderDrawRectFailed or
+        err == error.SdlRenderFillRectFailed or
+        err == error.SdlWaitEventFailed)
+        lba2.platform.sdl.lastError()
+    else
+        @errorName(err);
 }

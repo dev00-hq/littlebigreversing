@@ -1,49 +1,53 @@
-# Next Step: Data-Backed Interior Viewer Shell
+# Next Step: Rendered Interior Debug View
 
 ## Summary
 
-`inspect-scene`, `inspect-background`, and `inspect-room` are already live, asset-backed, and validated on the current workspace. The old prompt is stale because it still asks for the room-pair stitch that now exists in the tool layer.
+The data-backed interior viewer shell is already live, asset-backed, and validated on the current workspace. `zig build run -- --scene-entry 2 --background-entry 2` now loads the canonical pair through `port/src/app/viewer_shell.zig`, prints runtime diagnostics, and keeps the SDL window open until quit, so the old prompt is stale because it still asks for that completed shell slice.
 
-Life integration remains blocked on `LM_DEFAULT` and `LM_END_SWITCH`, so the next bounded slice should stay on the viewer-prep path: replace the SDL smoke app with a data-backed interior viewer shell for the locked pair `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]` without widening into gameplay, exterior loading, or speculative runtime binding.
+Life integration remains blocked on `LM_DEFAULT` and `LM_END_SWITCH`, so the next bounded slice should stay on the viewer-prep path: turn the blank metadata-backed window into a minimal rendered debug view for the locked pair `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]` without widening into gameplay, exterior loading, speculative actor binding, or a new shared room layer.
 
-Keep the canonical data sources as `port/src/game_data/scene.zig` and `port/src/game_data/background.zig`. Do not introduce a new long-lived `game_data/room.zig` handoff layer, and do not make the runtime depend on the tool CLI as its data path.
+Keep the canonical data sources as `port/src/game_data/scene.zig` and `port/src/game_data/background.zig`. Keep any composition or render-state helpers local to the app/runtime edge. Do not introduce `port/src/game_data/room.zig`, and do not make the runtime depend on `inspect-room` as its data path.
 
 ## Key Changes
 
-- Replace the smoke-app startup path with a data-backed interior load.
-  - Extend `zig build run -- --scene-entry <scene-entry> --background-entry <background-entry>`.
-  - Keep the acceptance path explicit as `zig build run -- --scene-entry 2 --background-entry 2`; do not invent a general scene-to-background mapping layer from incomplete evidence.
-  - Load the scene and background through the existing public facades, then fail fast if the requested scene is not interior or if the background entry is invalid.
+- Replace the blank SDL shell with the first deterministic debug render.
+  - Keep the explicit acceptance path as `zig build run -- --scene-entry 2 --background-entry 2`.
+  - Continue loading the scene and background through the existing public facades, then render from the already-loaded runtime snapshot instead of from tool output.
+  - Preserve the real quit-driven SDL loop and fail-fast startup diagnostics.
 
-- Add a narrow viewer-local room snapshot for the canonical pair.
-  - Keep any composition struct local to the app or immediate viewer-prep code instead of promoting a new shared `game_data` surface.
-  - Treat `inspect-room` as an already-implemented baseline and cross-check, not as the runtime implementation itself.
-  - Surface the loaded facts already proven by the inspectors in startup diagnostics and the window title: scene kind, classic loader scene number, hero start, object/zone/track counts, background remapped cube index, `GRI`/`GRM`/`BLL` linkage, used-block summary, and `64 x 64` column-table metadata.
+- Add a narrow viewer-local render snapshot for drawable facts that are already decoded.
+  - Build from the existing room snapshot and promote only the minimum extra fields needed for rendering: hero start, object positions, track points, zone bounds, zone kinds, and the background column-table dimensions.
+  - Keep this render-facing shape local to the app/runtime boundary instead of widening `game_data`.
+  - Treat `inspect-room`, `inspect-scene`, and `inspect-background` as cross-check surfaces, not as runtime implementation dependencies.
 
-- Replace the one-shot delay with a minimal viewer shell.
-  - Keep the SDL window open with a real quit path instead of a timed smoke-window exit.
-  - It is acceptable for the visual output to remain placeholder-only in this slice; the goal is to prove that the runtime boots against real room metadata rather than a blind SDL smoke test.
-  - Keep the runtime surface narrow and fail-fast if canonical assets are missing or unsupported.
+- Render a simple interior schematic instead of real room art.
+  - Draw a stable placeholder frame that makes the loaded metadata visible on screen for the canonical pair.
+  - Use the `64 x 64` background column-table dimensions as the room-grid backdrop for the first debug view.
+  - Overlay the scene-space facts already available today: hero start marker, object markers, track points, and zone bounds with type-distinct colors.
+  - If a visual fit step is needed, derive it from the loaded room data in-process rather than inventing a general camera or scene-mapping layer.
 
-- Keep the slice strictly pre-render and pre-gameplay.
-  - Do not add room rasterization, brick decoding, mask generation, actor visuals, camera controls, or `GRM` redraw behavior in this slice.
-  - Do not guess hero `BODY.HQR` / `ANIM.HQR` bindings from `SCENE.HQR[2]`.
+- Keep the slice strictly pre-gameplay and pre-asset-rasterization.
+  - Do not decode bricks, masks, or `GRM` redraw payloads in this slice.
+  - Do not add actor visuals from `BODY.HQR`, `ANIM.HQR`, `FILE3D.HQR`, or sprite assets.
   - Do not revisit scene-surface life integration; raw life bytes stay canonical until the switch-family blocker changes explicitly.
+  - Do not widen to exterior scenes or guess a general scene-to-background pairing rule from incomplete evidence.
 
-- Add regression coverage for the runtime-backed load boundary.
-  - Add asset-backed tests for the new viewer-local load helper so `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]` remain aligned with the current golden target when loaded for the app path.
-  - Keep the existing standalone `inspect-scene`, `inspect-background`, and `inspect-room` coverage intact; the new tests should prove the runtime entry boundary, not replace the underlying subsystem tests.
+- Add regression coverage for the first render-facing boundary.
+  - Keep the existing asset-backed `viewer_shell` load tests intact.
+  - Add focused tests for any new viewer-local projection or render-snapshot helpers so the canonical `2/2` schematic stays stable.
+  - Prefer deterministic geometry/projection assertions over brittle pixel-golden screenshots in this slice.
 
 ## Test Plan
 
 - `zig build test`
-- `zig build run -- --scene-entry 2 --background-entry 2`
 - `zig build tool -- inspect-room 2 2 --json`
+- `zig build run -- --scene-entry 2 --background-entry 2`
+  - Verify the window stays open until quit and now shows a rendered debug schematic rather than a blank shell.
 
 ## Assumptions
 
 - `docs/phase0/golden_targets.md` still locks the canonical interior pair as `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`.
 - The current extracted asset tree and repo-local Windows SDL2 layout remain the environment boundary for validation on this machine.
-- `inspect-room` remains the baseline composition surface, but the runtime must load scene and background metadata through the canonical facades rather than shelling out to the tool.
-- A general scene-to-background mapping surface is still out of scope until stronger checked-in evidence exists.
+- The runtime should keep building on the landed viewer shell instead of replacing it with a new tool-driven or compatibility-path bootstrap.
+- A shared `game_data/room.zig` layer is still out of scope until stronger checked-in evidence proves it is needed.
 - `LM_DEFAULT` and `LM_END_SWITCH` remain blocked, so this slice stays off the life-script path.
