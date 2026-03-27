@@ -138,12 +138,54 @@ pub const CompositionRenderSnapshot = struct {
     tiles: []const CompositionTileSnapshot,
 };
 
+pub const FragmentLibrarySnapshot = struct {
+    fragment_count: usize,
+    footprint_cell_count: usize,
+    non_empty_cell_count: usize,
+    max_height: u8,
+};
+
+pub const FragmentZoneCellSnapshot = struct {
+    x: usize,
+    z: usize,
+    has_non_empty: bool,
+    top_floor_type: u8,
+    top_shape: u8,
+    top_shape_class: SurfaceShapeClass,
+};
+
+pub const FragmentZoneSnapshot = struct {
+    zone_index: usize,
+    zone_num: i16,
+    grm_index: usize,
+    fragment_entry_index: usize,
+    initially_on: bool,
+    origin_x: usize,
+    origin_z: usize,
+    width: usize,
+    height: u8,
+    depth: usize,
+    footprint_cell_count: usize,
+    non_empty_cell_count: usize,
+    cells: []FragmentZoneCellSnapshot,
+
+    pub fn deinit(self: FragmentZoneSnapshot, allocator: std.mem.Allocator) void {
+        allocator.free(self.cells);
+    }
+};
+
+pub const FragmentRenderSnapshot = struct {
+    library: FragmentLibrarySnapshot,
+    zones: []const FragmentZoneSnapshot,
+};
+
 pub const BackgroundSnapshot = struct {
     entry_index: usize,
     linkage: BackgroundLinkageSnapshot,
     used_block_ids: []u8,
     column_table: ColumnTableSnapshot,
     composition: CompositionSnapshot,
+    fragments: FragmentLibrarySnapshot,
 
     pub fn deinit(self: BackgroundSnapshot, allocator: std.mem.Allocator) void {
         allocator.free(self.used_block_ids);
@@ -154,10 +196,13 @@ pub const BackgroundSnapshot = struct {
 pub const RoomSnapshot = struct {
     scene: SceneSnapshot,
     background: BackgroundSnapshot,
+    fragment_zones: []FragmentZoneSnapshot,
 
     pub fn deinit(self: RoomSnapshot, allocator: std.mem.Allocator) void {
         self.scene.deinit(allocator);
         self.background.deinit(allocator);
+        for (self.fragment_zones) |zone| zone.deinit(allocator);
+        allocator.free(self.fragment_zones);
     }
 };
 
@@ -207,6 +252,7 @@ pub const RenderSnapshot = struct {
     zones: []const ZoneBoundsSnapshot,
     tracks: []const TrackPointSnapshot,
     composition: CompositionRenderSnapshot,
+    fragments: FragmentRenderSnapshot,
 };
 
 pub const SchematicLayout = struct {
@@ -298,6 +344,11 @@ pub fn loadRoomSnapshot(
     defer background.deinit(allocator);
 
     const composition = try buildCompositionSnapshot(allocator, background.composition);
+    const fragment_zones = try buildFragmentZoneSnapshots(allocator, scene.zones, background.composition.fragments, background.composition.library);
+    errdefer {
+        for (fragment_zones) |zone| zone.deinit(allocator);
+        allocator.free(fragment_zones);
+    }
 
     const background_snapshot = BackgroundSnapshot{
         .entry_index = background.entry_index,
@@ -320,12 +371,19 @@ pub fn loadRoomSnapshot(
             .max_offset = background.column_table.max_offset,
         },
         .composition = composition,
+        .fragments = .{
+            .fragment_count = background.composition.fragments.fragments.len,
+            .footprint_cell_count = background.composition.fragments.footprint_cell_count,
+            .non_empty_cell_count = background.composition.fragments.non_empty_cell_count,
+            .max_height = background.composition.fragments.max_height,
+        },
     };
     errdefer background_snapshot.deinit(allocator);
 
     return .{
         .scene = scene_snapshot,
         .background = background_snapshot,
+        .fragment_zones = fragment_zones,
     };
 }
 
@@ -358,6 +416,10 @@ pub fn buildRenderSnapshot(room: RoomSnapshot) RenderSnapshot {
             .max_stack_depth = room.background.composition.max_stack_depth,
             .height_grid = room.background.composition.height_grid,
             .tiles = room.background.composition.tiles,
+        },
+        .fragments = .{
+            .library = room.background.fragments,
+            .zones = room.fragment_zones,
         },
     };
 }
@@ -453,6 +515,7 @@ pub fn renderDebugView(canvas: *sdl.Canvas, snapshot: RenderSnapshot) !void {
     try canvas.fillRect(panel, .{ .r = 10, .g = 14, .b = 19, .a = 255 });
     try canvas.drawRect(panel, .{ .r = 56, .g = 80, .b = 92, .a = 255 });
     try drawComposition(canvas, panel, snapshot);
+    try drawFragmentZones(canvas, panel, snapshot);
     try drawGrid(canvas, panel, snapshot.grid_width, snapshot.grid_depth);
 
     for (snapshot.zones) |zone| {
@@ -568,6 +631,15 @@ pub fn printStartupDiagnostics(
             },
         );
     }
+    try writer.print(
+        "fragments={d} footprint_cells={d} non_empty_cells={d} fragment_zones={d}\n",
+        .{
+            room.background.fragments.fragment_count,
+            room.background.fragments.footprint_cell_count,
+            room.background.fragments.non_empty_cell_count,
+            room.fragment_zones.len,
+        },
+    );
     try printUsedBlockSummary(writer, room.background.used_block_ids);
 }
 
@@ -577,7 +649,7 @@ pub fn formatWindowTitleZ(allocator: std.mem.Allocator, room: RoomSnapshot) ![:0
 
     const title = try std.fmt.allocPrint(
         allocator,
-        "Little Big Adventure 2 viewer scene={d} background={d} kind={s} loader={any} hero={d},{d},{d} objects={d} zones={d} tracks={d} cube={d} gri={d}(grm={d},bll={d}) grm={d} bll={d} blocks={s} columns={d}x{d} comp={d}",
+        "Little Big Adventure 2 viewer scene={d} background={d} kind={s} loader={any} hero={d},{d},{d} objects={d} zones={d} tracks={d} cube={d} gri={d}(grm={d},bll={d}) grm={d} bll={d} fragments={d}/{d} blocks={s} columns={d}x{d} comp={d}",
         .{
             room.scene.entry_index,
             room.background.entry_index,
@@ -595,6 +667,8 @@ pub fn formatWindowTitleZ(allocator: std.mem.Allocator, room: RoomSnapshot) ![:0
             room.background.linkage.gri_my_bll,
             room.background.linkage.grm_entry_index,
             room.background.linkage.bll_entry_index,
+            room.fragment_zones.len,
+            room.background.fragments.fragment_count,
             used_blocks,
             room.background.column_table.width,
             room.background.column_table.depth,
@@ -656,6 +730,92 @@ fn copyTrackSnapshots(
         };
     }
     return copied;
+}
+
+const world_grid_span_xz = 512;
+const world_grid_span_y = 256;
+
+fn buildFragmentZoneSnapshots(
+    allocator: std.mem.Allocator,
+    zones: []const scene_data.SceneZone,
+    fragments: background_data.FragmentLibrary,
+    library: background_data.LayoutLibrary,
+) ![]FragmentZoneSnapshot {
+    var copied: std.ArrayList(FragmentZoneSnapshot) = .empty;
+    errdefer {
+        for (copied.items) |zone| zone.deinit(allocator);
+        copied.deinit(allocator);
+    }
+
+    for (zones, 0..) |zone, zone_index| {
+        if (zone.zone_type != .grm) continue;
+
+        const semantics = zone.semantics.grm;
+        if (semantics.grm_index < 0) return error.InvalidFragmentZoneIndex;
+        const grm_index: usize = @intCast(semantics.grm_index);
+        if (grm_index >= fragments.fragments.len) return error.FragmentZoneIndexOutOfRange;
+
+        const fragment = fragments.fragments[grm_index];
+        const x_min = @min(zone.x0, zone.x1);
+        const x_max = @max(zone.x0, zone.x1);
+        const y_min = @min(zone.y0, zone.y1);
+        const y_max = @max(zone.y0, zone.y1);
+        const z_min = @min(zone.z0, zone.z1);
+        const z_max = @max(zone.z0, zone.z1);
+        const origin_x = try zoneAxisOrigin(x_min, world_grid_span_xz);
+        const origin_z = try zoneAxisOrigin(z_min, world_grid_span_xz);
+        const zone_width = try zoneAxisCellCount(x_min, x_max, world_grid_span_xz);
+        const zone_height = try zoneAxisCellCount(y_min, y_max, world_grid_span_y);
+        const zone_depth = try zoneAxisCellCount(z_min, z_max, world_grid_span_xz);
+
+        if (zone_width != @as(usize, fragment.width) or zone_height != @as(usize, fragment.height) or zone_depth != @as(usize, fragment.depth)) {
+            return error.FragmentZoneFootprintMismatch;
+        }
+
+        const cells = try allocator.alloc(FragmentZoneCellSnapshot, fragment.cells.len);
+        errdefer allocator.free(cells);
+        for (fragment.cells, cells) |fragment_cell, *slot| {
+            if (fragment_cell.non_empty_block_ref_count > 0) {
+                const top_ref_index = fragment_cell.last_non_empty_block_ref_index orelse return error.InvalidFragmentZoneCell;
+                const block = try resolveLayoutBlock(library, fragment.block_refs[top_ref_index]);
+                slot.* = .{
+                    .x = origin_x + fragment_cell.x,
+                    .z = origin_z + fragment_cell.z,
+                    .has_non_empty = true,
+                    .top_floor_type = block.floorType(),
+                    .top_shape = block.shape,
+                    .top_shape_class = classifySurfaceShape(block.shape),
+                };
+            } else {
+                slot.* = .{
+                    .x = origin_x + fragment_cell.x,
+                    .z = origin_z + fragment_cell.z,
+                    .has_non_empty = false,
+                    .top_floor_type = 0,
+                    .top_shape = 0,
+                    .top_shape_class = .open,
+                };
+            }
+        }
+
+        try copied.append(allocator, .{
+            .zone_index = zone_index,
+            .zone_num = zone.num,
+            .grm_index = grm_index,
+            .fragment_entry_index = fragment.entry_index,
+            .initially_on = semantics.initially_on,
+            .origin_x = origin_x,
+            .origin_z = origin_z,
+            .width = zone_width,
+            .height = fragment.height,
+            .depth = zone_depth,
+            .footprint_cell_count = fragment.footprint_cell_count,
+            .non_empty_cell_count = fragment.non_empty_cell_count,
+            .cells = cells,
+        });
+    }
+
+    return copied.toOwnedSlice(allocator);
 }
 
 fn buildCompositionSnapshot(
@@ -723,13 +883,20 @@ fn resolveCompositionLayoutBlock(
     composition: background_data.BackgroundComposition,
     block_ref: background_data.ColumnBlockRef,
 ) !background_data.LayoutBlock {
-    if (block_ref.layout_index == 0) return error.InvalidCompositionCell;
-    if (block_ref.layout_index > composition.library.layouts.len) return error.InvalidCompositionLayoutReference;
+    return resolveLayoutBlock(composition.library, block_ref);
+}
 
-    const layout = composition.library.layouts[block_ref.layout_index - 1];
+fn resolveLayoutBlock(
+    library: background_data.LayoutLibrary,
+    block_ref: background_data.ColumnBlockRef,
+) !background_data.LayoutBlock {
+    if (block_ref.layout_index == 0) return error.InvalidCompositionCell;
+    if (block_ref.layout_index > library.layouts.len) return error.InvalidCompositionLayoutReference;
+
+    const layout = library.layouts[block_ref.layout_index - 1];
     if (block_ref.layout_block_index >= layout.block_count) return error.InvalidCompositionLayoutBlockReference;
 
-    return composition.library.layout_blocks[layout.block_start + block_ref.layout_block_index];
+    return library.layout_blocks[layout.block_start + block_ref.layout_block_index];
 }
 
 fn classifySurfaceShape(shape: u8) SurfaceShapeClass {
@@ -772,6 +939,34 @@ fn drawComposition(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: RenderSnapshot
     for (snapshot.composition.tiles) |tile| {
         const tile_rect = projectGridCellRect(rect, snapshot.grid_width, snapshot.grid_depth, tile.x, tile.z);
         try drawCompositionTile(canvas, snapshot, tile_rect, tile);
+    }
+}
+
+fn drawFragmentZones(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: RenderSnapshot) !void {
+    for (snapshot.fragments.zones) |zone| {
+        const zone_bounds = projectGridAreaRect(
+            rect,
+            snapshot.grid_width,
+            snapshot.grid_depth,
+            zone.origin_x,
+            zone.origin_z,
+            zone.width,
+            zone.depth,
+        );
+        const border_color = fragmentZoneBorderColor(zone.initially_on);
+        for (zone.cells) |cell| {
+            const cell_rect = projectGridCellRect(rect, snapshot.grid_width, snapshot.grid_depth, cell.x, cell.z);
+            if (cell.has_non_empty) {
+                const fill = withAlpha(fragmentCellColor(cell), 118);
+                try canvas.fillRect(cell_rect, fill);
+                try canvas.drawRect(cell_rect, withAlpha(lightenColor(fragmentCellColor(cell), 28), 196));
+                try drawFragmentCellMarker(canvas, cell_rect, cell, withAlpha(lightenColor(fragmentCellColor(cell), 72), 216));
+            } else {
+                try canvas.drawLine(cell_rect.x, cell_rect.y, cell_rect.right(), cell_rect.bottom(), withAlpha(border_color, 176));
+                try canvas.drawLine(cell_rect.right(), cell_rect.y, cell_rect.x, cell_rect.bottom(), withAlpha(border_color, 176));
+            }
+        }
+        try canvas.drawRect(zone_bounds, border_color);
     }
 }
 
@@ -880,6 +1075,82 @@ fn projectGridCellRect(rect: sdl.Rect, width: usize, depth: usize, x: usize, z: 
         .w = @max(1, @max(left, right) - @min(left, right)),
         .h = @max(1, @max(top, bottom) - @min(top, bottom)),
     };
+}
+
+fn projectGridAreaRect(rect: sdl.Rect, width: usize, depth: usize, origin_x: usize, origin_z: usize, cell_width: usize, cell_depth: usize) sdl.Rect {
+    const start = projectGridCellRect(rect, width, depth, origin_x, origin_z);
+    const finish = projectGridCellRect(rect, width, depth, origin_x + cell_width -| 1, origin_z + cell_depth -| 1);
+    const left = @min(start.x, finish.x);
+    const top = @min(start.y, finish.y);
+    const right = @max(start.right(), finish.right());
+    const bottom = @max(start.bottom(), finish.bottom());
+
+    return .{
+        .x = left,
+        .y = top,
+        .w = @max(1, right - left),
+        .h = @max(1, bottom - top),
+    };
+}
+
+fn zoneAxisOrigin(min_value: i32, unit: i32) !usize {
+    if (min_value < 0) return error.InvalidFragmentZoneBounds;
+    if (@mod(min_value, unit) != 0) return error.InvalidFragmentZoneBounds;
+    return @intCast(@divTrunc(min_value, unit));
+}
+
+fn zoneAxisCellCount(min_value: i32, max_value: i32, unit: i32) !usize {
+    if (max_value < min_value) return error.InvalidFragmentZoneBounds;
+    const span = max_value - min_value + 1;
+    if (@mod(span, unit) != 0) return error.InvalidFragmentZoneBounds;
+    return @intCast(@divTrunc(span, unit));
+}
+
+fn fragmentZoneBorderColor(initially_on: bool) sdl.Color {
+    return if (initially_on)
+        .{ .r = 255, .g = 215, .b = 112, .a = 255 }
+    else
+        .{ .r = 174, .g = 188, .b = 198, .a = 255 };
+}
+
+fn fragmentCellColor(cell: FragmentZoneCellSnapshot) sdl.Color {
+    return switch (cell.top_floor_type) {
+        1, 0x0F => .{ .r = 68, .g = 148, .b = 220, .a = 255 },
+        0x09, 0x0D => .{ .r = 224, .g = 118, .b = 70, .a = 255 },
+        0x0B, 0x0E => .{ .r = 116, .g = 188, .b = 102, .a = 255 },
+        else => switch (cell.top_shape_class) {
+            .solid => .{ .r = 224, .g = 178, .b = 86, .a = 255 },
+            .single_stair => .{ .r = 240, .g = 148, .b = 102, .a = 255 },
+            .double_stair_corner => .{ .r = 232, .g = 126, .b = 142, .a = 255 },
+            .double_stair_peak => .{ .r = 208, .g = 118, .b = 198, .a = 255 },
+            .open, .weird => .{ .r = 192, .g = 196, .b = 204, .a = 255 },
+        },
+    };
+}
+
+fn drawFragmentCellMarker(
+    canvas: *sdl.Canvas,
+    cell_rect: sdl.Rect,
+    cell: FragmentZoneCellSnapshot,
+    color: sdl.Color,
+) !void {
+    const marker = cell_rect.inset(@max(1, @divTrunc(@min(cell_rect.w, cell_rect.h), 4)));
+    if (marker.w <= 0 or marker.h <= 0) return;
+
+    if (cell.top_shape_class == .solid) {
+        try canvas.drawRect(marker, color);
+        return;
+    }
+    if (cell.top_shape_class == .single_stair) {
+        if (cell.top_shape == 2 or cell.top_shape == 5) {
+            try canvas.drawLine(marker.x, marker.y, marker.right(), marker.bottom(), color);
+        } else {
+            try canvas.drawLine(marker.right(), marker.y, marker.x, marker.bottom(), color);
+        }
+        return;
+    }
+    try canvas.drawLine(marker.x, marker.y, marker.right(), marker.bottom(), color);
+    try canvas.drawLine(marker.right(), marker.y, marker.x, marker.bottom(), color);
 }
 
 fn compositionTileColor(tile: CompositionTileSnapshot) sdl.Color {
@@ -1209,6 +1480,126 @@ test "viewer tile relief thickens with taller composition cells" {
     try std.testing.expect(tall_relief.bottom_wall.h > 0);
 }
 
+test "viewer fragment zones project canonical cell coverage from scene bounds" {
+    const allocator = std.testing.allocator;
+
+    const layouts = try allocator.dupe(background_data.Layout, &.{
+        .{
+            .index = 1,
+            .start_offset = 0,
+            .byte_length = 7,
+            .x = 1,
+            .y = 1,
+            .z = 1,
+            .block_start = 0,
+            .block_count = 1,
+        },
+    });
+    defer allocator.free(layouts);
+
+    const layout_blocks = try allocator.dupe(background_data.LayoutBlock, &.{
+        .{ .shape = 2, .sound_floor = 0x31, .brick_index = 123 },
+    });
+    defer allocator.free(layout_blocks);
+
+    const library = background_data.LayoutLibrary{
+        .layouts = layouts,
+        .layout_blocks = layout_blocks,
+        .max_layout_block_count = 1,
+    };
+
+    const fragment_cells = try allocator.dupe(background_data.FragmentCell, &.{
+        .{
+            .x = 0,
+            .z = 0,
+            .block_ref_start = 0,
+            .block_ref_count = 1,
+            .non_empty_block_ref_count = 1,
+            .first_non_empty_block_ref_index = 0,
+            .last_non_empty_block_ref_index = 0,
+        },
+        .{
+            .x = 1,
+            .z = 0,
+            .block_ref_start = 1,
+            .block_ref_count = 1,
+            .non_empty_block_ref_count = 0,
+            .first_non_empty_block_ref_index = null,
+            .last_non_empty_block_ref_index = null,
+        },
+    });
+    const fragment_block_refs = try allocator.dupe(background_data.ColumnBlockRef, &.{
+        .{ .layout_index = 1, .layout_block_index = 0 },
+        .{ .layout_index = 0, .layout_block_index = 0 },
+    });
+
+    var fragments = background_data.FragmentLibrary{
+        .fragments = try allocator.dupe(background_data.Fragment, &.{
+            .{
+                .relative_index = 0,
+                .entry_index = 149,
+                .width = 2,
+                .height = 1,
+                .depth = 1,
+                .cells = fragment_cells,
+                .block_refs = fragment_block_refs,
+                .footprint_cell_count = 2,
+                .non_empty_cell_count = 1,
+                .non_empty_bounds = .{ .min_x = 0, .max_x = 0, .min_z = 0, .max_z = 0 },
+                .max_non_empty_column_height = 1,
+            },
+        }),
+        .footprint_cell_count = 2,
+        .non_empty_cell_count = 1,
+        .max_height = 1,
+    };
+    defer fragments.deinit(allocator);
+
+    const zones = [_]scene_data.SceneZone{
+        .{
+            .x0 = 0,
+            .y0 = 0,
+            .z0 = 512,
+            .x1 = 1023,
+            .y1 = 255,
+            .z1 = 1023,
+            .raw_info = .{ 0, 0, 0, 0, 0, 0, 0, 0 },
+            .zone_type = .grm,
+            .num = 7,
+            .semantics = .{ .grm = .{ .grm_index = 0, .initially_on = true } },
+        },
+    };
+
+    const projected = try buildFragmentZoneSnapshots(allocator, &zones, fragments, library);
+    defer {
+        for (projected) |zone| zone.deinit(allocator);
+        allocator.free(projected);
+    }
+
+    try std.testing.expectEqual(@as(usize, 1), projected.len);
+    try std.testing.expectEqual(@as(usize, 0), projected[0].origin_x);
+    try std.testing.expectEqual(@as(usize, 1), projected[0].origin_z);
+    try std.testing.expectEqual(@as(usize, 2), projected[0].width);
+    try std.testing.expectEqual(@as(usize, 1), projected[0].depth);
+    try std.testing.expectEqual(@as(usize, 2), projected[0].cells.len);
+    try std.testing.expectEqual(FragmentZoneCellSnapshot{
+        .x = 0,
+        .z = 1,
+        .has_non_empty = true,
+        .top_floor_type = 3,
+        .top_shape = 2,
+        .top_shape_class = .single_stair,
+    }, projected[0].cells[0]);
+    try std.testing.expectEqual(FragmentZoneCellSnapshot{
+        .x = 1,
+        .z = 1,
+        .has_non_empty = false,
+        .top_floor_type = 0,
+        .top_shape = 0,
+        .top_shape_class = .open,
+    }, projected[0].cells[1]);
+}
+
 test "viewer argument parsing requires explicit scene and background entries" {
     const parsed = try parseArgs(std.testing.allocator, &.{
         "--scene-entry",
@@ -1283,6 +1674,11 @@ test "viewer room snapshot keeps the canonical interior pair stable" {
     try std.testing.expectEqual(@as(usize, 4096), room.background.composition.height_grid.len);
     try std.testing.expect(room.background.composition.max_total_height >= room.background.composition.max_stack_depth);
     try std.testing.expectEqual(@as(usize, 2252), room.background.composition.tiles.len);
+    try std.testing.expectEqual(@as(usize, 0), room.background.fragments.fragment_count);
+    try std.testing.expectEqual(@as(usize, 0), room.background.fragments.footprint_cell_count);
+    try std.testing.expectEqual(@as(usize, 0), room.background.fragments.non_empty_cell_count);
+    try std.testing.expectEqual(@as(u8, 0), room.background.fragments.max_height);
+    try std.testing.expectEqual(@as(usize, 0), room.fragment_zones.len);
 
     const first_tile = room.background.composition.tiles[0];
     try std.testing.expectEqual(CompositionTileSnapshot{
@@ -1325,6 +1721,11 @@ test "viewer render snapshot derives a deterministic schematic from the canonica
     try std.testing.expect(render.composition.floor_type_counts[1] > 0);
     try std.testing.expectEqual(@as(usize, 4096), render.composition.height_grid.len);
     try std.testing.expect(render.composition.max_total_height >= render.composition.max_stack_depth);
+    try std.testing.expectEqual(@as(usize, 0), render.fragments.library.fragment_count);
+    try std.testing.expectEqual(@as(usize, 0), render.fragments.library.footprint_cell_count);
+    try std.testing.expectEqual(@as(usize, 0), render.fragments.library.non_empty_cell_count);
+    try std.testing.expectEqual(@as(u8, 0), render.fragments.library.max_height);
+    try std.testing.expectEqual(@as(usize, 0), render.fragments.zones.len);
 }
 
 test "viewer projection keeps the canonical schematic fit stable" {
@@ -1387,6 +1788,7 @@ test "viewer window title carries the canonical room metadata" {
     try std.testing.expect(std.mem.indexOf(u8, title, "gri=3(grm=0,bll=1)") != null);
     try std.testing.expect(std.mem.indexOf(u8, title, "grm=149") != null);
     try std.testing.expect(std.mem.indexOf(u8, title, "bll=180") != null);
+    try std.testing.expect(std.mem.indexOf(u8, title, "fragments=0/0") != null);
     try std.testing.expect(std.mem.indexOf(u8, title, "blocks=105[1|2|3|4|5|7|...]") != null);
     try std.testing.expect(std.mem.indexOf(u8, title, "columns=64x64") != null);
     try std.testing.expect(std.mem.indexOf(u8, title, "comp=2252") != null);

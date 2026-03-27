@@ -181,24 +181,132 @@ pub const LayoutLibrary = struct {
     }
 };
 
+pub const FragmentCell = struct {
+    x: usize,
+    z: usize,
+    block_ref_start: usize,
+    block_ref_count: usize,
+    non_empty_block_ref_count: usize,
+    first_non_empty_block_ref_index: ?usize,
+    last_non_empty_block_ref_index: ?usize,
+};
+
+pub const FragmentSummary = struct {
+    relative_index: usize,
+    entry_index: usize,
+    width: u8,
+    height: u8,
+    depth: u8,
+    footprint_cell_count: usize,
+    non_empty_cell_count: usize,
+    non_empty_bounds: ?GridBounds,
+    max_non_empty_column_height: u8,
+};
+
+pub const Fragment = struct {
+    relative_index: usize,
+    entry_index: usize,
+    width: u8,
+    height: u8,
+    depth: u8,
+    cells: []FragmentCell,
+    block_refs: []ColumnBlockRef,
+    footprint_cell_count: usize,
+    non_empty_cell_count: usize,
+    non_empty_bounds: ?GridBounds,
+    max_non_empty_column_height: u8,
+
+    pub fn deinit(self: Fragment, allocator: std.mem.Allocator) void {
+        allocator.free(self.cells);
+        allocator.free(self.block_refs);
+    }
+
+    pub fn summary(self: Fragment) FragmentSummary {
+        return .{
+            .relative_index = self.relative_index,
+            .entry_index = self.entry_index,
+            .width = self.width,
+            .height = self.height,
+            .depth = self.depth,
+            .footprint_cell_count = self.footprint_cell_count,
+            .non_empty_cell_count = self.non_empty_cell_count,
+            .non_empty_bounds = self.non_empty_bounds,
+            .max_non_empty_column_height = self.max_non_empty_column_height,
+        };
+    }
+
+    pub fn jsonStringify(self: Fragment, jw: anytype) !void {
+        try jw.write(self.summary());
+    }
+};
+
+pub const FragmentLibrarySummary = struct {
+    fragment_count: usize,
+    footprint_cell_count: usize,
+    non_empty_cell_count: usize,
+    max_height: u8,
+};
+
+pub const FragmentLibrary = struct {
+    fragments: []Fragment,
+    footprint_cell_count: usize,
+    non_empty_cell_count: usize,
+    max_height: u8,
+
+    pub fn deinit(self: FragmentLibrary, allocator: std.mem.Allocator) void {
+        for (self.fragments) |fragment| fragment.deinit(allocator);
+        allocator.free(self.fragments);
+    }
+
+    pub fn summary(self: FragmentLibrary) FragmentLibrarySummary {
+        return .{
+            .fragment_count = self.fragments.len,
+            .footprint_cell_count = self.footprint_cell_count,
+            .non_empty_cell_count = self.non_empty_cell_count,
+            .max_height = self.max_height,
+        };
+    }
+
+    pub fn jsonStringify(self: FragmentLibrary, jw: anytype) !void {
+        try jw.beginObject();
+        try jw.objectField("fragment_count");
+        try jw.write(self.fragments.len);
+        try jw.objectField("footprint_cell_count");
+        try jw.write(self.footprint_cell_count);
+        try jw.objectField("non_empty_cell_count");
+        try jw.write(self.non_empty_cell_count);
+        try jw.objectField("max_height");
+        try jw.write(self.max_height);
+        try jw.objectField("fragments");
+        try jw.beginArray();
+        for (self.fragments) |fragment| try jw.write(fragment.summary());
+        try jw.endArray();
+        try jw.endObject();
+    }
+};
+
 pub const BackgroundCompositionSummary = struct {
     grid: GridCompositionSummary,
     library: LayoutLibrarySummary,
+    fragments: FragmentLibrarySummary,
 };
 
 pub const BackgroundComposition = struct {
     grid: GridComposition,
     library: LayoutLibrary,
+    fragments: FragmentLibrary,
 
     pub fn deinit(self: BackgroundComposition, allocator: std.mem.Allocator) void {
         self.grid.deinit(allocator);
         self.library.deinit(allocator);
+        self.fragments.deinit(allocator);
     }
 
     pub fn summary(self: BackgroundComposition) BackgroundCompositionSummary {
         return .{
             .grid = self.grid.summary(),
             .library = self.library.summary(),
+            .fragments = self.fragments.summary(),
         };
     }
 

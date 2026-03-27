@@ -111,12 +111,20 @@ const RoomCompositionSummary = struct {
     max_layout_block_count: usize,
 };
 
+const RoomFragmentSummary = struct {
+    fragment_count: usize,
+    footprint_cell_count: usize,
+    non_empty_cell_count: usize,
+    max_height: u8,
+};
+
 const RoomBackgroundSummary = struct {
     entry_index: usize,
     linkage: RoomBackgroundLinkageSummary,
     used_blocks: RoomUsedBlocksSummary,
     column_table: RoomColumnTableSummary,
     composition: RoomCompositionSummary,
+    fragments: RoomFragmentSummary,
 };
 
 const RoomInspectionPayload = struct {
@@ -514,6 +522,15 @@ fn inspectBackground(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
             },
         );
     }
+    try stderr.print(
+        "fragments count={d} footprint_cells={d} non_empty_cells={d} max_height={d}\n",
+        .{
+            metadata.composition.fragments.fragments.len,
+            metadata.composition.fragments.footprint_cell_count,
+            metadata.composition.fragments.non_empty_cell_count,
+            metadata.composition.fragments.max_height,
+        },
+    );
     try printUsedBlockSummary(stderr, metadata.used_blocks.used_block_ids);
     try stderr.print(
         "bll block_count={d} table_bytes={d} first_block_offset={d} last_block_offset={d}\n",
@@ -707,6 +724,15 @@ fn inspectRoom(
             },
         );
     }
+    try stderr.print(
+        "fragments count={d} footprint_cells={d} non_empty_cells={d} max_height={d}\n",
+        .{
+            payload.background.fragments.fragment_count,
+            payload.background.fragments.footprint_cell_count,
+            payload.background.fragments.non_empty_cell_count,
+            payload.background.fragments.max_height,
+        },
+    );
     try printUsedBlockSummary(stderr, payload.background.used_blocks.values);
     try stderr.flush();
 }
@@ -781,6 +807,12 @@ fn buildRoomInspectionPayload(room: RoomInspection) RoomInspectionPayload {
                 .occupied_bounds = room.background.composition.grid.reference_bounds,
                 .layout_count = room.background.composition.library.layouts.len,
                 .max_layout_block_count = room.background.composition.library.max_layout_block_count,
+            },
+            .fragments = .{
+                .fragment_count = room.background.composition.fragments.fragments.len,
+                .footprint_cell_count = room.background.composition.fragments.footprint_cell_count,
+                .non_empty_cell_count = room.background.composition.fragments.non_empty_cell_count,
+                .max_height = room.background.composition.fragments.max_height,
             },
         },
     };
@@ -1441,6 +1473,10 @@ test "inspect-room composes the canonical interior pair metadata" {
     }), payload.background.composition.occupied_bounds);
     try std.testing.expectEqual(@as(usize, 219), payload.background.composition.layout_count);
     try std.testing.expectEqual(@as(usize, 45), payload.background.composition.max_layout_block_count);
+    try std.testing.expectEqual(@as(usize, 0), payload.background.fragments.fragment_count);
+    try std.testing.expectEqual(@as(usize, 0), payload.background.fragments.footprint_cell_count);
+    try std.testing.expectEqual(@as(usize, 0), payload.background.fragments.non_empty_cell_count);
+    try std.testing.expectEqual(@as(u8, 0), payload.background.fragments.max_height);
 }
 
 test "inspect-room json keeps the canonical interior pair stable" {
@@ -1466,6 +1502,7 @@ test "inspect-room json keeps the canonical interior pair stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"depth\": 64") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"occupied_cell_count\": 2252") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"layout_count\": 219") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"fragment_count\": 0") != null);
 }
 
 test "inspect-room rejects exterior scene entries" {

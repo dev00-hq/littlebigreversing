@@ -1,4 +1,5 @@
 const std = @import("std");
+const background = @import("../../background.zig");
 const parser = @import("../parser.zig");
 
 test "bkg header payload must match the exact struct size" {
@@ -117,4 +118,56 @@ test "bll payload validates truncation and offset consistency" {
     try std.testing.expectEqual(@as(u8, 3), parsed.library.layout_blocks[0].floorType());
     try std.testing.expectEqual(@as(u8, 1), parsed.library.layout_blocks[0].soundId());
     try std.testing.expectEqual(@as(u16, 0x1234), parsed.library.layout_blocks[0].brick_index);
+}
+
+test "fragment payload validates truncation and keeps footprint summaries stable" {
+    const allocator = std.testing.allocator;
+
+    try std.testing.expectError(error.TruncatedGrmFragment, parser.parseFragmentPayload(allocator, &.{ 0x01, 0x02 }, 0, 149));
+
+    const truncated_payload = [_]u8{
+        0x02, 0x02, 0x01,
+        0x01, 0x00,
+        0x00, 0x00,
+        0x01, 0x00,
+    };
+    try std.testing.expectError(error.TruncatedGrmFragmentPayload, parser.parseFragmentPayload(allocator, &truncated_payload, 0, 149));
+
+    const too_long_payload = [_]u8{
+        0x01, 0x01, 0x01,
+        0x01, 0x00,
+        0xFF,
+    };
+    try std.testing.expectError(error.InvalidGrmFragmentSize, parser.parseFragmentPayload(allocator, &too_long_payload, 0, 149));
+
+    const valid_payload = [_]u8{
+        0x02, 0x02, 0x01,
+        0x01, 0x00,
+        0x00, 0x00,
+        0x02, 0x03,
+        0x02, 0x04,
+    };
+    var parsed = try parser.parseFragmentPayload(allocator, &valid_payload, 2, 151);
+    defer parsed.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 2), parsed.relative_index);
+    try std.testing.expectEqual(@as(usize, 151), parsed.entry_index);
+    try std.testing.expectEqual(@as(u8, 2), parsed.width);
+    try std.testing.expectEqual(@as(u8, 2), parsed.height);
+    try std.testing.expectEqual(@as(u8, 1), parsed.depth);
+    try std.testing.expectEqual(@as(usize, 2), parsed.cells.len);
+    try std.testing.expectEqual(@as(usize, 4), parsed.block_refs.len);
+    try std.testing.expectEqual(@as(usize, 2), parsed.footprint_cell_count);
+    try std.testing.expectEqual(@as(usize, 2), parsed.non_empty_cell_count);
+    try std.testing.expectEqual(@as(?background.GridBounds, .{
+        .min_x = 0,
+        .max_x = 1,
+        .min_z = 0,
+        .max_z = 0,
+    }), parsed.non_empty_bounds);
+    try std.testing.expectEqual(@as(u8, 2), parsed.max_non_empty_column_height);
+    try std.testing.expectEqual(@as(?usize, 0), parsed.cells[0].first_non_empty_block_ref_index);
+    try std.testing.expectEqual(@as(?usize, 0), parsed.cells[0].last_non_empty_block_ref_index);
+    try std.testing.expectEqual(@as(?usize, 2), parsed.cells[1].first_non_empty_block_ref_index);
+    try std.testing.expectEqual(@as(?usize, 3), parsed.cells[1].last_non_empty_block_ref_index);
 }

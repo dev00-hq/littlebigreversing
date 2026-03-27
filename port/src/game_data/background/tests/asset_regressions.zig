@@ -94,6 +94,11 @@ test "real background 2 metadata matches the canonical interior linkage" {
     const floor_block = metadata.composition.library.layout_blocks[metadata.composition.library.layouts[14].block_start];
     try std.testing.expectEqual(@as(u8, 1), floor_block.floorType());
     try std.testing.expectEqual(@as(u16, 667), floor_block.brick_index);
+
+    try std.testing.expectEqual(@as(usize, 0), metadata.composition.fragments.fragments.len);
+    try std.testing.expectEqual(@as(usize, 0), metadata.composition.fragments.footprint_cell_count);
+    try std.testing.expectEqual(@as(usize, 0), metadata.composition.fragments.non_empty_cell_count);
+    try std.testing.expectEqual(@as(u8, 0), metadata.composition.fragments.max_height);
 }
 
 test "background metadata json keeps linkage and table summaries stable" {
@@ -115,4 +120,5 @@ test "background metadata json keeps linkage and table summaries stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"width\": 64") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"referenced_cell_count\": 2252") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"layout_count\": 219") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"fragment_count\": 0") != null);
 }

@@ -36,6 +36,11 @@ pub const ParsedBllPayload = struct {
     }
 };
 
+pub const FragmentRange = struct {
+    start_index: usize,
+    count: usize,
+};
+
 pub fn loadBackgroundMetadata(
     allocator: std.mem.Allocator,
     absolute_path: []const u8,
@@ -79,6 +84,9 @@ pub fn loadBackgroundMetadata(
     errdefer bll.deinit(allocator);
 
     try validateGridAgainstLibrary(gri.grid, bll.library);
+    const fragment_range = try detectFragmentRange(allocator, absolute_path, bkg_header, remapped_cube_index, gri.header.my_grm);
+    var fragments = try loadFragmentLibrary(allocator, absolute_path, bll.library, fragment_range);
+    errdefer fragments.deinit(allocator);
 
     return .{
         .entry_index = entry_index,
@@ -102,6 +110,7 @@ pub fn loadBackgroundMetadata(
         .composition = .{
             .grid = gri.grid,
             .library = bll.library,
+            .fragments = fragments,
         },
     };
 }
@@ -332,6 +341,106 @@ pub fn parseBllPayload(allocator: std.mem.Allocator, payload: []const u8) !Parse
     };
 }
 
+pub fn parseFragmentPayload(
+    allocator: std.mem.Allocator,
+    payload: []const u8,
+    relative_index: usize,
+    entry_index: usize,
+) !model.Fragment {
+    if (payload.len < 3) return error.TruncatedGrmFragment;
+
+    const width = payload[0];
+    const height = payload[1];
+    const depth = payload[2];
+
+    const cell_count = @as(usize, width) * @as(usize, depth);
+    const block_ref_count = cell_count * @as(usize, height);
+    const expected_len = 3 + (block_ref_count * 2);
+    if (payload.len < expected_len) return error.TruncatedGrmFragmentPayload;
+    if (payload.len != expected_len) return error.InvalidGrmFragmentSize;
+
+    var cells: std.ArrayList(model.FragmentCell) = .empty;
+    errdefer cells.deinit(allocator);
+    try cells.ensureTotalCapacity(allocator, cell_count);
+
+    var block_refs: std.ArrayList(model.ColumnBlockRef) = .empty;
+    errdefer block_refs.deinit(allocator);
+    try block_refs.ensureTotalCapacity(allocator, block_ref_count);
+
+    var non_empty_cell_count: usize = 0;
+    var non_empty_bounds: ?model.GridBounds = null;
+    var max_non_empty_column_height: u8 = 0;
+    var cursor: usize = 3;
+
+    for (0..@as(usize, depth)) |z| {
+        for (0..@as(usize, width)) |x| {
+            const block_ref_start = block_refs.items.len;
+            var non_empty_block_ref_count: usize = 0;
+            var first_non_empty_block_ref_index: ?usize = null;
+            var last_non_empty_block_ref_index: ?usize = null;
+
+            for (0..@as(usize, height)) |_| {
+                const block_ref_index = block_refs.items.len;
+                const block_ref = model.ColumnBlockRef{
+                    .layout_index = payload[cursor],
+                    .layout_block_index = payload[cursor + 1],
+                };
+                cursor += 2;
+                try block_refs.append(allocator, block_ref);
+                if (block_ref.layout_index == 0) continue;
+                non_empty_block_ref_count += 1;
+                if (first_non_empty_block_ref_index == null) first_non_empty_block_ref_index = block_ref_index;
+                last_non_empty_block_ref_index = block_ref_index;
+            }
+
+            if (non_empty_block_ref_count > 0) {
+                non_empty_cell_count += 1;
+                max_non_empty_column_height = @max(
+                    max_non_empty_column_height,
+                    std.math.cast(u8, non_empty_block_ref_count) orelse return error.InvalidGrmFragmentSize,
+                );
+                if (non_empty_bounds) |*bounds| {
+                    bounds.min_x = @min(bounds.min_x, x);
+                    bounds.max_x = @max(bounds.max_x, x);
+                    bounds.min_z = @min(bounds.min_z, z);
+                    bounds.max_z = @max(bounds.max_z, z);
+                } else {
+                    non_empty_bounds = .{
+                        .min_x = x,
+                        .max_x = x,
+                        .min_z = z,
+                        .max_z = z,
+                    };
+                }
+            }
+
+            try cells.append(allocator, .{
+                .x = x,
+                .z = z,
+                .block_ref_start = block_ref_start,
+                .block_ref_count = @as(usize, height),
+                .non_empty_block_ref_count = non_empty_block_ref_count,
+                .first_non_empty_block_ref_index = first_non_empty_block_ref_index,
+                .last_non_empty_block_ref_index = last_non_empty_block_ref_index,
+            });
+        }
+    }
+
+    return .{
+        .relative_index = relative_index,
+        .entry_index = entry_index,
+        .width = width,
+        .height = height,
+        .depth = depth,
+        .cells = try cells.toOwnedSlice(allocator),
+        .block_refs = try block_refs.toOwnedSlice(allocator),
+        .footprint_cell_count = cell_count,
+        .non_empty_cell_count = non_empty_cell_count,
+        .non_empty_bounds = non_empty_bounds,
+        .max_non_empty_column_height = max_non_empty_column_height,
+    };
+}
+
 fn decodeUsedBlockSummary(allocator: std.mem.Allocator, used_block: [32]u8) !model.UsedBlockSummary {
     var used_block_ids: std.ArrayList(u8) = .empty;
     errdefer used_block_ids.deinit(allocator);
@@ -485,6 +594,106 @@ fn validateGridAgainstLibrary(grid: model.GridComposition, library: model.Layout
 
         const layout = library.layouts[block_ref.layout_index - 1];
         if (block_ref.layout_block_index >= layout.block_count) return error.InvalidGriLayoutBlockReference;
+    }
+}
+
+fn loadFragmentLibrary(
+    allocator: std.mem.Allocator,
+    absolute_path: []const u8,
+    library: model.LayoutLibrary,
+    range: FragmentRange,
+) !model.FragmentLibrary {
+    var fragments: std.ArrayList(model.Fragment) = .empty;
+    errdefer {
+        for (fragments.items) |fragment| fragment.deinit(allocator);
+        fragments.deinit(allocator);
+    }
+
+    var footprint_cell_count: usize = 0;
+    var non_empty_cell_count: usize = 0;
+    var max_height: u8 = 0;
+
+    for (0..range.count) |relative_index| {
+        const entry_index = range.start_index + relative_index;
+        const raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, entry_index);
+        defer allocator.free(raw);
+        const payload = try hqr.decodeResourceEntryBytes(allocator, raw);
+        defer allocator.free(payload);
+
+        var fragment = try parseFragmentPayload(allocator, payload, relative_index, entry_index);
+        errdefer fragment.deinit(allocator);
+
+        try validateFragmentAgainstLibrary(fragment, library);
+
+        footprint_cell_count += fragment.footprint_cell_count;
+        non_empty_cell_count += fragment.non_empty_cell_count;
+        max_height = @max(max_height, fragment.height);
+        try fragments.append(allocator, fragment);
+    }
+
+    return .{
+        .fragments = try fragments.toOwnedSlice(allocator),
+        .footprint_cell_count = footprint_cell_count,
+        .non_empty_cell_count = non_empty_cell_count,
+        .max_height = max_height,
+    };
+}
+
+fn detectFragmentRange(
+    allocator: std.mem.Allocator,
+    absolute_path: []const u8,
+    bkg_header: model.BkgHeader,
+    remapped_cube_index: usize,
+    current_my_grm: u8,
+) !FragmentRange {
+    const total_grid_count = @as(usize, bkg_header.grm_start) - @as(usize, bkg_header.gri_start);
+    const total_fragment_count = @as(usize, bkg_header.bll_start) - @as(usize, bkg_header.grm_start);
+    const current_fragment_index = @as(usize, current_my_grm);
+    if (remapped_cube_index >= total_grid_count) return error.InvalidBackgroundGridIndex;
+    if (current_fragment_index > total_fragment_count) return error.InvalidBackgroundFragmentIndex;
+
+    var next_fragment_index = total_fragment_count;
+    if (remapped_cube_index + 1 < total_grid_count) {
+        const next_gri_entry_index = @as(usize, bkg_header.gri_start) + remapped_cube_index + 1;
+        const next_my_grm = try loadGriMyGrm(allocator, absolute_path, next_gri_entry_index);
+        if (next_my_grm < current_my_grm) return error.InvalidBackgroundFragmentOrdering;
+        if (next_my_grm == current_my_grm) {
+            next_fragment_index = current_fragment_index;
+        } else {
+            next_fragment_index = @as(usize, next_my_grm);
+        }
+    }
+
+    if (next_fragment_index < current_fragment_index or next_fragment_index > total_fragment_count) {
+        return error.InvalidBackgroundFragmentIndex;
+    }
+
+    return .{
+        .start_index = @as(usize, bkg_header.grm_start) + current_fragment_index,
+        .count = next_fragment_index - current_fragment_index,
+    };
+}
+
+fn loadGriMyGrm(
+    allocator: std.mem.Allocator,
+    absolute_path: []const u8,
+    gri_entry_index: usize,
+) !u8 {
+    const raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, gri_entry_index);
+    defer allocator.free(raw);
+    const payload = try hqr.decodeResourceEntryBytes(allocator, raw);
+    defer allocator.free(payload);
+    if (payload.len < 2) return error.TruncatedGriHeader;
+    return payload[1];
+}
+
+fn validateFragmentAgainstLibrary(fragment: model.Fragment, library: model.LayoutLibrary) !void {
+    for (fragment.block_refs) |block_ref| {
+        if (block_ref.layout_index == 0) continue;
+        if (block_ref.layout_index > library.layouts.len) return error.InvalidGrmLayoutReference;
+
+        const layout = library.layouts[block_ref.layout_index - 1];
+        if (block_ref.layout_block_index >= layout.block_count) return error.InvalidGrmLayoutBlockReference;
     }
 }
 
