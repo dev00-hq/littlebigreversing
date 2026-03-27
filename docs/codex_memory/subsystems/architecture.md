@@ -21,6 +21,7 @@ Own repo-wide port direction, stable module seams, and the canonical Codex memor
 
 - `docs/PROMPT.md` can lag behind completed repo work; cross-check against current packs before following it literally.
 - The canonical `2/2` interior pair is not guaranteed to exercise the next viewer slice just because the prompt says so. For fragment work specifically, the checked-in probes now show `SCENE.HQR[2]` has no `grm` zones and `LBA_BKG.HQR[2]` owns zero fragment entries, so use the explicit zero-state as the truth and do not fabricate runtime overlays from `my_grm` or `grm_entry_index` alone.
+- The checked-in positive fragment evidence pair is `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]`, not a same-index guess. Scene-driven `grm` projection on that pair also requires boundary-aligned max-coordinate handling, so do not reuse the older `max - min + 1` span math from non-fragment overlays.
 - `docs/PORTING_REPORT.md` still carries older feasibility context; use it as evidence background, not as the execution owner.
 - The canonical Windows Zig checks should run from native PowerShell, usually after `.\scripts\dev-shell.ps1`; `bash -lc` is fine for inspection work but can miss the actual Windows toolchain layout.
 - `zig build test` is not a substitute for the explicit acceptance command in a prompt. App-only compile errors can still hide on the `zig build run` path until you build the executable target directly, so keep the prompt's explicit `run` or `tool` command in the validation pass when the slice changes runtime code.

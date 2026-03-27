@@ -344,6 +344,7 @@ pub fn loadRoomSnapshot(
     defer background.deinit(allocator);
 
     const composition = try buildCompositionSnapshot(allocator, background.composition);
+    errdefer composition.deinit(allocator);
     const fragment_zones = try buildFragmentZoneSnapshots(allocator, scene.zones, background.composition.fragments, background.composition.library);
     errdefer {
         for (fragment_zones) |zone| zone.deinit(allocator);
@@ -764,9 +765,9 @@ fn buildFragmentZoneSnapshots(
         const z_max = @max(zone.z0, zone.z1);
         const origin_x = try zoneAxisOrigin(x_min, world_grid_span_xz);
         const origin_z = try zoneAxisOrigin(z_min, world_grid_span_xz);
-        const zone_width = try zoneAxisCellCount(x_min, x_max, world_grid_span_xz);
-        const zone_height = try zoneAxisCellCount(y_min, y_max, world_grid_span_y);
-        const zone_depth = try zoneAxisCellCount(z_min, z_max, world_grid_span_xz);
+        const zone_width = try fragmentZoneAxisCellCount(x_min, x_max, world_grid_span_xz);
+        const zone_height = try fragmentZoneAxisCellCount(y_min, y_max, world_grid_span_y);
+        const zone_depth = try fragmentZoneAxisCellCount(z_min, z_max, world_grid_span_xz);
 
         if (zone_width != @as(usize, fragment.width) or zone_height != @as(usize, fragment.height) or zone_depth != @as(usize, fragment.depth)) {
             return error.FragmentZoneFootprintMismatch;
@@ -1099,11 +1100,11 @@ fn zoneAxisOrigin(min_value: i32, unit: i32) !usize {
     return @intCast(@divTrunc(min_value, unit));
 }
 
-fn zoneAxisCellCount(min_value: i32, max_value: i32, unit: i32) !usize {
+fn fragmentZoneAxisCellCount(min_value: i32, max_value: i32, unit: i32) !usize {
     if (max_value < min_value) return error.InvalidFragmentZoneBounds;
-    const span = max_value - min_value + 1;
-    if (@mod(span, unit) != 0) return error.InvalidFragmentZoneBounds;
-    return @intCast(@divTrunc(span, unit));
+    const delta = max_value - min_value;
+    if (@mod(delta, unit) != 0) return error.InvalidFragmentZoneBounds;
+    return @intCast(@divTrunc(delta, unit) + 1);
 }
 
 fn fragmentZoneBorderColor(initially_on: bool) sdl.Color {
@@ -1560,9 +1561,9 @@ test "viewer fragment zones project canonical cell coverage from scene bounds" {
             .x0 = 0,
             .y0 = 0,
             .z0 = 512,
-            .x1 = 1023,
-            .y1 = 255,
-            .z1 = 1023,
+            .x1 = 512,
+            .y1 = 0,
+            .z1 = 512,
             .raw_info = .{ 0, 0, 0, 0, 0, 0, 0, 0 },
             .zone_type = .grm,
             .num = 7,
@@ -1695,6 +1696,45 @@ test "viewer room snapshot keeps the canonical interior pair stable" {
     const water_tile = findCompositionTile(room.background.composition.tiles, 60, 13).?;
     try std.testing.expectEqual(@as(u8, 1), water_tile.stack_depth);
     try std.testing.expectEqual(@as(u8, 1), water_tile.top_floor_type);
+}
+
+test "viewer room snapshot projects the checked-in fragment-bearing interior pair" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try loadRoomSnapshot(allocator, resolved, 11, 10);
+    defer room.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 11), room.scene.entry_index);
+    try std.testing.expectEqual(@as(?usize, 9), room.scene.classic_loader_scene_number);
+    try std.testing.expectEqualStrings("interior", room.scene.scene_kind);
+
+    try std.testing.expectEqual(@as(usize, 10), room.background.entry_index);
+    try std.testing.expectEqual(@as(usize, 10), room.background.linkage.remapped_cube_index);
+    try std.testing.expectEqual(@as(usize, 11), room.background.linkage.gri_entry_index);
+    try std.testing.expectEqual(@as(u8, 0), room.background.linkage.gri_my_grm);
+    try std.testing.expectEqual(@as(usize, 149), room.background.linkage.grm_entry_index);
+    try std.testing.expectEqual(@as(usize, 1), room.background.fragments.fragment_count);
+    try std.testing.expectEqual(@as(usize, 208), room.background.fragments.footprint_cell_count);
+    try std.testing.expectEqual(@as(usize, 95), room.background.fragments.non_empty_cell_count);
+    try std.testing.expectEqual(@as(u8, 10), room.background.fragments.max_height);
+
+    try std.testing.expectEqual(@as(usize, 1), room.fragment_zones.len);
+    const fragment_zone = room.fragment_zones[0];
+    try std.testing.expectEqual(@as(usize, 5), fragment_zone.zone_index);
+    try std.testing.expectEqual(@as(i16, 0), fragment_zone.zone_num);
+    try std.testing.expectEqual(@as(usize, 0), fragment_zone.grm_index);
+    try std.testing.expectEqual(@as(usize, 149), fragment_zone.fragment_entry_index);
+    try std.testing.expectEqual(false, fragment_zone.initially_on);
+    try std.testing.expectEqual(@as(usize, 9), fragment_zone.origin_x);
+    try std.testing.expectEqual(@as(usize, 17), fragment_zone.origin_z);
+    try std.testing.expectEqual(@as(usize, 16), fragment_zone.width);
+    try std.testing.expectEqual(@as(u8, 10), fragment_zone.height);
+    try std.testing.expectEqual(@as(usize, 13), fragment_zone.depth);
+    try std.testing.expectEqual(@as(usize, 208), fragment_zone.footprint_cell_count);
+    try std.testing.expectEqual(@as(usize, 95), fragment_zone.non_empty_cell_count);
+    try std.testing.expectEqual(@as(usize, 208), fragment_zone.cells.len);
 }
 
 test "viewer render snapshot derives a deterministic schematic from the canonical room" {

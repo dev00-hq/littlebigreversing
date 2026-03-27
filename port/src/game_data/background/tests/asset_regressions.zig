@@ -122,3 +122,44 @@ test "background metadata json keeps linkage and table summaries stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"layout_count\": 219") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"fragment_count\": 0") != null);
 }
+
+test "real background 10 metadata keeps fragment ownership stable" {
+    const allocator = std.testing.allocator;
+    const target = try support.fixtureTargetById("interior-room-twinsens-house-background");
+    const archive_path = try support.resolveBackgroundArchivePathForTests(allocator, target.asset_path);
+    defer allocator.free(archive_path);
+
+    const metadata = try background.loadBackgroundMetadata(allocator, archive_path, 10);
+    defer metadata.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 10), metadata.entry_index);
+    try std.testing.expectEqual(@as(usize, 10), metadata.remapped_cube_index);
+    try std.testing.expectEqual(@as(usize, 11), metadata.gri_entry_index);
+    try std.testing.expectEqual(@as(u8, 0), metadata.gri_header.my_grm);
+    try std.testing.expectEqual(@as(usize, 149), metadata.grm_entry_index);
+    try std.testing.expectEqual(@as(u8, 3), metadata.gri_header.my_bll);
+    try std.testing.expectEqual(@as(usize, 182), metadata.bll_entry_index);
+    try std.testing.expectEqual(@as(usize, 3573), metadata.composition.grid.referenced_cell_count);
+    try std.testing.expectEqual(@as(usize, 203), metadata.composition.library.layouts.len);
+    try std.testing.expectEqual(@as(usize, 42), metadata.composition.library.max_layout_block_count);
+    try std.testing.expectEqual(@as(usize, 1), metadata.composition.fragments.fragments.len);
+    try std.testing.expectEqual(@as(usize, 208), metadata.composition.fragments.footprint_cell_count);
+    try std.testing.expectEqual(@as(usize, 95), metadata.composition.fragments.non_empty_cell_count);
+    try std.testing.expectEqual(@as(u8, 10), metadata.composition.fragments.max_height);
+
+    const fragment = metadata.composition.fragments.fragments[0];
+    try std.testing.expectEqual(@as(usize, 0), fragment.relative_index);
+    try std.testing.expectEqual(@as(usize, 149), fragment.entry_index);
+    try std.testing.expectEqual(@as(u8, 16), fragment.width);
+    try std.testing.expectEqual(@as(u8, 10), fragment.height);
+    try std.testing.expectEqual(@as(u8, 13), fragment.depth);
+    try std.testing.expectEqual(@as(usize, 208), fragment.footprint_cell_count);
+    try std.testing.expectEqual(@as(usize, 95), fragment.non_empty_cell_count);
+    try std.testing.expectEqual(@as(?background.GridBounds, .{
+        .min_x = 0,
+        .max_x = 15,
+        .min_z = 0,
+        .max_z = 12,
+    }), fragment.non_empty_bounds);
+    try std.testing.expectEqual(@as(u8, 9), fragment.max_non_empty_column_height);
+}

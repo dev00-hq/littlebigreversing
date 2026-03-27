@@ -1505,6 +1505,38 @@ test "inspect-room json keeps the canonical interior pair stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"fragment_count\": 0") != null);
 }
 
+test "inspect-room keeps the checked-in fragment-bearing interior pair stable" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try loadRoomInspection(allocator, resolved, 11, 10);
+    defer room.deinit(allocator);
+
+    const payload = buildRoomInspectionPayload(room);
+    try std.testing.expectEqualStrings("inspect-room", payload.command);
+    try std.testing.expectEqual(@as(usize, 11), payload.scene.entry_index);
+    try std.testing.expectEqual(@as(?usize, 9), payload.scene.classic_loader_scene_number);
+    try std.testing.expectEqualStrings("interior", payload.scene.scene_kind);
+    try std.testing.expectEqual(@as(usize, 47), payload.scene.zone_count);
+
+    try std.testing.expectEqual(@as(usize, 10), payload.background.entry_index);
+    try std.testing.expectEqual(@as(usize, 10), payload.background.linkage.remapped_cube_index);
+    try std.testing.expectEqual(@as(usize, 11), payload.background.linkage.gri_entry_index);
+    try std.testing.expectEqual(@as(u8, 0), payload.background.linkage.gri_my_grm);
+    try std.testing.expectEqual(@as(usize, 149), payload.background.linkage.grm_entry_index);
+    try std.testing.expectEqual(@as(u8, 3), payload.background.linkage.gri_my_bll);
+    try std.testing.expectEqual(@as(usize, 182), payload.background.linkage.bll_entry_index);
+    try std.testing.expectEqual(@as(usize, 96), payload.background.used_blocks.count);
+    try std.testing.expectEqual(@as(usize, 3573), payload.background.composition.occupied_cell_count);
+    try std.testing.expectEqual(@as(usize, 203), payload.background.composition.layout_count);
+    try std.testing.expectEqual(@as(usize, 42), payload.background.composition.max_layout_block_count);
+    try std.testing.expectEqual(@as(usize, 1), payload.background.fragments.fragment_count);
+    try std.testing.expectEqual(@as(usize, 208), payload.background.fragments.footprint_cell_count);
+    try std.testing.expectEqual(@as(usize, 95), payload.background.fragments.non_empty_cell_count);
+    try std.testing.expectEqual(@as(u8, 10), payload.background.fragments.max_height);
+}
+
 test "inspect-room rejects exterior scene entries" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
