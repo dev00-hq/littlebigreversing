@@ -19,7 +19,8 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`, in
 - The viewer now uses a viewer-local composition snapshot to render a height-aware occupied-cell debug view with relief, contour, and shape cues behind the scene overlays for `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`.
 - The canonical `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]` pair currently resolves to zero scene `grm` zones and zero owned fragment entries, so the fragment-aware viewer path now surfaces an explicit zero-fragment state for that pair instead of guessed mutation overlays.
 - The checked-in fragment-bearing interior evidence pair is now `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]`, and the viewer/runtime path accepts that pair with one projected fragment zone backed by background `10` fragment `149`.
-- The viewer also draws deterministic brick-index probe patterns for composition cells and fragment cells, but actual decoded `BRK`-backed preview output is still outside current parity.
+- The background decoder now loads the main `RESS.HQR[0]` palette plus the selected top-surface `BRK` entries referenced by the current composition and fragment surfaces, and `inspect-background` / `inspect-room` report deterministic `BRK` preview-library summaries.
+- The viewer still draws deterministic brick-index probes, but it now overlays fixed-size actual `BRK`-backed swatches for sparse composition cells and fragment cells as the current checked-in brick evidence surface.
 - Exterior `.ILE/.OBL`, full brick rasterization, and actor visual binding are still outside this pack.
 
 ## Known Traps
@@ -28,7 +29,7 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`, in
 - Mixing zero-based classic indices with the older one-based helpers will shift you onto the wrong payload.
 - `gri_header.my_grm` is a forward cursor, not proof that the current grid owns fragment entry `grm_start + my_grm`. In the checked-in assets, backgrounds `0..10` all report `my_grm = 0`, but only the last grid in that run owns fragment `149`; canonical background `2` owns none.
 - Scene `grm` zone bounds are not expressed like the older zero-fragment viewer overlays. The positive evidence pair `11/10` only projects cleanly if fragment-zone maxima are treated as boundary-aligned endpoints, yielding `16x10x13` cells for the scene `11` `grm` zone instead of failing the room as out-of-bounds.
-- The current viewer's brick patterns are keyed from brick ids only. Do not treat `drawBrickProbe` or similar overlays as proof that the repo already decodes or renders actual `BRK` payloads.
+- `drawBrickProbe` is still synthetic even after the `BRK` slice landed. Treat the fixed-size palette-backed swatches as the current actual `BRK` evidence surface, not as proof that the repo now has a full room-art renderer or a runtime brick cache equivalent to the classic engine.
 
 ## Canonical Entry Points
 

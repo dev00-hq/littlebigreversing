@@ -188,10 +188,12 @@ pub const BackgroundSnapshot = struct {
     column_table: ColumnTableSnapshot,
     composition: CompositionSnapshot,
     fragments: FragmentLibrarySnapshot,
+    bricks: background_data.BrickPreviewLibrary,
 
     pub fn deinit(self: BackgroundSnapshot, allocator: std.mem.Allocator) void {
         allocator.free(self.used_block_ids);
         self.composition.deinit(allocator);
+        self.bricks.deinit(allocator);
     }
 };
 
@@ -255,6 +257,7 @@ pub const RenderSnapshot = struct {
     tracks: []const TrackPointSnapshot,
     composition: CompositionRenderSnapshot,
     fragments: FragmentRenderSnapshot,
+    brick_previews: []const background_data.BrickPreview,
 };
 
 pub const SchematicLayout = struct {
@@ -380,6 +383,7 @@ pub fn loadRoomSnapshot(
             .non_empty_cell_count = background.composition.fragments.non_empty_cell_count,
             .max_height = background.composition.fragments.max_height,
         },
+        .bricks = try copyBrickPreviewLibrary(allocator, background.composition.bricks),
     };
     errdefer background_snapshot.deinit(allocator);
 
@@ -424,6 +428,7 @@ pub fn buildRenderSnapshot(room: RoomSnapshot) RenderSnapshot {
             .library = room.background.fragments,
             .zones = room.fragment_zones,
         },
+        .brick_previews = room.background.bricks.previews,
     };
 }
 
@@ -635,12 +640,13 @@ pub fn printStartupDiagnostics(
         );
     }
     try writer.print(
-        "fragments={d} footprint_cells={d} non_empty_cells={d} fragment_zones={d}\n",
+        "fragments={d} footprint_cells={d} non_empty_cells={d} fragment_zones={d} brick_previews={d}\n",
         .{
             room.background.fragments.fragment_count,
             room.background.fragments.footprint_cell_count,
             room.background.fragments.non_empty_cell_count,
             room.fragment_zones.len,
+            room.background.bricks.previews.len,
         },
     );
     try printUsedBlockSummary(writer, room.background.used_block_ids);
@@ -733,6 +739,19 @@ fn copyTrackSnapshots(
         };
     }
     return copied;
+}
+
+fn copyBrickPreviewLibrary(
+    allocator: std.mem.Allocator,
+    library: background_data.BrickPreviewLibrary,
+) !background_data.BrickPreviewLibrary {
+    return .{
+        .palette_entry_index = library.palette_entry_index,
+        .previews = try allocator.dupe(background_data.BrickPreview, library.previews),
+        .max_preview_width = library.max_preview_width,
+        .max_preview_height = library.max_preview_height,
+        .total_opaque_pixel_count = library.total_opaque_pixel_count,
+    };
 }
 
 const world_grid_span_xz = 512;
@@ -986,6 +1005,13 @@ fn drawFragmentZones(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: RenderSnapsh
                         .no_base => @as(u8, 182),
                     }),
                 );
+                try drawBrickPreviewSwatch(
+                    canvas,
+                    cell_rect,
+                    snapshot.brick_previews,
+                    cell.top_brick_index,
+                    .top_left,
+                );
                 try drawFragmentCellMarker(canvas, cell_rect, cell, withAlpha(lightenColor(base_color, 72), 216));
                 if (brick_delta == .changed) {
                     try drawFragmentDeltaMarker(canvas, cell_rect, withAlpha(lightenColor(base_color, 120), 240));
@@ -1024,6 +1050,11 @@ const FragmentBrickDelta = enum {
     no_base,
     same,
     changed,
+};
+
+const BrickPreviewAnchor = enum {
+    top_left,
+    bottom_right,
 };
 
 fn drawCompositionTile(
@@ -1078,6 +1109,15 @@ fn drawCompositionTile(
         tile.top_brick_index,
         withAlpha(lightenColor(base_color, brickProbeStyle(tile.top_brick_index).accent), 148),
     );
+    if (shouldDrawCompositionBrickPreview(tile)) {
+        try drawBrickPreviewSwatch(
+            canvas,
+            relief.top_surface,
+            snapshot.brick_previews,
+            tile.top_brick_index,
+            .bottom_right,
+        );
+    }
     try drawSurfaceMarker(canvas, relief.top_surface, tile, withAlpha(lightenColor(base_color, 64), 232));
 }
 
@@ -1220,6 +1260,74 @@ fn drawFragmentDeltaMarker(canvas: *sdl.Canvas, cell_rect: sdl.Rect, color: sdl.
     try canvas.fillRect(marker, color);
 }
 
+fn drawBrickPreviewSwatch(
+    canvas: *sdl.Canvas,
+    target_rect: sdl.Rect,
+    previews: []const background_data.BrickPreview,
+    brick_index: u16,
+    anchor: BrickPreviewAnchor,
+) !void {
+    if (brick_index == 0) return;
+
+    const preview = findBrickPreview(previews, brick_index) orelse return;
+    const frame = computeBrickPreviewFrame(target_rect, anchor);
+    if (frame.w < 3 or frame.h < 3) return;
+
+    try canvas.fillRect(frame, .{ .r = 6, .g = 10, .b = 14, .a = 212 });
+    try drawBrickPreviewPixels(canvas, frame.inset(1), preview);
+    try canvas.drawRect(frame, .{ .r = 172, .g = 192, .b = 206, .a = 224 });
+}
+
+fn computeBrickPreviewFrame(target_rect: sdl.Rect, anchor: BrickPreviewAnchor) sdl.Rect {
+    const side = std.math.clamp(@divTrunc(@min(target_rect.w, target_rect.h), 2), 3, 8);
+    return switch (anchor) {
+        .top_left => .{
+            .x = target_rect.x,
+            .y = target_rect.y,
+            .w = side,
+            .h = side,
+        },
+        .bottom_right => .{
+            .x = target_rect.right() - side,
+            .y = target_rect.bottom() - side,
+            .w = side,
+            .h = side,
+        },
+    };
+}
+
+fn drawBrickPreviewPixels(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    preview: background_data.BrickPreview,
+) !void {
+    if (rect.w <= 0 or rect.h <= 0) return;
+
+    for (0..background_data.brick_preview_swatch_side) |sample_y| {
+        const top = interpolateAxis(rect.y, rect.bottom(), sample_y, background_data.brick_preview_swatch_side);
+        const bottom = interpolateAxis(rect.y, rect.bottom(), sample_y + 1, background_data.brick_preview_swatch_side);
+        for (0..background_data.brick_preview_swatch_side) |sample_x| {
+            const left = interpolateAxis(rect.x, rect.right(), sample_x, background_data.brick_preview_swatch_side);
+            const right = interpolateAxis(rect.x, rect.right(), sample_x + 1, background_data.brick_preview_swatch_side);
+            const pixel = preview.swatch[(sample_y * background_data.brick_preview_swatch_side) + sample_x];
+            if (pixel.a == 0) continue;
+
+            const sample_rect = sdl.Rect{
+                .x = @min(left, right),
+                .y = @min(top, bottom),
+                .w = @max(1, @max(left, right) - @min(left, right)),
+                .h = @max(1, @max(top, bottom) - @min(top, bottom)),
+            };
+            try canvas.fillRect(sample_rect, .{
+                .r = pixel.r,
+                .g = pixel.g,
+                .b = pixel.b,
+                .a = pixel.a,
+            });
+        }
+    }
+}
+
 fn drawBrickProbe(canvas: *sdl.Canvas, rect: sdl.Rect, brick_index: u16, color: sdl.Color) !void {
     if (brick_index == 0) return;
     if (rect.w < 2 or rect.h < 2) return;
@@ -1314,6 +1422,10 @@ fn brickProbeStyle(brick_index: u16) BrickProbeStyle {
         .spacing = 2 + @as(i32, @intCast((brick_index >> 2) % 3)),
         .accent = 20 + @as(u8, @intCast((brick_index >> 5) % 44)),
     };
+}
+
+fn shouldDrawCompositionBrickPreview(tile: CompositionTileSnapshot) bool {
+    return (tile.x % 8 == 0) and (tile.z % 8 == 0);
 }
 
 fn fragmentBrickDelta(snapshot: RenderSnapshot, cell: FragmentZoneCellSnapshot) FragmentBrickDelta {
@@ -1623,6 +1735,13 @@ fn findCompositionTile(tiles: []const CompositionTileSnapshot, x: usize, z: usiz
     return null;
 }
 
+fn findBrickPreview(previews: []const background_data.BrickPreview, brick_index: u16) ?background_data.BrickPreview {
+    for (previews) |preview| {
+        if (preview.brick_index == brick_index) return preview;
+    }
+    return null;
+}
+
 fn findFirstNonEmptyFragmentCell(cells: []const FragmentZoneCellSnapshot) ?FragmentZoneCellSnapshot {
     for (cells) |cell| {
         if (cell.has_non_empty) return cell;
@@ -1866,11 +1985,54 @@ test "viewer fragment brick delta detects changed base bricks" {
             },
             .zones = &.{},
         },
+        .brick_previews = &.{},
     };
 
     try std.testing.expectEqual(FragmentBrickDelta.same, fragmentBrickDelta(snapshot, cell_same));
     try std.testing.expectEqual(FragmentBrickDelta.changed, fragmentBrickDelta(snapshot, cell_changed));
     try std.testing.expectEqual(FragmentBrickDelta.no_base, fragmentBrickDelta(snapshot, cell_missing));
+}
+
+test "viewer composition preview selector stays deterministic on eight-cell boundaries" {
+    try std.testing.expect(shouldDrawCompositionBrickPreview(.{
+        .x = 8,
+        .z = 16,
+        .total_height = 1,
+        .stack_depth = 1,
+        .top_floor_type = 0,
+        .top_shape = 1,
+        .top_shape_class = .solid,
+        .top_brick_index = 667,
+    }));
+    try std.testing.expect(!shouldDrawCompositionBrickPreview(.{
+        .x = 9,
+        .z = 16,
+        .total_height = 1,
+        .stack_depth = 1,
+        .top_floor_type = 0,
+        .top_shape = 1,
+        .top_shape_class = .solid,
+        .top_brick_index = 667,
+    }));
+}
+
+test "viewer brick preview lookup resolves decoded swatches by brick index" {
+    const previews = [_]background_data.BrickPreview{
+        .{
+            .brick_index = 127,
+            .entry_index = 323,
+            .width = 24,
+            .height = 38,
+            .offset_x = 0,
+            .offset_y = 0,
+            .opaque_pixel_count = 400,
+            .unique_color_count = 12,
+            .swatch = [_]background_data.BrickSwatchPixel{.{ .r = 0, .g = 0, .b = 0, .a = 0 }} ** background_data.brick_preview_swatch_pixel_count,
+        },
+    };
+
+    try std.testing.expectEqual(@as(?background_data.BrickPreview, previews[0]), findBrickPreview(&previews, 127));
+    try std.testing.expectEqual(@as(?background_data.BrickPreview, null), findBrickPreview(&previews, 667));
 }
 
 test "viewer argument parsing requires explicit scene and background entries" {
@@ -1951,6 +2113,7 @@ test "viewer room snapshot keeps the canonical interior pair stable" {
     try std.testing.expectEqual(@as(usize, 0), room.background.fragments.footprint_cell_count);
     try std.testing.expectEqual(@as(usize, 0), room.background.fragments.non_empty_cell_count);
     try std.testing.expectEqual(@as(u8, 0), room.background.fragments.max_height);
+    try std.testing.expect(room.background.bricks.previews.len > 0);
     try std.testing.expectEqual(@as(usize, 0), room.fragment_zones.len);
 
     const first_tile = room.background.composition.tiles[0];
@@ -1961,6 +2124,7 @@ test "viewer room snapshot keeps the canonical interior pair stable" {
     try std.testing.expectEqual(@as(u8, 1), first_tile.top_shape);
     try std.testing.expectEqual(SurfaceShapeClass.solid, first_tile.top_shape_class);
     try std.testing.expect(first_tile.top_brick_index > 0);
+    try std.testing.expect(findBrickPreview(room.background.bricks.previews, first_tile.top_brick_index) != null);
     try std.testing.expect(room.background.composition.height_grid[12 * 64 + 59] >= first_tile.stack_depth);
 
     const water_tile = findCompositionTile(room.background.composition.tiles, 60, 13).?;
@@ -1990,6 +2154,7 @@ test "viewer room snapshot projects the checked-in fragment-bearing interior pai
     try std.testing.expectEqual(@as(usize, 208), room.background.fragments.footprint_cell_count);
     try std.testing.expectEqual(@as(usize, 95), room.background.fragments.non_empty_cell_count);
     try std.testing.expectEqual(@as(u8, 10), room.background.fragments.max_height);
+    try std.testing.expect(room.background.bricks.previews.len > 0);
 
     try std.testing.expectEqual(@as(usize, 1), room.fragment_zones.len);
     const fragment_zone = room.fragment_zones[0];
@@ -2010,6 +2175,7 @@ test "viewer room snapshot projects the checked-in fragment-bearing interior pai
     const first_non_empty_fragment_cell = findFirstNonEmptyFragmentCell(fragment_zone.cells).?;
     try std.testing.expect(first_non_empty_fragment_cell.top_brick_index > 0);
     try std.testing.expectEqual(@as(u16, 127), fragment_zone.cells[0].top_brick_index);
+    try std.testing.expect(findBrickPreview(room.background.bricks.previews, first_non_empty_fragment_cell.top_brick_index) != null);
 }
 
 test "viewer render snapshot derives a deterministic schematic from the canonical room" {
@@ -2041,6 +2207,7 @@ test "viewer render snapshot derives a deterministic schematic from the canonica
     try std.testing.expectEqual(@as(usize, 0), render.fragments.library.non_empty_cell_count);
     try std.testing.expectEqual(@as(u8, 0), render.fragments.library.max_height);
     try std.testing.expectEqual(@as(usize, 0), render.fragments.zones.len);
+    try std.testing.expect(render.brick_previews.len > 0);
 }
 
 test "viewer projection keeps the canonical schematic fit stable" {

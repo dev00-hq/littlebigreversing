@@ -58,6 +58,16 @@ pub const GridBounds = struct {
     max_z: usize,
 };
 
+pub const brick_preview_swatch_side: usize = 8;
+pub const brick_preview_swatch_pixel_count: usize = brick_preview_swatch_side * brick_preview_swatch_side;
+
+pub const BrickSwatchPixel = struct {
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8,
+};
+
 pub const ColumnEncoding = enum(u2) {
     empty = 0,
     explicit = 1,
@@ -285,21 +295,113 @@ pub const FragmentLibrary = struct {
     }
 };
 
+pub const BrickPreviewSummary = struct {
+    brick_index: u16,
+    entry_index: usize,
+    width: u8,
+    height: u8,
+    offset_x: u8,
+    offset_y: u8,
+    opaque_pixel_count: usize,
+    unique_color_count: usize,
+};
+
+pub const BrickPreview = struct {
+    brick_index: u16,
+    entry_index: usize,
+    width: u8,
+    height: u8,
+    offset_x: u8,
+    offset_y: u8,
+    opaque_pixel_count: usize,
+    unique_color_count: usize,
+    swatch: [brick_preview_swatch_pixel_count]BrickSwatchPixel,
+
+    pub fn summary(self: BrickPreview) BrickPreviewSummary {
+        return .{
+            .brick_index = self.brick_index,
+            .entry_index = self.entry_index,
+            .width = self.width,
+            .height = self.height,
+            .offset_x = self.offset_x,
+            .offset_y = self.offset_y,
+            .opaque_pixel_count = self.opaque_pixel_count,
+            .unique_color_count = self.unique_color_count,
+        };
+    }
+
+    pub fn jsonStringify(self: BrickPreview, jw: anytype) !void {
+        try jw.write(self.summary());
+    }
+};
+
+pub const BrickPreviewLibrarySummary = struct {
+    palette_entry_index: usize,
+    preview_count: usize,
+    max_preview_width: u8,
+    max_preview_height: u8,
+    total_opaque_pixel_count: usize,
+};
+
+pub const BrickPreviewLibrary = struct {
+    palette_entry_index: usize,
+    previews: []BrickPreview,
+    max_preview_width: u8,
+    max_preview_height: u8,
+    total_opaque_pixel_count: usize,
+
+    pub fn deinit(self: BrickPreviewLibrary, allocator: std.mem.Allocator) void {
+        allocator.free(self.previews);
+    }
+
+    pub fn summary(self: BrickPreviewLibrary) BrickPreviewLibrarySummary {
+        return .{
+            .palette_entry_index = self.palette_entry_index,
+            .preview_count = self.previews.len,
+            .max_preview_width = self.max_preview_width,
+            .max_preview_height = self.max_preview_height,
+            .total_opaque_pixel_count = self.total_opaque_pixel_count,
+        };
+    }
+
+    pub fn jsonStringify(self: BrickPreviewLibrary, jw: anytype) !void {
+        try jw.beginObject();
+        try jw.objectField("palette_entry_index");
+        try jw.write(self.palette_entry_index);
+        try jw.objectField("preview_count");
+        try jw.write(self.previews.len);
+        try jw.objectField("max_preview_width");
+        try jw.write(self.max_preview_width);
+        try jw.objectField("max_preview_height");
+        try jw.write(self.max_preview_height);
+        try jw.objectField("total_opaque_pixel_count");
+        try jw.write(self.total_opaque_pixel_count);
+        try jw.objectField("previews");
+        try jw.beginArray();
+        for (self.previews) |preview| try jw.write(preview.summary());
+        try jw.endArray();
+        try jw.endObject();
+    }
+};
+
 pub const BackgroundCompositionSummary = struct {
     grid: GridCompositionSummary,
     library: LayoutLibrarySummary,
     fragments: FragmentLibrarySummary,
+    bricks: BrickPreviewLibrarySummary,
 };
 
 pub const BackgroundComposition = struct {
     grid: GridComposition,
     library: LayoutLibrary,
     fragments: FragmentLibrary,
+    bricks: BrickPreviewLibrary,
 
     pub fn deinit(self: BackgroundComposition, allocator: std.mem.Allocator) void {
         self.grid.deinit(allocator);
         self.library.deinit(allocator);
         self.fragments.deinit(allocator);
+        self.bricks.deinit(allocator);
     }
 
     pub fn summary(self: BackgroundComposition) BackgroundCompositionSummary {
@@ -307,6 +409,7 @@ pub const BackgroundComposition = struct {
             .grid = self.grid.summary(),
             .library = self.library.summary(),
             .fragments = self.fragments.summary(),
+            .bricks = self.bricks.summary(),
         };
     }
 

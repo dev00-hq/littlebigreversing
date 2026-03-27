@@ -118,6 +118,14 @@ const RoomFragmentSummary = struct {
     max_height: u8,
 };
 
+const RoomBrickPreviewSummary = struct {
+    palette_entry_index: usize,
+    preview_count: usize,
+    max_preview_width: u8,
+    max_preview_height: u8,
+    total_opaque_pixel_count: usize,
+};
+
 const RoomBackgroundSummary = struct {
     entry_index: usize,
     linkage: RoomBackgroundLinkageSummary,
@@ -125,6 +133,7 @@ const RoomBackgroundSummary = struct {
     column_table: RoomColumnTableSummary,
     composition: RoomCompositionSummary,
     fragments: RoomFragmentSummary,
+    bricks: RoomBrickPreviewSummary,
 };
 
 const RoomInspectionPayload = struct {
@@ -531,6 +540,16 @@ fn inspectBackground(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
             metadata.composition.fragments.max_height,
         },
     );
+    try stderr.print(
+        "brick_previews palette_entry_index={d} count={d} max_preview={d}x{d} opaque_pixels={d}\n",
+        .{
+            metadata.composition.bricks.palette_entry_index,
+            metadata.composition.bricks.previews.len,
+            metadata.composition.bricks.max_preview_width,
+            metadata.composition.bricks.max_preview_height,
+            metadata.composition.bricks.total_opaque_pixel_count,
+        },
+    );
     try printUsedBlockSummary(stderr, metadata.used_blocks.used_block_ids);
     try stderr.print(
         "bll block_count={d} table_bytes={d} first_block_offset={d} last_block_offset={d}\n",
@@ -733,6 +752,16 @@ fn inspectRoom(
             payload.background.fragments.max_height,
         },
     );
+    try stderr.print(
+        "brick_previews palette_entry_index={d} count={d} max_preview={d}x{d} opaque_pixels={d}\n",
+        .{
+            payload.background.bricks.palette_entry_index,
+            payload.background.bricks.preview_count,
+            payload.background.bricks.max_preview_width,
+            payload.background.bricks.max_preview_height,
+            payload.background.bricks.total_opaque_pixel_count,
+        },
+    );
     try printUsedBlockSummary(stderr, payload.background.used_blocks.values);
     try stderr.flush();
 }
@@ -813,6 +842,13 @@ fn buildRoomInspectionPayload(room: RoomInspection) RoomInspectionPayload {
                 .footprint_cell_count = room.background.composition.fragments.footprint_cell_count,
                 .non_empty_cell_count = room.background.composition.fragments.non_empty_cell_count,
                 .max_height = room.background.composition.fragments.max_height,
+            },
+            .bricks = .{
+                .palette_entry_index = room.background.composition.bricks.palette_entry_index,
+                .preview_count = room.background.composition.bricks.previews.len,
+                .max_preview_width = room.background.composition.bricks.max_preview_width,
+                .max_preview_height = room.background.composition.bricks.max_preview_height,
+                .total_opaque_pixel_count = room.background.composition.bricks.total_opaque_pixel_count,
             },
         },
     };

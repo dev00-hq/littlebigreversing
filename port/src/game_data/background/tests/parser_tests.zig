@@ -171,3 +171,64 @@ test "fragment payload validates truncation and keeps footprint summaries stable
     try std.testing.expectEqual(@as(?usize, 2), parsed.cells[1].first_non_empty_block_ref_index);
     try std.testing.expectEqual(@as(?usize, 3), parsed.cells[1].last_non_empty_block_ref_index);
 }
+
+test "palette payload must match the main 256-color layout" {
+    try std.testing.expectError(error.TruncatedPalettePayload, parser.parsePalettePayload(&.{ 0x00, 0x01, 0x02 }));
+
+    var too_long = [_]u8{0} ** 769;
+    try std.testing.expectError(error.TrailingPaletteBytes, parser.parsePalettePayload(&too_long));
+
+    var payload = [_]u8{0} ** 768;
+    payload[0] = 0x01;
+    payload[1] = 0x02;
+    payload[2] = 0x03;
+    payload[765] = 0xAA;
+    payload[766] = 0xBB;
+    payload[767] = 0xCC;
+
+    const palette = try parser.parsePalettePayload(&payload);
+    try std.testing.expectEqual(background.BrickSwatchPixel{ .r = 0x01, .g = 0x02, .b = 0x03, .a = 255 }, palette[0]);
+    try std.testing.expectEqual(background.BrickSwatchPixel{ .r = 0xAA, .g = 0xBB, .b = 0xCC, .a = 255 }, palette[255]);
+}
+
+test "brick payload decodes deterministic swatch previews from explicit and repeated lines" {
+    const allocator = std.testing.allocator;
+
+    var palette = [_]background.BrickSwatchPixel{.{ .r = 0, .g = 0, .b = 0, .a = 255 }} ** 256;
+    palette[4] = .{ .r = 0x20, .g = 0x10, .b = 0x08, .a = 255 };
+    palette[5] = .{ .r = 0x40, .g = 0x30, .b = 0x20, .a = 255 };
+    palette[6] = .{ .r = 0x80, .g = 0x60, .b = 0x40, .a = 255 };
+
+    try std.testing.expectError(error.TruncatedBrickHeader, parser.parseBrickPayload(allocator, &.{ 0x02, 0x02, 0x00 }, palette, 7, 203));
+
+    const invalid_line = [_]u8{
+        0x02, 0x01, 0x00, 0x00,
+        0x01,
+        0x42,
+        0x04, 0x05, 0x06,
+    };
+    try std.testing.expectError(error.InvalidBrickLineWidth, parser.parseBrickPayload(allocator, &invalid_line, palette, 7, 203));
+
+    const valid_payload = [_]u8{
+        0x02, 0x02, 0x01, 0x02,
+        0x01,
+        0x41, 0x04, 0x05,
+        0x02,
+        0x00,
+        0x80, 0x06,
+    };
+    const preview = try parser.parseBrickPayload(allocator, &valid_payload, palette, 7, 203);
+
+    try std.testing.expectEqual(@as(u16, 7), preview.brick_index);
+    try std.testing.expectEqual(@as(usize, 203), preview.entry_index);
+    try std.testing.expectEqual(@as(u8, 2), preview.width);
+    try std.testing.expectEqual(@as(u8, 2), preview.height);
+    try std.testing.expectEqual(@as(u8, 1), preview.offset_x);
+    try std.testing.expectEqual(@as(u8, 2), preview.offset_y);
+    try std.testing.expectEqual(@as(usize, 3), preview.opaque_pixel_count);
+    try std.testing.expectEqual(@as(usize, 3), preview.unique_color_count);
+    try std.testing.expectEqual(background.BrickSwatchPixel{ .r = 0x20, .g = 0x10, .b = 0x08, .a = 255 }, preview.swatch[0]);
+    try std.testing.expectEqual(background.BrickSwatchPixel{ .r = 0x40, .g = 0x30, .b = 0x20, .a = 255 }, preview.swatch[background.brick_preview_swatch_side - 1]);
+    try std.testing.expectEqual(@as(u8, 0), preview.swatch[(background.brick_preview_swatch_pixel_count - background.brick_preview_swatch_side)].a);
+    try std.testing.expectEqual(background.BrickSwatchPixel{ .r = 0x80, .g = 0x60, .b = 0x40, .a = 255 }, preview.swatch[background.brick_preview_swatch_pixel_count - 1]);
+}

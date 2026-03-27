@@ -9,6 +9,9 @@ const column_table_width = 64;
 const column_table_depth = 64;
 const column_offset_count = column_table_width * column_table_depth;
 const column_table_byte_length = column_offset_count * @sizeOf(u16);
+const palette_color_count = 256;
+const palette_payload_size = palette_color_count * 3;
+const main_palette_entry_index: usize = 0;
 
 pub const TabAllCubeSelection = struct {
     entry_count: usize,
@@ -39,6 +42,11 @@ pub const ParsedBllPayload = struct {
 pub const FragmentRange = struct {
     start_index: usize,
     count: usize,
+};
+
+const BrickRasterPixel = struct {
+    palette_index: u8,
+    is_opaque: bool,
 };
 
 pub fn loadBackgroundMetadata(
@@ -87,6 +95,8 @@ pub fn loadBackgroundMetadata(
     const fragment_range = try detectFragmentRange(allocator, absolute_path, bkg_header, remapped_cube_index, gri.header.my_grm);
     var fragments = try loadFragmentLibrary(allocator, absolute_path, bll.library, fragment_range);
     errdefer fragments.deinit(allocator);
+    var bricks = try loadBrickPreviewLibrary(allocator, absolute_path, bkg_header, gri.grid, bll.library, fragments);
+    errdefer bricks.deinit(allocator);
 
     return .{
         .entry_index = entry_index,
@@ -111,8 +121,26 @@ pub fn loadBackgroundMetadata(
             .grid = gri.grid,
             .library = bll.library,
             .fragments = fragments,
+            .bricks = bricks,
         },
     };
+}
+
+pub fn parsePalettePayload(payload: []const u8) ![palette_color_count]model.BrickSwatchPixel {
+    if (payload.len < palette_payload_size) return error.TruncatedPalettePayload;
+    if (payload.len != palette_payload_size) return error.TrailingPaletteBytes;
+
+    var palette: [palette_color_count]model.BrickSwatchPixel = undefined;
+    for (0..palette_color_count) |index| {
+        const base = index * 3;
+        palette[index] = .{
+            .r = payload[base],
+            .g = payload[base + 1],
+            .b = payload[base + 2],
+            .a = 255,
+        };
+    }
+    return palette;
 }
 
 pub fn parseBkgHeaderPayload(payload: []const u8) !model.BkgHeader {
@@ -441,6 +469,165 @@ pub fn parseFragmentPayload(
     };
 }
 
+pub fn parseBrickPayload(
+    allocator: std.mem.Allocator,
+    payload: []const u8,
+    palette: [palette_color_count]model.BrickSwatchPixel,
+    brick_index: u16,
+    entry_index: usize,
+) !model.BrickPreview {
+    if (brick_index == 0) return error.InvalidBrickIndex;
+    if (payload.len < 4) return error.TruncatedBrickHeader;
+
+    const width = payload[0];
+    const height = payload[1];
+    if (width == 0 or height == 0) return error.InvalidBrickDimensions;
+
+    const pixel_count = @as(usize, width) * @as(usize, height);
+    var raster = try allocator.alloc(BrickRasterPixel, pixel_count);
+    defer allocator.free(raster);
+    @memset(raster, .{ .palette_index = 0, .is_opaque = false });
+
+    var unique_colors = [_]bool{false} ** palette_color_count;
+    var opaque_pixel_count: usize = 0;
+    var cursor: usize = 4;
+
+    for (0..@as(usize, height)) |y| {
+        if (cursor >= payload.len) return error.TruncatedBrickLine;
+
+        const subline_count = payload[cursor];
+        cursor += 1;
+        var x: usize = 0;
+
+        for (0..@as(usize, subline_count)) |_| {
+            if (cursor >= payload.len) return error.TruncatedBrickSubline;
+
+            const descriptor = payload[cursor];
+            cursor += 1;
+            const encoding = descriptor >> 6;
+            const run_length = @as(usize, descriptor & 0x3F) + 1;
+            if (x + run_length > width) return error.InvalidBrickLineWidth;
+
+            switch (encoding) {
+                0 => x += run_length,
+                1, 3 => {
+                    if (cursor + run_length > payload.len) return error.TruncatedBrickPixels;
+                    for (0..run_length) |offset| {
+                        const palette_index = payload[cursor + offset];
+                        raster[(y * width) + x + offset] = .{
+                            .palette_index = palette_index,
+                            .is_opaque = true,
+                        };
+                        unique_colors[palette_index] = true;
+                        opaque_pixel_count += 1;
+                    }
+                    cursor += run_length;
+                    x += run_length;
+                },
+                2 => {
+                    if (cursor >= payload.len) return error.TruncatedBrickPixels;
+                    const palette_index = payload[cursor];
+                    cursor += 1;
+                    for (0..run_length) |offset| {
+                        raster[(y * width) + x + offset] = .{
+                            .palette_index = palette_index,
+                            .is_opaque = true,
+                        };
+                    }
+                    unique_colors[palette_index] = true;
+                    opaque_pixel_count += run_length;
+                    x += run_length;
+                },
+                else => unreachable,
+            }
+        }
+
+        if (x != width) return error.InvalidBrickLineWidth;
+    }
+
+    if (cursor != payload.len) return error.TrailingBrickBytes;
+
+    return .{
+        .brick_index = brick_index,
+        .entry_index = entry_index,
+        .width = width,
+        .height = height,
+        .offset_x = payload[2],
+        .offset_y = payload[3],
+        .opaque_pixel_count = opaque_pixel_count,
+        .unique_color_count = countUniqueBrickColors(unique_colors),
+        .swatch = buildBrickPreviewSwatch(raster, width, height, palette),
+    };
+}
+
+fn countUniqueBrickColors(unique_colors: [palette_color_count]bool) usize {
+    var count: usize = 0;
+    for (unique_colors) |used| {
+        if (used) count += 1;
+    }
+    return count;
+}
+
+fn buildBrickPreviewSwatch(
+    raster: []const BrickRasterPixel,
+    width: u8,
+    height: u8,
+    palette: [palette_color_count]model.BrickSwatchPixel,
+) [model.brick_preview_swatch_pixel_count]model.BrickSwatchPixel {
+    var swatch = [_]model.BrickSwatchPixel{.{ .r = 0, .g = 0, .b = 0, .a = 0 }} ** model.brick_preview_swatch_pixel_count;
+
+    for (0..model.brick_preview_swatch_side) |sample_y| {
+        const source_y0 = @divTrunc(sample_y * @as(usize, height), model.brick_preview_swatch_side);
+        const source_y1 = @min(
+            @as(usize, height),
+            @max(
+                source_y0 + 1,
+                @divTrunc(((sample_y + 1) * @as(usize, height)) + (model.brick_preview_swatch_side - 1), model.brick_preview_swatch_side),
+            ),
+        );
+
+        for (0..model.brick_preview_swatch_side) |sample_x| {
+            const source_x0 = @divTrunc(sample_x * @as(usize, width), model.brick_preview_swatch_side);
+            const source_x1 = @min(
+                @as(usize, width),
+                @max(
+                    source_x0 + 1,
+                    @divTrunc(((sample_x + 1) * @as(usize, width)) + (model.brick_preview_swatch_side - 1), model.brick_preview_swatch_side),
+                ),
+            );
+
+            var sum_r: u32 = 0;
+            var sum_g: u32 = 0;
+            var sum_b: u32 = 0;
+            var opaque_count: u32 = 0;
+
+            for (source_y0..source_y1) |source_y| {
+                for (source_x0..source_x1) |source_x| {
+                    const pixel = raster[(source_y * width) + source_x];
+                    if (!pixel.is_opaque) continue;
+
+                    const color = palette[pixel.palette_index];
+                    sum_r += color.r;
+                    sum_g += color.g;
+                    sum_b += color.b;
+                    opaque_count += 1;
+                }
+            }
+
+            if (opaque_count == 0) continue;
+
+            swatch[(sample_y * model.brick_preview_swatch_side) + sample_x] = .{
+                .r = @intCast(sum_r / opaque_count),
+                .g = @intCast(sum_g / opaque_count),
+                .b = @intCast(sum_b / opaque_count),
+                .a = 255,
+            };
+        }
+    }
+
+    return swatch;
+}
+
 fn decodeUsedBlockSummary(allocator: std.mem.Allocator, used_block: [32]u8) !model.UsedBlockSummary {
     var used_block_ids: std.ArrayList(u8) = .empty;
     errdefer used_block_ids.deinit(allocator);
@@ -695,6 +882,120 @@ fn validateFragmentAgainstLibrary(fragment: model.Fragment, library: model.Layou
         const layout = library.layouts[block_ref.layout_index - 1];
         if (block_ref.layout_block_index >= layout.block_count) return error.InvalidGrmLayoutBlockReference;
     }
+}
+
+fn loadBrickPreviewLibrary(
+    allocator: std.mem.Allocator,
+    absolute_path: []const u8,
+    bkg_header: model.BkgHeader,
+    grid: model.GridComposition,
+    library: model.LayoutLibrary,
+    fragments: model.FragmentLibrary,
+) !model.BrickPreviewLibrary {
+    const brick_indices = try collectTopBrickIndices(allocator, grid, library, fragments);
+    defer allocator.free(brick_indices);
+
+    if (brick_indices.len == 0) {
+        return .{
+            .palette_entry_index = main_palette_entry_index,
+            .previews = try allocator.alloc(model.BrickPreview, 0),
+            .max_preview_width = 0,
+            .max_preview_height = 0,
+            .total_opaque_pixel_count = 0,
+        };
+    }
+
+    const asset_root = std.fs.path.dirname(absolute_path) orelse return error.InvalidBackgroundArchivePath;
+    const palette_path = try std.fs.path.join(allocator, &.{ asset_root, "RESS.HQR" });
+    defer allocator.free(palette_path);
+
+    const palette_raw = try hqr.extractClassicEntryToBytes(allocator, palette_path, main_palette_entry_index);
+    defer allocator.free(palette_raw);
+    const palette_payload = try hqr.decodeResourceEntryBytes(allocator, palette_raw);
+    defer allocator.free(palette_payload);
+    const palette = try parsePalettePayload(palette_payload);
+
+    const previews = try allocator.alloc(model.BrickPreview, brick_indices.len);
+    errdefer allocator.free(previews);
+
+    var max_preview_width: u8 = 0;
+    var max_preview_height: u8 = 0;
+    var total_opaque_pixel_count: usize = 0;
+
+    for (brick_indices, previews) |brick_index, *preview| {
+        if (brick_index > bkg_header.max_brk) return error.InvalidBrickIndex;
+
+        const entry_index = @as(usize, bkg_header.brk_start) + brick_index - 1;
+        const raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, entry_index);
+        defer allocator.free(raw);
+        const payload = try hqr.decodeResourceEntryBytes(allocator, raw);
+        defer allocator.free(payload);
+
+        preview.* = try parseBrickPayload(allocator, payload, palette, brick_index, entry_index);
+        max_preview_width = @max(max_preview_width, preview.width);
+        max_preview_height = @max(max_preview_height, preview.height);
+        total_opaque_pixel_count += preview.opaque_pixel_count;
+    }
+
+    return .{
+        .palette_entry_index = main_palette_entry_index,
+        .previews = previews,
+        .max_preview_width = max_preview_width,
+        .max_preview_height = max_preview_height,
+        .total_opaque_pixel_count = total_opaque_pixel_count,
+    };
+}
+
+fn collectTopBrickIndices(
+    allocator: std.mem.Allocator,
+    grid: model.GridComposition,
+    library: model.LayoutLibrary,
+    fragments: model.FragmentLibrary,
+) ![]u16 {
+    var unique = std.AutoHashMap(u16, void).init(allocator);
+    defer unique.deinit();
+
+    for (grid.cells) |cell| {
+        if (cell.non_empty_block_ref_count == 0) continue;
+        const top_ref_index = cell.last_non_empty_block_ref_index orelse return error.InvalidCompositionCell;
+        const block = try resolveLayoutBlock(library, grid.block_refs[top_ref_index]);
+        if (block.brick_index == 0) continue;
+        try unique.put(block.brick_index, {});
+    }
+
+    for (fragments.fragments) |fragment| {
+        for (fragment.cells) |cell| {
+            if (cell.non_empty_block_ref_count == 0) continue;
+            const top_ref_index = cell.last_non_empty_block_ref_index orelse return error.InvalidFragmentZoneCell;
+            const block = try resolveLayoutBlock(library, fragment.block_refs[top_ref_index]);
+            if (block.brick_index == 0) continue;
+            try unique.put(block.brick_index, {});
+        }
+    }
+
+    var brick_indices = try allocator.alloc(u16, unique.count());
+    errdefer allocator.free(brick_indices);
+    var iterator = unique.keyIterator();
+    var index: usize = 0;
+    while (iterator.next()) |brick_index| : (index += 1) {
+        brick_indices[index] = brick_index.*;
+    }
+
+    std.sort.pdq(u16, brick_indices, {}, comptime std.sort.asc(u16));
+    return brick_indices;
+}
+
+fn resolveLayoutBlock(
+    library: model.LayoutLibrary,
+    block_ref: model.ColumnBlockRef,
+) !model.LayoutBlock {
+    if (block_ref.layout_index == 0) return error.InvalidLayoutBlockReference;
+    if (block_ref.layout_index > library.layouts.len) return error.InvalidLayoutReference;
+
+    const layout = library.layouts[block_ref.layout_index - 1];
+    if (block_ref.layout_block_index >= layout.block_count) return error.InvalidLayoutBlockReference;
+
+    return library.layout_blocks[layout.block_start + block_ref.layout_block_index];
 }
 
 fn readInt(comptime T: type, bytes: []const u8, offset: usize) T {

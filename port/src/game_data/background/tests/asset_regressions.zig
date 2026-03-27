@@ -99,6 +99,11 @@ test "real background 2 metadata matches the canonical interior linkage" {
     try std.testing.expectEqual(@as(usize, 0), metadata.composition.fragments.footprint_cell_count);
     try std.testing.expectEqual(@as(usize, 0), metadata.composition.fragments.non_empty_cell_count);
     try std.testing.expectEqual(@as(u8, 0), metadata.composition.fragments.max_height);
+    try std.testing.expectEqual(@as(usize, 0), metadata.composition.bricks.palette_entry_index);
+    try std.testing.expectEqual(@as(usize, 188), metadata.composition.bricks.previews.len);
+    try std.testing.expectEqual(@as(u8, 48), metadata.composition.bricks.max_preview_width);
+    try std.testing.expectEqual(@as(u8, 38), metadata.composition.bricks.max_preview_height);
+    try std.testing.expectEqual(@as(usize, 113266), metadata.composition.bricks.total_opaque_pixel_count);
 }
 
 test "background metadata json keeps linkage and table summaries stable" {
@@ -121,6 +126,8 @@ test "background metadata json keeps linkage and table summaries stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"referenced_cell_count\": 2252") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"layout_count\": 219") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"fragment_count\": 0") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"palette_entry_index\": 0") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"preview_count\":") != null);
 }
 
 test "real background 10 metadata keeps fragment ownership stable" {
@@ -146,6 +153,11 @@ test "real background 10 metadata keeps fragment ownership stable" {
     try std.testing.expectEqual(@as(usize, 208), metadata.composition.fragments.footprint_cell_count);
     try std.testing.expectEqual(@as(usize, 95), metadata.composition.fragments.non_empty_cell_count);
     try std.testing.expectEqual(@as(u8, 10), metadata.composition.fragments.max_height);
+    try std.testing.expectEqual(@as(usize, 0), metadata.composition.bricks.palette_entry_index);
+    try std.testing.expectEqual(@as(usize, 261), metadata.composition.bricks.previews.len);
+    try std.testing.expectEqual(@as(u8, 48), metadata.composition.bricks.max_preview_width);
+    try std.testing.expectEqual(@as(u8, 38), metadata.composition.bricks.max_preview_height);
+    try std.testing.expectEqual(@as(usize, 139294), metadata.composition.bricks.total_opaque_pixel_count);
 
     const fragment = metadata.composition.fragments.fragments[0];
     try std.testing.expectEqual(@as(usize, 0), fragment.relative_index);
