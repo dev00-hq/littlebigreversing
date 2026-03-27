@@ -1,41 +1,45 @@
-# Next Step: Fragment-Aware Interior Composition Debug View
+# Next Step: Brick-Backed Raster Probes for the Checked-In Fragment Pair
 
 ## Summary
 
-The height-aware interior composition debug view is already live, asset-backed, and validated on the current workspace. From `port/`, `zig build run -- --scene-entry 2 --background-entry 2` now loads the canonical pair through `port/src/app/viewer_shell.zig`, builds the viewer-local composition snapshot from `port/src/game_data/background.zig`, and renders relief, contour edges, and shape markers behind the existing hero, object, track, and zone overlays. The canonical `2/2` pair currently remains a zero-fragment / zero-fragment-zone boundary, so the next slice should treat fragment work as evidence-gathering rather than as already-present runtime behavior.
+The height-aware interior composition debug view is already live, asset-backed, and validated on the current workspace. From `port/`, `zig build run -- --scene-entry 2 --background-entry 2` still loads the canonical zero-fragment interior pair through `port/src/app/viewer_shell.zig`, builds the viewer-local composition snapshot from `port/src/game_data/background.zig`, and renders relief, contour edges, shape markers, and the existing hero/object/track/zone overlays. The repo also now has a checked-in positive fragment evidence path: `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` projects one runtime fragment zone from background-owned fragment data and is covered by asset-backed viewer and CLI regressions.
 
-Life integration remains blocked on `LM_DEFAULT` and `LM_END_SWITCH`, so the next bounded slice should stay on the viewer-prep path: keep the locked pair `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]` as the canonical zero-fragment acceptance boundary, and only pursue viewer-local `GRM` fragment application evidence when a checked-in fragment-bearing interior pair supports it. Do not treat the locked `2/2` pair as implied proof that positive fragment rendering should already exist. If a positive fragment case is needed, identify it from checked-in probes first, then deepen evidence before widening runtime behavior. This is a narrow phase-3 interior viewer sub-slice, not a new architectural layer. Treat fragments as canonical background evidence and debug-view state, not as a reason to widen into gameplay, exterior loading, speculative actor binding, or a shared room layer. If checked-in fragment evidence is incomplete, stop and deepen evidence instead of inventing a fallback parser, shared room layer, compatibility path, or alternate runtime path.
+Life integration remains blocked on `LM_DEFAULT` and `LM_END_SWITCH`, so the next bounded slice should stay on the viewer-prep path. Keep `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]` as the canonical zero-fragment acceptance boundary, keep `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as the checked-in fragment-bearing interior evidence pair, and use that positive pair to drive the next viewer-local rendering step. The intended frontier is minimal brick-backed raster probing or similarly bounded richer composition detail for the checked-in fragment pair, not gameplay, exterior loading, speculative actor binding, or a shared room layer.
 
-Keep the canonical data sources as `port/src/game_data/scene.zig` and `port/src/game_data/background.zig`, with `port/src/app/viewer_shell.zig` as the runtime edge and `port/src/tools/cli.zig` as the probe surface. Keep any new fragment projection or render-state helpers local to the app/runtime edge. Do not introduce `port/src/game_data/room.zig` or any compatibility facade, and do not make the runtime depend on `inspect-room` or `inspect-background` as its implementation path.
+Treat background fragment library facts and projected runtime fragment zones as separate surfaces. `port/src/game_data/background.zig` remains the canonical owner of decoded background linkage, composition, fragment-library facts, and any newly promoted brick-backed evidence. `port/src/app/viewer_shell.zig` remains the runtime edge that can project scene `grm` zones, compose viewer-local render state, and turn the checked-in evidence into debug-visible cues. Keep `port/src/tools/cli.zig` as the probe surface, not as the runtime implementation path. If checked-in raster or brick evidence is incomplete, stop and deepen evidence instead of inventing a fallback parser, compatibility path, guessed same-index pairing, or alternate runtime layer.
 
 ## Key Changes
 
-- Build on the landed composition and height-cue path instead of replacing it.
-  - Keep the explicit runtime acceptance path as `cd port && zig build run -- --scene-entry 2 --background-entry 2`.
-  - Reuse the existing decoded `GRI` cells, span metadata, `BLL` layouts, and the new viewer-local height cues as the baseline runtime inputs.
-  - Promote only the minimum extra decoded facts needed for fragment-aware evidence, such as stable fragment coverage, target cells, or fragment-local mutation metadata for the canonical pair.
+- Build on the landed composition and fragment-zone path instead of replacing it.
+  - Keep the explicit zero-fragment acceptance path as `cd port && zig build run -- --scene-entry 2 --background-entry 2`.
+  - Keep the checked-in positive fragment evidence path as `cd port && zig build run -- --scene-entry 11 --background-entry 10`.
+  - Reuse the existing decoded `GRI` cells, `BLL` layouts, fragment-library summaries, projected fragment zones, and viewer-local height cues as the baseline runtime inputs.
 
-- Add fragment-aware debug cues only where the checked-in evidence supports them.
-  - Keep `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]` as the explicit zero-fragment / zero-fragment-zone boundary.
-  - If a positive fragment case is required, identify a checked-in fragment-bearing interior pair first and promote only the minimum extra facts needed to show where that room can mutate without guessing gameplay semantics.
-  - Favor deterministic overlays, delta tinting, fragment outlines, or mutation annotations over speculative full-art rendering.
-  - Keep the result obviously pre-art and pre-gameplay: this is still a debug viewer, not a shipping renderer.
+- Use the right pair for the right kind of evidence.
+  - Keep `2/2` as the explicit zero-fragment / zero-fragment-zone boundary.
+  - Keep `11/10` as the explicit fragment-bearing interior pair; do not re-open pair discovery or guess same-index pairings.
+  - Treat positive fragment behavior as already-evidenced at the metadata and viewer-projection level, but not yet as proof that full room-art rendering is ready.
 
-- Keep fragment decoding canonical and fragment presentation viewer-local.
-  - Keep `game_data/background.zig` responsible for canonical background linkage and any newly added fragment facts, not SDL-facing presentation policy.
-  - Build any new fragment projection state on top of the existing viewer-local composition snapshot path instead of inventing a parallel bootstrap.
-  - Treat the preserved LBArchitect docs and CLI probes as cross-check surfaces, not runtime dependencies.
+- Add only the minimum brick-backed or richer render detail needed for the checked-in fragment pair.
+  - Prefer deterministic cell-level raster probes, selected-tile brick previews, fragment-local delta tinting, or other viewer-local debug cues over a speculative shipping renderer.
+  - Promote only the minimum extra decoded facts needed to show how the checked-in pair's composition and fragment state map onto brick-backed output.
+  - Keep the result obviously pre-art and pre-gameplay: this is still a debug viewer and evidence path, not a production room renderer.
 
-- Keep the slice strictly pre-full-art rasterization and pre-gameplay.
-  - Do not decode or render brick pixel art from `BRK` entries yet.
-  - Do not add actor visuals from `BODY.HQR`, `ANIM.HQR`, `FILE3D.HQR`, or sprite assets.
-  - Do not revisit scene-surface life integration; raw life bytes stay canonical until the switch-family blocker changes explicitly.
-  - Do not widen to exterior scene support or guessed scene/background pairing rules as part of this prompt.
+- Keep decoding canonical and presentation viewer-local.
+  - Keep `game_data/background.zig` responsible for canonical background decoding and any newly added brick-backed evidence, not SDL-facing presentation policy.
+  - Keep scene-bound projection and render-state helpers local to `viewer_shell.zig` unless a stronger stable seam becomes necessary.
+  - Do not introduce `port/src/game_data/room.zig`, a compatibility facade, or a tool-driven runtime bootstrap.
 
-- Add regression coverage for the fragment-aware boundary.
-  - Keep the existing asset-backed background decoder tests, room inspection tests, `viewer_shell.zig` regression tests, and zero-fragment boundary assertions for the canonical `2/2` pair intact.
-  - Add focused tests for any new fragment parsing helpers and for stable canonical fragment-derived facts or viewer-local delta helpers only after a fragment-bearing interior pair is locked by checked-in evidence.
-  - Prefer deterministic structural assertions over screenshot goldens in this slice.
+- Keep the slice strictly interior-first and pre-gameplay.
+  - Do not widen to exterior scene support, actor visuals, life binding, inventory/state mutation, or guessed room/background linking rules.
+  - Do not treat `inspect-room`, `inspect-background`, or `inspect-scene` as runtime dependencies.
+  - Do not add silent fallbacks when checked-in evidence is missing; fail fast and deepen probes instead.
+
+- Add regression coverage for both boundaries.
+  - Keep the current zero-fragment `2/2` assertions intact.
+  - Keep the current positive `11/10` fragment-bearing assertions intact.
+  - Add focused tests only for any new brick-backed helper, selected-cell raster probe, or viewer-local render-state derivation introduced by this slice.
+  - Prefer deterministic structural assertions over screenshot goldens.
 
 ## Test Plan
 
@@ -43,16 +47,21 @@ Run the canonical validation commands from native PowerShell. If the Windows Zig
 
 - `cd port && zig build test`
 - `cd port && zig build tool -- inspect-background 2 --json`
-  - Probe only: use this to cross-check canonical background facts, not as a runtime dependency.
+  - Probe only: use this to cross-check the canonical zero-fragment background facts, not as a runtime dependency.
 - `cd port && zig build tool -- inspect-room 2 2 --json`
-  - Probe only: use this to cross-check the paired interior metadata, including the current zero-fragment boundary, not as a runtime dependency.
+  - Probe only: use this to cross-check the paired zero-fragment interior metadata and keep the explicit zero-state boundary stable.
+- `cd port && zig build tool -- inspect-room 11 10 --json`
+  - Probe only: use this to cross-check the checked-in fragment-bearing interior pair, including the positive fragment-library counts and projected runtime fragment-zone surface.
+- `cd port && zig build run -- --scene-entry 11 --background-entry 10`
+  - Verify the window stays open until quit, the viewer still renders the landed height-aware composition path, and the checked-in positive pair remains the runtime acceptance path for fragment-bearing viewer work.
 - `cd port && zig build run -- --scene-entry 2 --background-entry 2`
-  - Verify the window stays open until quit and continues to show the height-aware composition render; for the canonical `2/2` pair, fragment probes should still report zero fragment zones unless checked-in evidence changes.
+  - Verify the zero-fragment boundary still reports no projected fragment zones and continues to act as the negative acceptance case.
 
 ## Assumptions
 
-- `docs/phase0/golden_targets.md` still locks the canonical interior pair as `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, and the current `2/2` probes still report zero fragment entries for that pair.
+- `docs/phase0/golden_targets.md` still locks the canonical interior baseline as `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`.
+- The checked-in fragment-bearing interior evidence pair remains `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]`.
 - The current extracted asset tree and repo-local Windows SDL2 layout remain the environment boundary for validation on this machine.
-- The runtime should keep building on the landed viewer shell, height-aware composition debug render, and viewer-local snapshot path instead of replacing them with a new tool-driven or compatibility-path bootstrap.
+- The runtime should keep building on the landed viewer shell, viewer-local composition snapshot path, fragment-zone projection, and height-aware debug render instead of replacing them with a new bootstrap path.
 - A shared `game_data/room.zig` layer is still out of scope until stronger checked-in evidence proves it is needed.
 - `LM_DEFAULT` and `LM_END_SWITCH` remain blocked, so this slice stays off the life-script path.

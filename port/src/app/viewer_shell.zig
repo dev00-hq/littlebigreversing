@@ -111,6 +111,7 @@ pub const CompositionTileSnapshot = struct {
     top_floor_type: u8,
     top_shape: u8,
     top_shape_class: SurfaceShapeClass,
+    top_brick_index: u16,
 };
 
 pub const CompositionSnapshot = struct {
@@ -152,6 +153,7 @@ pub const FragmentZoneCellSnapshot = struct {
     top_floor_type: u8,
     top_shape: u8,
     top_shape_class: SurfaceShapeClass,
+    top_brick_index: u16,
 };
 
 pub const FragmentZoneSnapshot = struct {
@@ -786,6 +788,7 @@ fn buildFragmentZoneSnapshots(
                     .top_floor_type = block.floorType(),
                     .top_shape = block.shape,
                     .top_shape_class = classifySurfaceShape(block.shape),
+                    .top_brick_index = block.brick_index,
                 };
             } else {
                 slot.* = .{
@@ -795,6 +798,7 @@ fn buildFragmentZoneSnapshots(
                     .top_floor_type = 0,
                     .top_shape = 0,
                     .top_shape_class = .open,
+                    .top_brick_index = 0,
                 };
             }
         }
@@ -858,6 +862,7 @@ fn buildCompositionSnapshot(
             .top_floor_type = floor_type,
             .top_shape = block.shape,
             .top_shape_class = classifySurfaceShape(block.shape),
+            .top_brick_index = block.brick_index,
         });
     }
 
@@ -958,10 +963,33 @@ fn drawFragmentZones(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: RenderSnapsh
         for (zone.cells) |cell| {
             const cell_rect = projectGridCellRect(rect, snapshot.grid_width, snapshot.grid_depth, cell.x, cell.z);
             if (cell.has_non_empty) {
-                const fill = withAlpha(fragmentCellColor(cell), 118);
+                const base_color = fragmentCellColor(cell);
+                const brick_delta = fragmentBrickDelta(snapshot, cell);
+                const fill = withAlpha(base_color, switch (brick_delta) {
+                    .changed => @as(u8, 142),
+                    .same => @as(u8, 118),
+                    .no_base => @as(u8, 104),
+                });
                 try canvas.fillRect(cell_rect, fill);
-                try canvas.drawRect(cell_rect, withAlpha(lightenColor(fragmentCellColor(cell), 28), 196));
-                try drawFragmentCellMarker(canvas, cell_rect, cell, withAlpha(lightenColor(fragmentCellColor(cell), 72), 216));
+                try canvas.drawRect(cell_rect, withAlpha(lightenColor(base_color, 28), 196));
+                try drawBrickProbe(
+                    canvas,
+                    cell_rect.inset(1),
+                    cell.top_brick_index,
+                    withAlpha(lightenColor(base_color, switch (brick_delta) {
+                        .changed => @as(u8, 96),
+                        .same => @as(u8, 72),
+                        .no_base => @as(u8, 52),
+                    }), switch (brick_delta) {
+                        .changed => @as(u8, 228),
+                        .same => @as(u8, 208),
+                        .no_base => @as(u8, 182),
+                    }),
+                );
+                try drawFragmentCellMarker(canvas, cell_rect, cell, withAlpha(lightenColor(base_color, 72), 216));
+                if (brick_delta == .changed) {
+                    try drawFragmentDeltaMarker(canvas, cell_rect, withAlpha(lightenColor(base_color, 120), 240));
+                }
             } else {
                 try canvas.drawLine(cell_rect.x, cell_rect.y, cell_rect.right(), cell_rect.bottom(), withAlpha(border_color, 176));
                 try canvas.drawLine(cell_rect.right(), cell_rect.y, cell_rect.x, cell_rect.bottom(), withAlpha(border_color, 176));
@@ -976,6 +1004,26 @@ const TileRelief = struct {
     right_wall: sdl.Rect,
     bottom_wall: sdl.Rect,
     inset_depth: i32,
+};
+
+const BrickProbePattern = enum {
+    vertical,
+    horizontal,
+    diagonal_descending,
+    diagonal_ascending,
+    checker,
+};
+
+const BrickProbeStyle = struct {
+    pattern: BrickProbePattern,
+    spacing: i32,
+    accent: u8,
+};
+
+const FragmentBrickDelta = enum {
+    no_base,
+    same,
+    changed,
 };
 
 fn drawCompositionTile(
@@ -1024,6 +1072,12 @@ fn drawCompositionTile(
         contour_color,
     );
     try canvas.drawRect(relief.top_surface, withAlpha(lightenColor(base_color, 18), 212));
+    try drawBrickProbe(
+        canvas,
+        relief.top_surface.inset(1),
+        tile.top_brick_index,
+        withAlpha(lightenColor(base_color, brickProbeStyle(tile.top_brick_index).accent), 148),
+    );
     try drawSurfaceMarker(canvas, relief.top_surface, tile, withAlpha(lightenColor(base_color, 64), 232));
 }
 
@@ -1152,6 +1206,124 @@ fn drawFragmentCellMarker(
     }
     try canvas.drawLine(marker.x, marker.y, marker.right(), marker.bottom(), color);
     try canvas.drawLine(marker.right(), marker.y, marker.x, marker.bottom(), color);
+}
+
+fn drawFragmentDeltaMarker(canvas: *sdl.Canvas, cell_rect: sdl.Rect, color: sdl.Color) !void {
+    const marker_size = std.math.clamp(@divTrunc(@min(cell_rect.w, cell_rect.h), 3), 2, 5);
+    const marker = sdl.Rect{
+        .x = cell_rect.right() - marker_size,
+        .y = cell_rect.y,
+        .w = marker_size,
+        .h = marker_size,
+    };
+    if (marker.w <= 0 or marker.h <= 0) return;
+    try canvas.fillRect(marker, color);
+}
+
+fn drawBrickProbe(canvas: *sdl.Canvas, rect: sdl.Rect, brick_index: u16, color: sdl.Color) !void {
+    if (brick_index == 0) return;
+    if (rect.w < 2 or rect.h < 2) return;
+
+    const style = brickProbeStyle(brick_index);
+    switch (style.pattern) {
+        .vertical => {
+            var x = rect.x;
+            while (x <= rect.right()) : (x += style.spacing) {
+                try canvas.drawLine(x, rect.y, x, rect.bottom(), color);
+            }
+        },
+        .horizontal => {
+            var y = rect.y;
+            while (y <= rect.bottom()) : (y += style.spacing) {
+                try canvas.drawLine(rect.x, y, rect.right(), y, color);
+            }
+        },
+        .diagonal_descending => {
+            var offset = -rect.h;
+            while (offset <= rect.w) : (offset += style.spacing) {
+                try drawDiagonalProbeLine(canvas, rect, offset, false, color);
+            }
+        },
+        .diagonal_ascending => {
+            var offset = -rect.h;
+            while (offset <= rect.w) : (offset += style.spacing) {
+                try drawDiagonalProbeLine(canvas, rect, offset, true, color);
+            }
+        },
+        .checker => {
+            var row: i32 = 0;
+            while (row < rect.h) : (row += style.spacing) {
+                var column: i32 = 0;
+                while (column < rect.w) : (column += style.spacing) {
+                    if (((@divTrunc(row, style.spacing) + @divTrunc(column, style.spacing)) & 1) == 0) {
+                        const cell = sdl.Rect{
+                            .x = rect.x + column,
+                            .y = rect.y + row,
+                            .w = @min(style.spacing - 1, rect.w - column),
+                            .h = @min(style.spacing - 1, rect.h - row),
+                        };
+                        if (cell.w > 0 and cell.h > 0) try canvas.fillRect(cell, color);
+                    }
+                }
+            }
+        },
+    }
+}
+
+fn drawDiagonalProbeLine(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    offset: i32,
+    ascending: bool,
+    color: sdl.Color,
+) !void {
+    var started = false;
+    var start_x: i32 = 0;
+    var start_y: i32 = 0;
+    var end_x: i32 = 0;
+    var end_y: i32 = 0;
+
+    var y: i32 = 0;
+    while (y < rect.h) : (y += 1) {
+        const x = if (ascending) offset + y else offset + ((rect.h - 1) - y);
+        if (x < 0 or x >= rect.w) continue;
+
+        const point_x = rect.x + x;
+        const point_y = rect.y + y;
+        if (!started) {
+            started = true;
+            start_x = point_x;
+            start_y = point_y;
+        }
+        end_x = point_x;
+        end_y = point_y;
+    }
+
+    if (started) try canvas.drawLine(start_x, start_y, end_x, end_y, color);
+}
+
+fn brickProbeStyle(brick_index: u16) BrickProbeStyle {
+    return .{
+        .pattern = switch (brick_index % 5) {
+            0 => .vertical,
+            1 => .horizontal,
+            2 => .diagonal_descending,
+            3 => .diagonal_ascending,
+            else => .checker,
+        },
+        .spacing = 2 + @as(i32, @intCast((brick_index >> 2) % 3)),
+        .accent = 20 + @as(u8, @intCast((brick_index >> 5) % 44)),
+    };
+}
+
+fn fragmentBrickDelta(snapshot: RenderSnapshot, cell: FragmentZoneCellSnapshot) FragmentBrickDelta {
+    const base_brick_index = compositionBrickIndexAt(snapshot, cell.x, cell.z) orelse return .no_base;
+    return if (base_brick_index == cell.top_brick_index) .same else .changed;
+}
+
+fn compositionBrickIndexAt(snapshot: RenderSnapshot, x: usize, z: usize) ?u16 {
+    const tile = findCompositionTile(snapshot.composition.tiles, x, z) orelse return null;
+    return tile.top_brick_index;
 }
 
 fn compositionTileColor(tile: CompositionTileSnapshot) sdl.Color {
@@ -1451,6 +1623,13 @@ fn findCompositionTile(tiles: []const CompositionTileSnapshot, x: usize, z: usiz
     return null;
 }
 
+fn findFirstNonEmptyFragmentCell(cells: []const FragmentZoneCellSnapshot) ?FragmentZoneCellSnapshot {
+    for (cells) |cell| {
+        if (cell.has_non_empty) return cell;
+    }
+    return null;
+}
+
 fn sumFloorTypeCounts(counts: [16]usize) usize {
     var total: usize = 0;
     for (counts) |count| total += count;
@@ -1590,6 +1769,7 @@ test "viewer fragment zones project canonical cell coverage from scene bounds" {
         .top_floor_type = 3,
         .top_shape = 2,
         .top_shape_class = .single_stair,
+        .top_brick_index = 123,
     }, projected[0].cells[0]);
     try std.testing.expectEqual(FragmentZoneCellSnapshot{
         .x = 1,
@@ -1598,7 +1778,99 @@ test "viewer fragment zones project canonical cell coverage from scene bounds" {
         .top_floor_type = 0,
         .top_shape = 0,
         .top_shape_class = .open,
+        .top_brick_index = 0,
     }, projected[0].cells[1]);
+}
+
+test "viewer brick probe style stays deterministic for representative brick ids" {
+    try std.testing.expectEqual(BrickProbeStyle{
+        .pattern = .diagonal_ascending,
+        .spacing = 2,
+        .accent = 23,
+    }, brickProbeStyle(123));
+    try std.testing.expectEqual(BrickProbeStyle{
+        .pattern = .checker,
+        .spacing = 3,
+        .accent = 24,
+    }, brickProbeStyle(149));
+    try std.testing.expectEqual(BrickProbeStyle{
+        .pattern = .diagonal_descending,
+        .spacing = 3,
+        .accent = 40,
+    }, brickProbeStyle(667));
+}
+
+test "viewer fragment brick delta detects changed base bricks" {
+    const tiles = [_]CompositionTileSnapshot{
+        .{
+            .x = 4,
+            .z = 7,
+            .total_height = 3,
+            .stack_depth = 2,
+            .top_floor_type = 1,
+            .top_shape = 1,
+            .top_shape_class = .solid,
+            .top_brick_index = 149,
+        },
+    };
+    const cell_same = FragmentZoneCellSnapshot{
+        .x = 4,
+        .z = 7,
+        .has_non_empty = true,
+        .top_floor_type = 1,
+        .top_shape = 1,
+        .top_shape_class = .solid,
+        .top_brick_index = 149,
+    };
+    const cell_changed = FragmentZoneCellSnapshot{
+        .x = 4,
+        .z = 7,
+        .has_non_empty = true,
+        .top_floor_type = 1,
+        .top_shape = 1,
+        .top_shape_class = .solid,
+        .top_brick_index = 667,
+    };
+    const cell_missing = FragmentZoneCellSnapshot{
+        .x = 1,
+        .z = 1,
+        .has_non_empty = true,
+        .top_floor_type = 1,
+        .top_shape = 1,
+        .top_shape_class = .solid,
+        .top_brick_index = 667,
+    };
+    const snapshot = RenderSnapshot{
+        .grid_width = 8,
+        .grid_depth = 8,
+        .world_bounds = .{ .min_x = 0, .max_x = 1, .min_z = 0, .max_z = 1 },
+        .hero_start = .{ .x = 0, .y = 0, .z = 0 },
+        .objects = &.{},
+        .zones = &.{},
+        .tracks = &.{},
+        .composition = .{
+            .occupied_cell_count = 1,
+            .occupied_bounds = null,
+            .floor_type_counts = [_]usize{0} ** 16,
+            .max_total_height = 3,
+            .max_stack_depth = 2,
+            .height_grid = &.{},
+            .tiles = &tiles,
+        },
+        .fragments = .{
+            .library = .{
+                .fragment_count = 0,
+                .footprint_cell_count = 0,
+                .non_empty_cell_count = 0,
+                .max_height = 0,
+            },
+            .zones = &.{},
+        },
+    };
+
+    try std.testing.expectEqual(FragmentBrickDelta.same, fragmentBrickDelta(snapshot, cell_same));
+    try std.testing.expectEqual(FragmentBrickDelta.changed, fragmentBrickDelta(snapshot, cell_changed));
+    try std.testing.expectEqual(FragmentBrickDelta.no_base, fragmentBrickDelta(snapshot, cell_missing));
 }
 
 test "viewer argument parsing requires explicit scene and background entries" {
@@ -1682,20 +1954,19 @@ test "viewer room snapshot keeps the canonical interior pair stable" {
     try std.testing.expectEqual(@as(usize, 0), room.fragment_zones.len);
 
     const first_tile = room.background.composition.tiles[0];
-    try std.testing.expectEqual(CompositionTileSnapshot{
-        .x = 59,
-        .z = 12,
-        .total_height = first_tile.total_height,
-        .stack_depth = 14,
-        .top_floor_type = 0,
-        .top_shape = 1,
-        .top_shape_class = .solid,
-    }, first_tile);
+    try std.testing.expectEqual(@as(usize, 59), first_tile.x);
+    try std.testing.expectEqual(@as(usize, 12), first_tile.z);
+    try std.testing.expectEqual(@as(u8, 14), first_tile.stack_depth);
+    try std.testing.expectEqual(@as(u8, 0), first_tile.top_floor_type);
+    try std.testing.expectEqual(@as(u8, 1), first_tile.top_shape);
+    try std.testing.expectEqual(SurfaceShapeClass.solid, first_tile.top_shape_class);
+    try std.testing.expect(first_tile.top_brick_index > 0);
     try std.testing.expect(room.background.composition.height_grid[12 * 64 + 59] >= first_tile.stack_depth);
 
     const water_tile = findCompositionTile(room.background.composition.tiles, 60, 13).?;
     try std.testing.expectEqual(@as(u8, 1), water_tile.stack_depth);
     try std.testing.expectEqual(@as(u8, 1), water_tile.top_floor_type);
+    try std.testing.expect(water_tile.top_brick_index > 0);
 }
 
 test "viewer room snapshot projects the checked-in fragment-bearing interior pair" {
@@ -1735,6 +2006,10 @@ test "viewer room snapshot projects the checked-in fragment-bearing interior pai
     try std.testing.expectEqual(@as(usize, 208), fragment_zone.footprint_cell_count);
     try std.testing.expectEqual(@as(usize, 95), fragment_zone.non_empty_cell_count);
     try std.testing.expectEqual(@as(usize, 208), fragment_zone.cells.len);
+
+    const first_non_empty_fragment_cell = findFirstNonEmptyFragmentCell(fragment_zone.cells).?;
+    try std.testing.expect(first_non_empty_fragment_cell.top_brick_index > 0);
+    try std.testing.expectEqual(@as(u16, 127), fragment_zone.cells[0].top_brick_index);
 }
 
 test "viewer render snapshot derives a deterministic schematic from the canonical room" {
