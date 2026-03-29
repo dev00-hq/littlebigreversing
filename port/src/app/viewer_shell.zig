@@ -260,6 +260,35 @@ pub const RenderSnapshot = struct {
     brick_previews: []const background_data.BrickPreview,
 };
 
+const max_fragment_comparison_entries = 4;
+
+pub const DebugLayout = struct {
+    frame: sdl.Rect,
+    schematic_frame: sdl.Rect,
+    schematic: sdl.Rect,
+    comparison_frame: ?sdl.Rect,
+    comparison: ?sdl.Rect,
+};
+
+pub const FragmentComparisonEntry = struct {
+    zone_index: usize,
+    fragment_entry_index: usize,
+    x: usize,
+    z: usize,
+    delta: FragmentBrickDelta,
+    base_tile: ?CompositionTileSnapshot,
+    fragment_cell: FragmentZoneCellSnapshot,
+};
+
+pub const FragmentComparisonPanel = struct {
+    focus: ?FragmentComparisonEntry,
+    entries: [max_fragment_comparison_entries]FragmentComparisonEntry,
+    entry_count: usize,
+    changed_count: usize,
+    same_count: usize,
+    no_base_count: usize,
+};
+
 pub const SchematicLayout = struct {
     frame: sdl.Rect,
     schematic: sdl.Rect,
@@ -447,31 +476,96 @@ pub fn computeSchematicLayout(
         .h = @max(1, canvas_height - (outer_margin * 2)),
     };
     const available = frame.inset(inner_margin);
+    return .{
+        .frame = frame,
+        .schematic = fitSchematicRect(available, grid_width, grid_depth),
+    };
+}
+
+pub fn computeDebugLayout(
+    canvas_width: i32,
+    canvas_height: i32,
+    grid_width: usize,
+    grid_depth: usize,
+    show_fragment_panel: bool,
+) DebugLayout {
+    const outer_margin = 24;
+    const inner_margin = 18;
+    const frame = sdl.Rect{
+        .x = outer_margin,
+        .y = outer_margin,
+        .w = @max(1, canvas_width - (outer_margin * 2)),
+        .h = @max(1, canvas_height - (outer_margin * 2)),
+    };
+    const available = frame.inset(inner_margin);
+
+    if (!show_fragment_panel) {
+        const schematic_frame = fitSchematicRect(available, grid_width, grid_depth);
+        return .{
+            .frame = frame,
+            .schematic_frame = schematic_frame,
+            .schematic = schematic_frame.inset(10),
+            .comparison_frame = null,
+            .comparison = null,
+        };
+    }
+
+    const comparison_gap = 14;
+    const comparison_width = std.math.clamp(@divTrunc(available.w, 3), 184, 236);
+    const schematic_available_width = available.w - comparison_width - comparison_gap;
+    if (schematic_available_width < 240) {
+        const schematic_frame = fitSchematicRect(available, grid_width, grid_depth);
+        return .{
+            .frame = frame,
+            .schematic_frame = schematic_frame,
+            .schematic = schematic_frame.inset(10),
+            .comparison_frame = null,
+            .comparison = null,
+        };
+    }
+
+    const schematic_available = sdl.Rect{
+        .x = available.x,
+        .y = available.y,
+        .w = schematic_available_width,
+        .h = available.h,
+    };
+    const comparison_frame = sdl.Rect{
+        .x = schematic_available.x + schematic_available.w + comparison_gap,
+        .y = available.y,
+        .w = comparison_width,
+        .h = available.h,
+    };
+    const schematic_frame = fitSchematicRect(schematic_available, grid_width, grid_depth);
+    return .{
+        .frame = frame,
+        .schematic_frame = schematic_frame,
+        .schematic = schematic_frame.inset(10),
+        .comparison_frame = comparison_frame,
+        .comparison = comparison_frame.inset(10),
+    };
+}
+
+fn fitSchematicRect(available: sdl.Rect, grid_width: usize, grid_depth: usize) sdl.Rect {
     const target_ratio = @as(f64, @floatFromInt(grid_width)) / @as(f64, @floatFromInt(@max(grid_depth, 1)));
     const available_ratio = @as(f64, @floatFromInt(available.w)) / @as(f64, @floatFromInt(available.h));
 
     if (available_ratio > target_ratio) {
         const schematic_width = @max(1, @as(i32, @intFromFloat(@floor(@as(f64, @floatFromInt(available.h)) * target_ratio))));
         return .{
-            .frame = frame,
-            .schematic = .{
-                .x = available.x + @divTrunc(available.w - schematic_width, 2),
-                .y = available.y,
-                .w = schematic_width,
-                .h = available.h,
-            },
+            .x = available.x + @divTrunc(available.w - schematic_width, 2),
+            .y = available.y,
+            .w = schematic_width,
+            .h = available.h,
         };
     }
 
     const schematic_height = @max(1, @as(i32, @intFromFloat(@floor(@as(f64, @floatFromInt(available.w)) / target_ratio))));
     return .{
-        .frame = frame,
-        .schematic = .{
-            .x = available.x,
-            .y = available.y + @divTrunc(available.h - schematic_height, 2),
-            .w = available.w,
-            .h = schematic_height,
-        },
+        .x = available.x,
+        .y = available.y + @divTrunc(available.h - schematic_height, 2),
+        .w = available.w,
+        .h = schematic_height,
     };
 }
 
@@ -514,20 +608,37 @@ pub fn projectZoneBounds(snapshot: RenderSnapshot, schematic: sdl.Rect, zone: Zo
 }
 
 pub fn renderDebugView(canvas: *sdl.Canvas, snapshot: RenderSnapshot) !void {
-    const layout = computeSchematicLayout(canvas.width, canvas.height, snapshot.grid_width, snapshot.grid_depth);
-    const panel = layout.schematic.inset(10);
+    const fragment_panel = buildFragmentComparisonPanel(snapshot);
+    const layout = computeDebugLayout(
+        canvas.width,
+        canvas.height,
+        snapshot.grid_width,
+        snapshot.grid_depth,
+        fragment_panel.focus != null,
+    );
 
     try canvas.clear(.{ .r = 13, .g = 20, .b = 26, .a = 255 });
     try canvas.fillRect(layout.frame, .{ .r = 22, .g = 32, .b = 41, .a = 255 });
     try canvas.drawRect(layout.frame, .{ .r = 96, .g = 123, .b = 142, .a = 255 });
-    try canvas.fillRect(panel, .{ .r = 10, .g = 14, .b = 19, .a = 255 });
-    try canvas.drawRect(panel, .{ .r = 56, .g = 80, .b = 92, .a = 255 });
-    try drawComposition(canvas, panel, snapshot);
-    try drawFragmentZones(canvas, panel, snapshot);
-    try drawGrid(canvas, panel, snapshot.grid_width, snapshot.grid_depth);
+    try canvas.fillRect(layout.schematic_frame, .{ .r = 10, .g = 14, .b = 19, .a = 255 });
+    try canvas.drawRect(layout.schematic_frame, .{ .r = 56, .g = 80, .b = 92, .a = 255 });
+    try drawComposition(canvas, layout.schematic, snapshot);
+    try drawFragmentZones(canvas, layout.schematic, snapshot);
+    try drawGrid(canvas, layout.schematic, snapshot.grid_width, snapshot.grid_depth);
+    if (fragment_panel.focus) |focus| {
+        try drawFragmentFocusHighlight(canvas, layout.schematic, snapshot, focus);
+    }
+
+    if (layout.comparison_frame) |comparison_frame| {
+        try canvas.fillRect(comparison_frame, .{ .r = 12, .g = 17, .b = 23, .a = 255 });
+        try canvas.drawRect(comparison_frame, .{ .r = 66, .g = 90, .b = 103, .a = 255 });
+    }
+    if (layout.comparison) |comparison| {
+        try drawFragmentComparisonPanel(canvas, comparison, snapshot, fragment_panel);
+    }
 
     for (snapshot.zones) |zone| {
-        const rect = projectZoneBounds(snapshot, panel, zone);
+        const rect = projectZoneBounds(snapshot, layout.schematic, zone);
         const zone_color = zoneColor(zone.kind);
         try canvas.fillRect(rect, withAlpha(zone_color, 40));
         try canvas.drawRect(rect, zone_color);
@@ -535,22 +646,22 @@ pub fn renderDebugView(canvas: *sdl.Canvas, snapshot: RenderSnapshot) !void {
 
     for (snapshot.tracks[0..snapshot.tracks.len -| 1], 0..) |track, index| {
         const next = snapshot.tracks[index + 1];
-        const start = projectWorldPoint(snapshot, panel, track.x, track.z);
-        const finish = projectWorldPoint(snapshot, panel, next.x, next.z);
+        const start = projectWorldPoint(snapshot, layout.schematic, track.x, track.z);
+        const finish = projectWorldPoint(snapshot, layout.schematic, next.x, next.z);
         try canvas.drawLine(start.x, start.y, finish.x, finish.y, .{ .r = 59, .g = 201, .b = 255, .a = 192 });
     }
 
     for (snapshot.tracks) |track| {
-        const point = projectWorldPoint(snapshot, panel, track.x, track.z);
+        const point = projectWorldPoint(snapshot, layout.schematic, track.x, track.z);
         try drawMarker(canvas, point, 4, .{ .r = 76, .g = 226, .b = 255, .a = 255 });
     }
 
     for (snapshot.objects) |object| {
-        const point = projectWorldPoint(snapshot, panel, object.x, object.z);
+        const point = projectWorldPoint(snapshot, layout.schematic, object.x, object.z);
         try drawMarker(canvas, point, 6, .{ .r = 255, .g = 194, .b = 92, .a = 255 });
     }
 
-    const hero = projectWorldPoint(snapshot, panel, snapshot.hero_start.x, snapshot.hero_start.z);
+    const hero = projectWorldPoint(snapshot, layout.schematic, snapshot.hero_start.x, snapshot.hero_start.z);
     try drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
     try drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
     canvas.present();
@@ -1057,6 +1168,96 @@ const BrickPreviewAnchor = enum {
     bottom_right,
 };
 
+fn buildFragmentComparisonPanel(snapshot: RenderSnapshot) FragmentComparisonPanel {
+    var panel = FragmentComparisonPanel{
+        .focus = null,
+        .entries = undefined,
+        .entry_count = 0,
+        .changed_count = 0,
+        .same_count = 0,
+        .no_base_count = 0,
+    };
+
+    for (snapshot.fragments.zones) |zone| {
+        for (zone.cells) |cell| {
+            if (!cell.has_non_empty) continue;
+
+            const entry = makeFragmentComparisonEntry(snapshot, zone, cell);
+            switch (entry.delta) {
+                .changed => panel.changed_count += 1,
+                .same => panel.same_count += 1,
+                .no_base => panel.no_base_count += 1,
+            }
+
+            if (panel.focus == null or fragmentComparisonPriority(entry.delta) < fragmentComparisonPriority(panel.focus.?.delta)) {
+                panel.focus = entry;
+            }
+        }
+    }
+
+    collectFragmentComparisonEntries(snapshot, .changed, &panel);
+    collectFragmentComparisonEntries(snapshot, .same, &panel);
+    collectFragmentComparisonEntries(snapshot, .no_base, &panel);
+    return panel;
+}
+
+fn collectFragmentComparisonEntries(
+    snapshot: RenderSnapshot,
+    desired_delta: FragmentBrickDelta,
+    panel: *FragmentComparisonPanel,
+) void {
+    if (panel.entry_count >= max_fragment_comparison_entries) return;
+
+    for (snapshot.fragments.zones) |zone| {
+        for (zone.cells) |cell| {
+            if (!cell.has_non_empty) continue;
+
+            const entry = makeFragmentComparisonEntry(snapshot, zone, cell);
+            if (entry.delta != desired_delta) continue;
+
+            panel.entries[panel.entry_count] = entry;
+            panel.entry_count += 1;
+            if (panel.entry_count >= max_fragment_comparison_entries) return;
+        }
+    }
+}
+
+fn makeFragmentComparisonEntry(
+    snapshot: RenderSnapshot,
+    zone: FragmentZoneSnapshot,
+    cell: FragmentZoneCellSnapshot,
+) FragmentComparisonEntry {
+    const base_tile = findCompositionTile(snapshot.composition.tiles, cell.x, cell.z);
+    return .{
+        .zone_index = zone.zone_index,
+        .fragment_entry_index = zone.fragment_entry_index,
+        .x = cell.x,
+        .z = cell.z,
+        .delta = if (base_tile) |tile|
+            if (tile.top_brick_index == cell.top_brick_index) .same else .changed
+        else
+            .no_base,
+        .base_tile = base_tile,
+        .fragment_cell = cell,
+    };
+}
+
+fn fragmentComparisonPriority(delta: FragmentBrickDelta) u8 {
+    return switch (delta) {
+        .changed => 0,
+        .same => 1,
+        .no_base => 2,
+    };
+}
+
+fn fragmentComparisonDeltaColor(delta: FragmentBrickDelta) sdl.Color {
+    return switch (delta) {
+        .changed => .{ .r = 255, .g = 148, .b = 118, .a = 255 },
+        .same => .{ .r = 112, .g = 216, .b = 188, .a = 255 },
+        .no_base => .{ .r = 176, .g = 186, .b = 198, .a = 255 },
+    };
+}
+
 fn drawCompositionTile(
     canvas: *sdl.Canvas,
     snapshot: RenderSnapshot,
@@ -1276,6 +1477,318 @@ fn drawBrickPreviewSwatch(
     try canvas.fillRect(frame, .{ .r = 6, .g = 10, .b = 14, .a = 212 });
     try drawBrickPreviewPixels(canvas, frame.inset(1), preview);
     try canvas.drawRect(frame, .{ .r = 172, .g = 192, .b = 206, .a = 224 });
+}
+
+fn drawFragmentFocusHighlight(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    snapshot: RenderSnapshot,
+    focus: FragmentComparisonEntry,
+) !void {
+    const cell_rect = projectGridCellRect(rect, snapshot.grid_width, snapshot.grid_depth, focus.x, focus.z);
+    const accent = fragmentComparisonDeltaColor(focus.delta);
+    try canvas.drawRect(cell_rect, accent);
+
+    const inner = cell_rect.inset(1);
+    if (inner.w > 1 and inner.h > 1) {
+        try canvas.drawRect(inner, withAlpha(lightenColor(accent, 28), 236));
+    }
+
+    const marker_size = std.math.clamp(@divTrunc(@min(cell_rect.w, cell_rect.h), 2), 2, 6);
+    try drawMarker(canvas, .{
+        .x = cell_rect.x + @divTrunc(cell_rect.w, 2),
+        .y = cell_rect.y + @divTrunc(cell_rect.h, 2),
+    }, marker_size, withAlpha(lightenColor(accent, 42), 220));
+}
+
+fn drawFragmentComparisonPanel(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    snapshot: RenderSnapshot,
+    panel: FragmentComparisonPanel,
+) !void {
+    if (panel.focus == null) return;
+
+    try canvas.fillRect(rect, .{ .r = 9, .g = 13, .b = 18, .a = 255 });
+    try canvas.drawRect(rect, .{ .r = 82, .g = 104, .b = 118, .a = 255 });
+
+    const summary_height = 18;
+    const summary_rect = sdl.Rect{
+        .x = rect.x,
+        .y = rect.y,
+        .w = rect.w,
+        .h = @min(summary_height, rect.h),
+    };
+    try drawFragmentComparisonSummary(canvas, summary_rect, panel);
+
+    const focus_height = std.math.clamp(@divTrunc(rect.h, 3), 88, 132);
+    const focus_rect = sdl.Rect{
+        .x = rect.x,
+        .y = rect.y + summary_rect.h + 8,
+        .w = rect.w,
+        .h = @min(focus_height, @max(0, rect.h - summary_rect.h - 8)),
+    };
+    try drawFragmentComparisonFocus(canvas, focus_rect, snapshot, panel.focus.?);
+
+    if (panel.entry_count == 0) return;
+
+    const rows_y = focus_rect.y + focus_rect.h + 10;
+    const rows_height = rect.y + rect.h - rows_y;
+    if (rows_height <= 0) return;
+
+    const row_gap = 6;
+    const total_gap_height = row_gap * @as(i32, @intCast(panel.entry_count -| 1));
+    const row_height = std.math.clamp(@divTrunc(rows_height - total_gap_height, @as(i32, @intCast(panel.entry_count))), 28, 42);
+    var row_y = rows_y;
+    for (panel.entries[0..panel.entry_count], 0..) |entry, index| {
+        const row_rect = sdl.Rect{
+            .x = rect.x,
+            .y = row_y,
+            .w = rect.w,
+            .h = row_height,
+        };
+        try drawFragmentComparisonEntryRow(canvas, row_rect, snapshot, entry, index == 0, panel.focus.?);
+        row_y += row_height + row_gap;
+    }
+}
+
+fn drawFragmentComparisonSummary(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    panel: FragmentComparisonPanel,
+) !void {
+    const total = panel.changed_count + panel.same_count + panel.no_base_count;
+    try canvas.fillRect(rect, .{ .r = 18, .g = 24, .b = 30, .a = 255 });
+    if (total == 0) {
+        try canvas.drawRect(rect, .{ .r = 74, .g = 94, .b = 108, .a = 255 });
+        return;
+    }
+
+    var cursor_x = rect.x;
+    const segments = [_]struct {
+        count: usize,
+        color: sdl.Color,
+    }{
+        .{ .count = panel.changed_count, .color = fragmentComparisonDeltaColor(.changed) },
+        .{ .count = panel.same_count, .color = fragmentComparisonDeltaColor(.same) },
+        .{ .count = panel.no_base_count, .color = fragmentComparisonDeltaColor(.no_base) },
+    };
+
+    for (segments, 0..) |segment, index| {
+        if (segment.count == 0) continue;
+
+        const is_last_segment = index == segments.len - 1 or cursor_x >= rect.x + rect.w - 1;
+        const segment_width = if (is_last_segment)
+            rect.x + rect.w - cursor_x
+        else
+            @max(1, @as(i32, @intFromFloat(@round(
+                @as(f64, @floatFromInt(rect.w)) *
+                    (@as(f64, @floatFromInt(segment.count)) / @as(f64, @floatFromInt(total))),
+            ))));
+        if (segment_width <= 0) continue;
+
+        const segment_rect = sdl.Rect{
+            .x = cursor_x,
+            .y = rect.y,
+            .w = @min(segment_width, rect.x + rect.w - cursor_x),
+            .h = rect.h,
+        };
+        try canvas.fillRect(segment_rect, withAlpha(segment.color, 216));
+        cursor_x += segment_rect.w;
+        if (cursor_x >= rect.x + rect.w) break;
+    }
+
+    try canvas.drawRect(rect, .{ .r = 74, .g = 94, .b = 108, .a = 255 });
+}
+
+fn drawFragmentComparisonFocus(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    snapshot: RenderSnapshot,
+    focus: FragmentComparisonEntry,
+) !void {
+    const accent = fragmentComparisonDeltaColor(focus.delta);
+    try canvas.fillRect(rect, withAlpha(darkenColor(accent, 132), 56));
+    try canvas.drawRect(rect, withAlpha(lightenColor(accent, 20), 232));
+
+    const content = rect.inset(8);
+    const locator_height = std.math.clamp(@divTrunc(content.h, 5), 16, 22);
+    const card_area = sdl.Rect{
+        .x = content.x,
+        .y = content.y,
+        .w = content.w,
+        .h = @max(0, content.h - locator_height - 6),
+    };
+    const card_gap = 10;
+    const card_width = @max(24, @divTrunc(card_area.w - card_gap, 2));
+    const card_height = @max(24, @min(card_area.h, card_width));
+    const card_y = card_area.y + @divTrunc(@max(0, card_area.h - card_height), 2);
+    const base_card = sdl.Rect{
+        .x = card_area.x,
+        .y = card_y,
+        .w = card_width,
+        .h = card_height,
+    };
+    const fragment_card = sdl.Rect{
+        .x = card_area.x + card_width + card_gap,
+        .y = card_y,
+        .w = card_width,
+        .h = card_height,
+    };
+
+    try drawFragmentComparisonCard(canvas, base_card, snapshot.brick_previews, accent, focus.base_tile, null);
+    try drawFragmentComparisonCard(canvas, fragment_card, snapshot.brick_previews, accent, null, focus.fragment_cell);
+
+    const locator = sdl.Rect{
+        .x = content.x,
+        .y = content.y + content.h - locator_height,
+        .w = content.w,
+        .h = locator_height,
+    };
+    try drawFragmentComparisonLocator(canvas, locator, snapshot, focus, accent);
+}
+
+fn drawFragmentComparisonEntryRow(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    snapshot: RenderSnapshot,
+    entry: FragmentComparisonEntry,
+    is_first: bool,
+    focus: FragmentComparisonEntry,
+) !void {
+    const accent = fragmentComparisonDeltaColor(entry.delta);
+    const row_fill = if (entry.x == focus.x and entry.z == focus.z)
+        withAlpha(darkenColor(accent, 128), 88)
+    else
+        withAlpha(darkenColor(accent, 148), 48);
+    try canvas.fillRect(rect, row_fill);
+    try canvas.drawRect(rect, if (is_first)
+        withAlpha(lightenColor(accent, 24), 224)
+    else
+        withAlpha(lightenColor(accent, 8), 180));
+
+    const accent_bar = sdl.Rect{
+        .x = rect.x,
+        .y = rect.y,
+        .w = 4,
+        .h = rect.h,
+    };
+    try canvas.fillRect(accent_bar, withAlpha(accent, 228));
+
+    const locator_side = std.math.clamp(rect.h - 10, 16, 24);
+    const locator = sdl.Rect{
+        .x = rect.x + 10,
+        .y = rect.y + @divTrunc(rect.h - locator_side, 2),
+        .w = locator_side,
+        .h = locator_side,
+    };
+    try drawFragmentComparisonLocator(canvas, locator, snapshot, entry, accent);
+
+    const card_gap = 6;
+    const card_side = std.math.clamp(rect.h - 10, 18, 30);
+    const base_card = sdl.Rect{
+        .x = locator.x + locator.w + 10,
+        .y = rect.y + @divTrunc(rect.h - card_side, 2),
+        .w = card_side,
+        .h = card_side,
+    };
+    const fragment_card = sdl.Rect{
+        .x = base_card.x + base_card.w + card_gap,
+        .y = base_card.y,
+        .w = card_side,
+        .h = card_side,
+    };
+    try drawFragmentComparisonCard(canvas, base_card, snapshot.brick_previews, accent, entry.base_tile, null);
+    try drawFragmentComparisonCard(canvas, fragment_card, snapshot.brick_previews, accent, null, entry.fragment_cell);
+}
+
+fn drawFragmentComparisonCard(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    previews: []const background_data.BrickPreview,
+    accent: sdl.Color,
+    tile: ?CompositionTileSnapshot,
+    cell: ?FragmentZoneCellSnapshot,
+) !void {
+    if (rect.w <= 0 or rect.h <= 0) return;
+
+    const base_color = if (tile) |composition_tile|
+        compositionTileColor(composition_tile)
+    else if (cell) |fragment_cell|
+        fragmentCellColor(fragment_cell)
+    else
+        sdl.Color{ .r = 28, .g = 34, .b = 42, .a = 255 };
+
+    try canvas.fillRect(rect, withAlpha(darkenColor(base_color, 54), 200));
+    try canvas.drawRect(rect, withAlpha(lightenColor(accent, 10), 220));
+
+    const content = rect.inset(3);
+    const maybe_brick_index = if (tile) |composition_tile|
+        if (composition_tile.top_brick_index == 0) null else composition_tile.top_brick_index
+    else if (cell) |fragment_cell|
+        if (fragment_cell.top_brick_index == 0) null else fragment_cell.top_brick_index
+    else
+        null;
+
+    if (maybe_brick_index) |brick_index| {
+        if (!try drawBrickPreviewSurface(canvas, content, previews, brick_index)) {
+            try canvas.fillRect(content, withAlpha(base_color, 164));
+        }
+        try drawBrickProbe(canvas, content.inset(1), brick_index, withAlpha(lightenColor(base_color, 42), 168));
+    } else {
+        try canvas.fillRect(content, .{ .r = 12, .g = 16, .b = 21, .a = 255 });
+        try canvas.drawLine(content.x, content.y, content.right(), content.bottom(), withAlpha(accent, 224));
+        try canvas.drawLine(content.right(), content.y, content.x, content.bottom(), withAlpha(accent, 224));
+    }
+
+    if (tile) |composition_tile| {
+        try drawSurfaceMarker(canvas, content, composition_tile, withAlpha(lightenColor(base_color, 62), 232));
+    } else if (cell) |fragment_cell| {
+        try drawFragmentCellMarker(canvas, content, fragment_cell, withAlpha(lightenColor(base_color, 72), 224));
+    }
+}
+
+fn drawFragmentComparisonLocator(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    snapshot: RenderSnapshot,
+    entry: FragmentComparisonEntry,
+    accent: sdl.Color,
+) !void {
+    if (rect.w <= 0 or rect.h <= 0) return;
+
+    try canvas.fillRect(rect, .{ .r = 12, .g = 16, .b = 21, .a = 255 });
+    try canvas.drawRect(rect, withAlpha(lightenColor(accent, 10), 204));
+
+    const vertical_mid = rect.x + @divTrunc(rect.w, 2);
+    const horizontal_mid = rect.y + @divTrunc(rect.h, 2);
+    try canvas.drawLine(vertical_mid, rect.y, vertical_mid, rect.bottom(), withAlpha(accent, 124));
+    try canvas.drawLine(rect.x, horizontal_mid, rect.right(), horizontal_mid, withAlpha(accent, 124));
+
+    const marker_padding = 2;
+    const marker_left = interpolateAxis(rect.x + marker_padding, rect.right() - marker_padding, entry.x, snapshot.grid_width -| 1);
+    const marker_top = interpolateAxis(rect.y + marker_padding, rect.bottom() - marker_padding, entry.z, snapshot.grid_depth -| 1);
+    const marker = sdl.Rect{
+        .x = marker_left - 1,
+        .y = marker_top - 1,
+        .w = 3,
+        .h = 3,
+    };
+    try canvas.fillRect(marker, withAlpha(lightenColor(accent, 32), 236));
+}
+
+fn drawBrickPreviewSurface(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    previews: []const background_data.BrickPreview,
+    brick_index: u16,
+) !bool {
+    if (rect.w <= 0 or rect.h <= 0) return false;
+
+    const preview = findBrickPreview(previews, brick_index) orelse return false;
+    try canvas.fillRect(rect, .{ .r = 6, .g = 10, .b = 14, .a = 212 });
+    try drawBrickPreviewPixels(canvas, rect.inset(1), preview);
+    return true;
 }
 
 fn computeBrickPreviewFrame(target_rect: sdl.Rect, anchor: BrickPreviewAnchor) sdl.Rect {
@@ -1755,6 +2268,10 @@ fn sumFloorTypeCounts(counts: [16]usize) usize {
     return total;
 }
 
+fn sumFragmentComparisonCounts(panel: FragmentComparisonPanel) usize {
+    return panel.changed_count + panel.same_count + panel.no_base_count;
+}
+
 test "viewer shape classifier stays aligned with the checked-in layout docs" {
     try std.testing.expectEqual(SurfaceShapeClass.open, classifySurfaceShape(0));
     try std.testing.expectEqual(SurfaceShapeClass.solid, classifySurfaceShape(1));
@@ -1993,6 +2510,137 @@ test "viewer fragment brick delta detects changed base bricks" {
     try std.testing.expectEqual(FragmentBrickDelta.no_base, fragmentBrickDelta(snapshot, cell_missing));
 }
 
+test "viewer fragment comparison panel prioritizes changed cells and counts non-empty deltas" {
+    const tiles = [_]CompositionTileSnapshot{
+        .{
+            .x = 2,
+            .z = 3,
+            .total_height = 2,
+            .stack_depth = 1,
+            .top_floor_type = 1,
+            .top_shape = 1,
+            .top_shape_class = .solid,
+            .top_brick_index = 200,
+        },
+        .{
+            .x = 4,
+            .z = 7,
+            .total_height = 3,
+            .stack_depth = 2,
+            .top_floor_type = 1,
+            .top_shape = 1,
+            .top_shape_class = .solid,
+            .top_brick_index = 149,
+        },
+    };
+    var cells = [_]FragmentZoneCellSnapshot{
+        .{
+            .x = 4,
+            .z = 7,
+            .has_non_empty = true,
+            .top_floor_type = 1,
+            .top_shape = 1,
+            .top_shape_class = .solid,
+            .top_brick_index = 667,
+        },
+        .{
+            .x = 2,
+            .z = 3,
+            .has_non_empty = true,
+            .top_floor_type = 1,
+            .top_shape = 1,
+            .top_shape_class = .solid,
+            .top_brick_index = 200,
+        },
+        .{
+            .x = 1,
+            .z = 1,
+            .has_non_empty = true,
+            .top_floor_type = 3,
+            .top_shape = 2,
+            .top_shape_class = .single_stair,
+            .top_brick_index = 127,
+        },
+        .{
+            .x = 6,
+            .z = 6,
+            .has_non_empty = false,
+            .top_floor_type = 0,
+            .top_shape = 0,
+            .top_shape_class = .open,
+            .top_brick_index = 0,
+        },
+    };
+    const zones = [_]FragmentZoneSnapshot{
+        .{
+            .zone_index = 5,
+            .zone_num = 0,
+            .grm_index = 0,
+            .fragment_entry_index = 149,
+            .initially_on = false,
+            .origin_x = 1,
+            .origin_z = 1,
+            .width = 6,
+            .height = 3,
+            .depth = 7,
+            .footprint_cell_count = 4,
+            .non_empty_cell_count = 3,
+            .cells = cells[0..],
+        },
+    };
+    const snapshot = RenderSnapshot{
+        .grid_width = 8,
+        .grid_depth = 8,
+        .world_bounds = .{ .min_x = 0, .max_x = 1, .min_z = 0, .max_z = 1 },
+        .hero_start = .{ .x = 0, .y = 0, .z = 0 },
+        .objects = &.{},
+        .zones = &.{},
+        .tracks = &.{},
+        .composition = .{
+            .occupied_cell_count = tiles.len,
+            .occupied_bounds = null,
+            .floor_type_counts = [_]usize{0} ** 16,
+            .max_total_height = 3,
+            .max_stack_depth = 2,
+            .height_grid = &.{},
+            .tiles = &tiles,
+        },
+        .fragments = .{
+            .library = .{
+                .fragment_count = 1,
+                .footprint_cell_count = 4,
+                .non_empty_cell_count = 3,
+                .max_height = 3,
+            },
+            .zones = &zones,
+        },
+        .brick_previews = &.{},
+    };
+
+    const panel = buildFragmentComparisonPanel(snapshot);
+    try std.testing.expectEqual(@as(usize, 1), panel.changed_count);
+    try std.testing.expectEqual(@as(usize, 1), panel.same_count);
+    try std.testing.expectEqual(@as(usize, 1), panel.no_base_count);
+    try std.testing.expectEqual(@as(usize, 3), sumFragmentComparisonCounts(panel));
+    try std.testing.expectEqual(@as(usize, 3), panel.entry_count);
+    try std.testing.expect(panel.focus != null);
+    try std.testing.expectEqual(FragmentBrickDelta.changed, panel.focus.?.delta);
+    try std.testing.expectEqual(@as(usize, 4), panel.focus.?.x);
+    try std.testing.expectEqual(@as(usize, 7), panel.focus.?.z);
+    try std.testing.expectEqual(FragmentBrickDelta.changed, panel.entries[0].delta);
+    try std.testing.expectEqual(FragmentBrickDelta.same, panel.entries[1].delta);
+    try std.testing.expectEqual(FragmentBrickDelta.no_base, panel.entries[2].delta);
+}
+
+test "viewer fragment debug layout reserves a deterministic comparison panel" {
+    const layout = computeDebugLayout(window_width, window_height, 64, 64, true);
+    try std.testing.expectEqual(sdl.Rect{ .x = 24, .y = 24, .w = 912, .h = 492 }, layout.frame);
+    try std.testing.expectEqual(sdl.Rect{ .x = 127, .y = 42, .w = 456, .h = 456 }, layout.schematic_frame);
+    try std.testing.expectEqual(sdl.Rect{ .x = 137, .y = 52, .w = 436, .h = 436 }, layout.schematic);
+    try std.testing.expectEqual(sdl.Rect{ .x = 682, .y = 42, .w = 236, .h = 456 }, layout.comparison_frame.?);
+    try std.testing.expectEqual(sdl.Rect{ .x = 692, .y = 52, .w = 216, .h = 436 }, layout.comparison.?);
+}
+
 test "viewer composition preview selector stays deterministic on eight-cell boundaries" {
     try std.testing.expect(shouldDrawCompositionBrickPreview(.{
         .x = 8,
@@ -2176,6 +2824,23 @@ test "viewer room snapshot projects the checked-in fragment-bearing interior pai
     try std.testing.expect(first_non_empty_fragment_cell.top_brick_index > 0);
     try std.testing.expectEqual(@as(u16, 127), fragment_zone.cells[0].top_brick_index);
     try std.testing.expect(findBrickPreview(room.background.bricks.previews, first_non_empty_fragment_cell.top_brick_index) != null);
+}
+
+test "viewer fragment comparison panel keeps the checked-in fragment pair inspectable" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try loadRoomSnapshot(allocator, resolved, 11, 10);
+    defer room.deinit(allocator);
+
+    const render = buildRenderSnapshot(room);
+    const panel = buildFragmentComparisonPanel(render);
+    try std.testing.expect(panel.focus != null);
+    try std.testing.expectEqual(room.fragment_zones[0].non_empty_cell_count, sumFragmentComparisonCounts(panel));
+    try std.testing.expect(panel.entry_count > 0);
+    try std.testing.expect(panel.entry_count <= max_fragment_comparison_entries);
+    try std.testing.expect(panel.focus.?.fragment_entry_index == room.fragment_zones[0].fragment_entry_index);
 }
 
 test "viewer render snapshot derives a deterministic schematic from the canonical room" {

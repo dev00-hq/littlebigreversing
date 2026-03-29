@@ -16,11 +16,12 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`, in
 - The canonical interior target `2` is asset-backed through the loader-faithful header and indirection path.
 - `GRI` column payloads and `BLL` layout contents are decoded for the canonical interior background path.
 - `GRM` fragment ownership and payload summaries are decoded for the interior background path, and `inspect-background` / `inspect-room` now report explicit fragment counts instead of only exposing the raw base GRM cursor.
-- The viewer now uses a viewer-local composition snapshot to render a height-aware occupied-cell debug view with relief, contour, and shape cues behind the scene overlays for `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`.
+- The viewer now uses a viewer-local composition snapshot to render a height-aware debug view with relief, contour, and shape cues behind the scene overlays for `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`.
 - The canonical `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]` pair currently resolves to zero scene `grm` zones and zero owned fragment entries, so the fragment-aware viewer path now surfaces an explicit zero-fragment state for that pair instead of guessed mutation overlays.
 - The checked-in fragment-bearing interior evidence pair is now `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]`, and the viewer/runtime path accepts that pair with one projected fragment zone backed by background `10` fragment `149`.
 - The background decoder now loads the main `RESS.HQR[0]` palette plus the selected top-surface `BRK` entries referenced by the current composition and fragment surfaces, and `inspect-background` / `inspect-room` report deterministic `BRK` preview-library summaries.
-- The viewer still draws deterministic brick-index probes, but it now overlays fixed-size actual `BRK`-backed swatches for sparse composition cells and fragment cells as the current checked-in brick evidence surface.
+- The viewer still draws deterministic brick-index probes, but it now overlays fixed-size actual `BRK`-backed swatches for sparse composition and fragment cells.
+- The viewer now derives a fragment comparison panel and focused-cell highlight from viewer-local render state so the checked-in `11/10` pair exposes composition-versus-fragment swatch deltas without adding a shared room layer.
 - Exterior `.ILE/.OBL`, full brick rasterization, and actor visual binding are still outside this pack.
 
 ## Known Traps
