@@ -7,8 +7,8 @@ const state = @import("viewer/state.zig");
 const layout = @import("viewer/layout.zig");
 const fragment_compare = @import("viewer/fragment_compare.zig");
 
-pub const window_width: i32 = 960;
-pub const window_height: i32 = 540;
+pub const window_width: i32 = 1440;
+pub const window_height: i32 = 900;
 
 pub const ParsedArgs = struct {
     asset_root_override: ?[]u8,

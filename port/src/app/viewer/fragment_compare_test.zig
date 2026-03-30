@@ -205,6 +205,49 @@ test "viewer fragment comparison selection can step ranked entries and fragment 
     try std.testing.expectEqual(cell_prev.focus.?.z, cell_panel.focus.?.z);
     try std.testing.expect(cell_panel.entry_count > 0);
     try std.testing.expect(panelContainsFocus(cell_panel, cell_prev.focus.?));
+    try std.testing.expectEqual(cell_prev.focus.?.x, cell_panel.entries[0].x);
+    try std.testing.expectEqual(cell_prev.focus.?.z, cell_panel.entries[0].z);
+}
+
+test "viewer fragment comparison panel pins the selected cell ahead of the ranked head" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try state.loadRoomSnapshot(allocator, resolved, 11, 10);
+    defer room.deinit(allocator);
+
+    const render = state.buildRenderSnapshot(room);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, render);
+    defer catalog.deinit(allocator);
+
+    var selection = fragment_compare.initialFragmentComparisonSelection(catalog);
+    try std.testing.expect(selection.focus != null);
+
+    var steps: usize = 0;
+    while (steps < catalog.cell_entries.len) : (steps += 1) {
+        selection = fragment_compare.stepCellSelection(catalog, selection, 1);
+        if (selection.ranked_index) |ranked_index| {
+            if (ranked_index >= fragment_compare.max_fragment_comparison_entries) break;
+        }
+    }
+
+    const focus = selection.focus.?;
+    const ranked_index = selection.ranked_index.?;
+    try std.testing.expect(ranked_index >= fragment_compare.max_fragment_comparison_entries);
+
+    const panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
+    try std.testing.expectEqual(focus.x, panel.entries[0].x);
+    try std.testing.expectEqual(focus.z, panel.entries[0].z);
+    try std.testing.expectEqual(focus.fragment_entry_index, panel.entries[0].fragment_entry_index);
+
+    var focus_count: usize = 0;
+    for (panel.entries[0..panel.entry_count]) |entry| {
+        if (entry.x == focus.x and entry.z == focus.z and entry.fragment_entry_index == focus.fragment_entry_index) {
+            focus_count += 1;
+        }
+    }
+    try std.testing.expectEqual(@as(usize, 1), focus_count);
 }
 
 test "viewer fragment comparison panel keeps the checked-in fragment pair inspectable" {
@@ -229,5 +272,7 @@ test "viewer fragment comparison panel keeps the checked-in fragment pair inspec
     try std.testing.expect(panel.focus.?.detail.base_present);
     try std.testing.expectEqual(cell_next.focus.?.x, panel.focus.?.x);
     try std.testing.expectEqual(cell_next.focus.?.z, panel.focus.?.z);
+    try std.testing.expectEqual(panel.focus.?.x, panel.entries[0].x);
+    try std.testing.expectEqual(panel.focus.?.z, panel.entries[0].z);
     try std.testing.expect(panel.focus.?.detail.changedAspectCount() > 0);
 }

@@ -176,22 +176,10 @@ pub fn buildFragmentComparisonPanel(
     if (selection.focus == null) return panel;
 
     const focus = selection.focus.?;
-    const focus_ranked_index = selection.ranked_index orelse indexOfEntry(catalog.ranked_entries, focus);
-    const focus_is_in_head = if (focus_ranked_index) |index| index < max_fragment_comparison_entries else false;
-    const ranked_head_limit: usize = if (focus_is_in_head)
-        max_fragment_comparison_entries
-    else
-        max_fragment_comparison_entries - 1;
-    const ranked_head_count = @min(catalog.ranked_entries.len, ranked_head_limit);
-
-    for (catalog.ranked_entries[0..ranked_head_count]) |entry| {
-        panel.entries[panel.entry_count] = entry;
-        panel.entry_count += 1;
-    }
-
-    if (!focus_isInPanel(panel, focus) and panel.entry_count < max_fragment_comparison_entries) {
-        panel.entries[panel.entry_count] = focus;
-        panel.entry_count += 1;
+    appendPanelEntry(&panel, focus);
+    for (catalog.ranked_entries) |entry| {
+        if (panel.entry_count >= max_fragment_comparison_entries) break;
+        appendPanelEntry(&panel, entry);
     }
 
     return panel;
@@ -784,6 +772,13 @@ fn focus_isInPanel(panel: FragmentComparisonPanel, focus: FragmentComparisonEntr
         if (sameEntry(entry, focus)) return true;
     }
     return false;
+}
+
+fn appendPanelEntry(panel: *FragmentComparisonPanel, entry: FragmentComparisonEntry) void {
+    if (panel.entry_count >= max_fragment_comparison_entries) return;
+    if (focus_isInPanel(panel.*, entry)) return;
+    panel.entries[panel.entry_count] = entry;
+    panel.entry_count += 1;
 }
 
 fn indexOfEntry(entries: []const FragmentComparisonEntry, target: FragmentComparisonEntry) ?usize {

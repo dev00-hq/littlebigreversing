@@ -21,7 +21,7 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`, in
 - The fragment-bearing interior evidence pair is `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]`, and the viewer/runtime path accepts it with one projected fragment zone backed by fragment `149`.
 - The background decoder now loads `RESS.HQR[0]` plus the selected top-surface `BRK` entries referenced by the current composition and fragment surfaces, and probes report deterministic `BRK` preview summaries.
 - The viewer now renders composition tops, fragment cells, and comparison cards from those decoded `BRK` previews on the existing path, failing fast if a referenced preview is unexpectedly missing.
-- The viewer now derives a fragment comparison panel, focus highlight, selected-cell detail strip, and deterministic ranked/cell navigation so the `11/10` pair exposes real `BRK`-backed top-surface deltas without adding a shared room layer.
+- The viewer now derives a fragment comparison panel, focus highlight, selected-cell detail strip, deterministic ranked/cell navigation, and a pinned selected-cell row so the `11/10` pair exposes real `BRK`-backed top-surface deltas without adding a shared room layer.
 - Exterior `.ILE/.OBL`, full brick rasterization, and actor visual binding stay outside this pack.
 
 ## Known Traps
