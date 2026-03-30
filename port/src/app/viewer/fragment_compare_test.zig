@@ -76,6 +76,40 @@ test "viewer fragment comparison detail captures non-brick deltas for the select
     try std.testing.expectEqual(fragment_compare.FragmentComparisonDelta.changed, fragment_compare.fragmentComparisonDelta(detail));
 }
 
+test "viewer fragment comparison delta summary names the changed aspects" {
+    var summary_buffer: [24]u8 = undefined;
+
+    const changed = try fragment_compare.formatDeltaSummary(&summary_buffer, .{
+        .base_present = true,
+        .brick_matches = false,
+        .floor_type_matches = false,
+        .shape_matches = true,
+        .base_stack_depth = 2,
+        .fragment_stack_depth = 5,
+    });
+    try std.testing.expectEqualStrings("BRK FLR DEP", changed);
+
+    const exact = try fragment_compare.formatDeltaSummary(&summary_buffer, .{
+        .base_present = true,
+        .brick_matches = true,
+        .floor_type_matches = true,
+        .shape_matches = true,
+        .base_stack_depth = 2,
+        .fragment_stack_depth = 2,
+    });
+    try std.testing.expectEqualStrings("EXACT", exact);
+
+    const no_base = try fragment_compare.formatDeltaSummary(&summary_buffer, .{
+        .base_present = false,
+        .brick_matches = false,
+        .floor_type_matches = false,
+        .shape_matches = false,
+        .base_stack_depth = 0,
+        .fragment_stack_depth = 1,
+    });
+    try std.testing.expectEqualStrings("NO BASE", no_base);
+}
+
 test "viewer fragment comparison catalog prioritizes any delta ahead of exact matches" {
     const allocator = std.testing.allocator;
     const tiles = [_]state.CompositionTileSnapshot{

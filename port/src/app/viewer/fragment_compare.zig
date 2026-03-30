@@ -233,6 +233,36 @@ pub fn fragmentComparisonDelta(detail: FragmentComparisonDetail) FragmentCompari
     return if (detail.isExactMatch()) .exact else .changed;
 }
 
+pub fn formatDeltaSummary(buffer: []u8, detail: FragmentComparisonDetail) ![]const u8 {
+    if (!detail.base_present) return std.fmt.bufPrint(buffer, "NO BASE", .{});
+    if (detail.isExactMatch()) return std.fmt.bufPrint(buffer, "EXACT", .{});
+
+    var stream = std.io.fixedBufferStream(buffer);
+    const writer = stream.writer();
+    var has_token = false;
+
+    if (!detail.brick_matches) {
+        try writer.writeAll("BRK");
+        has_token = true;
+    }
+    if (!detail.floor_type_matches) {
+        if (has_token) try writer.writeAll(" ");
+        try writer.writeAll("FLR");
+        has_token = true;
+    }
+    if (!detail.shape_matches) {
+        if (has_token) try writer.writeAll(" ");
+        try writer.writeAll("SHP");
+        has_token = true;
+    }
+    if (detail.base_stack_depth != detail.fragment_stack_depth) {
+        if (has_token) try writer.writeAll(" ");
+        try writer.writeAll("DEP");
+    }
+
+    return stream.getWritten();
+}
+
 fn fragmentComparisonPriority(delta: FragmentComparisonDelta) u8 {
     return switch (delta) {
         .changed => 0,

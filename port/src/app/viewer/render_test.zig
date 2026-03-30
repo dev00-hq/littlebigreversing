@@ -139,12 +139,33 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
         "SCN {d} BKG {d}",
         .{ snapshot.metadata.scene_entry_index, snapshot.metadata.background_entry_index },
     );
-    var focus_line_buffer: [48]u8 = undefined;
-    const focus_line = try std.fmt.bufPrint(&focus_line_buffer, "STATE {s}", .{switch (focus.delta) {
-        .changed => "CHANGED",
-        .exact => "EXACT",
-        .no_base => "NO BASE",
-    }});
+    const focus_world_bounds = state.gridCellWorldBounds(focus.x, focus.z);
+    var focus_delta_summary_buffer: [24]u8 = undefined;
+    const focus_delta_summary = try fragment_compare.formatDeltaSummary(&focus_delta_summary_buffer, focus.detail);
+    var focus_source_line_buffer: [48]u8 = undefined;
+    const focus_source_line = try std.fmt.bufPrint(
+        &focus_source_line_buffer,
+        "CELL {d} {d} FR {d}",
+        .{ focus.x, focus.z, focus.fragment_entry_index },
+    );
+    var focus_world_x_line_buffer: [64]u8 = undefined;
+    const focus_world_x_line = try std.fmt.bufPrint(
+        &focus_world_x_line_buffer,
+        "WORLD X {d}..{d}",
+        .{ focus_world_bounds.min_x, focus_world_bounds.max_x },
+    );
+    var focus_world_z_line_buffer: [64]u8 = undefined;
+    const focus_world_z_line = try std.fmt.bufPrint(
+        &focus_world_z_line_buffer,
+        "WORLD Z {d}..{d}",
+        .{ focus_world_bounds.min_z, focus_world_bounds.max_z },
+    );
+    var focus_delta_line_buffer: [48]u8 = undefined;
+    const focus_delta_line = try std.fmt.bufPrint(
+        &focus_delta_line_buffer,
+        "DELTA {s}",
+        .{focus_delta_summary},
+    );
 
     var trace: sdl.CanvasTrace = .{};
     defer trace.deinit(allocator);
@@ -163,7 +184,10 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
     try std.testing.expect(hasTraceText(trace, room_line));
     try std.testing.expect(hasTraceText(trace, "FRAGMENT STATE"));
     try std.testing.expect(hasTraceText(trace, "FOCUS"));
-    try std.testing.expect(hasTraceText(trace, focus_line));
+    try std.testing.expect(hasTraceText(trace, focus_source_line));
+    try std.testing.expect(hasTraceText(trace, focus_world_x_line));
+    try std.testing.expect(hasTraceText(trace, focus_world_z_line));
+    try std.testing.expect(hasTraceText(trace, focus_delta_line));
     try std.testing.expect(hasTraceText(trace, "OVERLAYS"));
     try std.testing.expect(hasTraceText(trace, "COMPARE ORDER"));
     try std.testing.expect(hasTraceText(trace, "LEFT RIGHT RANK"));

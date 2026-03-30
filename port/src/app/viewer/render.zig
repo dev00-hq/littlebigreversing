@@ -270,26 +270,41 @@ fn drawHud(
     }
 
     if (selection.focus) |focus| {
+        const world_bounds = state.gridCellWorldBounds(focus.x, focus.z);
+        var delta_summary_buffer: [24]u8 = undefined;
+        const delta_summary = try fragment_compare.formatDeltaSummary(&delta_summary_buffer, focus.detail);
         var focus_line_0_buffer: [48]u8 = undefined;
-        const focus_line_0 = try std.fmt.bufPrint(&focus_line_0_buffer, "CELL {d} {d}", .{ focus.x, focus.z });
-        var focus_line_1_buffer: [48]u8 = undefined;
+        const focus_line_0 = try std.fmt.bufPrint(
+            &focus_line_0_buffer,
+            "CELL {d} {d} FR {d}",
+            .{ focus.x, focus.z, focus.fragment_entry_index },
+        );
+        var focus_line_1_buffer: [64]u8 = undefined;
         const focus_line_1 = try std.fmt.bufPrint(
             &focus_line_1_buffer,
-            "ZONE {d} FRAG {d}",
-            .{ focus.zone_index, focus.fragment_entry_index },
+            "WORLD X {d}..{d}",
+            .{ world_bounds.min_x, world_bounds.max_x },
         );
-        var focus_line_2_buffer: [48]u8 = undefined;
+        var focus_line_2_buffer: [64]u8 = undefined;
         const focus_line_2 = try std.fmt.bufPrint(
             &focus_line_2_buffer,
-            "STATE {s}",
-            .{comparisonDeltaLabel(focus.delta)},
+            "WORLD Z {d}..{d}",
+            .{ world_bounds.min_z, world_bounds.max_z },
         );
-        try drawHudTextCard(
+        var focus_line_3_buffer: [48]u8 = undefined;
+        const focus_line_3 = try std.fmt.bufPrint(
+            &focus_line_3_buffer,
+            "DELTA {s}",
+            .{delta_summary},
+        );
+        try drawHudTextCardWithMetrics(
             canvas,
             focus_card,
             "FOCUS",
             fragment_compare.fragmentComparisonDeltaColor(focus.delta),
-            &.{ focus_line_0, focus_line_1, focus_line_2 },
+            1,
+            2,
+            &.{ focus_line_0, focus_line_1, focus_line_2, focus_line_3 },
         );
     } else {
         var focus_line_1_buffer: [48]u8 = undefined;
@@ -298,11 +313,13 @@ fn drawHud(
             "SCENE ZONES {d}",
             .{snapshot.metadata.fragment_zone_count},
         );
-        try drawHudTextCard(
+        try drawHudTextCardWithMetrics(
             canvas,
             focus_card,
             "FOCUS",
             .{ .r = 176, .g = 186, .b = 198, .a = 255 },
+            1,
+            2,
             &.{ "ZERO FRAGMENT CONTROL", focus_line_1, "PANEL HIDDEN" },
         );
     }
@@ -338,9 +355,19 @@ fn drawHudTextCard(
     accent: sdl.Color,
     lines: []const []const u8,
 ) !void {
+    return drawHudTextCardWithMetrics(canvas, rect, title, accent, 2, 4, lines);
+}
+
+fn drawHudTextCardWithMetrics(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    title: []const u8,
+    accent: sdl.Color,
+    scale: i32,
+    line_gap: i32,
+    lines: []const []const u8,
+) !void {
     const body = try drawHudCardFrame(canvas, rect, title, accent);
-    const scale = 2;
-    const line_gap = 4;
     var cursor_y = body.y;
     for (lines) |line| {
         if (cursor_y + draw.textLineHeight(scale) > body.bottom() + 1) break;
