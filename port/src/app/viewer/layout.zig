@@ -4,10 +4,12 @@ const state = @import("state.zig");
 
 pub const DebugLayout = struct {
     frame: sdl.Rect,
+    header: sdl.Rect,
     schematic_frame: sdl.Rect,
     schematic: sdl.Rect,
     comparison_frame: ?sdl.Rect,
     comparison: ?sdl.Rect,
+    footer: sdl.Rect,
 };
 
 pub const SchematicLayout = struct {
@@ -57,51 +59,79 @@ pub fn computeDebugLayout(
 ) DebugLayout {
     const frame = computeFrame(canvas_width, canvas_height);
     const available = frame.available;
+    const hud_gap = 12;
+    const min_content_height = 180;
+    const header_height = @min(72, @max(0, available.h - min_content_height));
+    const footer_height = @min(84, @max(0, available.h - header_height - min_content_height - (hud_gap * 2)));
+    const content = sdl.Rect{
+        .x = available.x,
+        .y = available.y + header_height + hud_gap,
+        .w = available.w,
+        .h = @max(1, available.h - header_height - footer_height - (hud_gap * 2)),
+    };
+    const header = sdl.Rect{
+        .x = available.x,
+        .y = available.y,
+        .w = available.w,
+        .h = header_height,
+    };
+    const footer = sdl.Rect{
+        .x = available.x,
+        .y = content.y + content.h + hud_gap,
+        .w = available.w,
+        .h = footer_height,
+    };
 
     if (!show_fragment_panel) {
-        const schematic_frame = fitSchematicRect(available, grid_width, grid_depth);
+        const schematic_frame = fitSchematicRect(content, grid_width, grid_depth);
         return .{
             .frame = frame.frame,
+            .header = header,
             .schematic_frame = schematic_frame,
             .schematic = schematic_frame.inset(10),
             .comparison_frame = null,
             .comparison = null,
+            .footer = footer,
         };
     }
 
     const comparison_gap = 14;
-    const comparison_width = std.math.clamp(@divTrunc(available.w, 3), 184, 236);
-    const schematic_available_width = available.w - comparison_width - comparison_gap;
+    const comparison_width = std.math.clamp(@divTrunc(content.w, 3), 184, 236);
+    const schematic_available_width = content.w - comparison_width - comparison_gap;
     if (schematic_available_width < 240) {
-        const schematic_frame = fitSchematicRect(available, grid_width, grid_depth);
+        const schematic_frame = fitSchematicRect(content, grid_width, grid_depth);
         return .{
             .frame = frame.frame,
+            .header = header,
             .schematic_frame = schematic_frame,
             .schematic = schematic_frame.inset(10),
             .comparison_frame = null,
             .comparison = null,
+            .footer = footer,
         };
     }
 
     const schematic_available = sdl.Rect{
-        .x = available.x,
-        .y = available.y,
+        .x = content.x,
+        .y = content.y,
         .w = schematic_available_width,
-        .h = available.h,
+        .h = content.h,
     };
     const comparison_frame = sdl.Rect{
         .x = schematic_available.x + schematic_available.w + comparison_gap,
-        .y = available.y,
+        .y = content.y,
         .w = comparison_width,
-        .h = available.h,
+        .h = content.h,
     };
     const schematic_frame = fitSchematicRect(schematic_available, grid_width, grid_depth);
     return .{
         .frame = frame.frame,
+        .header = header,
         .schematic_frame = schematic_frame,
         .schematic = schematic_frame.inset(10),
         .comparison_frame = comparison_frame,
         .comparison = comparison_frame.inset(10),
+        .footer = footer,
     };
 }
 

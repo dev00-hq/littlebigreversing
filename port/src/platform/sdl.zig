@@ -142,11 +142,22 @@ pub const TraceLineOp = struct {
     color: Color,
 };
 
+pub const max_trace_text_len = 128;
+
+pub const TraceTextOp = struct {
+    rect: Rect,
+    color: Color,
+    scale: i32,
+    text_len: usize,
+    text: [max_trace_text_len]u8,
+};
+
 pub const TraceOp = union(enum) {
     clear: Color,
     draw_line: TraceLineOp,
     draw_rect: TraceRectOp,
     fill_rect: TraceRectOp,
+    text: TraceTextOp,
     present: void,
 };
 
@@ -277,6 +288,22 @@ pub const Canvas = struct {
             return;
         }
         sdl.SDL_RenderPresent(self.renderer.?);
+    }
+
+    pub fn traceText(self: *Canvas, rect: Rect, color: Color, scale: i32, text: []const u8) !void {
+        if (!builtin.is_test) return;
+        if (self.trace) |trace| {
+            const clipped_len = @min(text.len, max_trace_text_len);
+            var entry = TraceTextOp{
+                .rect = rect,
+                .color = color,
+                .scale = scale,
+                .text_len = clipped_len,
+                .text = [_]u8{0} ** max_trace_text_len,
+            };
+            std.mem.copyForwards(u8, entry.text[0..clipped_len], text[0..clipped_len]);
+            try trace.append(self.trace_allocator.?, .{ .text = entry });
+        }
     }
 
     pub fn waitEvent(self: *Canvas) !Event {

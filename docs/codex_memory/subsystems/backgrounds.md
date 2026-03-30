@@ -22,6 +22,7 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`, in
 - The background decoder now loads `RESS.HQR[0]` plus the selected top-surface `BRK` entries referenced by the current composition and fragment surfaces, and probes report deterministic `BRK` preview summaries.
 - The viewer now renders composition tops, fragment cells, and comparison cards from those decoded `BRK` previews on the existing path, failing fast if a referenced preview is unexpectedly missing.
 - The viewer now derives a fragment comparison panel, focus highlight, selected-cell detail strip, deterministic ranked/cell navigation, and a pinned selected-cell row so the `11/10` pair exposes real `BRK`-backed top-surface deltas without adding a shared room layer.
+- The live viewer render path now includes viewer-local HUD/legend chrome that surfaces room pairing metadata, classic loader numbering, fragment-state summaries, current focus state, comparison ordering/navigation hints, and an explicit zero-fragment control message for `2/2` without adding SDL_ttf or a shared UI layer.
 - Exterior `.ILE/.OBL`, full brick rasterization, and actor visual binding stay outside this pack.
 
 ## Known Traps
@@ -31,6 +32,7 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`, in
 - `gri_header.my_grm` is a forward cursor, not proof that the current grid owns fragment entry `grm_start + my_grm`. In the checked-in assets, backgrounds `0..10` all report `my_grm = 0`, but only the last grid owns fragment `149`; canonical background `2` owns none.
 - Scene `grm` zone bounds are not expressed like the older zero-fragment overlays. The positive pair `11/10` only projects cleanly if fragment-zone maxima are treated as boundary-aligned endpoints, yielding `16x10x13` cells instead of failing the room as out-of-bounds.
 - `inspect-room --json` no longer mirrors the viewer-local fragment comparison state. It still reports `11/10` fragment counts and `BRK` preview summaries, but not the projected fragment cells behind the comparison panel, so use the CLI for probe checks and viewer/tests for per-cell deltas.
+- The window title and stderr startup diagnostics are no longer the best proxy for the viewer state. The canonical screenshot/debug explanation surface is the live HUD inside the render path, and the render tests now assert that HUD directly.
 - The landed `BRK` previews are evidence surfaces, not proof that the repo now has a full room-art renderer. Keep future work scoped to the current debug/comparison path unless checked-in evidence justifies more.
 
 ## Canonical Entry Points

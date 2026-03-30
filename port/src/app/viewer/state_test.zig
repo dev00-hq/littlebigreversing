@@ -285,6 +285,15 @@ test "viewer render snapshot derives a deterministic schematic from the canonica
     try std.testing.expectEqual(@as(u8, 0), render.fragments.library.max_height);
     try std.testing.expectEqual(@as(usize, 0), render.fragments.zones.len);
     try std.testing.expect(render.brick_previews.len > 0);
+    try std.testing.expectEqual(@as(usize, 2), render.metadata.scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 2), render.metadata.background_entry_index);
+    try std.testing.expectEqual(@as(?usize, 0), render.metadata.classic_loader_scene_number);
+    try std.testing.expectEqualStrings("interior", render.metadata.scene_kind);
+    try std.testing.expectEqual(@as(usize, 8), render.metadata.object_count);
+    try std.testing.expectEqual(@as(usize, 10), render.metadata.zone_count);
+    try std.testing.expectEqual(@as(usize, 4), render.metadata.track_count);
+    try std.testing.expectEqual(@as(usize, 0), render.metadata.fragment_zone_count);
+    try std.testing.expectEqual(@as(usize, 0), render.metadata.owned_fragment_count);
 }
 
 test "viewer room snapshot rejects exterior scene entries" {

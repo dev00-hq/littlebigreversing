@@ -24,6 +24,10 @@ const Facing = enum {
     right,
 };
 
+const glyph_width = 3;
+const glyph_height = 5;
+const glyph_spacing = 1;
+
 pub fn computeTileRelief(tile_rect: sdl.Rect, total_height: u8, max_total_height: u8) TileRelief {
     const max_inset = @max(0, @min(tile_rect.w - 1, tile_rect.h - 1));
     const capped_max_height = @max(@as(i32, max_total_height), 1);
@@ -104,6 +108,55 @@ fn drawBrickPreviewPixels(
             });
         }
     }
+}
+
+pub fn textWidth(text: []const u8, scale: i32) i32 {
+    const resolved_scale = @max(scale, 1);
+    if (text.len == 0) return 0;
+    return (@as(i32, @intCast(text.len)) * ((glyph_width + glyph_spacing) * resolved_scale)) - (glyph_spacing * resolved_scale);
+}
+
+pub fn textLineHeight(scale: i32) i32 {
+    return glyph_height * @max(scale, 1);
+}
+
+pub fn drawText(
+    canvas: *sdl.Canvas,
+    x: i32,
+    y: i32,
+    scale: i32,
+    color: sdl.Color,
+    text: []const u8,
+) !sdl.Rect {
+    const resolved_scale = @max(scale, 1);
+    const bounds = sdl.Rect{
+        .x = x,
+        .y = y,
+        .w = textWidth(text, resolved_scale),
+        .h = textLineHeight(resolved_scale),
+    };
+    try canvas.traceText(bounds, color, resolved_scale, text);
+
+    var cursor_x = x;
+    for (text) |raw_char| {
+        const glyph = glyphRows(raw_char);
+        var row: usize = 0;
+        while (row < glyph_height) : (row += 1) {
+            var column: usize = 0;
+            while (column < glyph_width) : (column += 1) {
+                if ((glyph[row] & (@as(u8, 1) << @intCast((glyph_width - 1) - column))) == 0) continue;
+                try canvas.fillRect(.{
+                    .x = cursor_x + (@as(i32, @intCast(column)) * resolved_scale),
+                    .y = y + (@as(i32, @intCast(row)) * resolved_scale),
+                    .w = resolved_scale,
+                    .h = resolved_scale,
+                }, color);
+            }
+        }
+        cursor_x += (glyph_width + glyph_spacing) * resolved_scale;
+    }
+
+    return bounds;
 }
 
 pub fn compositionTileColor(tile: state.CompositionTileSnapshot) sdl.Color {
@@ -368,4 +421,48 @@ pub fn findFirstNonEmptyFragmentCell(cells: []const state.FragmentZoneCellSnapsh
         if (cell.has_non_empty) return cell;
     }
     return null;
+}
+
+fn glyphRows(raw_char: u8) [glyph_height]u8 {
+    const char = if (raw_char >= 'a' and raw_char <= 'z') raw_char - 32 else raw_char;
+    return switch (char) {
+        'A' => .{ 0b010, 0b101, 0b111, 0b101, 0b101 },
+        'B' => .{ 0b110, 0b101, 0b110, 0b101, 0b110 },
+        'C' => .{ 0b011, 0b100, 0b100, 0b100, 0b011 },
+        'D' => .{ 0b110, 0b101, 0b101, 0b101, 0b110 },
+        'E' => .{ 0b111, 0b100, 0b110, 0b100, 0b111 },
+        'F' => .{ 0b111, 0b100, 0b110, 0b100, 0b100 },
+        'G' => .{ 0b011, 0b100, 0b101, 0b101, 0b011 },
+        'H' => .{ 0b101, 0b101, 0b111, 0b101, 0b101 },
+        'I' => .{ 0b111, 0b010, 0b010, 0b010, 0b111 },
+        'J' => .{ 0b001, 0b001, 0b001, 0b101, 0b010 },
+        'K' => .{ 0b101, 0b101, 0b110, 0b101, 0b101 },
+        'L' => .{ 0b100, 0b100, 0b100, 0b100, 0b111 },
+        'M' => .{ 0b101, 0b111, 0b111, 0b101, 0b101 },
+        'N' => .{ 0b101, 0b111, 0b111, 0b111, 0b101 },
+        'O' => .{ 0b111, 0b101, 0b101, 0b101, 0b111 },
+        'P' => .{ 0b110, 0b101, 0b110, 0b100, 0b100 },
+        'Q' => .{ 0b111, 0b101, 0b101, 0b111, 0b001 },
+        'R' => .{ 0b110, 0b101, 0b110, 0b101, 0b101 },
+        'S' => .{ 0b011, 0b100, 0b111, 0b001, 0b110 },
+        'T' => .{ 0b111, 0b010, 0b010, 0b010, 0b010 },
+        'U' => .{ 0b101, 0b101, 0b101, 0b101, 0b111 },
+        'V' => .{ 0b101, 0b101, 0b101, 0b101, 0b010 },
+        'W' => .{ 0b101, 0b101, 0b111, 0b111, 0b101 },
+        'X' => .{ 0b101, 0b101, 0b010, 0b101, 0b101 },
+        'Y' => .{ 0b101, 0b101, 0b010, 0b010, 0b010 },
+        'Z' => .{ 0b111, 0b001, 0b010, 0b100, 0b111 },
+        '0' => .{ 0b111, 0b101, 0b101, 0b101, 0b111 },
+        '1' => .{ 0b010, 0b110, 0b010, 0b010, 0b111 },
+        '2' => .{ 0b111, 0b001, 0b111, 0b100, 0b111 },
+        '3' => .{ 0b111, 0b001, 0b111, 0b001, 0b111 },
+        '4' => .{ 0b101, 0b101, 0b111, 0b001, 0b001 },
+        '5' => .{ 0b111, 0b100, 0b111, 0b001, 0b111 },
+        '6' => .{ 0b111, 0b100, 0b111, 0b101, 0b111 },
+        '7' => .{ 0b111, 0b001, 0b001, 0b001, 0b001 },
+        '8' => .{ 0b111, 0b101, 0b111, 0b101, 0b111 },
+        '9' => .{ 0b111, 0b101, 0b111, 0b001, 0b111 },
+        ' ' => .{ 0, 0, 0, 0, 0 },
+        else => .{ 0b111, 0b001, 0b010, 0b000, 0b010 },
+    };
 }

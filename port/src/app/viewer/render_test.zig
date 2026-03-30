@@ -31,6 +31,18 @@ fn hasPresent(trace: sdl.CanvasTrace) bool {
     return false;
 }
 
+fn hasTraceText(trace: sdl.CanvasTrace, text: []const u8) bool {
+    for (trace.ops.items) |op| {
+        switch (op) {
+            .text => |entry| {
+                if (std.mem.eql(u8, entry.text[0..entry.text_len], text)) return true;
+            },
+            else => {},
+        }
+    }
+    return false;
+}
+
 fn firstComparisonRowRect(rect: sdl.Rect, entry_count: usize) sdl.Rect {
     const summary_height = 18;
     const summary_rect = sdl.Rect{
@@ -121,6 +133,18 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
     const comparison_frame = debug_layout.comparison_frame.?;
     const focus = selection.focus.?;
     const focus_rect = layout.projectGridCellRect(debug_layout.schematic, snapshot.grid_width, snapshot.grid_depth, focus.x, focus.z);
+    var room_line_buffer: [48]u8 = undefined;
+    const room_line = try std.fmt.bufPrint(
+        &room_line_buffer,
+        "SCN {d} BKG {d}",
+        .{ snapshot.metadata.scene_entry_index, snapshot.metadata.background_entry_index },
+    );
+    var focus_line_buffer: [48]u8 = undefined;
+    const focus_line = try std.fmt.bufPrint(&focus_line_buffer, "STATE {s}", .{switch (focus.delta) {
+        .changed => "CHANGED",
+        .exact => "EXACT",
+        .no_base => "NO BASE",
+    }});
 
     var trace: sdl.CanvasTrace = .{};
     defer trace.deinit(allocator);
@@ -130,9 +154,19 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
 
     try std.testing.expect(panel.focus != null);
     try std.testing.expect(debug_layout.comparison != null);
+    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, debug_layout.header, .{ .r = 15, .g = 20, .b = 26, .a = 255 }));
+    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, debug_layout.footer, .{ .r = 15, .g = 20, .b = 26, .a = 255 }));
     try std.testing.expect(hasTraceRectOp(trace, .fill_rect, comparison_frame, .{ .r = 12, .g = 17, .b = 23, .a = 255 }));
     try std.testing.expect(hasTraceRectOp(trace, .draw_rect, comparison_frame, .{ .r = 66, .g = 90, .b = 103, .a = 255 }));
     try std.testing.expect(hasTraceRectOp(trace, .draw_rect, focus_rect, fragment_compare.fragmentComparisonDeltaColor(focus.delta)));
+    try std.testing.expect(hasTraceText(trace, "ROOM"));
+    try std.testing.expect(hasTraceText(trace, room_line));
+    try std.testing.expect(hasTraceText(trace, "FRAGMENT STATE"));
+    try std.testing.expect(hasTraceText(trace, "FOCUS"));
+    try std.testing.expect(hasTraceText(trace, focus_line));
+    try std.testing.expect(hasTraceText(trace, "OVERLAYS"));
+    try std.testing.expect(hasTraceText(trace, "COMPARE ORDER"));
+    try std.testing.expect(hasTraceText(trace, "LEFT RIGHT RANK"));
     try std.testing.expect(hasPresent(trace));
 }
 
@@ -194,6 +228,8 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     try std.testing.expectEqual(@as(?sdl.Rect, null), layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, false).comparison_frame);
     try std.testing.expect(!hasTraceRectOp(trace, .fill_rect, comparison_frame_if_present, .{ .r = 12, .g = 17, .b = 23, .a = 255 }));
     try std.testing.expect(!hasTraceRectOp(trace, .draw_rect, comparison_frame_if_present, .{ .r = 66, .g = 90, .b = 103, .a = 255 }));
+    try std.testing.expect(hasTraceText(trace, "ZERO FRAGMENT CONTROL"));
+    try std.testing.expect(hasTraceText(trace, "PANEL HIDDEN"));
     try std.testing.expect(hasPresent(trace));
 }
 

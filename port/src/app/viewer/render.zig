@@ -1,3 +1,4 @@
+const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const state = @import("state.zig");
 const layout = @import("layout.zig");
@@ -22,6 +23,10 @@ pub fn renderDebugView(
     try canvas.clear(.{ .r = 13, .g = 20, .b = 26, .a = 255 });
     try canvas.fillRect(debug_layout.frame, .{ .r = 22, .g = 32, .b = 41, .a = 255 });
     try canvas.drawRect(debug_layout.frame, .{ .r = 96, .g = 123, .b = 142, .a = 255 });
+    try canvas.fillRect(debug_layout.header, .{ .r = 15, .g = 20, .b = 26, .a = 255 });
+    try canvas.drawRect(debug_layout.header, .{ .r = 59, .g = 76, .b = 88, .a = 255 });
+    try canvas.fillRect(debug_layout.footer, .{ .r = 15, .g = 20, .b = 26, .a = 255 });
+    try canvas.drawRect(debug_layout.footer, .{ .r = 59, .g = 76, .b = 88, .a = 255 });
     try canvas.fillRect(debug_layout.schematic_frame, .{ .r = 10, .g = 14, .b = 19, .a = 255 });
     try canvas.drawRect(debug_layout.schematic_frame, .{ .r = 56, .g = 80, .b = 92, .a = 255 });
     try drawComposition(canvas, debug_layout.schematic, snapshot);
@@ -66,6 +71,7 @@ pub fn renderDebugView(
     const hero = layout.projectWorldPoint(snapshot, debug_layout.schematic, snapshot.hero_start.x, snapshot.hero_start.z);
     try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
     try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
+    try drawHud(canvas, debug_layout, snapshot, catalog, selection);
     canvas.present();
 }
 
@@ -177,4 +183,304 @@ fn drawCompositionTile(
     try draw.drawCompositionContour(canvas, relief.top_surface, .west, draw.contourThickness(tile.total_height -| west_height), contour_color);
     try canvas.drawRect(relief.top_surface, draw.withAlpha(draw.lightenColor(base_color, 18), 212));
     try draw.drawSurfaceMarker(canvas, relief.top_surface, tile, draw.withAlpha(draw.lightenColor(base_color, 64), 232));
+}
+
+fn drawHud(
+    canvas: *sdl.Canvas,
+    debug_layout: layout.DebugLayout,
+    snapshot: state.RenderSnapshot,
+    catalog: fragment_compare.FragmentComparisonCatalog,
+    selection: fragment_compare.FragmentComparisonSelection,
+) !void {
+    const room_card = splitHudRow(debug_layout.header, 0, 3, 12);
+    const fragment_card = splitHudRow(debug_layout.header, 1, 3, 12);
+    const focus_card = splitHudRow(debug_layout.header, 2, 3, 12);
+    const overlay_card = splitHudRow(debug_layout.footer, 0, 3, 12);
+    const compare_card = splitHudRow(debug_layout.footer, 1, 3, 12);
+    const nav_card = splitHudRow(debug_layout.footer, 2, 3, 12);
+
+    var scene_kind_buffer: [32]u8 = undefined;
+    const scene_kind = upperAscii(&scene_kind_buffer, snapshot.metadata.scene_kind);
+
+    var room_line_0_buffer: [48]u8 = undefined;
+    const room_line_0 = try std.fmt.bufPrint(
+        &room_line_0_buffer,
+        "SCN {d} BKG {d}",
+        .{ snapshot.metadata.scene_entry_index, snapshot.metadata.background_entry_index },
+    );
+    var room_line_1_buffer: [48]u8 = undefined;
+    const room_line_1 = if (snapshot.metadata.classic_loader_scene_number) |loader_scene|
+        try std.fmt.bufPrint(&room_line_1_buffer, "LDR {d} {s}", .{ loader_scene, scene_kind })
+    else
+        try std.fmt.bufPrint(&room_line_1_buffer, "LDR NONE {s}", .{scene_kind});
+    var room_line_2_buffer: [48]u8 = undefined;
+    const room_line_2 = try std.fmt.bufPrint(
+        &room_line_2_buffer,
+        "OBJ {d} ZON {d} TRK {d}",
+        .{ snapshot.metadata.object_count, snapshot.metadata.zone_count, snapshot.metadata.track_count },
+    );
+    try drawHudTextCard(
+        canvas,
+        room_card,
+        "ROOM",
+        .{ .r = 112, .g = 196, .b = 255, .a = 255 },
+        &.{ room_line_0, room_line_1, room_line_2 },
+    );
+
+    if (snapshot.metadata.fragment_zone_count == 0 and snapshot.metadata.owned_fragment_count == 0) {
+        var fragment_line_1_buffer: [48]u8 = undefined;
+        const fragment_line_1 = try std.fmt.bufPrint(
+            &fragment_line_1_buffer,
+            "SCENE ZONES {d} OWNED {d}",
+            .{ snapshot.metadata.fragment_zone_count, snapshot.metadata.owned_fragment_count },
+        );
+        try drawHudTextCard(
+            canvas,
+            fragment_card,
+            "FRAGMENT STATE",
+            .{ .r = 176, .g = 186, .b = 198, .a = 255 },
+            &.{ "ZERO FRAGMENT CONTROL", fragment_line_1, "CELLS 0 OF 0" },
+        );
+    } else {
+        var fragment_line_0_buffer: [48]u8 = undefined;
+        const fragment_line_0 = try std.fmt.bufPrint(
+            &fragment_line_0_buffer,
+            "SCENE ZONES {d} OWNED {d}",
+            .{ snapshot.metadata.fragment_zone_count, snapshot.metadata.owned_fragment_count },
+        );
+        var fragment_line_1_buffer: [48]u8 = undefined;
+        const fragment_line_1 = try std.fmt.bufPrint(
+            &fragment_line_1_buffer,
+            "CELLS {d} OF {d}",
+            .{ snapshot.metadata.fragment_non_empty_cell_count, snapshot.metadata.fragment_footprint_cell_count },
+        );
+        var fragment_line_2_buffer: [48]u8 = undefined;
+        const fragment_line_2 = try std.fmt.bufPrint(
+            &fragment_line_2_buffer,
+            "CHG {d} EQ {d} NB {d}",
+            .{ catalog.changed_count, catalog.exact_count, catalog.no_base_count },
+        );
+        try drawHudTextCard(
+            canvas,
+            fragment_card,
+            "FRAGMENT STATE",
+            .{ .r = 255, .g = 206, .b = 84, .a = 255 },
+            &.{ fragment_line_0, fragment_line_1, fragment_line_2 },
+        );
+    }
+
+    if (selection.focus) |focus| {
+        var focus_line_0_buffer: [48]u8 = undefined;
+        const focus_line_0 = try std.fmt.bufPrint(&focus_line_0_buffer, "CELL {d} {d}", .{ focus.x, focus.z });
+        var focus_line_1_buffer: [48]u8 = undefined;
+        const focus_line_1 = try std.fmt.bufPrint(
+            &focus_line_1_buffer,
+            "ZONE {d} FRAG {d}",
+            .{ focus.zone_index, focus.fragment_entry_index },
+        );
+        var focus_line_2_buffer: [48]u8 = undefined;
+        const focus_line_2 = try std.fmt.bufPrint(
+            &focus_line_2_buffer,
+            "STATE {s}",
+            .{comparisonDeltaLabel(focus.delta)},
+        );
+        try drawHudTextCard(
+            canvas,
+            focus_card,
+            "FOCUS",
+            fragment_compare.fragmentComparisonDeltaColor(focus.delta),
+            &.{ focus_line_0, focus_line_1, focus_line_2 },
+        );
+    } else {
+        var focus_line_1_buffer: [48]u8 = undefined;
+        const focus_line_1 = try std.fmt.bufPrint(
+            &focus_line_1_buffer,
+            "SCENE ZONES {d}",
+            .{snapshot.metadata.fragment_zone_count},
+        );
+        try drawHudTextCard(
+            canvas,
+            focus_card,
+            "FOCUS",
+            .{ .r = 176, .g = 186, .b = 198, .a = 255 },
+            &.{ "ZERO FRAGMENT CONTROL", focus_line_1, "PANEL HIDDEN" },
+        );
+    }
+
+    try drawOverlayLegendCard(canvas, overlay_card);
+    try drawComparisonLegendCard(canvas, compare_card);
+    try drawHudTextCard(
+        canvas,
+        nav_card,
+        "NAV",
+        .{ .r = 112, .g = 196, .b = 255, .a = 255 },
+        &.{ "LEFT RIGHT RANK", "UP DOWN CELL", "PINNED ROW FOCUS" },
+    );
+}
+
+fn splitHudRow(row: sdl.Rect, index: usize, count: usize, gap: i32) sdl.Rect {
+    const total_gap_width = gap * @as(i32, @intCast(count -| 1));
+    const base_width = @divTrunc(row.w - total_gap_width, @as(i32, @intCast(count)));
+    const x = row.x + (@as(i32, @intCast(index)) * (base_width + gap));
+    const is_last = index == count - 1;
+    return .{
+        .x = x,
+        .y = row.y,
+        .w = if (is_last) row.right() - x + 1 else base_width,
+        .h = row.h,
+    };
+}
+
+fn drawHudTextCard(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    title: []const u8,
+    accent: sdl.Color,
+    lines: []const []const u8,
+) !void {
+    const body = try drawHudCardFrame(canvas, rect, title, accent);
+    const scale = 2;
+    const line_gap = 4;
+    var cursor_y = body.y;
+    for (lines) |line| {
+        if (cursor_y + draw.textLineHeight(scale) > body.bottom() + 1) break;
+        _ = try draw.drawText(
+            canvas,
+            body.x,
+            cursor_y,
+            scale,
+            .{ .r = 223, .g = 231, .b = 237, .a = 255 },
+            line,
+        );
+        cursor_y += draw.textLineHeight(scale) + line_gap;
+    }
+}
+
+fn drawHudCardFrame(canvas: *sdl.Canvas, rect: sdl.Rect, title: []const u8, accent: sdl.Color) !sdl.Rect {
+    try canvas.fillRect(rect, .{ .r = 10, .g = 15, .b = 20, .a = 236 });
+    try canvas.drawRect(rect, draw.withAlpha(draw.lightenColor(accent, 10), 224));
+
+    const title_height = 18;
+    const title_bar = sdl.Rect{
+        .x = rect.x,
+        .y = rect.y,
+        .w = rect.w,
+        .h = @min(title_height, rect.h),
+    };
+    try canvas.fillRect(title_bar, draw.withAlpha(draw.darkenColor(accent, 84), 124));
+    _ = try draw.drawText(canvas, title_bar.x + 8, title_bar.y + 4, 2, accent, title);
+
+    return .{
+        .x = rect.x + 8,
+        .y = title_bar.y + title_bar.h + 8,
+        .w = @max(1, rect.w - 16),
+        .h = @max(1, rect.h - title_bar.h - 16),
+    };
+}
+
+fn drawOverlayLegendCard(canvas: *sdl.Canvas, rect: sdl.Rect) !void {
+    const body = try drawHudCardFrame(canvas, rect, "OVERLAYS", .{ .r = 117, .g = 230, .b = 186, .a = 255 });
+    const item_width = @divTrunc(@max(1, body.w - 12), 2);
+    const item_height = @divTrunc(@max(1, body.h - 8), 2);
+
+    const LegendKind = enum { hero, object, track, zone, fragment };
+    const items = [_]struct { label: []const u8, kind: LegendKind }{
+        .{ .label = "HERO", .kind = .hero },
+        .{ .label = "OBJECT", .kind = .object },
+        .{ .label = "TRACK", .kind = .track },
+        .{ .label = "ZONE", .kind = .zone },
+        .{ .label = "FRAGMENT", .kind = .fragment },
+    };
+
+    for (items, 0..) |item, index| {
+        const column: i32 = @intCast(index % 2);
+        const row: i32 = @intCast(index / 2);
+        const item_rect = sdl.Rect{
+            .x = body.x + (column * (item_width + 12)),
+            .y = body.y + (row * (item_height + 8)),
+            .w = item_width,
+            .h = item_height,
+        };
+        try drawOverlayLegendItem(canvas, item_rect, item.label, item.kind);
+    }
+}
+
+fn drawOverlayLegendItem(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    label: []const u8,
+    kind: anytype,
+) !void {
+    const icon_rect = sdl.Rect{
+        .x = rect.x,
+        .y = rect.y,
+        .w = 18,
+        .h = @min(18, rect.h),
+    };
+    const text_x = icon_rect.x + icon_rect.w + 6;
+    const text_y = rect.y + @max(0, @divTrunc(rect.h - draw.textLineHeight(2), 2));
+
+    switch (kind) {
+        .hero => {
+            const center = layout.ScreenPoint{ .x = icon_rect.x + @divTrunc(icon_rect.w, 2), .y = icon_rect.y + @divTrunc(icon_rect.h, 2) };
+            try draw.drawCrosshair(canvas, center, 5, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
+            try draw.drawMarker(canvas, center, 4, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
+        },
+        .object => try canvas.fillRect(icon_rect.inset(5), .{ .r = 255, .g = 194, .b = 92, .a = 255 }),
+        .track => {
+            const y = icon_rect.y + @divTrunc(icon_rect.h, 2);
+            try canvas.drawLine(icon_rect.x, y, icon_rect.right(), y, .{ .r = 59, .g = 201, .b = 255, .a = 220 });
+        },
+        .zone => try canvas.drawRect(icon_rect.inset(3), draw.zoneColor(.scenario)),
+        .fragment => {
+            const fill = icon_rect.inset(4);
+            try canvas.fillRect(fill, .{ .r = 224, .g = 178, .b = 86, .a = 220 });
+            try canvas.drawRect(fill, draw.fragmentZoneBorderColor(true));
+        },
+    }
+
+    _ = try draw.drawText(canvas, text_x, text_y, 2, .{ .r = 223, .g = 231, .b = 237, .a = 255 }, label);
+}
+
+fn drawComparisonLegendCard(canvas: *sdl.Canvas, rect: sdl.Rect) !void {
+    const body = try drawHudCardFrame(canvas, rect, "COMPARE ORDER", .{ .r = 255, .g = 148, .b = 118, .a = 255 });
+    const rows = [_]struct { label: []const u8, color: sdl.Color }{
+        .{ .label = "CHANGED FIRST", .color = fragment_compare.fragmentComparisonDeltaColor(.changed) },
+        .{ .label = "EXACT NEXT", .color = fragment_compare.fragmentComparisonDeltaColor(.exact) },
+        .{ .label = "NO BASE LAST", .color = fragment_compare.fragmentComparisonDeltaColor(.no_base) },
+    };
+
+    const row_gap = 4;
+    const row_height = @max(12, @divTrunc(body.h - (row_gap * @as(i32, @intCast(rows.len -| 1))), @as(i32, @intCast(rows.len))));
+    var cursor_y = body.y;
+    for (rows) |row| {
+        const swatch = sdl.Rect{ .x = body.x, .y = cursor_y + 2, .w = 12, .h = @min(12, row_height - 4) };
+        try canvas.fillRect(swatch, draw.withAlpha(row.color, 216));
+        try canvas.drawRect(swatch, row.color);
+        _ = try draw.drawText(
+            canvas,
+            swatch.x + swatch.w + 6,
+            cursor_y + @max(0, @divTrunc(row_height - draw.textLineHeight(2), 2)),
+            2,
+            .{ .r = 223, .g = 231, .b = 237, .a = 255 },
+            row.label,
+        );
+        cursor_y += row_height + row_gap;
+    }
+}
+
+fn comparisonDeltaLabel(delta: fragment_compare.FragmentComparisonDelta) []const u8 {
+    return switch (delta) {
+        .changed => "CHANGED",
+        .exact => "EXACT",
+        .no_base => "NO BASE",
+    };
+}
+
+fn upperAscii(buffer: []u8, text: []const u8) []const u8 {
+    const len = @min(buffer.len, text.len);
+    for (text[0..len], 0..) |char, index| {
+        buffer[index] = if (char >= 'a' and char <= 'z') char - 32 else char;
+    }
+    return buffer[0..len];
 }
