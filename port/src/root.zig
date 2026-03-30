@@ -43,6 +43,12 @@ pub const GiverBonusKinds = game_data.scene.GiverBonusKinds;
 test {
     _ = @import("foundation/paths.zig");
     _ = @import("app/viewer_shell.zig");
+    _ = @import("app/viewer_shell_test.zig");
+    _ = @import("app/viewer/state_test.zig");
+    _ = @import("app/viewer/layout_test.zig");
+    _ = @import("app/viewer/draw_test.zig");
+    _ = @import("app/viewer/fragment_compare_test.zig");
+    _ = @import("app/viewer/render_test.zig");
     _ = @import("assets/catalog.zig");
     _ = @import("assets/hqr.zig");
     _ = @import("assets/fixtures.zig");
