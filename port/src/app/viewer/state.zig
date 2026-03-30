@@ -135,6 +135,7 @@ pub const FragmentZoneCellSnapshot = struct {
     x: usize,
     z: usize,
     has_non_empty: bool,
+    stack_depth: u8,
     top_floor_type: u8,
     top_shape: u8,
     top_shape_class: SurfaceShapeClass,
@@ -475,12 +476,14 @@ pub fn buildFragmentZoneSnapshots(
         errdefer allocator.free(cells);
         for (fragment.cells, cells) |fragment_cell, *slot| {
             if (fragment_cell.non_empty_block_ref_count > 0) {
+                if (fragment_cell.non_empty_block_ref_count > std.math.maxInt(u8)) return error.InvalidFragmentZoneCell;
                 const top_ref_index = fragment_cell.last_non_empty_block_ref_index orelse return error.InvalidFragmentZoneCell;
                 const block = try resolveLayoutBlock(library, fragment.block_refs[top_ref_index]);
                 slot.* = .{
                     .x = origin_x + fragment_cell.x,
                     .z = origin_z + fragment_cell.z,
                     .has_non_empty = true,
+                    .stack_depth = @intCast(fragment_cell.non_empty_block_ref_count),
                     .top_floor_type = block.floorType(),
                     .top_shape = block.shape,
                     .top_shape_class = classifySurfaceShape(block.shape),
@@ -491,6 +494,7 @@ pub fn buildFragmentZoneSnapshots(
                     .x = origin_x + fragment_cell.x,
                     .z = origin_z + fragment_cell.z,
                     .has_non_empty = false,
+                    .stack_depth = 0,
                     .top_floor_type = 0,
                     .top_shape = 0,
                     .top_shape_class = .open,

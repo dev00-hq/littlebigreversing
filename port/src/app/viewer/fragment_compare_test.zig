@@ -11,9 +11,9 @@ test "viewer fragment brick delta detects changed base bricks" {
     const tiles = [_]state.CompositionTileSnapshot{
         .{ .x = 4, .z = 7, .total_height = 3, .stack_depth = 2, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 149 },
     };
-    const cell_same = state.FragmentZoneCellSnapshot{ .x = 4, .z = 7, .has_non_empty = true, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 149 };
-    const cell_changed = state.FragmentZoneCellSnapshot{ .x = 4, .z = 7, .has_non_empty = true, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 667 };
-    const cell_missing = state.FragmentZoneCellSnapshot{ .x = 1, .z = 1, .has_non_empty = true, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 667 };
+    const cell_same = state.FragmentZoneCellSnapshot{ .x = 4, .z = 7, .has_non_empty = true, .stack_depth = 2, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 149 };
+    const cell_changed = state.FragmentZoneCellSnapshot{ .x = 4, .z = 7, .has_non_empty = true, .stack_depth = 2, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 667 };
+    const cell_missing = state.FragmentZoneCellSnapshot{ .x = 1, .z = 1, .has_non_empty = true, .stack_depth = 1, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 667 };
     const snapshot = state.RenderSnapshot{
         .grid_width = 8,
         .grid_depth = 8,
@@ -32,16 +32,49 @@ test "viewer fragment brick delta detects changed base bricks" {
     try std.testing.expectEqual(fragment_compare.FragmentBrickDelta.no_base, fragment_compare.fragmentBrickDelta(snapshot, cell_missing));
 }
 
+test "viewer fragment comparison detail captures non-brick deltas for the selected cell" {
+    const tile = state.CompositionTileSnapshot{
+        .x = 4,
+        .z = 7,
+        .total_height = 3,
+        .stack_depth = 4,
+        .top_floor_type = 1,
+        .top_shape = 1,
+        .top_shape_class = .solid,
+        .top_brick_index = 149,
+    };
+    const cell = state.FragmentZoneCellSnapshot{
+        .x = 4,
+        .z = 7,
+        .has_non_empty = true,
+        .stack_depth = 2,
+        .top_floor_type = 3,
+        .top_shape = 2,
+        .top_shape_class = .single_stair,
+        .top_brick_index = 149,
+    };
+
+    const detail = fragment_compare.buildFragmentComparisonDetail(tile, cell);
+    try std.testing.expect(detail.base_present);
+    try std.testing.expect(detail.brick_matches);
+    try std.testing.expect(!detail.floor_type_matches);
+    try std.testing.expect(!detail.shape_matches);
+    try std.testing.expectEqual(@as(u8, 4), detail.base_stack_depth);
+    try std.testing.expectEqual(@as(u8, 2), detail.fragment_stack_depth);
+    try std.testing.expectEqual(@as(i16, -2), detail.stackDepthDelta());
+    try std.testing.expectEqual(@as(u8, 3), detail.changedAspectCount());
+}
+
 test "viewer fragment comparison panel prioritizes changed cells and counts non-empty deltas" {
     const tiles = [_]state.CompositionTileSnapshot{
         .{ .x = 2, .z = 3, .total_height = 2, .stack_depth = 1, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 200 },
         .{ .x = 4, .z = 7, .total_height = 3, .stack_depth = 2, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 149 },
     };
     var cells = [_]state.FragmentZoneCellSnapshot{
-        .{ .x = 4, .z = 7, .has_non_empty = true, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 667 },
-        .{ .x = 2, .z = 3, .has_non_empty = true, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 200 },
-        .{ .x = 1, .z = 1, .has_non_empty = true, .top_floor_type = 3, .top_shape = 2, .top_shape_class = .single_stair, .top_brick_index = 127 },
-        .{ .x = 6, .z = 6, .has_non_empty = false, .top_floor_type = 0, .top_shape = 0, .top_shape_class = .open, .top_brick_index = 0 },
+        .{ .x = 4, .z = 7, .has_non_empty = true, .stack_depth = 3, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 667 },
+        .{ .x = 2, .z = 3, .has_non_empty = true, .stack_depth = 1, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 200 },
+        .{ .x = 1, .z = 1, .has_non_empty = true, .stack_depth = 1, .top_floor_type = 3, .top_shape = 2, .top_shape_class = .single_stair, .top_brick_index = 127 },
+        .{ .x = 6, .z = 6, .has_non_empty = false, .stack_depth = 0, .top_floor_type = 0, .top_shape = 0, .top_shape_class = .open, .top_brick_index = 0 },
     };
     const zones = [_]state.FragmentZoneSnapshot{
         .{
@@ -83,6 +116,7 @@ test "viewer fragment comparison panel prioritizes changed cells and counts non-
     try std.testing.expectEqual(fragment_compare.FragmentBrickDelta.changed, panel.focus.?.delta);
     try std.testing.expectEqual(@as(usize, 4), panel.focus.?.x);
     try std.testing.expectEqual(@as(usize, 7), panel.focus.?.z);
+    try std.testing.expectEqual(@as(u8, 2), panel.focus.?.detail.changedAspectCount());
     try std.testing.expectEqual(fragment_compare.FragmentBrickDelta.changed, panel.entries[0].delta);
     try std.testing.expectEqual(fragment_compare.FragmentBrickDelta.same, panel.entries[1].delta);
     try std.testing.expectEqual(fragment_compare.FragmentBrickDelta.no_base, panel.entries[2].delta);
@@ -103,4 +137,6 @@ test "viewer fragment comparison panel keeps the checked-in fragment pair inspec
     try std.testing.expect(panel.entry_count > 0);
     try std.testing.expect(panel.entry_count <= fragment_compare.max_fragment_comparison_entries);
     try std.testing.expect(panel.focus.?.fragment_entry_index == room.fragment_zones[0].fragment_entry_index);
+    try std.testing.expect(panel.focus.?.detail.base_present);
+    try std.testing.expect(panel.focus.?.detail.changedAspectCount() > 0);
 }
