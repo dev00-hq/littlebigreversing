@@ -118,28 +118,18 @@ fn drawFragmentZones(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: state.Render
             if (cell.has_non_empty) {
                 const base_color = draw.fragmentCellColor(cell);
                 const brick_delta = fragment_compare.fragmentBrickDelta(snapshot, cell);
-                const fill = draw.withAlpha(base_color, switch (brick_delta) {
+                const overlay = draw.withAlpha(base_color, switch (brick_delta) {
                     .changed => @as(u8, 142),
                     .same => @as(u8, 118),
                     .no_base => @as(u8, 104),
                 });
-                try canvas.fillRect(cell_rect, fill);
+                if (cell.top_brick_index != 0) {
+                    try draw.drawBrickPreviewSurface(canvas, cell_rect, snapshot.brick_previews, cell.top_brick_index);
+                    try canvas.fillRect(cell_rect, overlay);
+                } else {
+                    try canvas.fillRect(cell_rect, overlay);
+                }
                 try canvas.drawRect(cell_rect, draw.withAlpha(draw.lightenColor(base_color, 28), 196));
-                try draw.drawBrickProbe(
-                    canvas,
-                    cell_rect.inset(1),
-                    cell.top_brick_index,
-                    draw.withAlpha(draw.lightenColor(base_color, switch (brick_delta) {
-                        .changed => @as(u8, 96),
-                        .same => @as(u8, 72),
-                        .no_base => @as(u8, 52),
-                    }), switch (brick_delta) {
-                        .changed => @as(u8, 228),
-                        .same => @as(u8, 208),
-                        .no_base => @as(u8, 182),
-                    }),
-                );
-                try draw.drawBrickPreviewSwatch(canvas, cell_rect, snapshot.brick_previews, cell.top_brick_index, .top_left);
                 try draw.drawFragmentCellMarker(canvas, cell_rect, cell, draw.withAlpha(draw.lightenColor(base_color, 72), 216));
                 if (brick_delta == .changed) {
                     try draw.drawFragmentDeltaMarker(canvas, cell_rect, draw.withAlpha(draw.lightenColor(base_color, 120), 240));
@@ -173,7 +163,12 @@ fn drawCompositionTile(
     if (relief.bottom_wall.w > 0 and relief.bottom_wall.h > 0) {
         try canvas.fillRect(relief.bottom_wall, bottom_wall_color);
     }
-    try canvas.fillRect(relief.top_surface, base_color);
+    if (tile.top_brick_index != 0) {
+        try draw.drawBrickPreviewSurface(canvas, relief.top_surface, snapshot.brick_previews, tile.top_brick_index);
+        try canvas.fillRect(relief.top_surface, draw.withAlpha(base_color, 68));
+    } else {
+        try canvas.fillRect(relief.top_surface, base_color);
+    }
 
     const north_height = if (tile.z == 0) @as(u8, 0) else draw.compositionHeightAt(snapshot, tile.x, tile.z - 1);
     const west_height = if (tile.x == 0) @as(u8, 0) else draw.compositionHeightAt(snapshot, tile.x - 1, tile.z);
@@ -181,14 +176,5 @@ fn drawCompositionTile(
     try draw.drawCompositionContour(canvas, relief.top_surface, .north, draw.contourThickness(tile.total_height -| north_height), contour_color);
     try draw.drawCompositionContour(canvas, relief.top_surface, .west, draw.contourThickness(tile.total_height -| west_height), contour_color);
     try canvas.drawRect(relief.top_surface, draw.withAlpha(draw.lightenColor(base_color, 18), 212));
-    try draw.drawBrickProbe(
-        canvas,
-        relief.top_surface.inset(1),
-        tile.top_brick_index,
-        draw.withAlpha(draw.lightenColor(base_color, draw.brickProbeStyle(tile.top_brick_index).accent), 148),
-    );
-    if (draw.shouldDrawCompositionBrickPreview(tile)) {
-        try draw.drawBrickPreviewSwatch(canvas, relief.top_surface, snapshot.brick_previews, tile.top_brick_index, .bottom_right);
-    }
     try draw.drawSurfaceMarker(canvas, relief.top_surface, tile, draw.withAlpha(draw.lightenColor(base_color, 64), 232));
 }

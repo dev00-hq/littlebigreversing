@@ -12,25 +12,6 @@ pub const TileRelief = struct {
     inset_depth: i32,
 };
 
-pub const BrickProbePattern = enum {
-    vertical,
-    horizontal,
-    diagonal_descending,
-    diagonal_ascending,
-    checker,
-};
-
-pub const BrickProbeStyle = struct {
-    pattern: BrickProbePattern,
-    spacing: i32,
-    accent: u8,
-};
-
-pub const BrickPreviewAnchor = enum {
-    top_left,
-    bottom_right,
-};
-
 const ContourEdge = enum {
     north,
     west,
@@ -80,54 +61,17 @@ pub fn computeTileRelief(tile_rect: sdl.Rect, total_height: u8, max_total_height
     };
 }
 
-pub fn drawBrickPreviewSwatch(
-    canvas: *sdl.Canvas,
-    target_rect: sdl.Rect,
-    previews: []const background_data.BrickPreview,
-    brick_index: u16,
-    anchor: BrickPreviewAnchor,
-) !void {
-    if (brick_index == 0) return;
-
-    const preview = findBrickPreview(previews, brick_index) orelse return;
-    const frame = computeBrickPreviewFrame(target_rect, anchor);
-    if (frame.w < 3 or frame.h < 3) return;
-
-    try canvas.fillRect(frame, .{ .r = 6, .g = 10, .b = 14, .a = 212 });
-    try drawBrickPreviewPixels(canvas, frame.inset(1), preview);
-    try canvas.drawRect(frame, .{ .r = 172, .g = 192, .b = 206, .a = 224 });
-}
-
 pub fn drawBrickPreviewSurface(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
     previews: []const background_data.BrickPreview,
     brick_index: u16,
-) !bool {
-    if (rect.w <= 0 or rect.h <= 0) return false;
+) !void {
+    if (rect.w <= 0 or rect.h <= 0) return;
 
-    const preview = findBrickPreview(previews, brick_index) orelse return false;
+    const preview = try requireBrickPreview(previews, brick_index);
     try canvas.fillRect(rect, .{ .r = 6, .g = 10, .b = 14, .a = 212 });
     try drawBrickPreviewPixels(canvas, rect.inset(1), preview);
-    return true;
-}
-
-fn computeBrickPreviewFrame(target_rect: sdl.Rect, anchor: BrickPreviewAnchor) sdl.Rect {
-    const side = std.math.clamp(@divTrunc(@min(target_rect.w, target_rect.h), 2), 3, 8);
-    return switch (anchor) {
-        .top_left => .{
-            .x = target_rect.x,
-            .y = target_rect.y,
-            .w = side,
-            .h = side,
-        },
-        .bottom_right => .{
-            .x = target_rect.right() - side,
-            .y = target_rect.bottom() - side,
-            .w = side,
-            .h = side,
-        },
-    };
 }
 
 fn drawBrickPreviewPixels(
@@ -160,106 +104,6 @@ fn drawBrickPreviewPixels(
             });
         }
     }
-}
-
-pub fn drawBrickProbe(canvas: *sdl.Canvas, rect: sdl.Rect, brick_index: u16, color: sdl.Color) !void {
-    if (brick_index == 0) return;
-    if (rect.w < 2 or rect.h < 2) return;
-
-    const style = brickProbeStyle(brick_index);
-    switch (style.pattern) {
-        .vertical => {
-            var x = rect.x;
-            while (x <= rect.right()) : (x += style.spacing) {
-                try canvas.drawLine(x, rect.y, x, rect.bottom(), color);
-            }
-        },
-        .horizontal => {
-            var y = rect.y;
-            while (y <= rect.bottom()) : (y += style.spacing) {
-                try canvas.drawLine(rect.x, y, rect.right(), y, color);
-            }
-        },
-        .diagonal_descending => {
-            var offset = -rect.h;
-            while (offset <= rect.w) : (offset += style.spacing) {
-                try drawDiagonalProbeLine(canvas, rect, offset, false, color);
-            }
-        },
-        .diagonal_ascending => {
-            var offset = -rect.h;
-            while (offset <= rect.w) : (offset += style.spacing) {
-                try drawDiagonalProbeLine(canvas, rect, offset, true, color);
-            }
-        },
-        .checker => {
-            var row: i32 = 0;
-            while (row < rect.h) : (row += style.spacing) {
-                var column: i32 = 0;
-                while (column < rect.w) : (column += style.spacing) {
-                    if (((@divTrunc(row, style.spacing) + @divTrunc(column, style.spacing)) & 1) == 0) {
-                        const cell = sdl.Rect{
-                            .x = rect.x + column,
-                            .y = rect.y + row,
-                            .w = @min(style.spacing - 1, rect.w - column),
-                            .h = @min(style.spacing - 1, rect.h - row),
-                        };
-                        if (cell.w > 0 and cell.h > 0) try canvas.fillRect(cell, color);
-                    }
-                }
-            }
-        },
-    }
-}
-
-fn drawDiagonalProbeLine(
-    canvas: *sdl.Canvas,
-    rect: sdl.Rect,
-    offset: i32,
-    ascending: bool,
-    color: sdl.Color,
-) !void {
-    var started = false;
-    var start_x: i32 = 0;
-    var start_y: i32 = 0;
-    var end_x: i32 = 0;
-    var end_y: i32 = 0;
-
-    var y: i32 = 0;
-    while (y < rect.h) : (y += 1) {
-        const x = if (ascending) offset + y else offset + ((rect.h - 1) - y);
-        if (x < 0 or x >= rect.w) continue;
-
-        const point_x = rect.x + x;
-        const point_y = rect.y + y;
-        if (!started) {
-            started = true;
-            start_x = point_x;
-            start_y = point_y;
-        }
-        end_x = point_x;
-        end_y = point_y;
-    }
-
-    if (started) try canvas.drawLine(start_x, start_y, end_x, end_y, color);
-}
-
-pub fn brickProbeStyle(brick_index: u16) BrickProbeStyle {
-    return .{
-        .pattern = switch (brick_index % 5) {
-            0 => .vertical,
-            1 => .horizontal,
-            2 => .diagonal_descending,
-            3 => .diagonal_ascending,
-            else => .checker,
-        },
-        .spacing = 2 + @as(i32, @intCast((brick_index >> 2) % 3)),
-        .accent = 20 + @as(u8, @intCast((brick_index >> 5) % 44)),
-    };
-}
-
-pub fn shouldDrawCompositionBrickPreview(tile: state.CompositionTileSnapshot) bool {
-    return (tile.x % 8 == 0) and (tile.z % 8 == 0);
 }
 
 pub fn compositionTileColor(tile: state.CompositionTileSnapshot) sdl.Color {
@@ -509,6 +353,14 @@ pub fn findBrickPreview(previews: []const background_data.BrickPreview, brick_in
         if (preview.brick_index == brick_index) return preview;
     }
     return null;
+}
+
+pub fn requireBrickPreview(
+    previews: []const background_data.BrickPreview,
+    brick_index: u16,
+) !background_data.BrickPreview {
+    if (brick_index == 0) return error.ViewerBrickPreviewMissing;
+    return findBrickPreview(previews, brick_index) orelse error.ViewerBrickPreviewMissing;
 }
 
 pub fn findFirstNonEmptyFragmentCell(cells: []const state.FragmentZoneCellSnapshot) ?state.FragmentZoneCellSnapshot {

@@ -525,10 +525,8 @@ fn drawFragmentComparisonCard(
         null;
 
     if (maybe_brick_index) |brick_index| {
-        if (!try draw.drawBrickPreviewSurface(canvas, content, previews, brick_index)) {
-            try canvas.fillRect(content, draw.withAlpha(base_color, 164));
-        }
-        try draw.drawBrickProbe(canvas, content.inset(1), brick_index, draw.withAlpha(draw.lightenColor(base_color, 42), 168));
+        try draw.drawBrickPreviewSurface(canvas, content, previews, brick_index);
+        try canvas.fillRect(content, draw.withAlpha(base_color, 92));
     } else {
         try canvas.fillRect(content, .{ .r = 12, .g = 16, .b = 21, .a = 255 });
         try canvas.drawLine(content.x, content.y, content.right(), content.bottom(), draw.withAlpha(accent, 224));
