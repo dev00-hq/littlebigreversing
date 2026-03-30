@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 
 const sdl = struct {
     pub const Window = opaque {};
@@ -128,11 +129,47 @@ pub const Event = union(enum) {
     other,
 };
 
+pub const TraceRectOp = struct {
+    rect: Rect,
+    color: Color,
+};
+
+pub const TraceLineOp = struct {
+    x1: i32,
+    y1: i32,
+    x2: i32,
+    y2: i32,
+    color: Color,
+};
+
+pub const TraceOp = union(enum) {
+    clear: Color,
+    draw_line: TraceLineOp,
+    draw_rect: TraceRectOp,
+    fill_rect: TraceRectOp,
+    present: void,
+};
+
+pub const CanvasTrace = struct {
+    ops: std.ArrayListUnmanaged(TraceOp) = .empty,
+
+    pub fn deinit(self: *CanvasTrace, allocator: std.mem.Allocator) void {
+        self.ops.deinit(allocator);
+        self.* = .{};
+    }
+
+    fn append(self: *CanvasTrace, allocator: std.mem.Allocator, op: TraceOp) !void {
+        try self.ops.append(allocator, op);
+    }
+};
+
 pub const Canvas = struct {
-    window: *sdl.Window,
-    renderer: *sdl.Renderer,
+    window: ?*sdl.Window,
+    renderer: ?*sdl.Renderer,
     width: i32,
     height: i32,
+    trace: ?*CanvasTrace = null,
+    trace_allocator: ?std.mem.Allocator = null,
 
     pub fn init(title: [*:0]const u8, width: i32, height: i32) !Canvas {
         if (sdl.SDL_Init(sdl.SDL_INIT_VIDEO) != 0) return error.SdlInitFailed;
@@ -167,39 +204,86 @@ pub const Canvas = struct {
         };
     }
 
+    pub fn initForTesting(
+        allocator: std.mem.Allocator,
+        width: i32,
+        height: i32,
+        trace: *CanvasTrace,
+    ) Canvas {
+        return .{
+            .window = null,
+            .renderer = null,
+            .width = width,
+            .height = height,
+            .trace = trace,
+            .trace_allocator = allocator,
+        };
+    }
+
     pub fn deinit(self: *Canvas) void {
-        sdl.SDL_DestroyRenderer(self.renderer);
-        sdl.SDL_DestroyWindow(self.window);
+        if (builtin.is_test) return;
+        if (self.renderer) |renderer| sdl.SDL_DestroyRenderer(renderer);
+        if (self.window) |window| sdl.SDL_DestroyWindow(window);
         sdl.SDL_Quit();
     }
 
     pub fn clear(self: *Canvas, color: Color) !void {
+        if (builtin.is_test) {
+            if (try self.traceOnly(.{ .clear = color })) return;
+            unreachable;
+        }
         try self.setColor(color);
-        if (sdl.SDL_RenderClear(self.renderer) != 0) return error.SdlRenderClearFailed;
+        if (sdl.SDL_RenderClear(self.renderer.?) != 0) return error.SdlRenderClearFailed;
     }
 
     pub fn drawLine(self: *Canvas, x1: i32, y1: i32, x2: i32, y2: i32, color: Color) !void {
+        if (builtin.is_test) {
+            if (try self.traceOnly(.{ .draw_line = .{
+                .x1 = x1,
+                .y1 = y1,
+                .x2 = x2,
+                .y2 = y2,
+                .color = color,
+            } })) return;
+            unreachable;
+        }
         try self.setColor(color);
-        if (sdl.SDL_RenderDrawLine(self.renderer, x1, y1, x2, y2) != 0) return error.SdlRenderDrawLineFailed;
+        if (sdl.SDL_RenderDrawLine(self.renderer.?, x1, y1, x2, y2) != 0) return error.SdlRenderDrawLineFailed;
     }
 
     pub fn drawRect(self: *Canvas, rect: Rect, color: Color) !void {
+        if (builtin.is_test) {
+            if (try self.traceOnly(.{ .draw_rect = .{ .rect = rect, .color = color } })) return;
+            unreachable;
+        }
         try self.setColor(color);
         var sdl_rect = toSdlRect(rect);
-        if (sdl.SDL_RenderDrawRect(self.renderer, &sdl_rect) != 0) return error.SdlRenderDrawRectFailed;
+        if (sdl.SDL_RenderDrawRect(self.renderer.?, &sdl_rect) != 0) return error.SdlRenderDrawRectFailed;
     }
 
     pub fn fillRect(self: *Canvas, rect: Rect, color: Color) !void {
+        if (builtin.is_test) {
+            if (try self.traceOnly(.{ .fill_rect = .{ .rect = rect, .color = color } })) return;
+            unreachable;
+        }
         try self.setColor(color);
         var sdl_rect = toSdlRect(rect);
-        if (sdl.SDL_RenderFillRect(self.renderer, &sdl_rect) != 0) return error.SdlRenderFillRectFailed;
+        if (sdl.SDL_RenderFillRect(self.renderer.?, &sdl_rect) != 0) return error.SdlRenderFillRectFailed;
     }
 
     pub fn present(self: *Canvas) void {
-        sdl.SDL_RenderPresent(self.renderer);
+        if (builtin.is_test) {
+            _ = self.traceOnly(.{ .present = {} }) catch {};
+            return;
+        }
+        sdl.SDL_RenderPresent(self.renderer.?);
     }
 
     pub fn waitEvent(self: *Canvas) !Event {
+        if (builtin.is_test) {
+            _ = self;
+            unreachable;
+        }
         _ = self;
 
         var event: sdl.SdlEvent = undefined;
@@ -223,9 +307,18 @@ pub const Canvas = struct {
     }
 
     fn setColor(self: *Canvas, color: Color) !void {
-        if (sdl.SDL_SetRenderDrawColor(self.renderer, color.r, color.g, color.b, color.a) != 0) {
+        if (builtin.is_test) return;
+        if (sdl.SDL_SetRenderDrawColor(self.renderer.?, color.r, color.g, color.b, color.a) != 0) {
             return error.SdlSetRenderDrawColorFailed;
         }
+    }
+
+    fn traceOnly(self: *Canvas, op: TraceOp) !bool {
+        if (self.trace) |trace| {
+            try trace.append(self.trace_allocator.?, op);
+            return true;
+        }
+        return false;
     }
 };
 
