@@ -50,6 +50,9 @@ pub fn main() !void {
 
     try lba2.app.viewer_shell.printStartupDiagnostics(stderr, resolved, room);
     const render = lba2.app.viewer_shell.buildRenderSnapshot(room);
+    const fragment_catalog = try lba2.app.viewer_shell.buildFragmentComparisonCatalog(allocator, render);
+    defer fragment_catalog.deinit(allocator);
+    var fragment_selection = lba2.app.viewer_shell.initialFragmentComparisonSelection(fragment_catalog);
     const title = try lba2.app.viewer_shell.formatWindowTitleZ(allocator, room);
     defer allocator.free(title);
     try stderr.flush();
@@ -65,7 +68,7 @@ pub fn main() !void {
     };
     defer canvas.deinit();
 
-    lba2.app.viewer_shell.renderDebugView(&canvas, render) catch |err| {
+    lba2.app.viewer_shell.renderDebugViewWithSelection(&canvas, render, fragment_catalog, fragment_selection) catch |err| {
         lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
         stderr.flush() catch {};
         return err;
@@ -79,10 +82,23 @@ pub fn main() !void {
         };
         switch (event) {
             .quit => break,
-            .redraw => lba2.app.viewer_shell.renderDebugView(&canvas, render) catch |err| {
+            .redraw => lba2.app.viewer_shell.renderDebugViewWithSelection(&canvas, render, fragment_catalog, fragment_selection) catch |err| {
                 lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
                 stderr.flush() catch {};
                 return err;
+            },
+            .key_down => |key| {
+                fragment_selection = switch (key) {
+                    .left => lba2.app.viewer_shell.stepRankedFragmentComparisonSelection(fragment_catalog, fragment_selection, -1),
+                    .right => lba2.app.viewer_shell.stepRankedFragmentComparisonSelection(fragment_catalog, fragment_selection, 1),
+                    .up => lba2.app.viewer_shell.stepCellFragmentComparisonSelection(fragment_catalog, fragment_selection, -1),
+                    .down => lba2.app.viewer_shell.stepCellFragmentComparisonSelection(fragment_catalog, fragment_selection, 1),
+                };
+                lba2.app.viewer_shell.renderDebugViewWithSelection(&canvas, render, fragment_catalog, fragment_selection) catch |err| {
+                    lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
+                    stderr.flush() catch {};
+                    return err;
+                };
             },
             .other => {},
         }

@@ -4,8 +4,13 @@ const layout = @import("layout.zig");
 const draw = @import("draw.zig");
 const fragment_compare = @import("fragment_compare.zig");
 
-pub fn renderDebugView(canvas: *sdl.Canvas, snapshot: state.RenderSnapshot) !void {
-    const fragment_panel = fragment_compare.buildFragmentComparisonPanel(snapshot);
+pub fn renderDebugView(
+    canvas: *sdl.Canvas,
+    snapshot: state.RenderSnapshot,
+    catalog: fragment_compare.FragmentComparisonCatalog,
+    selection: fragment_compare.FragmentComparisonSelection,
+) !void {
+    const fragment_panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
     const debug_layout = layout.computeDebugLayout(
         canvas.width,
         canvas.height,

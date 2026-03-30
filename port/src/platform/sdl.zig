@@ -20,9 +20,26 @@ const sdl = struct {
         data1: i32,
         data2: i32,
     };
+    pub const Keysym = extern struct {
+        scancode: i32,
+        sym: i32,
+        mod: u16,
+        unused: u32,
+    };
+    pub const KeyboardEvent = extern struct {
+        type: u32,
+        timestamp: u32,
+        window_id: u32,
+        state: u8,
+        repeat: u8,
+        padding2: u8,
+        padding3: u8,
+        keysym: Keysym,
+    };
     pub const SdlEvent = extern union {
         type: u32,
         window: WindowEvent,
+        key: KeyboardEvent,
         padding: [56]u8,
     };
 
@@ -52,8 +69,13 @@ const sdl = struct {
     pub const SDL_INIT_VIDEO: u32 = 0x00000020;
     pub const SDL_QUIT: u32 = 0x00000100;
     pub const SDL_WINDOWEVENT: u32 = 0x00000200;
+    pub const SDL_KEYDOWN: u32 = 0x00000300;
     pub const SDL_WINDOWEVENT_EXPOSED: u8 = 3;
     pub const SDL_WINDOWEVENT_SIZE_CHANGED: u8 = 6;
+    pub const SDLK_LEFT: i32 = 1073741904;
+    pub const SDLK_RIGHT: i32 = 1073741903;
+    pub const SDLK_UP: i32 = 1073741906;
+    pub const SDLK_DOWN: i32 = 1073741905;
     pub const SDL_WINDOW_SHOWN: u32 = 0x00000004;
     pub const SDL_WINDOWPOS_CENTERED: c_int = 0x2FFF0000;
     pub const SDL_RENDERER_ACCELERATED: u32 = 0x00000002;
@@ -92,9 +114,17 @@ pub const Rect = struct {
     }
 };
 
-pub const Event = enum {
+pub const Key = enum {
+    left,
+    right,
+    up,
+    down,
+};
+
+pub const Event = union(enum) {
     quit,
     redraw,
+    key_down: Key,
     other,
 };
 
@@ -175,6 +205,15 @@ pub const Canvas = struct {
         var event: sdl.SdlEvent = undefined;
         if (sdl.SDL_WaitEvent(&event) == 0) return error.SdlWaitEventFailed;
         if (event.type == sdl.SDL_QUIT) return .quit;
+        if (event.type == sdl.SDL_KEYDOWN) {
+            return switch (event.key.keysym.sym) {
+                sdl.SDLK_LEFT => .{ .key_down = .left },
+                sdl.SDLK_RIGHT => .{ .key_down = .right },
+                sdl.SDLK_UP => .{ .key_down = .up },
+                sdl.SDLK_DOWN => .{ .key_down = .down },
+                else => .other,
+            };
+        }
         if (event.type == sdl.SDL_WINDOWEVENT) {
             if (event.window.event == sdl.SDL_WINDOWEVENT_EXPOSED or event.window.event == sdl.SDL_WINDOWEVENT_SIZE_CHANGED) {
                 return .redraw;

@@ -42,8 +42,10 @@ pub const WorldPointSnapshot = state.WorldPointSnapshot;
 pub const WorldBounds = state.WorldBounds;
 pub const RenderSnapshot = state.RenderSnapshot;
 pub const DebugLayout = layout.DebugLayout;
+pub const FragmentComparisonCatalog = fragment_compare.FragmentComparisonCatalog;
 pub const FragmentComparisonEntry = fragment_compare.FragmentComparisonEntry;
 pub const FragmentComparisonPanel = fragment_compare.FragmentComparisonPanel;
+pub const FragmentComparisonSelection = fragment_compare.FragmentComparisonSelection;
 pub const SchematicLayout = layout.SchematicLayout;
 pub const ScreenPoint = layout.ScreenPoint;
 
@@ -129,7 +131,45 @@ pub fn projectZoneBounds(snapshot: RenderSnapshot, schematic: sdl.Rect, zone: Zo
 }
 
 pub fn renderDebugView(canvas: *sdl.Canvas, snapshot: RenderSnapshot) !void {
-    return render.renderDebugView(canvas, snapshot);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(std.heap.page_allocator, snapshot);
+    defer catalog.deinit(std.heap.page_allocator);
+    return render.renderDebugView(canvas, snapshot, catalog, fragment_compare.initialFragmentComparisonSelection(catalog));
+}
+
+pub fn buildFragmentComparisonCatalog(
+    allocator: std.mem.Allocator,
+    snapshot: RenderSnapshot,
+) !FragmentComparisonCatalog {
+    return fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+}
+
+pub fn initialFragmentComparisonSelection(catalog: FragmentComparisonCatalog) FragmentComparisonSelection {
+    return fragment_compare.initialFragmentComparisonSelection(catalog);
+}
+
+pub fn stepRankedFragmentComparisonSelection(
+    catalog: FragmentComparisonCatalog,
+    selection: FragmentComparisonSelection,
+    delta: i32,
+) FragmentComparisonSelection {
+    return fragment_compare.stepRankedSelection(catalog, selection, delta);
+}
+
+pub fn stepCellFragmentComparisonSelection(
+    catalog: FragmentComparisonCatalog,
+    selection: FragmentComparisonSelection,
+    delta: i32,
+) FragmentComparisonSelection {
+    return fragment_compare.stepCellSelection(catalog, selection, delta);
+}
+
+pub fn renderDebugViewWithSelection(
+    canvas: *sdl.Canvas,
+    snapshot: RenderSnapshot,
+    catalog: FragmentComparisonCatalog,
+    selection: FragmentComparisonSelection,
+) !void {
+    return render.renderDebugView(canvas, snapshot, catalog, selection);
 }
 
 pub fn printStartupDiagnostics(

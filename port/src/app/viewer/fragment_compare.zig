@@ -58,6 +58,25 @@ pub const FragmentComparisonEntry = struct {
     detail: FragmentComparisonDetail,
 };
 
+pub const FragmentComparisonCatalog = struct {
+    ranked_entries: []FragmentComparisonEntry,
+    cell_entries: []FragmentComparisonEntry,
+    changed_count: usize,
+    exact_count: usize,
+    no_base_count: usize,
+
+    pub fn deinit(self: FragmentComparisonCatalog, allocator: std.mem.Allocator) void {
+        allocator.free(self.ranked_entries);
+        allocator.free(self.cell_entries);
+    }
+};
+
+pub const FragmentComparisonSelection = struct {
+    focus: ?FragmentComparisonEntry,
+    ranked_index: ?usize,
+    cell_index: ?usize,
+};
+
 pub const FragmentComparisonPanel = struct {
     focus: ?FragmentComparisonEntry,
     entries: [max_fragment_comparison_entries]FragmentComparisonEntry,
@@ -67,84 +86,115 @@ pub const FragmentComparisonPanel = struct {
     no_base_count: usize,
 };
 
-pub fn buildFragmentComparisonPanel(snapshot: state.RenderSnapshot) FragmentComparisonPanel {
-    var panel = FragmentComparisonPanel{
-        .focus = null,
-        .entries = undefined,
-        .entry_count = 0,
-        .changed_count = 0,
-        .exact_count = 0,
-        .no_base_count = 0,
-    };
+pub fn buildFragmentComparisonCatalog(
+    allocator: std.mem.Allocator,
+    snapshot: state.RenderSnapshot,
+) !FragmentComparisonCatalog {
+    var ranked: std.ArrayList(FragmentComparisonEntry) = .empty;
+    errdefer ranked.deinit(allocator);
+    var cells: std.ArrayList(FragmentComparisonEntry) = .empty;
+    errdefer cells.deinit(allocator);
 
+    var changed_count: usize = 0;
+    var exact_count: usize = 0;
+    var no_base_count: usize = 0;
     for (snapshot.fragments.zones) |zone| {
         for (zone.cells) |cell| {
             if (!cell.has_non_empty) continue;
 
             const entry = makeFragmentComparisonEntry(snapshot, zone, cell);
             switch (entry.delta) {
-                .changed => panel.changed_count += 1,
-                .exact => panel.exact_count += 1,
-                .no_base => panel.no_base_count += 1,
+                .changed => changed_count += 1,
+                .exact => exact_count += 1,
+                .no_base => no_base_count += 1,
             }
-            insertPanelEntry(&panel, entry);
+            try ranked.append(allocator, entry);
+            try cells.append(allocator, entry);
         }
     }
 
-    if (panel.entry_count > 0) panel.focus = panel.entries[0];
+    std.mem.sort(FragmentComparisonEntry, ranked.items, {}, lessThanRankedEntry);
+    std.mem.sort(FragmentComparisonEntry, cells.items, {}, lessThanCellEntry);
+
+    const ranked_entries = try ranked.toOwnedSlice(allocator);
+    errdefer allocator.free(ranked_entries);
+    const cell_entries = try cells.toOwnedSlice(allocator);
+
+    return .{
+        .ranked_entries = ranked_entries,
+        .cell_entries = cell_entries,
+        .changed_count = changed_count,
+        .exact_count = exact_count,
+        .no_base_count = no_base_count,
+    };
+}
+
+pub fn initialFragmentComparisonSelection(catalog: FragmentComparisonCatalog) FragmentComparisonSelection {
+    if (catalog.ranked_entries.len == 0) {
+        return .{
+            .focus = null,
+            .ranked_index = null,
+            .cell_index = null,
+        };
+    }
+
+    return .{
+        .focus = catalog.ranked_entries[0],
+        .ranked_index = 0,
+        .cell_index = indexOfEntry(catalog.cell_entries, catalog.ranked_entries[0]),
+    };
+}
+
+pub fn stepRankedSelection(
+    catalog: FragmentComparisonCatalog,
+    selection: FragmentComparisonSelection,
+    delta: i32,
+) FragmentComparisonSelection {
+    return stepSelection(catalog.ranked_entries, catalog, selection, delta, .ranked);
+}
+
+pub fn stepCellSelection(
+    catalog: FragmentComparisonCatalog,
+    selection: FragmentComparisonSelection,
+    delta: i32,
+) FragmentComparisonSelection {
+    return stepSelection(catalog.cell_entries, catalog, selection, delta, .cell);
+}
+
+pub fn buildFragmentComparisonPanel(
+    catalog: FragmentComparisonCatalog,
+    selection: FragmentComparisonSelection,
+) FragmentComparisonPanel {
+    var panel = FragmentComparisonPanel{
+        .focus = selection.focus,
+        .entries = undefined,
+        .entry_count = 0,
+        .changed_count = catalog.changed_count,
+        .exact_count = catalog.exact_count,
+        .no_base_count = catalog.no_base_count,
+    };
+    if (selection.focus == null) return panel;
+
+    const focus = selection.focus.?;
+    const focus_ranked_index = selection.ranked_index orelse indexOfEntry(catalog.ranked_entries, focus);
+    const focus_is_in_head = if (focus_ranked_index) |index| index < max_fragment_comparison_entries else false;
+    const ranked_head_limit: usize = if (focus_is_in_head)
+        max_fragment_comparison_entries
+    else
+        max_fragment_comparison_entries - 1;
+    const ranked_head_count = @min(catalog.ranked_entries.len, ranked_head_limit);
+
+    for (catalog.ranked_entries[0..ranked_head_count]) |entry| {
+        panel.entries[panel.entry_count] = entry;
+        panel.entry_count += 1;
+    }
+
+    if (!focus_isInPanel(panel, focus) and panel.entry_count < max_fragment_comparison_entries) {
+        panel.entries[panel.entry_count] = focus;
+        panel.entry_count += 1;
+    }
+
     return panel;
-}
-
-fn insertPanelEntry(panel: *FragmentComparisonPanel, entry: FragmentComparisonEntry) void {
-    if (panel.entry_count == 0) {
-        panel.entries[0] = entry;
-        panel.entry_count = 1;
-        return;
-    }
-
-    var insert_index = panel.entry_count;
-    var index: usize = 0;
-    while (index < panel.entry_count) : (index += 1) {
-        if (isPreferredComparisonEntry(entry, panel.entries[index])) {
-            insert_index = index;
-            break;
-        }
-    }
-
-    if (insert_index == panel.entry_count) {
-        if (panel.entry_count < max_fragment_comparison_entries) {
-            panel.entries[panel.entry_count] = entry;
-            panel.entry_count += 1;
-        }
-        return;
-    }
-
-    const new_count = @min(panel.entry_count + 1, max_fragment_comparison_entries);
-    var shift_index = new_count - 1;
-    while (shift_index > insert_index) : (shift_index -= 1) {
-        panel.entries[shift_index] = panel.entries[shift_index - 1];
-    }
-    panel.entries[insert_index] = entry;
-    panel.entry_count = new_count;
-}
-
-fn isPreferredComparisonEntry(candidate: FragmentComparisonEntry, existing: FragmentComparisonEntry) bool {
-    const candidate_priority = fragmentComparisonPriority(candidate.delta);
-    const existing_priority = fragmentComparisonPriority(existing.delta);
-    if (candidate_priority != existing_priority) return candidate_priority < existing_priority;
-
-    const candidate_changed = candidate.detail.changedAspectCount();
-    const existing_changed = existing.detail.changedAspectCount();
-    if (candidate_changed != existing_changed) return candidate_changed > existing_changed;
-
-    const candidate_stack_delta = @abs(candidate.detail.stackDepthDelta());
-    const existing_stack_delta = @abs(existing.detail.stackDepthDelta());
-    if (candidate_stack_delta != existing_stack_delta) return candidate_stack_delta > existing_stack_delta;
-
-    if (candidate.zone_index != existing.zone_index) return candidate.zone_index < existing.zone_index;
-    if (candidate.z != existing.z) return candidate.z < existing.z;
-    if (candidate.x != existing.x) return candidate.x < existing.x;
-    return candidate.fragment_entry_index < existing.fragment_entry_index;
 }
 
 fn makeFragmentComparisonEntry(
@@ -659,4 +709,98 @@ pub fn findCompositionTile(tiles: []const state.CompositionTileSnapshot, x: usiz
         if (tile.x == x and tile.z == z) return tile;
     }
     return null;
+}
+
+const SelectionOrder = enum {
+    ranked,
+    cell,
+};
+
+fn stepSelection(
+    entries: []const FragmentComparisonEntry,
+    catalog: FragmentComparisonCatalog,
+    selection: FragmentComparisonSelection,
+    delta: i32,
+    order: SelectionOrder,
+) FragmentComparisonSelection {
+    if (entries.len == 0) {
+        return .{
+            .focus = null,
+            .ranked_index = null,
+            .cell_index = null,
+        };
+    }
+
+    const current_index = switch (order) {
+        .ranked => selection.ranked_index orelse indexOfEntry(entries, selection.focus orelse entries[0]) orelse 0,
+        .cell => selection.cell_index orelse indexOfEntry(entries, selection.focus orelse entries[0]) orelse 0,
+    };
+    const next_index = wrappedIndex(entries.len, current_index, delta);
+    const focus = entries[next_index];
+    return .{
+        .focus = focus,
+        .ranked_index = indexOfEntry(catalog.ranked_entries, focus),
+        .cell_index = indexOfEntry(catalog.cell_entries, focus),
+    };
+}
+
+fn wrappedIndex(len: usize, index: usize, delta: i32) usize {
+    const signed_len: i32 = @intCast(len);
+    const signed_index: i32 = @intCast(index);
+    const wrapped = @mod(signed_index + delta, signed_len);
+    return @intCast(wrapped);
+}
+
+fn lessThanRankedEntry(_: void, lhs: FragmentComparisonEntry, rhs: FragmentComparisonEntry) bool {
+    return isPreferredComparisonEntry(lhs, rhs);
+}
+
+fn lessThanCellEntry(_: void, lhs: FragmentComparisonEntry, rhs: FragmentComparisonEntry) bool {
+    if (lhs.zone_index != rhs.zone_index) return lhs.zone_index < rhs.zone_index;
+    if (lhs.z != rhs.z) return lhs.z < rhs.z;
+    if (lhs.x != rhs.x) return lhs.x < rhs.x;
+    return lhs.fragment_entry_index < rhs.fragment_entry_index;
+}
+
+fn isPreferredComparisonEntry(candidate: FragmentComparisonEntry, existing: FragmentComparisonEntry) bool {
+    const candidate_priority = fragmentComparisonPriority(candidate.delta);
+    const existing_priority = fragmentComparisonPriority(existing.delta);
+    if (candidate_priority != existing_priority) return candidate_priority < existing_priority;
+
+    const candidate_changed = candidate.detail.changedAspectCount();
+    const existing_changed = existing.detail.changedAspectCount();
+    if (candidate_changed != existing_changed) return candidate_changed > existing_changed;
+
+    const candidate_stack_delta = @abs(candidate.detail.stackDepthDelta());
+    const existing_stack_delta = @abs(existing.detail.stackDepthDelta());
+    if (candidate_stack_delta != existing_stack_delta) return candidate_stack_delta > existing_stack_delta;
+
+    if (candidate.zone_index != existing.zone_index) return candidate.zone_index < existing.zone_index;
+    if (candidate.z != existing.z) return candidate.z < existing.z;
+    if (candidate.x != existing.x) return candidate.x < existing.x;
+    return candidate.fragment_entry_index < existing.fragment_entry_index;
+}
+
+fn focus_isInPanel(panel: FragmentComparisonPanel, focus: FragmentComparisonEntry) bool {
+    for (panel.entries[0..panel.entry_count]) |entry| {
+        if (sameEntry(entry, focus)) return true;
+    }
+    return false;
+}
+
+fn indexOfEntry(entries: []const FragmentComparisonEntry, target: FragmentComparisonEntry) ?usize {
+    for (entries, 0..) |entry, index| {
+        if (sameEntry(entry, target)) return index;
+    }
+    return null;
+}
+
+fn sameEntry(lhs: FragmentComparisonEntry, rhs: FragmentComparisonEntry) bool {
+    return lhs.zone_index == rhs.zone_index and
+        lhs.fragment_entry_index == rhs.fragment_entry_index and
+        lhs.x == rhs.x and
+        lhs.z == rhs.z and
+        lhs.delta == rhs.delta and
+        lhs.fragment_cell.top_brick_index == rhs.fragment_cell.top_brick_index and
+        lhs.fragment_cell.stack_depth == rhs.fragment_cell.stack_depth;
 }
