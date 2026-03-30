@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Own repo-wide port direction, stable module seams, and the canonical Codex memory workflow surface.
+Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Invariants
 
@@ -13,22 +13,20 @@ Own repo-wide port direction, stable module seams, and the canonical Codex memor
 
 ## Current Parity Status
 
-- `docs/LBA2_ZIG_PORT_PLAN.md` remains the canonical roadmap.
-- `port/` is the only canonical implementation workspace.
-- The v2 memory tree replaced the old handoff-plus-mixed-log model.
+- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains the only implementation workspace, and the v2 memory tree replaced the old mixed-log model.
 
 ## Known Traps
 
-- `docs/PROMPT.md` can lag behind repo work; cross-check current packs before following it literally.
-- Prompt text around "brick-backed" viewer work can lag the repo. The current viewer uses decoded `BRK` previews for composition, fragment, and comparison top surfaces, but it still is not a full room-art renderer.
-- Prompt text around the viewer self-description work can lag too. The live SDL render path now owns the room metadata HUD, overlay legend, focus state callouts, and explicit `2/2` zero-fragment messaging, so do not treat the window title or stderr startup dump as the canonical screenshot/debug surface.
-- Older prompt text can outrun `inspect-room --json`. The CLI still reports `11/10` fragment counts, linkage, and `BRK` summaries, but not the projected fragment cells behind the comparison panel, so validate per-cell deltas via viewer tests/runtime.
-- The canonical `2/2` interior pair is not guaranteed to exercise the next viewer slice just because the prompt says so. For fragment work specifically, the checked-in probes now show `SCENE.HQR[2]` has no `grm` zones and `LBA_BKG.HQR[2]` owns zero fragment entries, so use the explicit zero-state as the truth and do not fabricate runtime overlays from `my_grm` or `grm_entry_index` alone.
-- The checked-in positive fragment evidence pair is `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]`, not a same-index guess. Scene-driven `grm` projection on that pair also requires boundary-aligned max-coordinate handling, so do not reuse the older `max - min + 1` span math from non-fragment overlays.
+- `docs/PROMPT.md` can lag behind repo work; cross-check current packs and history before following it literally.
+- The current viewer uses decoded `BRK` previews plus a live HUD/legend, but it is still not a full room-art renderer and the window title/stderr dump is no longer the canonical debug surface.
+- `inspect-room --json` still reports `11/10` counts, linkage, and `BRK` summaries, but not the projected comparison cells; validate per-cell deltas via viewer tests/runtime.
+- Treat `2/2` as the explicit zero-fragment control path and do not infer fragments from `my_grm` or `grm_entry_index` alone.
+- The positive fragment evidence pair is `11/10`, not a same-index guess, and its `grm` projection needs boundary-aligned max-coordinate handling.
 - `docs/PORTING_REPORT.md` still carries older feasibility context; use it as evidence background, not as the execution owner.
-- Canonical Windows Zig checks should run from native PowerShell, usually after `.\scripts\dev-shell.ps1`; `bash -lc` is fine for inspection work but can miss the real Windows toolchain layout.
-- `zig build test` is not a substitute for the explicit acceptance command in a prompt. App-only compile errors can still hide on the `zig build run` path until you build the executable target directly, so keep the prompt's explicit `run` or `tool` command in the validation pass when the slice changes runtime code.
+- Canonical Windows Zig checks should run from native PowerShell after `.\scripts\dev-shell.ps1`; reserve `bash -lc` for inspection work.
+- `zig build test` is not a substitute for a prompt's explicit `zig build run` or `zig build tool` acceptance command.
 - Interrupted `zig build run` viewer launches can strand `lba2.exe` under `port/zig-out/bin/` and make the next install step fail with `AccessDenied`. If that happens, clear the stale `lba2` process before treating the runtime command as a code regression.
+- `tools/codex_memory.py` validates subsystem-pack budgets on write. If an `add-*` command fails, check oversized packs as well as JSONL drift.
 - `ISSUES.md` must stay aligned with new recurring traps instead of leaving them only in chat or task history.
 - The checked-in v2 history can already be dirty. If `python tools/codex_memory.py validate` fails at task start, inspect the flagged JSONL records for canonicalization drift such as stale `record_id` hashes, fractional-second timestamps, or overlong summaries before treating the CLI as the problem.
 - Preserved legacy docs are evidence, not numeric ground truth. If a spec mixes index bases or disagrees with asset-backed regressions, keep the structural insight but trust the checked-in probe or test for exact values.
@@ -53,5 +51,4 @@ Own repo-wide port direction, stable module seams, and the canonical Codex memor
 
 ## Open Unknowns
 
-- Which future runtime seams deserve their own subsystem packs once implementation moves past inspection-only slices.
-- Whether repo-local skills are worth adding on top of the current CLI without becoming canonical dependencies.
+- Which future runtime seams deserve their own subsystem packs once work moves past the current viewer/runtime slices.
