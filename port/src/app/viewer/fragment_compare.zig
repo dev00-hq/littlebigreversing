@@ -13,6 +13,12 @@ pub const FragmentBrickDelta = enum {
     changed,
 };
 
+pub const FragmentComparisonDelta = enum {
+    no_base,
+    exact,
+    changed,
+};
+
 pub const FragmentComparisonDetail = struct {
     base_present: bool,
     brick_matches: bool,
@@ -35,6 +41,10 @@ pub const FragmentComparisonDetail = struct {
         if (self.base_stack_depth != self.fragment_stack_depth) count += 1;
         return count;
     }
+
+    pub fn isExactMatch(self: FragmentComparisonDetail) bool {
+        return self.base_present and self.changedAspectCount() == 0;
+    }
 };
 
 pub const FragmentComparisonEntry = struct {
@@ -42,7 +52,7 @@ pub const FragmentComparisonEntry = struct {
     fragment_entry_index: usize,
     x: usize,
     z: usize,
-    delta: FragmentBrickDelta,
+    delta: FragmentComparisonDelta,
     base_tile: ?state.CompositionTileSnapshot,
     fragment_cell: state.FragmentZoneCellSnapshot,
     detail: FragmentComparisonDetail,
@@ -53,7 +63,7 @@ pub const FragmentComparisonPanel = struct {
     entries: [max_fragment_comparison_entries]FragmentComparisonEntry,
     entry_count: usize,
     changed_count: usize,
-    same_count: usize,
+    exact_count: usize,
     no_base_count: usize,
 };
 
@@ -63,7 +73,7 @@ pub fn buildFragmentComparisonPanel(snapshot: state.RenderSnapshot) FragmentComp
         .entries = undefined,
         .entry_count = 0,
         .changed_count = 0,
-        .same_count = 0,
+        .exact_count = 0,
         .no_base_count = 0,
     };
 
@@ -74,7 +84,7 @@ pub fn buildFragmentComparisonPanel(snapshot: state.RenderSnapshot) FragmentComp
             const entry = makeFragmentComparisonEntry(snapshot, zone, cell);
             switch (entry.delta) {
                 .changed => panel.changed_count += 1,
-                .same => panel.same_count += 1,
+                .exact => panel.exact_count += 1,
                 .no_base => panel.no_base_count += 1,
             }
             insertPanelEntry(&panel, entry);
@@ -149,12 +159,7 @@ fn makeFragmentComparisonEntry(
         .fragment_entry_index = zone.fragment_entry_index,
         .x = cell.x,
         .z = cell.z,
-        .delta = if (!detail.base_present)
-            .no_base
-        else if (detail.brick_matches)
-            .same
-        else
-            .changed,
+        .delta = fragmentComparisonDelta(detail),
         .base_tile = base_tile,
         .fragment_cell = cell,
         .detail = detail,
@@ -185,18 +190,23 @@ pub fn buildFragmentComparisonDetail(
         };
 }
 
-fn fragmentComparisonPriority(delta: FragmentBrickDelta) u8 {
+pub fn fragmentComparisonDelta(detail: FragmentComparisonDetail) FragmentComparisonDelta {
+    if (!detail.base_present) return .no_base;
+    return if (detail.isExactMatch()) .exact else .changed;
+}
+
+fn fragmentComparisonPriority(delta: FragmentComparisonDelta) u8 {
     return switch (delta) {
         .changed => 0,
-        .same => 1,
+        .exact => 1,
         .no_base => 2,
     };
 }
 
-pub fn fragmentComparisonDeltaColor(delta: FragmentBrickDelta) sdl.Color {
+pub fn fragmentComparisonDeltaColor(delta: FragmentComparisonDelta) sdl.Color {
     return switch (delta) {
         .changed => .{ .r = 255, .g = 148, .b = 118, .a = 255 },
-        .same => .{ .r = 112, .g = 216, .b = 188, .a = 255 },
+        .exact => .{ .r = 112, .g = 216, .b = 188, .a = 255 },
         .no_base => .{ .r = 176, .g = 186, .b = 198, .a = 255 },
     };
 }
@@ -285,7 +295,7 @@ pub fn drawFragmentComparisonPanel(
 }
 
 fn drawFragmentComparisonSummary(canvas: *sdl.Canvas, rect: sdl.Rect, panel: FragmentComparisonPanel) !void {
-    const total = panel.changed_count + panel.same_count + panel.no_base_count;
+    const total = panel.changed_count + panel.exact_count + panel.no_base_count;
     try canvas.fillRect(rect, .{ .r = 18, .g = 24, .b = 30, .a = 255 });
     if (total == 0) {
         try canvas.drawRect(rect, .{ .r = 74, .g = 94, .b = 108, .a = 255 });
@@ -295,7 +305,7 @@ fn drawFragmentComparisonSummary(canvas: *sdl.Canvas, rect: sdl.Rect, panel: Fra
     var cursor_x = rect.x;
     const segments = [_]struct { count: usize, color: sdl.Color }{
         .{ .count = panel.changed_count, .color = fragmentComparisonDeltaColor(.changed) },
-        .{ .count = panel.same_count, .color = fragmentComparisonDeltaColor(.same) },
+        .{ .count = panel.exact_count, .color = fragmentComparisonDeltaColor(.exact) },
         .{ .count = panel.no_base_count, .color = fragmentComparisonDeltaColor(.no_base) },
     };
 
@@ -553,7 +563,7 @@ fn drawAspectMatchSlot(
     const border = if (!base_present)
         sdl.Color{ .r = 176, .g = 186, .b = 198, .a = 224 }
     else if (matches)
-        fragmentComparisonDeltaColor(.same)
+        fragmentComparisonDeltaColor(.exact)
     else
         draw.lightenColor(accent, 8);
     try canvas.fillRect(rect, draw.withAlpha(draw.darkenColor(border, 146), 74));
@@ -604,7 +614,7 @@ fn drawStackDepthSlot(
     const border = if (!detail.base_present)
         fragmentComparisonDeltaColor(.no_base)
     else if (detail.base_stack_depth == detail.fragment_stack_depth)
-        fragmentComparisonDeltaColor(.same)
+        fragmentComparisonDeltaColor(.exact)
     else
         accent;
     try canvas.fillRect(rect, draw.withAlpha(draw.darkenColor(border, 146), 74));
@@ -637,7 +647,7 @@ fn drawStackDepthSlot(
     };
 
     if (base_bar.w > 0 and base_bar.h > 0) {
-        try canvas.fillRect(base_bar, draw.withAlpha(fragmentComparisonDeltaColor(.same), 184));
+        try canvas.fillRect(base_bar, draw.withAlpha(fragmentComparisonDeltaColor(.exact), 184));
     }
     if (fragment_bar.w > 0 and fragment_bar.h > 0) {
         try canvas.fillRect(fragment_bar, draw.withAlpha(border, if (detail.base_stack_depth == detail.fragment_stack_depth) 184 else 228));
