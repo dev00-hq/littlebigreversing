@@ -31,6 +31,9 @@ pub fn renderDebugView(
     try canvas.drawRect(debug_layout.schematic_frame, .{ .r = 56, .g = 80, .b = 92, .a = 255 });
     try drawComposition(canvas, debug_layout.schematic, snapshot);
     try drawFragmentZones(canvas, debug_layout.schematic, snapshot);
+    if (fragment_panel.focus) |focus| {
+        try drawFocusedFragmentZoneOverlay(canvas, debug_layout.schematic, snapshot, focus);
+    }
     try drawGrid(canvas, debug_layout.schematic, snapshot.grid_width, snapshot.grid_depth);
     if (fragment_panel.focus) |focus| {
         try fragment_compare.drawFragmentFocusHighlight(canvas, debug_layout.schematic, snapshot, focus);
@@ -147,6 +150,54 @@ fn drawFragmentZones(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: state.Render
         }
         try canvas.drawRect(zone_bounds, border_color);
     }
+}
+
+pub fn focusedFragmentZoneOverlayFillColor() sdl.Color {
+    return .{ .r = 84, .g = 192, .b = 232, .a = 54 };
+}
+
+pub fn focusedFragmentZoneOverlayBorderColor() sdl.Color {
+    return .{ .r = 112, .g = 228, .b = 255, .a = 228 };
+}
+
+fn drawFocusedFragmentZoneOverlay(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    snapshot: state.RenderSnapshot,
+    focus: fragment_compare.FragmentComparisonEntry,
+) !void {
+    const zone = findFocusedFragmentZone(snapshot, focus);
+    const zone_rect = layout.projectGridAreaRect(
+        rect,
+        snapshot.grid_width,
+        snapshot.grid_depth,
+        zone.origin_x,
+        zone.origin_z,
+        zone.width,
+        zone.depth,
+    );
+    try canvas.fillRect(zone_rect, focusedFragmentZoneOverlayFillColor());
+
+    const inner_rect = zone_rect.inset(2);
+    if (inner_rect.w > 4 and inner_rect.h > 4) {
+        try canvas.drawRect(inner_rect, focusedFragmentZoneOverlayBorderColor());
+    }
+}
+
+fn findFocusedFragmentZone(
+    snapshot: state.RenderSnapshot,
+    focus: fragment_compare.FragmentComparisonEntry,
+) state.FragmentZoneSnapshot {
+    for (snapshot.fragments.zones) |zone| {
+        if (zone.zone_index == focus.zone_index and
+            zone.zone_num == focus.zone_num and
+            zone.grm_index == focus.grm_index and
+            zone.fragment_entry_index == focus.fragment_entry_index)
+        {
+            return zone;
+        }
+    }
+    unreachable;
 }
 
 fn drawCompositionTile(

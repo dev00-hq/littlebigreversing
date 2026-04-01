@@ -1,62 +1,65 @@
 # Next Prompt
 
 Relevant subsystem packs for this task: `architecture`, `backgrounds`, and `platform_windows`.
-Load `scene_decode` only if the runtime verification exposes a scene-metadata mismatch.
+Load `scene_decode` only if you need to cross-check the checked-in evidence pairs or scene metadata while implementing the focused-zone overlay.
 
-The viewer-local HUD / legend slice from the previous prompt is already landed. The next step is not another viewer feature pass. The next step is a Windows-native end-to-end verification and fixup pass for the live viewer path that now exists.
+The previous landing / verification slice is complete. The viewer-local HUD / legend, selected-cell provenance text, and native PowerShell verification path are already landed. The next step is one narrow viewer-local evidence cue on top of that existing runtime path: make the owning fragment zone visually obvious on the schematic when the checked-in `11/10` fragment cell is focused.
 
 The current repo state already has:
 
 - viewer-local composition snapshots
 - `BRK`-backed top-surface rendering on composition, fragment, and comparison cards
 - the fragment comparison panel, selected-cell detail strip, deterministic navigation, and pinned selected-cell row
-- viewer-local HUD / legend chrome that surfaces room metadata, focus state, comparison ordering, navigation semantics, and explicit `2/2` zero-fragment messaging
+- viewer-local HUD / legend chrome that surfaces room metadata, focus state, comparison ordering, navigation semantics, explicit `2/2` zero-fragment messaging, and now selected-cell zone provenance / stack-depth evidence
 - deterministic render-path regression coverage for the `11/10` fragment path, the `2/2` zero-fragment path, and missing-preview failures
-
-Use the next run to validate that landed behavior through the canonical Windows runtime path and fix only concrete mismatches that show up there.
+- a canonical Windows verification gate in `scripts/verify-viewer.ps1`
 
 Target the checked-in evidence pairs:
 
 - `SCENE.HQR[11]` with `LBA_BKG.HQR[10]` is the fragment-bearing runtime path.
 - `SCENE.HQR[2]` with `LBA_BKG.HQR[2]` is the explicit zero-fragment control path.
 
-Implement a narrow validation/fixup slice that:
+Implement a narrow viewer-local refinement slice that:
 
-- runs the canonical checks from native PowerShell, not `bash -lc`, and loads `.\scripts\dev-shell.ps1` from the repo root before validating inside `port/`
-- treats `zig build run -- --scene-entry 11 --background-entry 10` and `zig build run -- --scene-entry 2 --background-entry 2` as first-class acceptance commands, not optional smoke checks
-- preserves the current viewer-local composition, `BRK` preview rendering, comparison panel, detail strip, navigation, pinned selection behavior, HUD / legend surfaces, and render-path tests unless the executable path proves something is wrong
-- fixes runtime-only discrepancies in the smallest canonical place if the live executable disagrees with the landed render tests or with the intended `11/10` / `2/2` viewer behavior
-- adds or adjusts regression coverage only to lock in a real bug found during that verification pass
+- adds a distinct overlay on the schematic for the owning fragment-zone footprint when the viewer has a focused fragment cell on `11/10`, and makes that overlay visually distinct from the existing fragment-zone border and focused-cell marker
+- keeps that overlay viewer-local and driven directly from the focused `FragmentComparisonEntry` plus the existing render snapshot / schematic projection path instead of inventing a new handoff layer or metadata path
+- preserves the current composition rendering, `BRK` preview surfaces, comparison panel, selected-cell detail strip, deterministic navigation, pinned selection behavior, HUD / legend text, and fail-fast preview handling unless a concrete bug is found while implementing the overlay
+- keeps `2/2` explicitly zero-fragment: no synthetic focus state, no comparison panel, and no fragment-zone overlay when no fragment focus exists
 - keeps probe commands (`inspect-room`) as cross-checks for counts and linkage, not as the source of truth for per-cell viewer state
-- clears any stale `lba2.exe` process if the known Windows lock trap blocks `zig build run`, then reruns instead of weakening the runtime path
+- reruns the canonical Windows verification gate before landing, using `pwsh -File scripts/verify-viewer.ps1`
+- updates memory only if the active repo status changes after the slice lands, and only in the canonical v2 locations
+- adds an `ISSUES.md` note only if the work uncovers a new recurring trap
 
 Relevant files are likely in:
 
-- `scripts/dev-shell.ps1`
 - `port/src/app/viewer/render.zig`
 - `port/src/app/viewer/render_test.zig`
+- `port/src/app/viewer/fragment_compare.zig`
 - `port/src/app/viewer/layout.zig`
 - `port/src/app/viewer/state.zig`
-- `port/src/app/viewer_shell.zig`
-- `port/src/main.zig`
-- `port/src/platform/sdl.zig`
+- `port/src/app/viewer/fragment_compare_test.zig`
+- `port/src/app/viewer/state_test.zig`
+- `scripts/verify-viewer.ps1`
+- `docs/codex_memory/task_events.jsonl`
+- `docs/codex_memory/current_focus.md`
+- `docs/codex_memory/subsystems/backgrounds.md`
+- `ISSUES.md`
 
 Guardrails:
 
-- Do not spend this slice adding another viewer feature, another comparison refinement, or a fuller room-art renderer if the runtime path already matches the landed tests.
-- Do not replace native PowerShell verification with `bash -lc` wrappers for canonical build/run commands.
-- Do not widen into gameplay, life binding, exterior loading, or a shared UI / room layer as part of this pass.
-- Do not use `inspect-room --json` as the source of truth for per-cell comparison behavior or current selection state; the viewer runtime/tests own that surface.
+- Do not widen this into another comparison panel redesign, a generalized scene-zone labeling system, or a fuller room-art renderer.
+- Do not widen a viewer-local refinement into gameplay, life binding, exterior loading, a shared UI / room layer, or another repo-wide cleanup pass.
+- Do not use `inspect-room --json` as the source of truth for per-cell comparison behavior or current selection state. The viewer runtime/tests own that surface.
 - Keep the checked-in positive pair as `11/10`; do not collapse it into a same-index assumption.
 - Keep the checked-in zero-fragment control as `2/2`.
 - Stay fail-fast if required `BRK` preview data or viewer metadata is unexpectedly missing instead of adding silent fallback behavior.
+- Keep the overlay readable as provenance evidence. It should not replace or obscure the existing selected-cell cue, the baseline fragment-zone border, or the `BRK`-backed surfaces.
 
 Acceptance:
 
-- from the repo root, `.\scripts\dev-shell.ps1` runs before validation
-- from `port/`, `zig build test` passes
-- from `port/`, `zig build tool -- inspect-room 11 10 --json` still reports the checked-in fragment and `BRK` summary counts
-- from `port/`, `zig build tool -- inspect-room 2 2 --json` still reports the explicit zero-fragment boundary
-- from `port/`, `zig build run -- --scene-entry 11 --background-entry 10` launches the viewer with the landed fragment comparison flow and HUD / legend visible on the live render path
-- from `port/`, `zig build run -- --scene-entry 2 --background-entry 2` launches the viewer with the landed explicit zero-fragment state and HUD / legend visible on the live render path
-- if the executable path matches the landed tests and intended behavior, do not add a new viewer feature just to keep the slice busy
+- `11/10` shows a distinct owning-zone provenance overlay on the focused cell's owning fragment-zone rect on the live schematic
+- `2/2` remains explicitly zero-fragment and does not render a fragment-zone overlay
+- render-path regression coverage asserts a deterministic trace op on the focused zone's projected rect for `11/10`, and asserts that no focused-zone overlay trace op appears on `2/2`
+- `pwsh -File scripts/verify-viewer.ps1` passes after the change
+- any typed history update stays within `codex-memory-v2` conventions
+- if the repo already contains the exact overlay behavior described above, land the slice as a no-op review instead of inventing another feature

@@ -17,7 +17,7 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`.
 - The viewer uses a viewer-local composition snapshot plus decoded `BRK` previews for composition tops, fragment cells, comparison cards, ranked/cell navigation, the pinned selected row, and the selected-cell detail strip.
 - `SCENE.HQR[2]` with `LBA_BKG.HQR[2]` is the explicit zero-fragment control path.
 - `SCENE.HQR[11]` with `LBA_BKG.HQR[10]` is the positive fragment evidence pair, with one projected fragment zone backed by fragment `149`.
-- The live render path now owns the viewer-local HUD/legend for pairing metadata, focus state, comparison semantics, selected-cell fragment ids, fragment-zone provenance (`zone_num`, `grm_index`, `initially_on`, footprint, dimensions, Y bounds), selected-cell world X/Z bounds, stack-depth evidence, delta summaries, and explicit `2/2` zero-fragment messaging.
+- The live render path now owns the viewer-local HUD/legend for pairing metadata, focus state, comparison semantics, selected-cell fragment ids, fragment-zone provenance (`zone_num`, `grm_index`, `initially_on`, footprint, dimensions, Y bounds), selected-cell world X/Z bounds, stack-depth evidence, delta summaries, the focused owning-zone provenance overlay on the live `11/10` schematic, and explicit `2/2` zero-fragment messaging.
 - The decoder loads `RESS.HQR[0]` plus referenced top-surface `BRK` entries and fails fast if an expected preview is missing.
 - Exterior `.ILE/.OBL`, full brick rasterization, and actor visual binding stay outside this pack.
 

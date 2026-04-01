@@ -24,6 +24,18 @@ fn hasTraceRectOp(trace: sdl.CanvasTrace, comptime tag: std.meta.Tag(sdl.TraceOp
     return false;
 }
 
+fn hasTraceRectColor(trace: sdl.CanvasTrace, comptime tag: std.meta.Tag(sdl.TraceOp), color: sdl.Color) bool {
+    for (trace.ops.items) |op| {
+        switch (op) {
+            tag => |entry| {
+                if (std.meta.eql(entry.color, color)) return true;
+            },
+            else => {},
+        }
+    }
+    return false;
+}
+
 fn hasPresent(trace: sdl.CanvasTrace) bool {
     for (trace.ops.items) |op| {
         if (std.meta.activeTag(op) == .present) return true;
@@ -41,6 +53,22 @@ fn hasTraceText(trace: sdl.CanvasTrace, text: []const u8) bool {
         }
     }
     return false;
+}
+
+fn findFocusedFragmentZone(
+    snapshot: state.RenderSnapshot,
+    focus: fragment_compare.FragmentComparisonEntry,
+) state.FragmentZoneSnapshot {
+    for (snapshot.fragments.zones) |zone| {
+        if (zone.zone_index == focus.zone_index and
+            zone.zone_num == focus.zone_num and
+            zone.grm_index == focus.grm_index and
+            zone.fragment_entry_index == focus.fragment_entry_index)
+        {
+            return zone;
+        }
+    }
+    unreachable;
 }
 
 fn firstComparisonRowRect(rect: sdl.Rect, entry_count: usize) sdl.Rect {
@@ -210,6 +238,47 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
     try std.testing.expect(hasPresent(trace));
 }
 
+test "viewer render path exposes a deterministic owning-zone rect for the focused 11/10 fragment cell" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try state.loadRoomSnapshot(allocator, resolved, 11, 10);
+    defer room.deinit(allocator);
+
+    const snapshot = state.buildRenderSnapshot(room);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+    const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
+    const panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
+    const debug_layout = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, panel.focus != null);
+    const focus = selection.focus.?;
+    const zone = findFocusedFragmentZone(snapshot, focus);
+    const focus_rect = layout.projectGridCellRect(debug_layout.schematic, snapshot.grid_width, snapshot.grid_depth, focus.x, focus.z);
+    const zone_rect = layout.projectGridAreaRect(
+        debug_layout.schematic,
+        snapshot.grid_width,
+        snapshot.grid_depth,
+        zone.origin_x,
+        zone.origin_z,
+        zone.width,
+        zone.depth,
+    );
+
+    var trace: sdl.CanvasTrace = .{};
+    defer trace.deinit(allocator);
+    var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
+
+    try render.renderDebugView(&canvas, snapshot, catalog, selection);
+
+    try std.testing.expect(zone_rect.x <= focus_rect.x);
+    try std.testing.expect(zone_rect.y <= focus_rect.y);
+    try std.testing.expect(zone_rect.right() >= focus_rect.right());
+    try std.testing.expect(zone_rect.bottom() >= focus_rect.bottom());
+    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, zone_rect, render.focusedFragmentZoneOverlayFillColor()));
+    try std.testing.expect(hasTraceRectOp(trace, .draw_rect, zone_rect, draw.fragmentZoneBorderColor(zone.initially_on)));
+}
+
 test "viewer render path keeps the selected cell pinned at the head of the comparison panel" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
@@ -268,6 +337,7 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     try std.testing.expectEqual(@as(?sdl.Rect, null), layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, false).comparison_frame);
     try std.testing.expect(!hasTraceRectOp(trace, .fill_rect, comparison_frame_if_present, .{ .r = 12, .g = 17, .b = 23, .a = 255 }));
     try std.testing.expect(!hasTraceRectOp(trace, .draw_rect, comparison_frame_if_present, .{ .r = 66, .g = 90, .b = 103, .a = 255 }));
+    try std.testing.expect(!hasTraceRectColor(trace, .fill_rect, render.focusedFragmentZoneOverlayFillColor()));
     try std.testing.expect(hasTraceText(trace, "ZERO FRAGMENT CONTROL"));
     try std.testing.expect(hasTraceText(trace, "PANEL HIDDEN"));
     try std.testing.expect(hasPresent(trace));
