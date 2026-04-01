@@ -49,7 +49,17 @@ pub const FragmentComparisonDetail = struct {
 
 pub const FragmentComparisonEntry = struct {
     zone_index: usize,
+    zone_num: i16,
+    grm_index: usize,
     fragment_entry_index: usize,
+    initially_on: bool,
+    zone_y_min: i32,
+    zone_y_max: i32,
+    zone_width: usize,
+    zone_height: u8,
+    zone_depth: usize,
+    zone_footprint_cell_count: usize,
+    zone_non_empty_cell_count: usize,
     x: usize,
     z: usize,
     delta: FragmentComparisonDelta,
@@ -194,7 +204,17 @@ fn makeFragmentComparisonEntry(
     const detail = buildFragmentComparisonDetail(base_tile, cell);
     return .{
         .zone_index = zone.zone_index,
+        .zone_num = zone.zone_num,
+        .grm_index = zone.grm_index,
         .fragment_entry_index = zone.fragment_entry_index,
+        .initially_on = zone.initially_on,
+        .zone_y_min = zone.y_min,
+        .zone_y_max = zone.y_max,
+        .zone_width = zone.width,
+        .zone_height = zone.height,
+        .zone_depth = zone.depth,
+        .zone_footprint_cell_count = zone.footprint_cell_count,
+        .zone_non_empty_cell_count = zone.non_empty_cell_count,
         .x = cell.x,
         .z = cell.z,
         .delta = fragmentComparisonDelta(detail),
@@ -261,6 +281,13 @@ pub fn formatDeltaSummary(buffer: []u8, detail: FragmentComparisonDetail) ![]con
     }
 
     return stream.getWritten();
+}
+
+pub fn formatStackSummary(buffer: []u8, detail: FragmentComparisonDetail) ![]const u8 {
+    if (!detail.base_present) {
+        return std.fmt.bufPrint(buffer, "-/{d}", .{detail.fragment_stack_depth});
+    }
+    return std.fmt.bufPrint(buffer, "{d}/{d}", .{ detail.base_stack_depth, detail.fragment_stack_depth });
 }
 
 fn fragmentComparisonPriority(delta: FragmentComparisonDelta) u8 {

@@ -142,29 +142,43 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
     const focus_world_bounds = state.gridCellWorldBounds(focus.x, focus.z);
     var focus_delta_summary_buffer: [24]u8 = undefined;
     const focus_delta_summary = try fragment_compare.formatDeltaSummary(&focus_delta_summary_buffer, focus.detail);
+    var focus_stack_summary_buffer: [16]u8 = undefined;
+    const focus_stack_summary = try fragment_compare.formatStackSummary(&focus_stack_summary_buffer, focus.detail);
     var focus_source_line_buffer: [48]u8 = undefined;
     const focus_source_line = try std.fmt.bufPrint(
         &focus_source_line_buffer,
         "CELL {d} {d} FR {d}",
         .{ focus.x, focus.z, focus.fragment_entry_index },
     );
-    var focus_world_x_line_buffer: [64]u8 = undefined;
-    const focus_world_x_line = try std.fmt.bufPrint(
-        &focus_world_x_line_buffer,
-        "WORLD X {d}..{d}",
-        .{ focus_world_bounds.min_x, focus_world_bounds.max_x },
+    var focus_zone_line_buffer: [48]u8 = undefined;
+    const focus_zone_line = try std.fmt.bufPrint(
+        &focus_zone_line_buffer,
+        "ZONE {d} NUM {d} {s}",
+        .{ focus.zone_index, focus.zone_num, if (focus.initially_on) "ON" else "OFF" },
     );
-    var focus_world_z_line_buffer: [64]u8 = undefined;
-    const focus_world_z_line = try std.fmt.bufPrint(
-        &focus_world_z_line_buffer,
-        "WORLD Z {d}..{d}",
-        .{ focus_world_bounds.min_z, focus_world_bounds.max_z },
+    var focus_grm_line_buffer: [48]u8 = undefined;
+    const focus_grm_line = try std.fmt.bufPrint(
+        &focus_grm_line_buffer,
+        "GRM {d} SZ {d}x{d}x{d}",
+        .{ focus.grm_index, focus.zone_width, focus.zone_height, focus.zone_depth },
     );
-    var focus_delta_line_buffer: [48]u8 = undefined;
+    var focus_footprint_line_buffer: [64]u8 = undefined;
+    const focus_footprint_line = try std.fmt.bufPrint(
+        &focus_footprint_line_buffer,
+        "FT {d} NE {d} Y {d}..{d}",
+        .{ focus.zone_footprint_cell_count, focus.zone_non_empty_cell_count, focus.zone_y_min, focus.zone_y_max },
+    );
+    var focus_world_line_buffer: [64]u8 = undefined;
+    const focus_world_line = try std.fmt.bufPrint(
+        &focus_world_line_buffer,
+        "X {d}..{d} Z {d}..{d}",
+        .{ focus_world_bounds.min_x, focus_world_bounds.max_x, focus_world_bounds.min_z, focus_world_bounds.max_z },
+    );
+    var focus_delta_line_buffer: [64]u8 = undefined;
     const focus_delta_line = try std.fmt.bufPrint(
         &focus_delta_line_buffer,
-        "DELTA {s}",
-        .{focus_delta_summary},
+        "DELTA {s} STK {s}",
+        .{ focus_delta_summary, focus_stack_summary },
     );
 
     var trace: sdl.CanvasTrace = .{};
@@ -185,8 +199,10 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
     try std.testing.expect(hasTraceText(trace, "FRAGMENT STATE"));
     try std.testing.expect(hasTraceText(trace, "FOCUS"));
     try std.testing.expect(hasTraceText(trace, focus_source_line));
-    try std.testing.expect(hasTraceText(trace, focus_world_x_line));
-    try std.testing.expect(hasTraceText(trace, focus_world_z_line));
+    try std.testing.expect(hasTraceText(trace, focus_zone_line));
+    try std.testing.expect(hasTraceText(trace, focus_grm_line));
+    try std.testing.expect(hasTraceText(trace, focus_footprint_line));
+    try std.testing.expect(hasTraceText(trace, focus_world_line));
     try std.testing.expect(hasTraceText(trace, focus_delta_line));
     try std.testing.expect(hasTraceText(trace, "OVERLAYS"));
     try std.testing.expect(hasTraceText(trace, "COMPARE ORDER"));

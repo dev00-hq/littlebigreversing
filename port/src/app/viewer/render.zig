@@ -273,29 +273,43 @@ fn drawHud(
         const world_bounds = state.gridCellWorldBounds(focus.x, focus.z);
         var delta_summary_buffer: [24]u8 = undefined;
         const delta_summary = try fragment_compare.formatDeltaSummary(&delta_summary_buffer, focus.detail);
+        var stack_summary_buffer: [16]u8 = undefined;
+        const stack_summary = try fragment_compare.formatStackSummary(&stack_summary_buffer, focus.detail);
         var focus_line_0_buffer: [48]u8 = undefined;
         const focus_line_0 = try std.fmt.bufPrint(
             &focus_line_0_buffer,
             "CELL {d} {d} FR {d}",
             .{ focus.x, focus.z, focus.fragment_entry_index },
         );
-        var focus_line_1_buffer: [64]u8 = undefined;
+        var focus_line_1_buffer: [48]u8 = undefined;
         const focus_line_1 = try std.fmt.bufPrint(
             &focus_line_1_buffer,
-            "WORLD X {d}..{d}",
-            .{ world_bounds.min_x, world_bounds.max_x },
+            "ZONE {d} NUM {d} {s}",
+            .{ focus.zone_index, focus.zone_num, if (focus.initially_on) "ON" else "OFF" },
         );
-        var focus_line_2_buffer: [64]u8 = undefined;
+        var focus_line_2_buffer: [48]u8 = undefined;
         const focus_line_2 = try std.fmt.bufPrint(
             &focus_line_2_buffer,
-            "WORLD Z {d}..{d}",
-            .{ world_bounds.min_z, world_bounds.max_z },
+            "GRM {d} SZ {d}x{d}x{d}",
+            .{ focus.grm_index, focus.zone_width, focus.zone_height, focus.zone_depth },
         );
-        var focus_line_3_buffer: [48]u8 = undefined;
+        var focus_line_3_buffer: [64]u8 = undefined;
         const focus_line_3 = try std.fmt.bufPrint(
             &focus_line_3_buffer,
-            "DELTA {s}",
-            .{delta_summary},
+            "FT {d} NE {d} Y {d}..{d}",
+            .{ focus.zone_footprint_cell_count, focus.zone_non_empty_cell_count, focus.zone_y_min, focus.zone_y_max },
+        );
+        var focus_line_4_buffer: [64]u8 = undefined;
+        const focus_line_4 = try std.fmt.bufPrint(
+            &focus_line_4_buffer,
+            "X {d}..{d} Z {d}..{d}",
+            .{ world_bounds.min_x, world_bounds.max_x, world_bounds.min_z, world_bounds.max_z },
+        );
+        var focus_line_5_buffer: [64]u8 = undefined;
+        const focus_line_5 = try std.fmt.bufPrint(
+            &focus_line_5_buffer,
+            "DELTA {s} STK {s}",
+            .{ delta_summary, stack_summary },
         );
         try drawHudTextCardWithMetrics(
             canvas,
@@ -303,8 +317,8 @@ fn drawHud(
             "FOCUS",
             fragment_compare.fragmentComparisonDeltaColor(focus.delta),
             1,
-            2,
-            &.{ focus_line_0, focus_line_1, focus_line_2, focus_line_3 },
+            1,
+            &.{ focus_line_0, focus_line_1, focus_line_2, focus_line_3, focus_line_4, focus_line_5 },
         );
     } else {
         var focus_line_1_buffer: [48]u8 = undefined;
@@ -319,7 +333,7 @@ fn drawHud(
             "FOCUS",
             .{ .r = 176, .g = 186, .b = 198, .a = 255 },
             1,
-            2,
+            1,
             &.{ "ZERO FRAGMENT CONTROL", focus_line_1, "PANEL HIDDEN" },
         );
     }

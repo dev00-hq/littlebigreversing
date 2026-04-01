@@ -241,6 +241,8 @@ test "viewer room snapshot projects the checked-in fragment-bearing interior pai
     try std.testing.expectEqual(@as(usize, 0), fragment_zone.grm_index);
     try std.testing.expectEqual(@as(usize, 149), fragment_zone.fragment_entry_index);
     try std.testing.expectEqual(false, fragment_zone.initially_on);
+    try std.testing.expect(fragment_zone.y_min >= 0);
+    try std.testing.expect(fragment_zone.y_max >= fragment_zone.y_min);
     try std.testing.expectEqual(@as(usize, 9), fragment_zone.origin_x);
     try std.testing.expectEqual(@as(usize, 17), fragment_zone.origin_z);
     try std.testing.expectEqual(@as(usize, 16), fragment_zone.width);
@@ -253,6 +255,7 @@ test "viewer room snapshot projects the checked-in fragment-bearing interior pai
     const first_non_empty_fragment_cell = findFirstNonEmptyFragmentCell(fragment_zone.cells).?;
     try std.testing.expect(first_non_empty_fragment_cell.top_brick_index > 0);
     try std.testing.expectEqual(@as(u16, 127), fragment_zone.cells[0].top_brick_index);
+    try std.testing.expectEqual((@as(i32, fragment_zone.height) - 1) * 256, fragment_zone.y_max - fragment_zone.y_min);
 }
 
 test "viewer render snapshot derives a deterministic schematic from the canonical room" {

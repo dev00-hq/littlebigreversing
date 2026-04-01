@@ -110,6 +110,30 @@ test "viewer fragment comparison delta summary names the changed aspects" {
     try std.testing.expectEqualStrings("NO BASE", no_base);
 }
 
+test "viewer fragment comparison stack summary captures base and fragment depth" {
+    var summary_buffer: [16]u8 = undefined;
+
+    const changed = try fragment_compare.formatStackSummary(&summary_buffer, .{
+        .base_present = true,
+        .brick_matches = true,
+        .floor_type_matches = true,
+        .shape_matches = true,
+        .base_stack_depth = 4,
+        .fragment_stack_depth = 2,
+    });
+    try std.testing.expectEqualStrings("4/2", changed);
+
+    const no_base = try fragment_compare.formatStackSummary(&summary_buffer, .{
+        .base_present = false,
+        .brick_matches = false,
+        .floor_type_matches = false,
+        .shape_matches = false,
+        .base_stack_depth = 0,
+        .fragment_stack_depth = 3,
+    });
+    try std.testing.expectEqualStrings("-/3", no_base);
+}
+
 test "viewer fragment comparison catalog prioritizes any delta ahead of exact matches" {
     const allocator = std.testing.allocator;
     const tiles = [_]state.CompositionTileSnapshot{
@@ -131,6 +155,8 @@ test "viewer fragment comparison catalog prioritizes any delta ahead of exact ma
             .grm_index = 0,
             .fragment_entry_index = 149,
             .initially_on = false,
+            .y_min = 512,
+            .y_max = 1024,
             .origin_x = 1,
             .origin_z = 1,
             .width = 7,
@@ -198,6 +224,8 @@ test "viewer fragment comparison selection can step ranked entries and fragment 
             .grm_index = 0,
             .fragment_entry_index = 149,
             .initially_on = false,
+            .y_min = 512,
+            .y_max = 1024,
             .origin_x = 1,
             .origin_z = 1,
             .width = 7,
