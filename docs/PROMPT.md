@@ -1,80 +1,75 @@
 # Next Prompt
 
-Relevant subsystem packs for this task: `architecture`, `life_scripts`, `backgrounds`, `scene_decode`, and `platform_windows`.
+Relevant subsystem packs for this task: `architecture`, `scene_decode`, `backgrounds`, `life_scripts`, and `platform_windows`.
 
-The previous Phase 5 entry slice is only partially coherent in the checked-in repo state:
+The previous docs/product-boundary coherence slice is effectively complete in the current worktree:
 
-- `listDecodedInteriorSceneCandidates` does prove there are `50` fully-decoded interior candidates, and `SCENE.HQR[19]` is the earliest one (`classic_loader_scene_number = 17`, `blob_count = 3`).
-- The guarded viewer/runtime seam in `loadRoomSnapshot` does reject unsupported scene life, so the supported positive guarded baseline is `19/19`.
-- `2/2` and `44/2` are guarded negative unsupported-scene-life cases on that viewer/runtime seam.
-- `11/10` is still useful checked-in fragment evidence, but only on explicit evidence or test-only unchecked paths.
+- `docs/LBA2_ZIG_PORT_PLAN.md` now describes `19/19` as the only positive guarded runtime/load baseline and keeps `2/2`, `44/2`, and `11/10` as guarded negative `ViewerUnsupportedSceneLife` cases.
+- `port/README.md` now distinguishes the guarded `19/19` path from the explicit test-only unchecked `11/10` evidence path.
+- `docs/codex_memory/current_focus.md`, `docs/codex_memory/subsystems/architecture.md`, `docs/codex_memory/subsystems/backgrounds.md`, and `docs/codex_memory/subsystems/life_scripts.md` already align with that branch-B boundary.
+- `port/src/app/viewer/state.zig`, `port/src/app/viewer/state_test.zig`, and `scripts/verify-viewer.ps1` already enforce the same guarded runtime/load seam.
 
-But the repo still has an incoherent second story:
+But the code still has an ownership gap that risks reintroducing dual behavior:
 
-- `inspect-room` in `port/src/tools/cli.zig` still uses an unguarded room inspection path.
-- `inspect-room 2 2 --json` still succeeds even though `2/2` is no longer inside the supported guarded runtime/load boundary.
-- CLI tests and `scripts/verify-viewer.ps1` still preserve older `2/2` and `11/10` positive fixture language that no longer matches the guarded product boundary.
-- There is no direct guarded negative regression for `loadRoomSnapshot(11, 10)`, so the evidence-only boundary for scene `11` is under-protected.
+- The guarded room/load types and loaders still live under `port/src/app/viewer/state.zig` even though the stable module plan says this ownership belongs in `runtime`.
+- `port/src/root.zig` still has no `runtime` module export.
+- `port/src/app/viewer_shell.zig` is re-exporting room/runtime state types from the viewer layer instead of consuming a canonical runtime surface.
+- `port/src/tools/cli.zig` currently stays on the guarded room/load seam by calling the viewer-owned loader; keep that seam intact during extraction and do not introduce a metadata-only inspection bypass while moving ownership.
 
-The next slice is to resolve that boundary drift, not to widen gameplay again yet.
+The next slice is a bounded runtime-ownership extraction, not more docs churn.
 
-Implement a bounded coherence pass that:
+Implement a current-state runtime extraction that:
 
-- makes the canonical room-inspection/runtime story match the guarded branch-B boundary
-- removes or rewrites stale positive-fixture language that still treats `2/2` or `11/10` as canonical supported runtime loads
-- adds an explicit guarded negative regression for `11/10`
-- keeps `19/19` as the only supported positive guarded runtime/load baseline
-- keeps `2/2`, `44/2`, and `11/10` outside the guarded positive runtime boundary
-- keeps `LM_DEFAULT` and `LM_END_SWITCH` unsupported
+- creates a canonical `port/src/runtime/` room-state module that owns guarded scene/background loading, room snapshots, and render-snapshot construction
+- moves shared room/runtime data ownership out of `port/src/app/viewer/state.zig`
+- keeps `inspect-room`, the viewer runtime, and their tests on the same guarded runtime/load seam with no metadata-only bypass
+- updates `port/src/app/viewer_shell.zig` and `port/src/tools/cli.zig` to consume runtime-owned room-state APIs instead of viewer-owned room-state exports
+- keeps `port/src/app/viewer/state.zig` limited to viewer-local state and rendering support instead of acting as the public owner of guarded room loading
+- keeps `19/19` as the only positive guarded runtime/load pair
+- keeps `2/2`, `44/2`, and `11/10` as guarded negative `ViewerUnsupportedSceneLife` cases
+- keeps `11/10` available only on the explicit test-only unchecked evidence path
+- updates `port/src/root.zig` so the canonical module map reflects the new runtime ownership instead of leaving room-state under `app/viewer`
+- leaves viewer-local layout, draw, fragment-comparison, and HUD code under `port/src/app/viewer/`
 
 Default to the hard-cut current-state path:
 
-- route `inspect-room` through the same guarded scene-life seam as `loadRoomSnapshot` instead of preserving a second implicit room-loading behavior
-- if a raw evidence-only room probe is still genuinely needed after that change, do not keep it hidden behind the canonical `inspect-room` name; either prove it is unnecessary or introduce it only with explicit naming, explicit scope, and fail-fast semantics
-
-Use the current checked-in state as the product boundary:
-
-- `19/19` is the only supported positive guarded runtime/load pair
-- `2/2` and `44/2` are negative guarded unsupported-scene-life cases
-- `11/10` is fragment evidence only and must not become a guarded positive runtime fixture
-- candidate rediscovery is already complete; do not spend the slice re-running the Phase 5 entry decision
+- do not preserve both a viewer-owned room loader and a runtime-owned room loader
+- do not introduce or keep any CLI-only `loadRoomInspection` / metadata-only room path
+- do not widen gameplay, life execution, or exterior loading as part of this slice
+- do not reopen the Phase 4 branch-B decision for `LM_DEFAULT` or `LM_END_SWITCH`
+- if you discover another recurring trap while doing the extraction, update `ISSUES.md` and keep the architecture subsystem pack aligned
 
 Relevant files are likely in:
 
+- `port/src/runtime/`
+- `port/src/root.zig`
 - `port/src/app/viewer/state.zig`
+- `port/src/app/viewer_shell.zig`
+- `port/src/main.zig`
+- `port/src/tools/cli.zig`
 - `port/src/app/viewer/state_test.zig`
 - `port/src/app/viewer/render_test.zig`
-- `port/src/app/viewer/fragment_compare_test.zig`
-- `port/src/app/viewer_shell_test.zig`
-- `port/src/tools/cli.zig`
 - `scripts/verify-viewer.ps1`
-- `docs/codex_memory/current_focus.md`
-- `docs/codex_memory/subsystems/architecture.md`
-- `docs/codex_memory/subsystems/life_scripts.md`
-- `docs/codex_memory/task_events.jsonl`
 - `ISSUES.md`
 
 Guardrails:
 
-- Do not reopen the Phase 4 branch decision.
-- Do not add support for `LM_DEFAULT`, `LM_END_SWITCH`, or partial switch-family handling.
-- Do not add compatibility glue, silent fallbacks, or a second implicit room-loading path.
-- Do not reintroduce `2/2` or `11/10` as positive guarded runtime fixtures.
-- Do not spend the slice on new gameplay capability or viewer-only polish.
-- Keep evidence-only access explicit if it survives at all; do not leave it disguised as the canonical guarded room path.
+- Keep one canonical guarded room/runtime codepath.
+- Do not leave `inspect-room` on a looser boundary than the viewer runtime.
+- Make the ownership move visible in the import graph, not just in file placement or re-export shims.
+- Do not preserve stale `2/2` positive-fixture assumptions in tests while extracting ownership.
+- Do not turn this into a broad renderer refactor; the target is ownership and boundary coherence.
 
 Acceptance:
 
 - from native PowerShell, after `.\scripts\dev-shell.ps1`, run:
   - `cd port`
   - `zig build test`
-  - `zig build tool -- audit-life-programs --json --scene-entry 19`
-  - `zig build tool -- audit-life-programs --json --scene-entry 11`
-  - `zig build tool -- inspect-scene 19 --json`
-  - `zig build tool -- inspect-room 19 19 --json`
-  - `zig build tool -- inspect-room 2 2 --json`
-  - `zig build tool -- inspect-room 11 10 --json`
-- checked-in tests keep `19/19` as the positive guarded runtime baseline
-- checked-in tests keep `2/2`, `44/2`, and `11/10` as guarded negative unsupported-scene-life cases where the guarded seam is exercised
-- if `inspect-room` remains the canonical room inspection command, it must now fail for unsupported guarded scenes instead of silently succeeding
-- if an evidence-only room probe survives, its naming/tests/docs must make that status explicit and must not describe it as the supported runtime/load boundary
+  - `cd ..`
+  - `.\scripts\verify-viewer.ps1`
+- `port/src/root.zig` exposes a canonical `runtime` module
+- `port/src/app/viewer_shell.zig` and `port/src/tools/cli.zig` consume runtime-owned room-state APIs instead of viewer-owned room-state exports
+- `port/src/app/viewer/state.zig` no longer owns or publicly exports the guarded room loader used by the viewer runtime and `inspect-room`
+- `inspect-room` still succeeds for `19/19` and still fails for `2/2`, `44/2`, and `11/10` with `ViewerUnsupportedSceneLife`
+- no metadata-only room inspection path exists in the canonical code
+- any unchecked `11/10` path remains explicit test-only evidence coverage, not part of the runtime public surface

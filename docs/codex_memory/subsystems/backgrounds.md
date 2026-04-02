@@ -15,9 +15,10 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`.
 - `inspect-background` is implemented with the loader-faithful header, `TabAllCube`, `GRI`, and `BLL` path for canonical interior backgrounds.
 - `inspect-background` and `inspect-room` report explicit fragment ownership/counts instead of only the base `GRM` cursor.
 - The viewer uses a viewer-local composition snapshot plus decoded `BRK` previews for composition tops, fragment cells, comparison cards, ranked/cell navigation, the pinned selected row, and the selected-cell detail strip.
-- `SCENE.HQR[2]` with `LBA_BKG.HQR[2]` is the explicit zero-fragment control path.
-- `SCENE.HQR[11]` with `LBA_BKG.HQR[10]` is the positive fragment evidence pair, with one projected fragment zone backed by fragment `149`.
-- The live render path now owns the viewer-local HUD/legend for pairing metadata, focus state, comparison semantics, selected-cell fragment ids, fragment-zone provenance (`zone_num`, `grm_index`, `initially_on`, footprint, dimensions, Y bounds), selected-cell world X/Z bounds, stack-depth evidence, delta summaries, the focused owning-zone provenance overlay on the live `11/10` schematic, and explicit `2/2` zero-fragment messaging.
+- `SCENE.HQR[19]` with `LBA_BKG.HQR[19]` is the only supported positive guarded runtime/load baseline for the background-backed viewer path.
+- `SCENE.HQR[2]` with `LBA_BKG.HQR[2]` remains the explicit zero-fragment control path for evidence and test surfaces, but the guarded `inspect-room` / viewer seam rejects it with `ViewerUnsupportedSceneLife`.
+- `SCENE.HQR[11]` with `LBA_BKG.HQR[10]` is the positive fragment evidence pair, with one projected fragment zone backed by fragment `149`, but it remains limited to explicit test-only unchecked paths rather than the guarded runtime/load seam.
+- The live render and viewer-local evidence surfaces now own the HUD/legend for pairing metadata, focus state, comparison semantics, selected-cell fragment ids, fragment-zone provenance (`zone_num`, `grm_index`, `initially_on`, footprint, dimensions, Y bounds), selected-cell world X/Z bounds, stack-depth evidence, delta summaries, the focused owning-zone provenance overlay on the live `11/10` schematic, and explicit zero-fragment messaging on the control path.
 - The decoder loads `RESS.HQR[0]` plus referenced top-surface `BRK` entries and fails fast if an expected preview is missing.
 - Exterior `.ILE/.OBL`, full brick rasterization, and actor visual binding stay outside this pack.
 
@@ -27,7 +28,7 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`.
 - Mixing zero-based classic indices with the older one-based helpers will shift you onto the wrong payload.
 - `gri_header.my_grm` is a forward cursor, not ownership proof. In the checked-in assets, backgrounds `0..10` all report `my_grm = 0`, but only the last grid owns fragment `149`; canonical background `2` owns none.
 - The positive pair `11/10` only projects cleanly if fragment-zone maxima are treated as boundary-aligned endpoints.
-- `inspect-room --json` reports probe counts and `BRK` summaries, not the projected fragment cells behind the comparison panel; use viewer/tests for per-cell deltas.
+- `inspect-room --json` reports probe counts and `BRK` summaries, not the projected fragment cells behind the comparison panel; under the current guard it succeeds only for supported pairs such as `19/19`, so use viewer/tests for per-cell deltas and explicit unchecked evidence paths for `11/10`.
 - The live HUD is the canonical screenshot/debug surface now, not the window title or stderr startup dump.
 - The landed `BRK` previews are evidence surfaces, not proof that the repo now has a full room-art renderer. Keep future work scoped to the current debug/comparison path unless checked-in evidence justifies more.
 
@@ -46,8 +47,8 @@ Own the interior `LBA_BKG.HQR` metadata path exposed by `inspect-background`.
 ## Test / Probe Commands
 
 - `cd port && zig build tool -- inspect-background 2 --json`
-- `cd port && zig build tool -- inspect-room 2 2 --json`
-- `cd port && zig build run -- --scene-entry 2 --background-entry 2`
+- `cd port && zig build tool -- inspect-room 19 19 --json`
+- `pwsh -File .\scripts\verify-viewer.ps1`
 - `cd port && zig build test`
 
 ## Open Unknowns

@@ -27,7 +27,7 @@ The hard-cut product policy applies throughout this roadmap: prefer one canonica
 ## Current Strategic Status
 
 - The old `Foundation + asset CLI` boundary is already behind the repo; that baseline has landed.
-- The first-viewer gate is crossed. The checked-in port already has a runtime-backed interior viewer path, explicit `2/2` zero-fragment and `11/10` fragment-bearing acceptance surfaces, `BRK`-backed top-surface previews, viewer-local comparison and HUD surfaces, and a canonical Windows verification gate in `scripts/verify-viewer.ps1`.
+- The first-viewer gate is crossed. The checked-in port already has a runtime-backed interior viewer path, `BRK`-backed top-surface previews, viewer-local comparison and HUD surfaces, and a canonical Windows verification gate in `scripts/verify-viewer.ps1`; under the current branch-B boundary, `19/19` is the only supported positive guarded runtime/load pair, while `2/2`, `44/2`, and `11/10` are explicit guarded `ViewerUnsupportedSceneLife` rejections.
 - The current implementation stream is viewer-prep evidence work on top of that validated runtime/viewer path, not another foundation/bootstrap slice.
 - The remaining strategic blocker for widening from viewer-prep into scene-surface gameplay work is the life-script boundary around `LM_DEFAULT` and `LM_END_SWITCH`.
 
@@ -77,8 +77,9 @@ Use explicit replan gates after the evidence baseline, the first-viewer gate, th
 ### Phase 3: Viewer-Prep Evidence on a Validated Runtime Path
 
 - Status: crossed.
-- Keep the runtime-backed interior viewer path and explicit acceptance surfaces on Windows validated through `scripts/verify-viewer.ps1`.
-- Keep `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]` as the zero-fragment control path and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as the checked-in fragment-bearing path.
+- Keep the runtime-backed interior viewer path on Windows validated through `scripts/verify-viewer.ps1`, with `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]` as the only supported positive guarded runtime/load baseline.
+- Keep `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, `SCENE.HQR[44]` plus `LBA_BKG.HQR[2]`, and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as explicit guarded negative `inspect-room` / viewer-load cases under branch B.
+- Preserve `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as the checked-in fragment-bearing evidence pair only on explicit test-only unchecked paths, not as a supported guarded runtime fixture.
 - Treat viewer-local composition snapshots, `BRK`-backed previews, fragment comparison, HUD/legend cues, and provenance overlays as evidence surfaces on top of a landed runtime path, not as proof that the repo is still pre-viewer.
 - Keep indoor and outdoor expansion decoupled until the evidence warrants widening the target.
 
@@ -141,8 +142,9 @@ Expose a small set of first-class commands early:
 ### Viewer Gate Tests
 
 - `scripts/verify-viewer.ps1` is the canonical Windows acceptance gate for the landed viewer/runtime path.
-- One interior scene loads with the correct scene/background pairing and actor count.
-- The `2/2` zero-fragment control path and `11/10` fragment-bearing path remain probeable through `inspect-room` and the runtime viewer acceptance flow.
+- `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]` is the only positive guarded runtime/load launch and `inspect-room` success case.
+- `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, `SCENE.HQR[44]` plus `LBA_BKG.HQR[2]`, and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` remain explicit guarded `ViewerUnsupportedSceneLife` rejection cases for `inspect-room`.
+- Fragment-bearing `11/10` evidence stays covered on explicit test-only unchecked loader paths, not through the canonical guarded CLI/runtime seam.
 - Viewer-local evidence surfaces stay covered by deterministic tests and the explicit Windows runtime launches.
 
 ### Life Boundary Tests

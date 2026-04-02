@@ -16,8 +16,8 @@ Current landed baseline:
 - canonical asset-root discovery and config
 - HQR base reader and inspection CLI
 - machine-readable asset inventory and golden-fixture pipeline
-- `BRK`-backed viewer-prep evidence surfaces for the checked-in `2/2` and `11/10` acceptance paths
-- native PowerShell viewer verification through `scripts/verify-viewer.ps1`
+- `BRK`-backed viewer-prep evidence surfaces for the supported guarded `19/19` baseline plus the explicit test-only unchecked `11/10` fragment evidence path
+- native PowerShell viewer verification through `scripts/verify-viewer.ps1`, with guarded success for `19/19` and expected guarded `ViewerUnsupportedSceneLife` rejection for `2/2`, `44/2`, and `11/10`
 
 Strategic planning and product-boundary decisions live in `docs/LBA2_ZIG_PORT_PLAN.md`. Active repo state and current blockers live in `docs/codex_memory/current_focus.md`.
 

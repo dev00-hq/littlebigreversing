@@ -41,5 +41,5 @@ Own the typed `SCENE.HQR` metadata model, parser, zone semantics, and track-prog
 
 ## Open Unknowns
 
-- When the first viewer slice lands, which scene metadata needs promotion from inspection-only to runtime state.
-- Which future scene-facing work should stay in this pack versus moving into runtime.
+- Which scene metadata should move from inspection-oriented ownership into the canonical `runtime` surface as room-state extraction continues.
+- Which future scene-facing work should stay in this pack versus moving into runtime once viewer/runtime ownership is fully separated.
