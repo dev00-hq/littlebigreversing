@@ -149,7 +149,7 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try state.loadRoomSnapshot(allocator, resolved, 11, 10);
+    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
     defer room.deinit(allocator);
 
     const snapshot = state.buildRenderSnapshot(room);
@@ -238,12 +238,12 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
     try std.testing.expect(hasPresent(trace));
 }
 
-test "viewer render path exposes a deterministic owning-zone rect for the focused 11/10 fragment cell" {
+test "viewer render path exposes a deterministic owning-zone rect for the focused checked-in fragment cell on the unchecked evidence path" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try state.loadRoomSnapshot(allocator, resolved, 11, 10);
+    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
     defer room.deinit(allocator);
 
     const snapshot = state.buildRenderSnapshot(room);
@@ -284,7 +284,7 @@ test "viewer render path keeps the selected cell pinned at the head of the compa
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try state.loadRoomSnapshot(allocator, resolved, 11, 10);
+    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
     defer room.deinit(allocator);
 
     const snapshot = state.buildRenderSnapshot(room);
@@ -318,7 +318,7 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try state.loadRoomSnapshot(allocator, resolved, 2, 2);
+    const room = try state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
     const snapshot = state.buildRenderSnapshot(room);
@@ -348,7 +348,7 @@ test "viewer render path fails fast when a required brick preview is missing" {
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try state.loadRoomSnapshot(allocator, resolved, 11, 10);
+    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
     defer room.deinit(allocator);
 
     const snapshot = state.buildRenderSnapshot(room);

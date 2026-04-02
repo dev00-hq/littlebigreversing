@@ -8,6 +8,7 @@ const background_data = @import("../game_data/background.zig");
 const scene_data = @import("../game_data/scene.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
+const viewer_state = @import("../app/viewer/state.zig");
 
 const Command = enum {
     inventory_assets,
@@ -17,6 +18,7 @@ const Command = enum {
     inspect_scene,
     inspect_room,
     audit_life_programs,
+    inspect_life_program,
     generate_fixtures,
     validate_phase1,
 };
@@ -29,6 +31,7 @@ const ParsedArgs = struct {
     background_entry_index: ?usize,
     audit_scene_entry_indices: ?[]usize,
     audit_all_scene_entries: bool,
+    life_program_owner: ?life_audit.LifeBlobOwner,
     output_json: bool,
 
     fn deinit(self: ParsedArgs, allocator: std.mem.Allocator) void {
@@ -48,16 +51,6 @@ const ParsedArgs = struct {
         if (self.audit_scene_entry_indices != null) return "explicit_entries";
         if (self.audit_all_scene_entries) return "all_scene_entries";
         return "canonical";
-    }
-};
-
-const RoomInspection = struct {
-    scene: scene_data.SceneMetadata,
-    background: background_data.BackgroundMetadata,
-
-    fn deinit(self: RoomInspection, allocator: std.mem.Allocator) void {
-        self.scene.deinit(allocator);
-        self.background.deinit(allocator);
     }
 };
 
@@ -157,6 +150,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         .inspect_scene => try inspectScene(allocator, resolved, parsed.entry_index.?, parsed.output_json),
         .inspect_room => try inspectRoom(allocator, resolved, parsed.entry_index.?, parsed.background_entry_index.?, parsed.output_json),
         .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed),
+        .inspect_life_program => try inspectLifeProgram(allocator, resolved, parsed),
         .generate_fixtures => try generateFixtures(allocator, resolved),
         .validate_phase1 => try validatePhase1(allocator, resolved),
     }
@@ -180,7 +174,7 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
     const command_name = args[command_index];
 
     if (std.mem.eql(u8, command_name, "inventory-assets")) {
-        return .{ .command = .inventory_assets, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .background_entry_index = null, .audit_scene_entry_indices = null, .audit_all_scene_entries = false, .output_json = false };
+        return .{ .command = .inventory_assets, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .background_entry_index = null, .audit_scene_entry_indices = null, .audit_all_scene_entries = false, .life_program_owner = null, .output_json = false };
     }
     if (std.mem.eql(u8, command_name, "inspect-hqr")) {
         if (command_index + 1 >= args.len) return error.MissingRelativePath;
@@ -200,6 +194,7 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .background_entry_index = null,
             .audit_scene_entry_indices = null,
             .audit_all_scene_entries = false,
+            .life_program_owner = null,
             .output_json = output_json,
         };
     }
@@ -213,6 +208,7 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .background_entry_index = null,
             .audit_scene_entry_indices = null,
             .audit_all_scene_entries = false,
+            .life_program_owner = null,
             .output_json = false,
         };
     }
@@ -234,6 +230,7 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .background_entry_index = null,
             .audit_scene_entry_indices = null,
             .audit_all_scene_entries = false,
+            .life_program_owner = null,
             .output_json = output_json,
         };
     }
@@ -255,6 +252,7 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .background_entry_index = null,
             .audit_scene_entry_indices = null,
             .audit_all_scene_entries = false,
+            .life_program_owner = null,
             .output_json = output_json,
         };
     }
@@ -277,6 +275,7 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .background_entry_index = try std.fmt.parseInt(usize, args[command_index + 2], 10),
             .audit_scene_entry_indices = null,
             .audit_all_scene_entries = false,
+            .life_program_owner = null,
             .output_json = output_json,
         };
     }
@@ -315,14 +314,55 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .background_entry_index = null,
             .audit_scene_entry_indices = if (audit_all_scene_entries or scene_entry_indices.items.len == 0) null else try scene_entry_indices.toOwnedSlice(allocator),
             .audit_all_scene_entries = audit_all_scene_entries,
+            .life_program_owner = null,
+            .output_json = output_json,
+        };
+    }
+    if (std.mem.eql(u8, command_name, "inspect-life-program")) {
+        var scene_entry_index: ?usize = null;
+        var output_json = false;
+        var life_owner: life_audit.LifeBlobOwner = .{ .hero = {} };
+        var has_object_selector = false;
+
+        var index = command_index + 1;
+        while (index < args.len) {
+            const arg = args[index];
+            if (std.mem.eql(u8, arg, "--scene-entry")) {
+                if (scene_entry_index != null) return error.DuplicateSceneEntrySelector;
+                if (index + 1 >= args.len) return error.MissingSceneEntryIndex;
+                scene_entry_index = try std.fmt.parseInt(usize, args[index + 1], 10);
+                index += 2;
+            } else if (std.mem.eql(u8, arg, "--object-index")) {
+                if (has_object_selector) return error.DuplicateObjectIndexSelector;
+                if (index + 1 >= args.len) return error.MissingObjectIndex;
+                life_owner = .{ .object = try std.fmt.parseInt(usize, args[index + 1], 10) };
+                has_object_selector = true;
+                index += 2;
+            } else if (std.mem.eql(u8, arg, "--json")) {
+                output_json = true;
+                index += 1;
+            } else {
+                return error.UnknownOption;
+            }
+        }
+
+        return .{
+            .command = .inspect_life_program,
+            .asset_root_override = asset_root_override,
+            .relative_path = null,
+            .entry_index = scene_entry_index orelse return error.MissingSceneEntryIndex,
+            .background_entry_index = null,
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
+            .life_program_owner = life_owner,
             .output_json = output_json,
         };
     }
     if (std.mem.eql(u8, command_name, "generate-fixtures")) {
-        return .{ .command = .generate_fixtures, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .background_entry_index = null, .audit_scene_entry_indices = null, .audit_all_scene_entries = false, .output_json = false };
+        return .{ .command = .generate_fixtures, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .background_entry_index = null, .audit_scene_entry_indices = null, .audit_all_scene_entries = false, .life_program_owner = null, .output_json = false };
     }
     if (std.mem.eql(u8, command_name, "validate-phase1")) {
-        return .{ .command = .validate_phase1, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .background_entry_index = null, .audit_scene_entry_indices = null, .audit_all_scene_entries = false, .output_json = false };
+        return .{ .command = .validate_phase1, .asset_root_override = asset_root_override, .relative_path = null, .entry_index = null, .background_entry_index = null, .audit_scene_entry_indices = null, .audit_all_scene_entries = false, .life_program_owner = null, .output_json = false };
     }
     return error.UnknownCommand;
 }
@@ -659,7 +699,7 @@ fn inspectRoom(
     background_entry_index: usize,
     output_json: bool,
 ) !void {
-    const room = try loadRoomInspection(allocator, resolved, scene_entry_index, background_entry_index);
+    const room = try viewer_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
     defer room.deinit(allocator);
 
     const payload = buildRoomInspectionPayload(room);
@@ -766,42 +806,19 @@ fn inspectRoom(
     try stderr.flush();
 }
 
-fn loadRoomInspection(
-    allocator: std.mem.Allocator,
-    resolved: paths_mod.ResolvedPaths,
-    scene_entry_index: usize,
-    background_entry_index: usize,
-) !RoomInspection {
-    const scene_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
-    defer allocator.free(scene_path);
-
-    var scene = try scene_data.loadSceneMetadata(allocator, scene_path, scene_entry_index);
-    errdefer scene.deinit(allocator);
-    if (scene.cube_mode != 0) return error.RoomSceneMustBeInterior;
-
-    const background_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "LBA_BKG.HQR" });
-    defer allocator.free(background_path);
-
-    const background = try background_data.loadBackgroundMetadata(allocator, background_path, background_entry_index);
-    return .{
-        .scene = scene,
-        .background = background,
-    };
-}
-
-fn buildRoomInspectionPayload(room: RoomInspection) RoomInspectionPayload {
+fn buildRoomInspectionPayload(room: viewer_state.RoomSnapshot) RoomInspectionPayload {
     return .{
         .command = "inspect-room",
         .scene = .{
             .entry_index = room.scene.entry_index,
-            .classic_loader_scene_number = room.scene.classicLoaderSceneNumber(),
-            .scene_kind = room.scene.sceneKind(),
+            .classic_loader_scene_number = room.scene.classic_loader_scene_number,
+            .scene_kind = room.scene.scene_kind,
             .hero_start = .{
                 .x = room.scene.hero_start.x,
                 .y = room.scene.hero_start.y,
                 .z = room.scene.hero_start.z,
-                .track_byte_length = room.scene.hero_start.trackByteLength(),
-                .life_byte_length = room.scene.hero_start.lifeByteLength(),
+                .track_byte_length = room.scene.hero_start.track_byte_length,
+                .life_byte_length = room.scene.hero_start.life_byte_length,
             },
             .object_count = room.scene.object_count,
             .zone_count = room.scene.zone_count,
@@ -811,16 +828,16 @@ fn buildRoomInspectionPayload(room: RoomInspection) RoomInspectionPayload {
         .background = .{
             .entry_index = room.background.entry_index,
             .linkage = .{
-                .remapped_cube_index = room.background.remapped_cube_index,
-                .gri_entry_index = room.background.gri_entry_index,
-                .gri_my_grm = room.background.gri_header.my_grm,
-                .grm_entry_index = room.background.grm_entry_index,
-                .gri_my_bll = room.background.gri_header.my_bll,
-                .bll_entry_index = room.background.bll_entry_index,
+                .remapped_cube_index = room.background.linkage.remapped_cube_index,
+                .gri_entry_index = room.background.linkage.gri_entry_index,
+                .gri_my_grm = room.background.linkage.gri_my_grm,
+                .grm_entry_index = room.background.linkage.grm_entry_index,
+                .gri_my_bll = room.background.linkage.gri_my_bll,
+                .bll_entry_index = room.background.linkage.bll_entry_index,
             },
             .used_blocks = .{
-                .count = room.background.used_blocks.used_block_ids.len,
-                .values = room.background.used_blocks.used_block_ids,
+                .count = room.background.used_block_ids.len,
+                .values = room.background.used_block_ids,
             },
             .column_table = .{
                 .width = room.background.column_table.width,
@@ -832,23 +849,28 @@ fn buildRoomInspectionPayload(room: RoomInspection) RoomInspectionPayload {
                 .max_offset = room.background.column_table.max_offset,
             },
             .composition = .{
-                .occupied_cell_count = room.background.composition.grid.referenced_cell_count,
-                .occupied_bounds = room.background.composition.grid.reference_bounds,
-                .layout_count = room.background.composition.library.layouts.len,
-                .max_layout_block_count = room.background.composition.library.max_layout_block_count,
+                .occupied_cell_count = room.background.composition.occupied_cell_count,
+                .occupied_bounds = if (room.background.composition.occupied_bounds) |bounds| .{
+                    .min_x = bounds.min_x,
+                    .max_x = bounds.max_x,
+                    .min_z = bounds.min_z,
+                    .max_z = bounds.max_z,
+                } else null,
+                .layout_count = room.background.composition.layout_count,
+                .max_layout_block_count = room.background.composition.max_layout_block_count,
             },
             .fragments = .{
-                .fragment_count = room.background.composition.fragments.fragments.len,
-                .footprint_cell_count = room.background.composition.fragments.footprint_cell_count,
-                .non_empty_cell_count = room.background.composition.fragments.non_empty_cell_count,
-                .max_height = room.background.composition.fragments.max_height,
+                .fragment_count = room.background.fragments.fragment_count,
+                .footprint_cell_count = room.background.fragments.footprint_cell_count,
+                .non_empty_cell_count = room.background.fragments.non_empty_cell_count,
+                .max_height = room.background.fragments.max_height,
             },
             .bricks = .{
-                .palette_entry_index = room.background.composition.bricks.palette_entry_index,
-                .preview_count = room.background.composition.bricks.previews.len,
-                .max_preview_width = room.background.composition.bricks.max_preview_width,
-                .max_preview_height = room.background.composition.bricks.max_preview_height,
-                .total_opaque_pixel_count = room.background.composition.bricks.total_opaque_pixel_count,
+                .palette_entry_index = room.background.bricks.palette_entry_index,
+                .preview_count = room.background.bricks.previews.len,
+                .max_preview_width = room.background.bricks.max_preview_width,
+                .max_preview_height = room.background.bricks.max_preview_height,
+                .total_opaque_pixel_count = room.background.bricks.total_opaque_pixel_count,
             },
         },
     };
@@ -978,6 +1000,66 @@ fn auditLifePrograms(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
             .decoded => {},
         }
     }
+    try stderr.flush();
+}
+
+fn inspectLifeProgram(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, parsed: ParsedArgs) !void {
+    const absolute_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
+    defer allocator.free(absolute_path);
+
+    const audit = try life_audit.inspectSceneLifeProgram(
+        allocator,
+        absolute_path,
+        parsed.entry_index.?,
+        parsed.life_program_owner orelse .{ .hero = {} },
+    );
+
+    const payload = buildLifeProgramInspectionPayload(audit);
+    if (parsed.output_json) {
+        const json = try stringifyJsonAlloc(allocator, payload);
+        defer allocator.free(json);
+        try std.fs.File.stdout().writeAll(json);
+        try std.fs.File.stdout().writeAll("\n");
+        return;
+    }
+
+    var stderr_buffer: [4096]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try diagnostics.printLine(stderr, &.{
+        .{ .key = "command", .value = "inspect-life-program" },
+        .{ .key = "asset_path", .value = "SCENE.HQR" },
+    });
+    try stderr.print(
+        "scene_entry_index={d} classic_loader_scene_number={any} scene_kind={s} owner_kind={s} object_index={any} life_byte_length={d} instruction_count={d} decoded_byte_length={d} final_status={s}",
+        .{
+            payload.scene_entry_index,
+            payload.classic_loader_scene_number,
+            payload.scene_kind,
+            payload.owner_kind,
+            payload.object_index,
+            payload.life_byte_length,
+            payload.instruction_count,
+            payload.decoded_byte_length,
+            payload.status,
+        },
+    );
+    if (payload.unsupported) |unsupported| {
+        try stderr.print(
+            " unsupported_mnemonic={s} unsupported_opcode_id={d} unsupported_offset={d}",
+            .{ unsupported.mnemonic, unsupported.opcode_id, unsupported.offset },
+        );
+    }
+    if (payload.failure) |failure| {
+        try stderr.print(" failure_kind={s}", .{failure.kind});
+        if (failure.opcode_id) |opcode_id| {
+            try stderr.print(" failure_opcode_id={d}", .{opcode_id});
+        }
+        if (failure.offset) |offset| {
+            try stderr.print(" failure_offset={d}", .{offset});
+        }
+    }
+    try stderr.writeAll("\n");
     try stderr.flush();
 }
 
@@ -1273,6 +1355,21 @@ const LifeAuditJsonSample = struct {
     failure: ?LifeAuditJsonFailure,
 };
 
+const LifeProgramInspectionPayload = struct {
+    command: []const u8,
+    scene_entry_index: usize,
+    classic_loader_scene_number: ?usize,
+    scene_kind: []const u8,
+    owner_kind: []const u8,
+    object_index: ?usize,
+    life_byte_length: usize,
+    instruction_count: usize,
+    decoded_byte_length: usize,
+    status: []const u8,
+    unsupported: ?LifeAuditJsonUnsupported,
+    failure: ?LifeAuditJsonFailure,
+};
+
 fn buildUnsupportedLifeSummary(
     allocator: std.mem.Allocator,
     audits: []const life_audit.SceneLifeProgramAudit,
@@ -1318,44 +1415,66 @@ fn buildLifeAuditJsonSamples(
     errdefer samples.deinit(allocator);
 
     for (audits) |audit| {
-        var unsupported: ?LifeAuditJsonUnsupported = null;
-        var failure: ?LifeAuditJsonFailure = null;
-        switch (audit.status) {
-            .decoded => {},
-            .unsupported_opcode => |hit| unsupported = .{
-                .opcode_id = hit.opcode_id,
-                .mnemonic = hit.opcode.mnemonic(),
-                .offset = hit.offset,
-            },
-            .unknown_opcode => |hit| failure = .{
-                .kind = lifeAuditStatusName(audit.status),
-                .opcode_id = hit.opcode_id,
-                .offset = hit.offset,
-            },
-            .truncated_operand,
-            .malformed_string_operand,
-            .missing_switch_context,
-            .unknown_life_function,
-            .unknown_life_comparator,
-            => failure = .{ .kind = lifeAuditStatusName(audit.status) },
-        }
-
-        try samples.append(allocator, .{
-            .scene_entry_index = audit.scene_entry_index,
-            .classic_loader_scene_number = audit.classic_loader_scene_number,
-            .scene_kind = audit.scene_kind,
-            .owner_kind = lifeOwnerKind(audit.owner),
-            .object_index = lifeOwnerObjectIndex(audit.owner),
-            .life_byte_length = audit.life_byte_length,
-            .instruction_count = audit.instruction_count,
-            .decoded_byte_length = audit.decoded_byte_length,
-            .status = lifeAuditStatusName(audit.status),
-            .unsupported = unsupported,
-            .failure = failure,
-        });
+        try samples.append(allocator, buildLifeAuditJsonSample(audit));
     }
 
     return samples.toOwnedSlice(allocator);
+}
+
+fn buildLifeAuditJsonSample(audit: life_audit.SceneLifeProgramAudit) LifeAuditJsonSample {
+    var unsupported: ?LifeAuditJsonUnsupported = null;
+    var failure: ?LifeAuditJsonFailure = null;
+    switch (audit.status) {
+        .decoded => {},
+        .unsupported_opcode => |hit| unsupported = .{
+            .opcode_id = hit.opcode_id,
+            .mnemonic = hit.opcode.mnemonic(),
+            .offset = hit.offset,
+        },
+        .unknown_opcode => |hit| failure = .{
+            .kind = lifeAuditStatusName(audit.status),
+            .opcode_id = hit.opcode_id,
+            .offset = hit.offset,
+        },
+        .truncated_operand,
+        .malformed_string_operand,
+        .missing_switch_context,
+        .unknown_life_function,
+        .unknown_life_comparator,
+        => failure = .{ .kind = lifeAuditStatusName(audit.status) },
+    }
+
+    return .{
+        .scene_entry_index = audit.scene_entry_index,
+        .classic_loader_scene_number = audit.classic_loader_scene_number,
+        .scene_kind = audit.scene_kind,
+        .owner_kind = lifeOwnerKind(audit.owner),
+        .object_index = lifeOwnerObjectIndex(audit.owner),
+        .life_byte_length = audit.life_byte_length,
+        .instruction_count = audit.instruction_count,
+        .decoded_byte_length = audit.decoded_byte_length,
+        .status = lifeAuditStatusName(audit.status),
+        .unsupported = unsupported,
+        .failure = failure,
+    };
+}
+
+fn buildLifeProgramInspectionPayload(audit: life_audit.SceneLifeProgramAudit) LifeProgramInspectionPayload {
+    const sample = buildLifeAuditJsonSample(audit);
+    return .{
+        .command = "inspect-life-program",
+        .scene_entry_index = sample.scene_entry_index,
+        .classic_loader_scene_number = sample.classic_loader_scene_number,
+        .scene_kind = sample.scene_kind,
+        .owner_kind = sample.owner_kind,
+        .object_index = sample.object_index,
+        .life_byte_length = sample.life_byte_length,
+        .instruction_count = sample.instruction_count,
+        .decoded_byte_length = sample.decoded_byte_length,
+        .status = sample.status,
+        .unsupported = sample.unsupported,
+        .failure = sample.failure,
+    };
 }
 
 fn lifeOwnerKind(owner: life_audit.LifeBlobOwner) []const u8 {
@@ -1430,6 +1549,25 @@ test "argument parsing supports audit-life-programs json output" {
     try std.testing.expect(parsed.output_json);
 }
 
+test "argument parsing supports inspect-life-program hero selection by default" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-life-program", "--scene-entry", "2", "--json" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.inspect_life_program, parsed.command);
+    try std.testing.expectEqual(@as(usize, 2), parsed.entry_index.?);
+    try std.testing.expect(parsed.life_program_owner.? == .hero);
+    try std.testing.expect(parsed.output_json);
+}
+
+test "argument parsing supports inspect-life-program object selection" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-life-program", "--object-index", "5", "--scene-entry", "2" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.inspect_life_program, parsed.command);
+    try std.testing.expectEqual(@as(usize, 2), parsed.entry_index.?);
+    try std.testing.expectEqual(@as(usize, 5), parsed.life_program_owner.?.object);
+}
+
 test "argument parsing supports explicit audit-life-program scene selection" {
     const parsed = try parseArgs(std.testing.allocator, &.{ "audit-life-programs", "--scene-entry", "2", "--scene-entry", "44" });
     defer parsed.deinit(std.testing.allocator);
@@ -1463,49 +1601,60 @@ test "argument parsing rejects mixed audit-life-program selection flags" {
     );
 }
 
-test "inspect-room composes the canonical interior pair metadata" {
+test "argument parsing rejects inspect-life-program duplicate selectors" {
+    try std.testing.expectError(
+        error.DuplicateSceneEntrySelector,
+        parseArgs(std.testing.allocator, &.{ "inspect-life-program", "--scene-entry", "2", "--scene-entry", "44" }),
+    );
+    try std.testing.expectError(
+        error.DuplicateObjectIndexSelector,
+        parseArgs(std.testing.allocator, &.{ "inspect-life-program", "--scene-entry", "2", "--object-index", "2", "--object-index", "3" }),
+    );
+}
+
+test "inspect-room composes the guarded canonical interior pair metadata" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try loadRoomInspection(allocator, resolved, 2, 2);
+    const room = try viewer_state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
     const payload = buildRoomInspectionPayload(room);
     try std.testing.expectEqualStrings("inspect-room", payload.command);
-    try std.testing.expectEqual(@as(usize, 2), payload.scene.entry_index);
-    try std.testing.expectEqual(@as(?usize, 0), payload.scene.classic_loader_scene_number);
+    try std.testing.expectEqual(@as(usize, 19), payload.scene.entry_index);
+    try std.testing.expectEqual(@as(?usize, 17), payload.scene.classic_loader_scene_number);
     try std.testing.expectEqualStrings("interior", payload.scene.scene_kind);
-    try std.testing.expectEqual(@as(i16, 9724), payload.scene.hero_start.x);
-    try std.testing.expectEqual(@as(i16, 1024), payload.scene.hero_start.y);
-    try std.testing.expectEqual(@as(i16, 782), payload.scene.hero_start.z);
-    try std.testing.expectEqual(@as(u16, 1), payload.scene.hero_start.track_byte_length);
-    try std.testing.expectEqual(@as(u16, 203), payload.scene.hero_start.life_byte_length);
-    try std.testing.expectEqual(@as(usize, 9), payload.scene.object_count);
-    try std.testing.expectEqual(@as(usize, 10), payload.scene.zone_count);
-    try std.testing.expectEqual(@as(usize, 4), payload.scene.track_count);
-    try std.testing.expectEqual(@as(usize, 4), payload.scene.patch_count);
+    try std.testing.expectEqual(@as(i16, 1987), payload.scene.hero_start.x);
+    try std.testing.expectEqual(@as(i16, 512), payload.scene.hero_start.y);
+    try std.testing.expectEqual(@as(i16, 3743), payload.scene.hero_start.z);
+    try std.testing.expectEqual(@as(u16, 22), payload.scene.hero_start.track_byte_length);
+    try std.testing.expectEqual(@as(u16, 38), payload.scene.hero_start.life_byte_length);
+    try std.testing.expectEqual(@as(usize, 3), payload.scene.object_count);
+    try std.testing.expectEqual(@as(usize, 4), payload.scene.zone_count);
+    try std.testing.expectEqual(@as(usize, 0), payload.scene.track_count);
+    try std.testing.expectEqual(@as(usize, 5), payload.scene.patch_count);
 
-    try std.testing.expectEqual(@as(usize, 2), payload.background.entry_index);
-    try std.testing.expectEqual(@as(usize, 2), payload.background.linkage.remapped_cube_index);
-    try std.testing.expectEqual(@as(usize, 3), payload.background.linkage.gri_entry_index);
-    try std.testing.expectEqual(@as(u8, 0), payload.background.linkage.gri_my_grm);
-    try std.testing.expectEqual(@as(usize, 149), payload.background.linkage.grm_entry_index);
+    try std.testing.expectEqual(@as(usize, 19), payload.background.entry_index);
+    try std.testing.expectEqual(@as(usize, 19), payload.background.linkage.remapped_cube_index);
+    try std.testing.expectEqual(@as(usize, 20), payload.background.linkage.gri_entry_index);
+    try std.testing.expectEqual(@as(u8, 2), payload.background.linkage.gri_my_grm);
+    try std.testing.expectEqual(@as(usize, 151), payload.background.linkage.grm_entry_index);
     try std.testing.expectEqual(@as(u8, 1), payload.background.linkage.gri_my_bll);
     try std.testing.expectEqual(@as(usize, 180), payload.background.linkage.bll_entry_index);
-    try std.testing.expectEqual(@as(usize, 105), payload.background.used_blocks.count);
+    try std.testing.expectEqual(@as(usize, 73), payload.background.used_blocks.count);
     try std.testing.expectEqualSlices(u8, &.{ 1, 2, 3, 4, 5, 7 }, payload.background.used_blocks.values[0..6]);
     try std.testing.expectEqual(@as(usize, 64), payload.background.column_table.width);
     try std.testing.expectEqual(@as(usize, 64), payload.background.column_table.depth);
     try std.testing.expectEqual(@as(usize, 4096), payload.background.column_table.offset_count);
     try std.testing.expectEqual(@as(usize, 8192), payload.background.column_table.table_byte_length);
     try std.testing.expect(payload.background.column_table.data_byte_length > 0);
-    try std.testing.expectEqual(@as(usize, 2252), payload.background.composition.occupied_cell_count);
+    try std.testing.expectEqual(@as(usize, 1246), payload.background.composition.occupied_cell_count);
     try std.testing.expectEqual(@as(?background_data.GridBounds, .{
-        .min_x = 0,
+        .min_x = 39,
         .max_x = 63,
-        .min_z = 12,
-        .max_z = 63,
+        .min_z = 6,
+        .max_z = 58,
     }), payload.background.composition.occupied_bounds);
     try std.testing.expectEqual(@as(usize, 219), payload.background.composition.layout_count);
     try std.testing.expectEqual(@as(usize, 45), payload.background.composition.max_layout_block_count);
@@ -1515,12 +1664,12 @@ test "inspect-room composes the canonical interior pair metadata" {
     try std.testing.expectEqual(@as(u8, 0), payload.background.fragments.max_height);
 }
 
-test "inspect-room json keeps the canonical interior pair stable" {
+test "inspect-room json keeps the guarded canonical interior pair stable" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try loadRoomInspection(allocator, resolved, 2, 2);
+    const room = try viewer_state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
     const json = try stringifyJsonAlloc(allocator, buildRoomInspectionPayload(room));
@@ -1528,49 +1677,26 @@ test "inspect-room json keeps the canonical interior pair stable" {
 
     try std.testing.expect(std.mem.indexOf(u8, json, "\"command\": \"inspect-room\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"scene_kind\": \"interior\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, json, "\"classic_loader_scene_number\": 0") != null);
-    try std.testing.expect(std.mem.indexOf(u8, json, "\"remapped_cube_index\": 2") != null);
-    try std.testing.expect(std.mem.indexOf(u8, json, "\"gri_entry_index\": 3") != null);
-    try std.testing.expect(std.mem.indexOf(u8, json, "\"grm_entry_index\": 149") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"classic_loader_scene_number\": 17") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"remapped_cube_index\": 19") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"gri_entry_index\": 20") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"grm_entry_index\": 151") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"bll_entry_index\": 180") != null);
-    try std.testing.expect(std.mem.indexOf(u8, json, "\"count\": 105") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"count\": 73") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"width\": 64") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"depth\": 64") != null);
-    try std.testing.expect(std.mem.indexOf(u8, json, "\"occupied_cell_count\": 2252") != null);
-    try std.testing.expect(std.mem.indexOf(u8, json, "\"layout_count\": 219") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"occupied_cell_count\": 1246") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"fragment_count\": 0") != null);
 }
 
-test "inspect-room keeps the checked-in fragment-bearing interior pair stable" {
+test "inspect-room rejects unsupported scene life outside the guarded runtime boundary" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try loadRoomInspection(allocator, resolved, 11, 10);
-    defer room.deinit(allocator);
-
-    const payload = buildRoomInspectionPayload(room);
-    try std.testing.expectEqualStrings("inspect-room", payload.command);
-    try std.testing.expectEqual(@as(usize, 11), payload.scene.entry_index);
-    try std.testing.expectEqual(@as(?usize, 9), payload.scene.classic_loader_scene_number);
-    try std.testing.expectEqualStrings("interior", payload.scene.scene_kind);
-    try std.testing.expectEqual(@as(usize, 47), payload.scene.zone_count);
-
-    try std.testing.expectEqual(@as(usize, 10), payload.background.entry_index);
-    try std.testing.expectEqual(@as(usize, 10), payload.background.linkage.remapped_cube_index);
-    try std.testing.expectEqual(@as(usize, 11), payload.background.linkage.gri_entry_index);
-    try std.testing.expectEqual(@as(u8, 0), payload.background.linkage.gri_my_grm);
-    try std.testing.expectEqual(@as(usize, 149), payload.background.linkage.grm_entry_index);
-    try std.testing.expectEqual(@as(u8, 3), payload.background.linkage.gri_my_bll);
-    try std.testing.expectEqual(@as(usize, 182), payload.background.linkage.bll_entry_index);
-    try std.testing.expectEqual(@as(usize, 96), payload.background.used_blocks.count);
-    try std.testing.expectEqual(@as(usize, 3573), payload.background.composition.occupied_cell_count);
-    try std.testing.expectEqual(@as(usize, 203), payload.background.composition.layout_count);
-    try std.testing.expectEqual(@as(usize, 42), payload.background.composition.max_layout_block_count);
-    try std.testing.expectEqual(@as(usize, 1), payload.background.fragments.fragment_count);
-    try std.testing.expectEqual(@as(usize, 208), payload.background.fragments.footprint_cell_count);
-    try std.testing.expectEqual(@as(usize, 95), payload.background.fragments.non_empty_cell_count);
-    try std.testing.expectEqual(@as(u8, 10), payload.background.fragments.max_height);
+    try std.testing.expectError(error.ViewerUnsupportedSceneLife, inspectRoom(allocator, resolved, 2, 2, true));
+    try std.testing.expectError(error.ViewerUnsupportedSceneLife, inspectRoom(allocator, resolved, 44, 2, true));
+    try std.testing.expectError(error.ViewerUnsupportedSceneLife, inspectRoom(allocator, resolved, 11, 10, true));
 }
 
 test "inspect-room rejects exterior scene entries" {
@@ -1578,5 +1704,5 @@ test "inspect-room rejects exterior scene entries" {
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    try std.testing.expectError(error.RoomSceneMustBeInterior, loadRoomInspection(allocator, resolved, 44, 2));
+    try std.testing.expectError(error.ViewerSceneMustBeInterior, inspectRoom(allocator, resolved, 212, 212, true));
 }

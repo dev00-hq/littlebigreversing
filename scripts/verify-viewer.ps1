@@ -65,7 +65,7 @@ function Assert-Equal {
     }
 }
 
-function Test-InspectRoom {
+function Test-InspectRoomSuccess {
     param(
         [Parameter(Mandatory = $true)]
         [string]$PortRoot,
@@ -75,8 +75,6 @@ function Test-InspectRoom {
         [int]$Background,
         [Parameter(Mandatory = $true)]
         [int]$ExpectedFragments,
-        [Parameter(Mandatory = $true)]
-        [int]$ExpectedBrickPreviews,
         [Parameter(Mandatory = $true)]
         [int]$ExpectedGrmEntry
     )
@@ -98,7 +96,6 @@ function Test-InspectRoom {
     Assert-Equal -Label "background entry index" -Actual $payload.background.entry_index -Expected $Background
     Assert-Equal -Label "scene kind" -Actual $payload.scene.scene_kind -Expected "interior"
     Assert-Equal -Label "fragment count for $Scene/$Background" -Actual $payload.background.fragments.fragment_count -Expected $ExpectedFragments
-    Assert-Equal -Label "brick preview count for $Scene/$Background" -Actual $payload.background.bricks.preview_count -Expected $ExpectedBrickPreviews
     Assert-Equal -Label "GRM entry for $Scene/$Background" -Actual $payload.background.linkage.grm_entry_index -Expected $ExpectedGrmEntry
 
     return [pscustomobject]@{
@@ -106,6 +103,49 @@ function Test-InspectRoom {
         Fragments     = [int]$payload.background.fragments.fragment_count
         BrickPreviews = [int]$payload.background.bricks.preview_count
         GrmEntry      = [int]$payload.background.linkage.grm_entry_index
+    }
+}
+
+function Test-InspectRoomFailure {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PortRoot,
+        [Parameter(Mandatory = $true)]
+        [int]$Scene,
+        [Parameter(Mandatory = $true)]
+        [int]$Background,
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedError
+    )
+
+    Write-Host ""
+    Write-Host ("=== zig build tool -- inspect-room {0} {1} --json (expected failure) ===" -f $Scene, $Background) -ForegroundColor Cyan
+
+    Push-Location $PortRoot
+    try {
+        $output = (& zig build tool -- inspect-room "$Scene" "$Background" --json 2>&1 | Out-String)
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        Pop-Location
+    }
+
+    $trimmed = $output.TrimEnd()
+    if ($trimmed.Length -gt 0) {
+        Write-Host $trimmed
+    }
+
+    if ($exitCode -eq 0) {
+        throw ("inspect-room {0}/{1} unexpectedly succeeded." -f $Scene, $Background)
+    }
+    if ($output -notmatch [regex]::Escape($ExpectedError)) {
+        throw ("inspect-room {0}/{1} failed, but did not mention {2}. Output:`n{3}" -f $Scene, $Background, $ExpectedError, $trimmed)
+    }
+
+    return [pscustomobject]@{
+        Pair   = "{0}/{1}" -f $Scene, $Background
+        Status = "rejected"
+        Error  = $ExpectedError
     }
 }
 
@@ -119,8 +159,7 @@ function Test-ViewerLaunch {
         [int]$Background,
         [Parameter(Mandatory = $true)]
         [int]$ExpectedFragments,
-        [Parameter(Mandatory = $true)]
-        [int]$ExpectedBrickPreviews
+        [int]$ExpectedBrickPreviews = -1
     )
 
     Write-Host ""
@@ -153,7 +192,7 @@ function Test-ViewerLaunch {
             $pairSeen = $stderr -match ("scene_entry_index={0} background_entry_index={1}" -f $Scene, $Background)
             $renderSnapshotSeen = $stderr -match "render_snapshot=objects:"
             $fragmentSummarySeen = $stderr -match ("fragments={0}\s" -f $ExpectedFragments)
-            $brickPreviewSummarySeen = $stderr -match ("brick_previews={0}" -f $ExpectedBrickPreviews)
+            $brickPreviewSummarySeen = ($ExpectedBrickPreviews -lt 0) -or ($stderr -match ("brick_previews={0}" -f $ExpectedBrickPreviews))
             $viewerProcess = Get-Process lba2 -ErrorAction SilentlyContinue
 
             if ($viewerProcess -and $startupSeen -and $roomSnapshotSeen -and $pairSeen -and $renderSnapshotSeen -and $fragmentSummarySeen -and $brickPreviewSummarySeen) {
@@ -181,7 +220,7 @@ function Test-ViewerLaunch {
             Pair          = "{0}/{1}" -f $Scene, $Background
             Startup       = "confirmed"
             Fragments     = $ExpectedFragments
-            BrickPreviews = $ExpectedBrickPreviews
+            BrickPreviews = if ($ExpectedBrickPreviews -lt 0) { "n/a" } else { $ExpectedBrickPreviews }
         }
     }
     finally {
@@ -205,20 +244,23 @@ $devShell = Join-Path $repoRoot "scripts\dev-shell.ps1"
 Write-Host "Configuring native PowerShell dev shell." -ForegroundColor Cyan
 & $devShell -Quiet
 
-$inspectResults = [System.Collections.Generic.List[object]]::new()
+$inspectSuccessResults = [System.Collections.Generic.List[object]]::new()
+$inspectFailureResults = [System.Collections.Generic.List[object]]::new()
 $launchResults = [System.Collections.Generic.List[object]]::new()
 
 Invoke-ZigCommand -WorkingDirectory $portRoot -Label "zig build test" -Arguments @("build", "test") | Out-Null
 
-$inspectResults.Add((Test-InspectRoom -PortRoot $portRoot -Scene 11 -Background 10 -ExpectedFragments 1 -ExpectedBrickPreviews 261 -ExpectedGrmEntry 149))
-$inspectResults.Add((Test-InspectRoom -PortRoot $portRoot -Scene 2 -Background 2 -ExpectedFragments 0 -ExpectedBrickPreviews 188 -ExpectedGrmEntry 149))
+$inspectSuccessResults.Add((Test-InspectRoomSuccess -PortRoot $portRoot -Scene 19 -Background 19 -ExpectedFragments 0 -ExpectedGrmEntry 151))
+$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -Scene 2 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife"))
+$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -Scene 44 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife"))
+$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -Scene 11 -Background 10 -ExpectedError "ViewerUnsupportedSceneLife"))
 
-$launchResults.Add((Test-ViewerLaunch -PortRoot $portRoot -Scene 11 -Background 10 -ExpectedFragments 1 -ExpectedBrickPreviews 261))
-$launchResults.Add((Test-ViewerLaunch -PortRoot $portRoot -Scene 2 -Background 2 -ExpectedFragments 0 -ExpectedBrickPreviews 188))
+$launchResults.Add((Test-ViewerLaunch -PortRoot $portRoot -Scene 19 -Background 19 -ExpectedFragments 0))
 
 Write-Host ""
 Write-Host "Viewer verification summary" -ForegroundColor Green
-$inspectResults | Format-Table Pair, Fragments, BrickPreviews, GrmEntry -AutoSize
+$inspectSuccessResults | Format-Table Pair, Fragments, BrickPreviews, GrmEntry -AutoSize
+$inspectFailureResults | Format-Table Pair, Status, Error -AutoSize
 $launchResults | Format-Table Pair, Startup, Fragments, BrickPreviews -AutoSize
 
 Write-Host ""

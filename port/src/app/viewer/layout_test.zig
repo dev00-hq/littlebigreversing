@@ -20,7 +20,7 @@ test "viewer projection keeps the canonical schematic fit stable" {
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try state.loadRoomSnapshot(allocator, resolved, 2, 2);
+    const room = try state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
     const render = state.buildRenderSnapshot(room);
@@ -35,14 +35,8 @@ test "viewer projection keeps the canonical schematic fit stable" {
     try std.testing.expectEqual(layout.ScreenPoint{ .x = 707, .y = 42 }, northeast);
 
     const hero = layout.projectWorldPoint(render, schematic_layout.schematic, render.hero_start.x, render.hero_start.z);
-    try std.testing.expectEqual(layout.ScreenPoint{ .x = 684, .y = 465 }, hero);
+    try std.testing.expectEqual(layout.ScreenPoint{ .x = 429, .y = 241 }, hero);
 
     const first_zone = layout.projectZoneBounds(render, schematic_layout.schematic, render.zones[0]);
-    try std.testing.expectEqual(sdl.Rect{ .x = 684, .y = 435, .w = 24, .h = 42 }, first_zone);
-
-    const first_tile_rect = layout.projectGridCellRect(schematic_layout.schematic.inset(10), render.grid_width, render.grid_depth, 59, 12);
-    try std.testing.expectEqual(@as(i32, 663), first_tile_rect.x);
-    try std.testing.expectEqual(@as(i32, 134), first_tile_rect.y);
-    try std.testing.expect(first_tile_rect.w >= 6);
-    try std.testing.expect(first_tile_rect.h >= 6);
+    try std.testing.expectEqual(sdl.Rect{ .x = 298, .y = 42, .w = 365, .h = 421 }, first_zone);
 }

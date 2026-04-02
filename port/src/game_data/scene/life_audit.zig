@@ -27,6 +27,121 @@ pub const SceneLifeProgramAudit = struct {
     status: life_program.LifeProgramAuditStatus,
 };
 
+pub const UnsupportedSceneLifeHit = struct {
+    scene_entry_index: usize,
+    classic_loader_scene_number: ?usize,
+    scene_kind: []const u8,
+    owner: LifeBlobOwner,
+    unsupported_opcode_mnemonic: []const u8,
+    unsupported_opcode_id: u8,
+    byte_offset: usize,
+};
+
+pub const SceneLifeValidationResult = union(enum) {
+    decoded: void,
+    unsupported_life_blob: UnsupportedSceneLifeHit,
+};
+
+pub const DecodedInteriorSceneCandidate = struct {
+    scene_entry_index: usize,
+    classic_loader_scene_number: ?usize,
+    blob_count: usize,
+};
+
+pub fn inspectSceneLifeProgram(
+    allocator: std.mem.Allocator,
+    scene_archive_path: []const u8,
+    scene_entry_index: usize,
+    owner: LifeBlobOwner,
+) !SceneLifeProgramAudit {
+    if (scene_entry_index < 2) return error.InvalidSceneEntryIndex;
+
+    const scene = parser.loadSceneMetadata(allocator, scene_archive_path, scene_entry_index) catch |err| switch (err) {
+        error.EntryIndexOutOfRange => return error.UnknownSceneEntryIndex,
+        else => return err,
+    };
+    defer scene.deinit(allocator);
+
+    return buildSceneLifeProgramAudit(scene, owner);
+}
+
+pub fn validateSceneLifeBoundaryForEntry(
+    allocator: std.mem.Allocator,
+    scene_archive_path: []const u8,
+    scene_entry_index: usize,
+) !SceneLifeValidationResult {
+    if (scene_entry_index < 2) return error.InvalidSceneEntryIndex;
+
+    const scene = parser.loadSceneMetadata(allocator, scene_archive_path, scene_entry_index) catch |err| switch (err) {
+        error.EntryIndexOutOfRange => return error.UnknownSceneEntryIndex,
+        else => return err,
+    };
+    defer scene.deinit(allocator);
+
+    return validateSceneLifeBoundary(scene);
+}
+
+pub fn validateSceneLifeBoundary(scene: anytype) !SceneLifeValidationResult {
+    const hero_audit = try buildSceneLifeProgramAudit(scene, .{ .hero = {} });
+    switch (hero_audit.status) {
+        .decoded => {},
+        .unsupported_opcode => return .{ .unsupported_life_blob = buildUnsupportedSceneLifeHit(hero_audit) },
+        else => return error.UnexpectedSceneLifeAuditStatus,
+    }
+
+    for (scene.objects) |object| {
+        const object_audit = try buildSceneLifeProgramAudit(scene, .{ .object = object.index });
+        switch (object_audit.status) {
+            .decoded => {},
+            .unsupported_opcode => return .{ .unsupported_life_blob = buildUnsupportedSceneLifeHit(object_audit) },
+            else => return error.UnexpectedSceneLifeAuditStatus,
+        }
+    }
+
+    return .{ .decoded = {} };
+}
+
+pub fn listDecodedInteriorSceneCandidates(
+    allocator: std.mem.Allocator,
+    scene_archive_path: []const u8,
+) ![]DecodedInteriorSceneCandidate {
+    const audits = try auditAllSceneLifePrograms(allocator, scene_archive_path);
+    defer allocator.free(audits);
+
+    var candidates: std.ArrayList(DecodedInteriorSceneCandidate) = .empty;
+    errdefer candidates.deinit(allocator);
+
+    var index: usize = 0;
+    while (index < audits.len) {
+        const scene_entry_index = audits[index].scene_entry_index;
+        const classic_loader_scene_number = audits[index].classic_loader_scene_number;
+        const scene_kind = audits[index].scene_kind;
+        var blob_count: usize = 0;
+        var all_decoded = true;
+
+        while (index < audits.len and audits[index].scene_entry_index == scene_entry_index) : (index += 1) {
+            blob_count += 1;
+            if (audits[index].status != .decoded) all_decoded = false;
+        }
+
+        if (std.mem.eql(u8, scene_kind, "interior") and all_decoded) {
+            try candidates.append(allocator, .{
+                .scene_entry_index = scene_entry_index,
+                .classic_loader_scene_number = classic_loader_scene_number,
+                .blob_count = blob_count,
+            });
+        }
+    }
+
+    std.mem.sort(DecodedInteriorSceneCandidate, candidates.items, {}, struct {
+        fn lessThan(_: void, lhs: DecodedInteriorSceneCandidate, rhs: DecodedInteriorSceneCandidate) bool {
+            return lhs.scene_entry_index < rhs.scene_entry_index;
+        }
+    }.lessThan);
+
+    return candidates.toOwnedSlice(allocator);
+}
+
 pub fn resolveSceneEntryIndicesAlloc(
     allocator: std.mem.Allocator,
     scene_archive_path: []const u8,
@@ -109,33 +224,34 @@ fn appendSceneLifeProgramAudits(
     const scene = try parser.loadSceneMetadata(allocator, scene_archive_path, entry_index);
     defer scene.deinit(allocator);
 
-    try audits.append(allocator, .{
-        .scene_entry_index = scene.entry_index,
-        .classic_loader_scene_number = scene.classicLoaderSceneNumber(),
-        .scene_kind = scene.sceneKind(),
-        .owner = .{ .hero = {} },
-        .life_byte_length = scene.hero_start.life.bytes.len,
-        .instruction_count = 0,
-        .decoded_byte_length = 0,
-        .status = undefined,
-    });
-    audits.items[audits.items.len - 1] = buildLifeProgramAudit(
+    try audits.append(allocator, try buildSceneLifeProgramAudit(scene, .{ .hero = {} }));
+
+    for (scene.objects) |object| {
+        try audits.append(allocator, try buildSceneLifeProgramAudit(scene, .{ .object = object.index }));
+    }
+}
+
+fn buildSceneLifeProgramAudit(
+    scene: anytype,
+    owner: LifeBlobOwner,
+) !SceneLifeProgramAudit {
+    const bytes = switch (owner) {
+        .hero => scene.hero_start.life.bytes,
+        .object => |object_index| blk: {
+            for (scene.objects) |object| {
+                if (object.index == object_index) break :blk object.life.bytes;
+            }
+            return error.UnknownSceneObjectIndex;
+        },
+    };
+
+    return buildLifeProgramAudit(
         scene.entry_index,
         scene.classicLoaderSceneNumber(),
         scene.sceneKind(),
-        .{ .hero = {} },
-        scene.hero_start.life.bytes,
+        owner,
+        bytes,
     );
-
-    for (scene.objects) |object| {
-        try audits.append(allocator, buildLifeProgramAudit(
-            scene.entry_index,
-            scene.classicLoaderSceneNumber(),
-            scene.sceneKind(),
-            .{ .object = object.index },
-            object.life.bytes,
-        ));
-    }
 }
 
 fn buildLifeProgramAudit(
@@ -155,5 +271,18 @@ fn buildLifeProgramAudit(
         .instruction_count = audit.instruction_count,
         .decoded_byte_length = audit.decoded_byte_length,
         .status = audit.status,
+    };
+}
+
+fn buildUnsupportedSceneLifeHit(audit: SceneLifeProgramAudit) UnsupportedSceneLifeHit {
+    const unsupported = audit.status.unsupported_opcode;
+    return .{
+        .scene_entry_index = audit.scene_entry_index,
+        .classic_loader_scene_number = audit.classic_loader_scene_number,
+        .scene_kind = audit.scene_kind,
+        .owner = audit.owner,
+        .unsupported_opcode_mnemonic = unsupported.opcode.mnemonic(),
+        .unsupported_opcode_id = unsupported.opcode_id,
+        .byte_offset = unsupported.offset,
     };
 }

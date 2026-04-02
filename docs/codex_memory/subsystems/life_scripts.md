@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Own the offline life-program decoder boundary and the canonical audit surface for unsupported real-asset life opcodes.
+Own the offline life-program decoder boundary, the canonical audit surface for unsupported real-asset life opcodes, and the scene-level branch-B validation used by the current runtime/load seam.
 
 ## Invariants
 
@@ -13,13 +13,16 @@ Own the offline life-program decoder boundary and the canonical audit surface fo
 ## Current Parity Status
 
 - `life_program.zig` is an unwired structural decoder.
-- `life_audit.zig` plus `audit-life-programs` is the canonical blocker report.
+- `life_audit.zig` plus `audit-life-programs` is the canonical blocker report and scene-level validation surface.
+- `listDecodedInteriorSceneCandidates` currently proves there are `50` fully-decoded interior candidates; the earliest canonical runtime candidate is `SCENE.HQR[19]` (`classic_loader_scene_number = 17`, `blob_count = 3`).
 - Only `LM_DEFAULT` and `LM_END_SWITCH` are active unsupported real-asset blockers in the current archive.
+- The guarded runtime/load seam rejects unsupported scene life before later interior/exterior widening; `2/2`, `44/2`, and `11/10` are negative guarded load cases, with `11/10` preserved only on explicit test-only evidence paths.
 
 ## Known Traps
 
 - `COMMON.H` names more `LM_*` ids than `GERELIFE.CPP` actually handles.
 - The switch-family source pass is complete for the current checked-in evidence; repeating it without new evidence is churn.
+- A useful viewer evidence pair is not automatically a guarded runtime-safe scene; `11/10` still crosses unsupported scene life and now requires the test-only unchecked loader path for fragment evidence coverage.
 
 ## Canonical Entry Points
 
@@ -41,5 +44,5 @@ Own the offline life-program decoder boundary and the canonical audit surface fo
 
 ## Open Unknowns
 
-- Whether future product boundaries will reject unsupported switch-family opcodes instead of decoding them.
-- What minimum checked-in evidence would be strong enough to widen the supported decoder boundary.
+- What the next bounded gameplay/runtime widening step should be on the supported `19/19` path without adding life execution.
+- What minimum checked-in evidence would be strong enough to widen the supported decoder boundary beyond explicit rejection.

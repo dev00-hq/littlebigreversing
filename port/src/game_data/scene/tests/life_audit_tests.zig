@@ -40,6 +40,92 @@ test "canonical life audit pins the known scene 2 hero blocker and scene 2 objec
     try std.testing.expectEqual(object5_audit.life_byte_length, object5_audit.decoded_byte_length);
 }
 
+test "single-blob life inspection pins the branch-b blocker anchors and success case" {
+    const allocator = std.testing.allocator;
+    const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
+    defer allocator.free(archive_path);
+
+    const scene2_hero = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 2, .{ .hero = {} });
+    try std.testing.expectEqual(@as(usize, 203), scene2_hero.life_byte_length);
+    try std.testing.expectEqual(@as(usize, 36), scene2_hero.instruction_count);
+    try std.testing.expectEqual(@as(usize, 170), scene2_hero.decoded_byte_length);
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_DEFAULT, scene2_hero.status.unsupported_opcode.opcode);
+    try std.testing.expectEqual(@as(usize, 170), scene2_hero.status.unsupported_opcode.offset);
+
+    const scene5_hero = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 5, .{ .hero = {} });
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_END_SWITCH, scene5_hero.status.unsupported_opcode.opcode);
+    try std.testing.expectEqual(@as(usize, 46), scene5_hero.status.unsupported_opcode.offset);
+
+    const scene44_hero = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 44, .{ .hero = {} });
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_END_SWITCH, scene44_hero.status.unsupported_opcode.opcode);
+    try std.testing.expectEqual(@as(usize, 713), scene44_hero.status.unsupported_opcode.offset);
+
+    const scene44_object2 = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 44, .{ .object = 2 });
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_DEFAULT, scene44_object2.status.unsupported_opcode.opcode);
+    try std.testing.expectEqual(@as(usize, 274), scene44_object2.status.unsupported_opcode.offset);
+
+    const scene44_object3 = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 44, .{ .object = 3 });
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_DEFAULT, scene44_object3.status.unsupported_opcode.opcode);
+    try std.testing.expectEqual(@as(usize, 43), scene44_object3.status.unsupported_opcode.offset);
+
+    const scene2_object5 = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 2, .{ .object = 5 });
+    try std.testing.expect(scene2_object5.status == .decoded);
+    try std.testing.expectEqual(@as(usize, 14), scene2_object5.instruction_count);
+    try std.testing.expectEqual(scene2_object5.life_byte_length, scene2_object5.decoded_byte_length);
+}
+
+test "single-blob life inspection rejects unknown selectors explicitly" {
+    const allocator = std.testing.allocator;
+    const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
+    defer allocator.free(archive_path);
+
+    try std.testing.expectError(error.UnknownSceneObjectIndex, life_audit.inspectSceneLifeProgram(allocator, archive_path, 2, .{ .object = 99 }));
+    try std.testing.expectError(error.UnknownSceneEntryIndex, life_audit.inspectSceneLifeProgram(allocator, archive_path, 999, .{ .hero = {} }));
+}
+
+test "scene-level life validation pins the canonical decoded interior candidate set" {
+    const allocator = std.testing.allocator;
+    const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
+    defer allocator.free(archive_path);
+
+    const candidates = try life_audit.listDecodedInteriorSceneCandidates(allocator, archive_path);
+    defer allocator.free(candidates);
+
+    try std.testing.expectEqual(@as(usize, 50), candidates.len);
+    try std.testing.expectEqual(@as(usize, 19), candidates[0].scene_entry_index);
+    try std.testing.expectEqual(@as(?usize, 17), candidates[0].classic_loader_scene_number);
+    try std.testing.expectEqual(@as(usize, 3), candidates[0].blob_count);
+
+    const validation = try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, candidates[0].scene_entry_index);
+    try std.testing.expect(validation == .decoded);
+}
+
+test "scene-level life validation returns explicit first-hit blocker diagnostics" {
+    const allocator = std.testing.allocator;
+    const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
+    defer allocator.free(archive_path);
+
+    const scene2 = try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 2);
+    try std.testing.expect(scene2 == .unsupported_life_blob);
+    try std.testing.expectEqual(@as(usize, 2), scene2.unsupported_life_blob.scene_entry_index);
+    try std.testing.expectEqual(@as(?usize, 0), scene2.unsupported_life_blob.classic_loader_scene_number);
+    try std.testing.expectEqualStrings("interior", scene2.unsupported_life_blob.scene_kind);
+    try std.testing.expect(scene2.unsupported_life_blob.owner == .hero);
+    try std.testing.expectEqualStrings("LM_DEFAULT", scene2.unsupported_life_blob.unsupported_opcode_mnemonic);
+    try std.testing.expectEqual(@as(u8, 116), scene2.unsupported_life_blob.unsupported_opcode_id);
+    try std.testing.expectEqual(@as(usize, 170), scene2.unsupported_life_blob.byte_offset);
+
+    const scene44 = try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 44);
+    try std.testing.expect(scene44 == .unsupported_life_blob);
+    try std.testing.expectEqual(@as(usize, 44), scene44.unsupported_life_blob.scene_entry_index);
+    try std.testing.expectEqual(@as(?usize, 42), scene44.unsupported_life_blob.classic_loader_scene_number);
+    try std.testing.expectEqualStrings("exterior", scene44.unsupported_life_blob.scene_kind);
+    try std.testing.expect(scene44.unsupported_life_blob.owner == .hero);
+    try std.testing.expectEqualStrings("LM_END_SWITCH", scene44.unsupported_life_blob.unsupported_opcode_mnemonic);
+    try std.testing.expectEqual(@as(u8, 118), scene44.unsupported_life_blob.unsupported_opcode_id);
+    try std.testing.expectEqual(@as(usize, 713), scene44.unsupported_life_blob.byte_offset);
+}
+
 test "canonical life audit covers the locked scene set" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");

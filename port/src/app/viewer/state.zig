@@ -1,12 +1,16 @@
+const builtin = @import("builtin");
 const std = @import("std");
 const paths_mod = @import("../../foundation/paths.zig");
 const background_data = @import("../../game_data/background.zig");
 const scene_data = @import("../../game_data/scene.zig");
+const life_audit = @import("../../game_data/scene/life_audit.zig");
 
 pub const HeroStartSnapshot = struct {
     x: i16,
     y: i16,
     z: i16,
+    track_byte_length: u16,
+    life_byte_length: u16,
 };
 
 pub const ObjectPositionSnapshot = struct {
@@ -42,6 +46,7 @@ pub const SceneSnapshot = struct {
     object_count: usize,
     zone_count: usize,
     track_count: usize,
+    patch_count: usize,
     objects: []ObjectPositionSnapshot,
     zones: []ZoneBoundsSnapshot,
     tracks: []TrackPointSnapshot,
@@ -102,6 +107,8 @@ pub const CompositionTileSnapshot = struct {
 pub const CompositionSnapshot = struct {
     occupied_cell_count: usize,
     occupied_bounds: ?CompositionBoundsSnapshot,
+    layout_count: usize,
+    max_layout_block_count: usize,
     floor_type_counts: [16]usize,
     max_total_height: u8,
     max_stack_depth: u8,
@@ -267,6 +274,10 @@ pub const RenderSnapshot = struct {
 
 const world_grid_span_xz = 512;
 const world_grid_span_y = 256;
+const LifeValidationMode = enum {
+    enforce,
+    skip,
+};
 
 pub fn gridCellWorldBounds(x: usize, z: usize) WorldBounds {
     const x_min: i32 = @intCast(x * world_grid_span_xz);
@@ -286,11 +297,39 @@ pub fn loadRoomSnapshot(
     scene_entry_index: usize,
     background_entry_index: usize,
 ) !RoomSnapshot {
+    return loadRoomSnapshotInternal(allocator, resolved, scene_entry_index, background_entry_index, .enforce);
+}
+
+pub fn loadRoomSnapshotUncheckedForTests(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+) !RoomSnapshot {
+    if (!builtin.is_test) @compileError("loadRoomSnapshotUncheckedForTests is only available in test builds");
+    return loadRoomSnapshotInternal(allocator, resolved, scene_entry_index, background_entry_index, .skip);
+}
+
+fn loadRoomSnapshotInternal(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    life_validation_mode: LifeValidationMode,
+) !RoomSnapshot {
     const scene_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
     defer allocator.free(scene_path);
 
     var scene = try scene_data.loadSceneMetadata(allocator, scene_path, scene_entry_index);
     defer scene.deinit(allocator);
+
+    if (life_validation_mode == .enforce) {
+        switch (try life_audit.validateSceneLifeBoundary(scene)) {
+            .decoded => {},
+            .unsupported_life_blob => return error.ViewerUnsupportedSceneLife,
+        }
+    }
+
     if (scene.cube_mode != 0) return error.ViewerSceneMustBeInterior;
 
     var scene_snapshot = SceneSnapshot{
@@ -301,10 +340,13 @@ pub fn loadRoomSnapshot(
             .x = scene.hero_start.x,
             .y = scene.hero_start.y,
             .z = scene.hero_start.z,
+            .track_byte_length = scene.hero_start.trackByteLength(),
+            .life_byte_length = scene.hero_start.lifeByteLength(),
         },
         .object_count = scene.object_count,
         .zone_count = scene.zone_count,
         .track_count = scene.track_count,
+        .patch_count = scene.patch_count,
         .objects = try copyObjectSnapshots(allocator, scene.objects),
         .zones = try copyZoneSnapshots(allocator, scene.zones),
         .tracks = try copyTrackSnapshots(allocator, scene.tracks),
@@ -625,6 +667,8 @@ fn buildCompositionSnapshot(
             }
         else
             null,
+        .layout_count = composition.library.layouts.len,
+        .max_layout_block_count = composition.library.max_layout_block_count,
         .floor_type_counts = floor_type_counts,
         .max_total_height = max_total_height,
         .max_stack_depth = max_stack_depth,

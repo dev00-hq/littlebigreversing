@@ -276,7 +276,7 @@ test "viewer fragment comparison panel pins the selected cell ahead of the ranke
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try state.loadRoomSnapshot(allocator, resolved, 11, 10);
+    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
     defer room.deinit(allocator);
 
     const render = state.buildRenderSnapshot(room);
@@ -317,7 +317,7 @@ test "viewer fragment comparison panel keeps the checked-in fragment pair inspec
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try state.loadRoomSnapshot(allocator, resolved, 11, 10);
+    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
     defer room.deinit(allocator);
 
     const render = state.buildRenderSnapshot(room);

@@ -13,15 +13,17 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains the only implementation workspace, and the v2 memory tree replaced the old mixed-log model.
+- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains the only implementation workspace, the v2 memory tree replaced the old mixed-log model, and the current guarded runtime/load baseline is `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]`.
 
 ## Known Traps
 
 - `docs/PROMPT.md` can lag behind repo work; cross-check current packs and history before following it literally.
 - The current viewer uses decoded `BRK` previews plus a live HUD/legend, but it is still not a full room-art renderer and the window title/stderr dump is no longer the canonical debug surface.
-- `inspect-room --json` still reports `11/10` counts, linkage, and `BRK` summaries, but not the projected comparison cells; validate per-cell deltas via viewer tests/runtime.
+- `inspect-room --json` now shares the guarded runtime/load seam, so `11/10` no longer succeeds there by design. Even on supported rooms it still reports counts, linkage, and `BRK` summaries rather than projected comparison cells, so validate per-cell deltas via viewer tests/runtime.
 - Treat `2/2` as the explicit zero-fragment control path and do not infer fragments from `my_grm` or `grm_entry_index` alone.
+- After the branch-B load guard landed, `2/2` stopped being a positive runtime fixture; use it as an explicit unsupported-scene-life rejection case instead.
 - The positive fragment evidence pair is `11/10`, not a same-index guess, and its `grm` projection needs boundary-aligned max-coordinate handling.
+- `11/10` is still valuable fragment evidence, but it is no longer a guarded runtime-positive load; keep it on explicit test-only evidence paths unless the supported life boundary widens.
 - `docs/PORTING_REPORT.md` still carries older feasibility context; use it as evidence background, not as the execution owner.
 - Canonical Windows Zig checks should run from native PowerShell after `.\scripts\dev-shell.ps1`; reserve `bash -lc` for inspection work.
 - `zig build test` is not a substitute for a prompt's explicit `zig build run` or `zig build tool` acceptance command.
