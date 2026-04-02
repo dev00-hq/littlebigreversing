@@ -87,6 +87,7 @@ Use explicit replan gates after the evidence baseline, the first-viewer gate, th
 - Before scene-surface life integration or gameplay work widens further, make an explicit product-boundary decision for `LM_DEFAULT` and `LM_END_SWITCH`.
 - Allowed branch A: deepen checked-in evidence until those switch-family opcodes can be supported in one canonical decoder/interpreter path.
 - Allowed branch B: explicitly reject switch-family-dependent life paths from the current parity target and keep the runtime fail-fast when those paths are encountered.
+- Current checked-in decision: branch B. `LM_DEFAULT` and `LM_END_SWITCH` remain outside the supported decoder/interpreter boundary because the repo still lacks checked-in primary-source structural proof beyond header names and the `LM_BREAK` destination comment.
 - Do not add speculative partial support, compatibility glue, silent fallbacks, or a temporary second life path while this gate is unresolved.
 - Keep offline life-oriented probes, audits, and source-backed evidence work in scope; only scene-surface life integration is blocked here.
 
@@ -124,8 +125,8 @@ Expose a small set of first-class commands early:
 ## Current Strategic Gate
 
 - The first-viewer gate is already complete; do not reframe the repo as if it were still waiting for a foundation/bootstrap package.
-- The current strategic gate is the Phase 4 decision on `LM_DEFAULT` and `LM_END_SWITCH`.
-- Until that gate is resolved, keep viewer/runtime work framed as validated evidence surfaces and keep scene-surface life integration blocked.
+- The current strategic gate outcome is Phase 4 branch B for `LM_DEFAULT` and `LM_END_SWITCH`.
+- Keep scene-surface life integration and any future life execution fail-fast on those switch-family-dependent paths unless new checked-in primary-source evidence reopens the decision.
 
 ## Test Plan
 
@@ -148,7 +149,7 @@ Expose a small set of first-class commands early:
 
 - `zig build tool -- audit-life-programs --json` and `zig build tool -- audit-life-programs --json --all-scene-entries` remain the canonical blocker reports until Phase 4 resolves.
 - If Phase 4 takes branch A, add decoder/interpreter tests that prove supported handling for `LM_DEFAULT` and `LM_END_SWITCH`.
-- If Phase 4 takes branch B, keep explicit rejection tests and diagnostics for switch-family-dependent paths outside the target boundary.
+- Phase 4 currently takes branch B, so keep explicit rejection tests and diagnostics for switch-family-dependent paths outside the target boundary.
 
 ### Evidence and Regression Tests
 

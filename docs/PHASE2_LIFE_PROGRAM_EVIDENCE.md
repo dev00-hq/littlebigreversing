@@ -35,6 +35,26 @@ The goal here is structural byte-layout evidence only. This memo does not claim 
 - Treat the remaining six named-but-unimplemented `LM_*` ids as still unsupported but not current real-asset blockers unless a future broader audit or asset set proves otherwise.
 - Any first decoder should reject `LM_NOP`, `LM_ENDIF`, `LM_REM`, `LM_DEFAULT`, `LM_END_SWITCH`, `LM_SPY`, `LM_DEBUG`, and `LM_DEBUG_OBJ` unless stronger checked-in evidence appears.
 
+## Branch-A Evidence Threshold
+
+Phase 4 branch A is supportable only if checked-in primary-source evidence fixes structural handling for `LM_DEFAULT` or `LM_END_SWITCH` beyond header names, comments, or asset-local recurrence.
+
+Acceptable proof:
+
+- a live checked-in byte reader
+- preserved checked-in runtime logic that fixes operand layout or control-flow behavior
+- another checked-in primary source with equally concrete structural detail
+
+Unacceptable proof:
+
+- `COMMON.H` opcode names by themselves
+- inline comments by themselves
+- unsupported-hit offsets from the offline audit
+- repeated asset-byte patterns
+- local byte windows or decoded prefix context without a primary-source structural reader
+
+The current checked-in repo does not meet that branch-A threshold for either opcode.
+
 ## Scene Loader Boundary
 
 Classic scene loading preserves life programs as raw counted byte blobs before any interpretation:
@@ -226,6 +246,53 @@ The follow-up source pass over the switch family did not widen the supported bou
 - A repo-wide checked-in-source search found no extra structural evidence for either `LM_DEFAULT` or `LM_END_SWITCH` outside `COMMON.H` and that `LM_BREAK` comment.
 
 That is not enough evidence to assign even a zero-byte marker layout safely. The current decoder should keep treating both ids as explicitly unsupported.
+
+### Opcode Decision: `LM_DEFAULT`
+
+Proven today:
+
+- `COMMON.H` names `LM_DEFAULT` as opcode `116`.
+- Current real assets reach `LM_DEFAULT` at scene `2` hero byte offset `170` and scene `44` object byte offsets `274` and `43`.
+- `GERELIFE.CPP` does not provide a live `case LM_DEFAULT`.
+
+Still unproven:
+
+- whether `LM_DEFAULT` is a marker-only opcode or consumes trailing bytes
+- how `LM_DEFAULT` participates in switch-family control flow at runtime
+- any operand layout or control-flow rule safe enough to promote into a canonical decoder
+
+Branch-A supportability today:
+
+- Branch A is not supportable for `LM_DEFAULT`.
+- The checked-in evidence does not pass the branch-A threshold, so `LM_DEFAULT` must stay outside the supported decoder boundary.
+
+### Opcode Decision: `LM_END_SWITCH`
+
+Proven today:
+
+- `COMMON.H` names `LM_END_SWITCH` as opcode `118`.
+- Current real assets reach `LM_END_SWITCH` at scene `5` hero byte offset `46` and scene `44` hero byte offset `713`.
+- `GERELIFE.CPP` does not provide a live `case LM_END_SWITCH`.
+- `LM_BREAK` reads `jump_offset_s16`, and its inline comment says that jump targets `END_SWITCH`.
+
+Still unproven:
+
+- whether `LM_END_SWITCH` is a marker-only opcode or consumes trailing bytes
+- whether runtime ever reads `LM_END_SWITCH` directly rather than treating it as a jump destination concept
+- any operand layout or control-flow rule safe enough to promote into a canonical decoder
+
+Branch-A supportability today:
+
+- Branch A is not supportable for `LM_END_SWITCH`.
+- The checked-in evidence does not pass the branch-A threshold, so `LM_END_SWITCH` must stay outside the supported decoder boundary.
+
+### Phase 4 Decision Outcome
+
+The current repo should take Phase 4 branch B.
+
+- `LM_DEFAULT` and `LM_END_SWITCH` stay outside the supported decoder and interpreter boundary.
+- Switch-family-dependent life paths stay outside the current parity target.
+- Current and future life work should remain fail-fast on those paths unless new checked-in primary-source evidence appears.
 
 ### Named But Unproven In Live Runtime Code
 

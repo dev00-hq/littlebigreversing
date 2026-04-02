@@ -3,9 +3,9 @@
 ## Current Priorities
 
 - Keep the topology-first `codex-memory-v2` tree canonical and small.
-- Treat the validated `11/10` and `2/2` viewer-prep path as landed evidence surface work and shift the next narrow decision focus to Phase 4 life-boundary evidence around `LM_DEFAULT` and `LM_END_SWITCH`.
+- Treat the validated `11/10` and `2/2` viewer-prep path as landed evidence surface work and keep the Phase 4 branch-B life boundary explicit: `LM_DEFAULT` and `LM_END_SWITCH` stay outside the current parity target unless new checked-in primary-source evidence appears.
 - Keep the checked-in fragment-bearing interior evidence anchored to `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]`, not guessed pairings.
-- Keep unsupported life switch-family handling blocked until checked-in evidence changes or the product boundary rejects it explicitly.
+- Keep unsupported life switch-family handling outside the supported decoder/interpreter boundary for the current repo state.
 
 ## Active Streams
 
@@ -15,14 +15,14 @@
 
 ## Blocked Items
 
-- Scene-surface life integration is blocked on `LM_DEFAULT` and `LM_END_SWITCH`.
+- Scene-surface life integration remains blocked on `LM_DEFAULT` and `LM_END_SWITCH`, which are now explicitly rejected from the current parity target.
 - Canonical `zig build test` and `zig build run` still depend on the extracted asset tree and repo-local Windows SDL2 layout.
 
 ## Next Actions
 
-- Run the next narrow slice as a Phase 4 hypothesis test: decide whether checked-in evidence is sufficient to support `LM_DEFAULT` and `LM_END_SWITCH`, or whether the current parity target should explicitly reject switch-family-dependent life paths until stronger evidence appears.
-- Keep future life work scoped to explicit evidence probes, the smallest offline helpers needed to inspect known blocker hits, or deliberate rejection of unsupported switch-family opcodes.
-- Keep additional viewer-local refinement deprioritized until the Phase 4 life-boundary question is answered, and keep any viewer work away from gameplay, life binding, exterior loading, or a full room-art renderer.
+- Keep future life work scoped to explicit rejection diagnostics, deliberate fail-fast coverage for unsupported switch-family opcodes, or a reopened evidence pass only if new checked-in primary-source evidence appears.
+- Keep gameplay/runtime widening inside the branch-B product boundary: no support for switch-family-dependent life paths without new checked-in proof.
+- Keep any future viewer work away from gameplay, life binding, exterior loading, or a full room-art renderer unless a later prompt widens scope deliberately.
 - Update subsystem packs and typed records instead of reviving timeline-heavy summary docs.
 
 ## Relevant Subsystem Packs
