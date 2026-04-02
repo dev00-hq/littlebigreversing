@@ -3,6 +3,7 @@ const paths_mod = @import("../../foundation/paths.zig");
 const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
 const state = @import("../../runtime/room_state.zig");
+const viewer_state = @import("state.zig");
 const draw = @import("draw.zig");
 const layout = @import("layout.zig");
 const render = @import("render.zig");
@@ -167,7 +168,7 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
         "SCN {d} BKG {d}",
         .{ snapshot.metadata.scene_entry_index, snapshot.metadata.background_entry_index },
     );
-    const focus_world_bounds = state.gridCellWorldBounds(focus.x, focus.z);
+    const focus_world_bounds = viewer_state.gridCellWorldBounds(focus.x, focus.z);
     var focus_delta_summary_buffer: [24]u8 = undefined;
     const focus_delta_summary = try fragment_compare.formatDeltaSummary(&focus_delta_summary_buffer, focus.detail);
     var focus_stack_summary_buffer: [16]u8 = undefined;

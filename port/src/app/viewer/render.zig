@@ -1,6 +1,7 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const state = @import("../../runtime/room_state.zig");
+const viewer_state = @import("state.zig");
 const layout = @import("layout.zig");
 const draw = @import("draw.zig");
 const fragment_compare = @import("fragment_compare.zig");
@@ -321,7 +322,7 @@ fn drawHud(
     }
 
     if (selection.focus) |focus| {
-        const world_bounds = state.gridCellWorldBounds(focus.x, focus.z);
+        const world_bounds = viewer_state.gridCellWorldBounds(focus.x, focus.z);
         var delta_summary_buffer: [24]u8 = undefined;
         const delta_summary = try fragment_compare.formatDeltaSummary(&delta_summary_buffer, focus.detail);
         var stack_summary_buffer: [16]u8 = undefined;

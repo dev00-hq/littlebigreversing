@@ -14,6 +14,7 @@ pub const app = struct {
 pub const runtime = struct {
     pub const room_state = @import("runtime/room_state.zig");
     pub const session = @import("runtime/session.zig");
+    pub const world_query = @import("runtime/world_query.zig");
 };
 
 pub const assets = struct {
@@ -51,6 +52,7 @@ test {
     _ = @import("app/viewer_shell_test.zig");
     _ = @import("runtime/room_state.zig");
     _ = @import("runtime/session.zig");
+    _ = @import("runtime/world_query.zig");
     _ = @import("app/viewer/state_test.zig");
     _ = @import("app/viewer/layout_test.zig");
     _ = @import("app/viewer/draw_test.zig");

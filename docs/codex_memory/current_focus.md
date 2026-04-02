@@ -10,7 +10,7 @@
 
 ## Active Streams
 
-- Scene and background inspection plus the height-aware interior composition debug viewer, the supported `19/19` runtime/load baseline, explicit branch-B life rejection at the current load seam, the now-guarded `inspect-room` probe boundary, fragment-bearing `11/10` GRM evidence coverage, landed `BRK`-backed top-surface preview rendering across composition / fragment / comparison surfaces, the refined viewer-local fragment comparison panel / focus highlight / selected-cell detail strip / deterministic navigation / pinned selected-cell row, the new viewer-local HUD / legend / zero-fragment messaging surfaces, and the focused owning-zone provenance overlay on the live schematic as viewer-prep surfaces.
+- Scene/background inspection, the supported `19/19` runtime/load baseline, the runtime-owned `world_query` slice over immutable room snapshots, explicit branch-B life rejection at the load seam, the guarded `inspect-room` boundary, checked-in `11/10` GRM evidence coverage, `BRK`-backed top-surface previews, and the viewer-local fragment / HUD / provenance surfaces.
 - MBN corpus and phase0 evidence maintenance.
 - Windows-first port validation with Linux limited to docs and source-oriented work.
 
@@ -22,7 +22,7 @@
 
 ## Next Actions
 
-- Keep gameplay/runtime widening centered on `SCENE.HQR[19]` without rerunning candidate discovery or reopening the Phase 4 branch decision.
+- Keep gameplay/runtime widening centered on `SCENE.HQR[19]`, and build future hero-motion topology work on `runtime/world_query.zig` instead of backsliding query ownership into `room_state.zig` or `session.zig`.
 - Keep future life work scoped to explicit rejection diagnostics, deliberate fail-fast coverage for unsupported switch-family opcodes, or a reopened evidence pass only if new checked-in primary-source evidence appears.
 - Keep `2/2` and `44/2` as negative branch-B load cases, and keep `11/10` on explicit evidence-only/test-local paths unless a later prompt widens the supported runtime boundary.
 - Keep any future viewer work away from gameplay, life binding, exterior loading, or a full room-art renderer unless a later prompt widens scope deliberately.

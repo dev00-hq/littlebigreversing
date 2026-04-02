@@ -279,18 +279,6 @@ const LifeValidationMode = enum {
     skip,
 };
 
-pub fn gridCellWorldBounds(x: usize, z: usize) WorldBounds {
-    const x_min: i32 = @intCast(x * world_grid_span_xz);
-    const z_min: i32 = @intCast(z * world_grid_span_xz);
-    const cell_span: i32 = world_grid_span_xz - 1;
-    return .{
-        .min_x = x_min,
-        .max_x = x_min + cell_span,
-        .min_z = z_min,
-        .max_z = z_min + cell_span,
-    };
-}
-
 pub fn loadRoomSnapshot(
     allocator: std.mem.Allocator,
     resolved: paths_mod.ResolvedPaths,
