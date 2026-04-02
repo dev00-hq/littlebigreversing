@@ -335,10 +335,10 @@ This report now stops at feasibility, evidence, workspace inventory, and risks.
 The canonical execution plan lives in `docs/LBA2_ZIG_PORT_PLAN.md`, including:
 
 - the Zig 0.15.2 + SDL2 target runtime
-- delivery structure and replan gates
-- roadmap phases
+- the strategic phase map, including that the first-viewer gate is already crossed
+- the current replan gate around `LM_DEFAULT` / `LM_END_SWITCH`
+- the document-ownership split between the roadmap, `docs/codex_memory/current_focus.md`, and `docs/PROMPT.md`
 - stable module boundaries
-- the `Foundation + asset CLI` first work package
 - the current test plan
 
 At a high level, the recommended implementation posture remains:

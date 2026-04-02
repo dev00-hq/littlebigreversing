@@ -9,9 +9,9 @@ Phase 0 keeps these open as explicit evidence gaps instead of filling them with 
 - scene-5 regression: `SCENE.HQR[5]` is useful for zone-semantics regression checks, but it is not part of the locked phase 0 golden target set yet
 - dialog target: the English voice entry is locked, but the exact `TEXT.HQR` subtitle pairing remains provisional
 
-## Phase 1 Replan Gate Inputs
+## Next Strategic Gate Inputs
 
-Before expanding past `Foundation + asset CLI`, the next gate should answer:
+Before widening from the validated viewer-prep runtime path into scene-surface life integration or gameplay work, the next gate should answer:
 
 - which golden targets remain strong enough to keep unchanged
 - which evidence facts are still provisional and need deeper tooling before runtime work

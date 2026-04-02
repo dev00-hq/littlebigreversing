@@ -6,6 +6,13 @@ This document is the canonical implementation roadmap for the modern LBA2 port.
 
 Use the classic source tree, extracted original CD assets, and preserved MBN tooling as behavioral and format evidence. Do not treat any one source as sufficient on its own, and do not directly transplant old engine code into the new runtime.
 
+## Document Ownership
+
+- `docs/LBA2_ZIG_PORT_PLAN.md` owns strategic phases, replan gates, and product-boundary decisions.
+- `docs/codex_memory/current_focus.md` owns active repo state, current blockers, and the operating focus for the checked-in tree.
+- `docs/PROMPT.md` owns only the next narrow slice to execute.
+- `docs/PORTING_REPORT.md` plus the evidence memos remain supporting context, not execution owners.
+
 ## Canonical Direction
 
 - Target language/runtime: Zig 0.15.2 with SDL2
@@ -14,6 +21,15 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 - Tooling goal: make discovery, inspection, validation, and fixture generation first-class deliverables
 
 If a format or behavior is not yet understood, fail with a precise diagnostic and deepen evidence for that subsystem. Do not add fallback parsers, compatibility shims, or speculative dual behavior.
+
+The hard-cut product policy applies throughout this roadmap: prefer one canonical current-state implementation, fail-fast diagnostics, and explicit recovery steps over compatibility bridges, silent fallbacks, migration glue, or temporary second paths.
+
+## Current Strategic Status
+
+- The old `Foundation + asset CLI` boundary is already behind the repo; that baseline has landed.
+- The first-viewer gate is crossed. The checked-in port already has a runtime-backed interior viewer path, explicit `2/2` zero-fragment and `11/10` fragment-bearing acceptance surfaces, `BRK`-backed top-surface previews, viewer-local comparison and HUD surfaces, and a canonical Windows verification gate in `scripts/verify-viewer.ps1`.
+- The current implementation stream is viewer-prep evidence work on top of that validated runtime/viewer path, not another foundation/bootstrap slice.
+- The remaining strategic blocker for widening from viewer-prep into scene-surface gameplay work is the life-script boundary around `LM_DEFAULT` and `LM_END_SWITCH`.
 
 ## Delivery Structure
 
@@ -29,7 +45,7 @@ Start worker tracks only after explorer output is strong enough to support imple
 2. Asset worker for HQR and related parsers, fixture generators, and inspection CLIs.
 3. Runtime worker for scene loading, rendering, object/runtime behavior, scripts, audio/video, and save/load.
 
-Use explicit replan gates after the foundation package, first viewer, first gameplay slice, and script milestone. Each gate should choose one of three outcomes: continue, deepen evidence, or split the subsystem into a narrower slice.
+Use explicit replan gates after the evidence baseline, the first-viewer gate, the Phase 4 life-boundary decision, and the first gameplay slice. Each gate should choose one of three outcomes: continue, deepen evidence, or narrow the subsystem/product target explicitly.
 
 ## Roadmap Phases
 
@@ -39,13 +55,10 @@ Use explicit replan gates after the foundation package, first viewer, first game
 - Keep checked-in findings in `docs/` and generated indexes, catalogs, fixtures, and comparisons in `work/`.
 - Define golden targets covering one room, one exterior area, one actor, one dialog or voice path, and one cutscene path.
 
-### Phase 1: Foundation and Asset CLI
+### Phase 1: Foundation, Asset CLI, and Runtime Skeleton
 
-- Replace the `hello-world` placeholder with the real Zig workspace layout.
-- Stand up an SDL2-backed application shell with fail-fast asset-root and config handling.
-- Add structured logging plus a basic debug UI or overlay hook.
-- Build CLI tooling for asset inventory, HQR inspection, entry extraction, and fixture generation.
-- Establish generated-state locations under `work/` for catalogs, decoded samples, and comparison outputs.
+- Land the real Zig workspace layout, SDL2-backed application shell, fail-fast asset-root/config handling, and the core inspection CLI/tooling baseline.
+- Keep future work here limited to supporting later gates; do not reopen this phase as the current execution boundary.
 
 ### Phase 2: Core Asset Decoding
 
@@ -59,21 +72,32 @@ Use explicit replan gates after the foundation package, first viewer, first game
   - `SPRITES.HQR`
 - Add enough text and voice metadata decoding to unblock later gameplay work.
 - Cross-check decoded outputs against source, assets, and preserved tools instead of trusting any single input.
+- Treat the current checked-in decode surface as already sufficient for the validated interior viewer/evidence path; future decode work should follow later gates rather than reintroducing a pre-viewer package boundary.
 
-### Phase 3: World and Viewer Slice
+### Phase 3: Viewer-Prep Evidence on a Validated Runtime Path
 
-- Load one interior room end-to-end: scene metadata, background or layout link, actor placement, camera framing, and debug visualization for zones and tracks.
-- Add one exterior or island viewer path separately.
-- Do not force indoor and outdoor pipelines to converge before the evidence is strong enough.
-- Treat scene and object inspection as product features, not throwaway scripts.
+- Status: crossed.
+- Keep the runtime-backed interior viewer path and explicit acceptance surfaces on Windows validated through `scripts/verify-viewer.ps1`.
+- Keep `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]` as the zero-fragment control path and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as the checked-in fragment-bearing path.
+- Treat viewer-local composition snapshots, `BRK`-backed previews, fragment comparison, HUD/legend cues, and provenance overlays as evidence surfaces on top of a landed runtime path, not as proof that the repo is still pre-viewer.
+- Keep indoor and outdoor expansion decoupled until the evidence warrants widening the target.
 
-### Phase 4: Runtime and Gameplay Slice
+### Phase 4: Life Boundary Decision Gate
 
-- Port the object model, update loop, zone handling, collision and movement, and track execution needed for one playable path.
-- Implement life-script decoding and interpretation as a dedicated subsystem with tracing and deterministic stepping.
+- Before scene-surface life integration or gameplay work widens further, make an explicit product-boundary decision for `LM_DEFAULT` and `LM_END_SWITCH`.
+- Allowed branch A: deepen checked-in evidence until those switch-family opcodes can be supported in one canonical decoder/interpreter path.
+- Allowed branch B: explicitly reject switch-family-dependent life paths from the current parity target and keep the runtime fail-fast when those paths are encountered.
+- Do not add speculative partial support, compatibility glue, silent fallbacks, or a temporary second life path while this gate is unresolved.
+- Keep offline life-oriented probes, audits, and source-backed evidence work in scope; only scene-surface life integration is blocked here.
+
+### Phase 5: Runtime and Gameplay Slice
+
+- After Phase 4 resolves, port the object model, update loop, zone handling, collision and movement, and track execution needed for one playable path.
+- If Phase 4 takes branch A, implement life-script decoding and interpretation with tracing and deterministic stepping on the supported boundary.
+- If Phase 4 takes branch B, keep rejected switch-family paths outside the parity target with explicit diagnostics and continue only on gameplay slices that stay inside the chosen product boundary.
 - Expand from one scripted slice to a small vertical slice with room transitions, inventory or state mutation, dialog or text, and basic combat or interaction.
 
-### Phase 5: Completion Layers
+### Phase 6: Completion Layers
 
 - Add audio playback, voice routing, music behavior, menus, save or load, cutscenes, and remaining media subsystems.
 - Expand parity coverage scene-by-scene and subsystem-by-subsystem until campaign-complete behavior is realistic.
@@ -97,39 +121,34 @@ Expose a small set of first-class commands early:
 - run a viewer for a chosen scene
 - run validation against golden fixtures
 
-## First Work Package
+## Current Strategic Gate
 
-The first package is `Foundation + asset CLI`. It is intentionally narrower than the first scene viewer.
-
-That package should leave the repo ready for the first implementation spec to cover:
-
-- real Zig workspace bootstrap
-- SDL2 application shell
-- canonical asset-root discovery and config
-- HQR base reader and inspection CLI
-- machine-readable asset inventory and golden-fixture pipeline
-- initial validation harness
-
-Prepare the first implementation spec against this package boundary. Do not expand the spec to gameplay, scene viewing, or script work until the foundation package lands and the first replan gate is complete.
+- The first-viewer gate is already complete; do not reframe the repo as if it were still waiting for a foundation/bootstrap package.
+- The current strategic gate is the Phase 4 decision on `LM_DEFAULT` and `LM_END_SWITCH`.
+- Until that gate is resolved, keep viewer/runtime work framed as validated evidence surfaces and keep scene-surface life integration blocked.
 
 ## Test Plan
 
-### Foundation Tests
+### Foundation and Decode Tests
 
-- `zig build` and `zig build test` pass for the workspace skeleton and SDL2 smoke path.
+- `zig build` and `zig build test` pass for the checked-in workspace and decode/runtime baseline.
 - Invalid asset roots and missing canonical files fail with explicit diagnostics.
-
-### Asset Tests
-
 - HQR header and table parsing match known fixture bytes.
 - Selected entries from `RESS.HQR`, `SCENE.HQR`, `ANIM.HQR`, and `SPRITES.HQR` decode consistently across repeated runs.
 - Asset inventory output is deterministic.
 
-### Viewer and Runtime Tests
+### Viewer Gate Tests
 
-- One interior scene loads with the correct scene or background pairing and actor count.
-- Zone and track metadata for the golden scene can be dumped and inspected.
-- A scripted vertical-slice path can be replayed with stable state transitions.
+- `scripts/verify-viewer.ps1` is the canonical Windows acceptance gate for the landed viewer/runtime path.
+- One interior scene loads with the correct scene/background pairing and actor count.
+- The `2/2` zero-fragment control path and `11/10` fragment-bearing path remain probeable through `inspect-room` and the runtime viewer acceptance flow.
+- Viewer-local evidence surfaces stay covered by deterministic tests and the explicit Windows runtime launches.
+
+### Life Boundary Tests
+
+- `zig build tool -- audit-life-programs --json` and `zig build tool -- audit-life-programs --json --all-scene-entries` remain the canonical blocker reports until Phase 4 resolves.
+- If Phase 4 takes branch A, add decoder/interpreter tests that prove supported handling for `LM_DEFAULT` and `LM_END_SWITCH`.
+- If Phase 4 takes branch B, keep explicit rejection tests and diagnostics for switch-family-dependent paths outside the target boundary.
 
 ### Evidence and Regression Tests
 

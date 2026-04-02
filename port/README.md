@@ -9,16 +9,17 @@ Current direction:
 - one canonical codepath per subsystem
 - fail-fast diagnostics when evidence is incomplete
 
-Current first package boundary:
+Current landed baseline:
 
 - real Zig workspace bootstrap
 - data-backed SDL2 interior viewer shell for explicit scene/background pairs
 - canonical asset-root discovery and config
 - HQR base reader and inspection CLI
 - machine-readable asset inventory and golden-fixture pipeline
-- initial validation harness
+- `BRK`-backed viewer-prep evidence surfaces for the checked-in `2/2` and `11/10` acceptance paths
+- native PowerShell viewer verification through `scripts/verify-viewer.ps1`
 
-Implementation planning lives in `docs/LBA2_ZIG_PORT_PLAN.md`.
+Strategic planning and product-boundary decisions live in `docs/LBA2_ZIG_PORT_PLAN.md`. Active repo state and current blockers live in `docs/codex_memory/current_focus.md`.
 
 Keep `port/` separate from:
 

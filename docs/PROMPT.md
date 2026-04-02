@@ -1,65 +1,61 @@
 # Next Prompt
 
-Relevant subsystem packs for this task: `architecture`, `backgrounds`, and `platform_windows`.
-Load `scene_decode` only if you need to cross-check the checked-in evidence pairs or scene metadata while implementing the focused-zone overlay.
+Relevant subsystem packs for this task: `architecture`, `life_scripts`, and `platform_windows`.
+Load `backgrounds` only if you need to cross-check the current viewer-prep boundary while rewriting the roadmap. Load `scene_decode` only if you need to confirm how far scene-surface integration has actually progressed.
 
-The previous landing / verification slice is complete. The viewer-local HUD / legend, selected-cell provenance text, and native PowerShell verification path are already landed. The next step is one narrow viewer-local evidence cue on top of that existing runtime path: make the owning fragment zone visually obvious on the schematic when the checked-in `11/10` fragment cell is focused.
+The repo has already crossed the old pre-viewer boundary. The current viewer-prep path, `11/10` and `2/2` acceptance surfaces, and the native PowerShell verification gate are landed and validated. The next step is not another viewer-local refinement slice. The next step is a doc-only replan gate that makes the strategic plan match the checked-in repo state and forces an explicit policy decision around the remaining life-script blocker.
 
-The current repo state already has:
+The current checked-in state already has:
 
-- viewer-local composition snapshots
-- `BRK`-backed top-surface rendering on composition, fragment, and comparison cards
-- the fragment comparison panel, selected-cell detail strip, deterministic navigation, and pinned selected-cell row
-- viewer-local HUD / legend chrome that surfaces room metadata, focus state, comparison ordering, navigation semantics, explicit `2/2` zero-fragment messaging, and now selected-cell zone provenance / stack-depth evidence
-- deterministic render-path regression coverage for the `11/10` fragment path, the `2/2` zero-fragment path, and missing-preview failures
+- a data-backed SDL2 interior viewer shell
+- the `2/2` zero-fragment control path and the `11/10` fragment-bearing path
+- `BRK`-backed top-surface previews, fragment comparison, live HUD / legend surfaces, and the focused owning-zone provenance overlay
 - a canonical Windows verification gate in `scripts/verify-viewer.ps1`
+- a checked-in life-program audit that says only `LM_DEFAULT` and `LM_END_SWITCH` remain as unsupported real-asset blockers for scene-surface life integration
 
-Target the checked-in evidence pairs:
+Implement a doc-only replan pass that:
 
-- `SCENE.HQR[11]` with `LBA_BKG.HQR[10]` is the fragment-bearing runtime path.
-- `SCENE.HQR[2]` with `LBA_BKG.HQR[2]` is the explicit zero-fragment control path.
-
-Implement a narrow viewer-local refinement slice that:
-
-- adds a distinct overlay on the schematic for the owning fragment-zone footprint when the viewer has a focused fragment cell on `11/10`, and makes that overlay visually distinct from the existing fragment-zone border and focused-cell marker
-- keeps that overlay viewer-local and driven directly from the focused `FragmentComparisonEntry` plus the existing render snapshot / schematic projection path instead of inventing a new handoff layer or metadata path
-- preserves the current composition rendering, `BRK` preview surfaces, comparison panel, selected-cell detail strip, deterministic navigation, pinned selection behavior, HUD / legend text, and fail-fast preview handling unless a concrete bug is found while implementing the overlay
-- keeps `2/2` explicitly zero-fragment: no synthetic focus state, no comparison panel, and no fragment-zone overlay when no fragment focus exists
-- keeps probe commands (`inspect-room`) as cross-checks for counts and linkage, not as the source of truth for per-cell viewer state
-- reruns the canonical Windows verification gate before landing, using `pwsh -File scripts/verify-viewer.ps1`
-- updates memory only if the active repo status changes after the slice lands, and only in the canonical v2 locations
-- adds an `ISSUES.md` note only if the work uncovers a new recurring trap
+- updates `docs/LBA2_ZIG_PORT_PLAN.md` so it reflects reality instead of the old `Foundation + asset CLI` boundary
+- records that the first-viewer gate has already been crossed and that the current implementation stream is viewer-prep evidence work on top of a validated runtime/viewer path
+- makes the document hierarchy explicit:
+  - `docs/LBA2_ZIG_PORT_PLAN.md` owns strategic phases, gates, and product-boundary decisions
+  - `docs/codex_memory/current_focus.md` owns active repo state and current blockers
+  - `docs/PROMPT.md` owns only the next narrow slice
+- adds an explicit Phase 4 gate or equivalent decision point for `LM_DEFAULT` and `LM_END_SWITCH`
+- states the two allowed branches clearly:
+  - deepen evidence until those switch-family opcodes can be supported
+  - or explicitly reject switch-family-dependent life paths from the current parity target
+- keeps the current hard-cut policy intact: one canonical current-state codepath, fail-fast diagnostics, no compatibility bridges, no temporary second path unless explicitly justified
+- updates any nearby strategic doc references that would otherwise keep pointing readers at the stale pre-viewer boundary
+- updates memory only if the active repo status changed because of the replan, and only in canonical v2 locations
+- adds an `ISSUES.md` note only if the rewrite uncovers a new recurring repo trap rather than ordinary doc drift
 
 Relevant files are likely in:
 
-- `port/src/app/viewer/render.zig`
-- `port/src/app/viewer/render_test.zig`
-- `port/src/app/viewer/fragment_compare.zig`
-- `port/src/app/viewer/layout.zig`
-- `port/src/app/viewer/state.zig`
-- `port/src/app/viewer/fragment_compare_test.zig`
-- `port/src/app/viewer/state_test.zig`
-- `scripts/verify-viewer.ps1`
-- `docs/codex_memory/task_events.jsonl`
+- `docs/LBA2_ZIG_PORT_PLAN.md`
 - `docs/codex_memory/current_focus.md`
-- `docs/codex_memory/subsystems/backgrounds.md`
+- `docs/codex_memory/subsystems/architecture.md`
+- `docs/codex_memory/subsystems/life_scripts.md`
+- `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md`
+- `docs/PORTING_REPORT.md`
+- `port/README.md`
+- `docs/codex_memory/task_events.jsonl`
 - `ISSUES.md`
 
 Guardrails:
 
-- Do not widen this into another comparison panel redesign, a generalized scene-zone labeling system, or a fuller room-art renderer.
-- Do not widen a viewer-local refinement into gameplay, life binding, exterior loading, a shared UI / room layer, or another repo-wide cleanup pass.
-- Do not use `inspect-room --json` as the source of truth for per-cell comparison behavior or current selection state. The viewer runtime/tests own that surface.
-- Keep the checked-in positive pair as `11/10`; do not collapse it into a same-index assumption.
-- Keep the checked-in zero-fragment control as `2/2`.
-- Stay fail-fast if required `BRK` preview data or viewer metadata is unexpectedly missing instead of adding silent fallback behavior.
-- Keep the overlay readable as provenance evidence. It should not replace or obscure the existing selected-cell cue, the baseline fragment-zone border, or the `BRK`-backed surfaces.
+- Do not turn this into another viewer feature pass, runtime refactor, or life-decoder implementation task.
+- Do not add new compatibility language that preserves the obsolete pre-viewer package boundary as if it were still canonical.
+- Do not blur the distinction between strategic roadmap, current-state memory, and next-slice prompt. Make the ownership split explicit.
+- Do not claim that all life work is blocked. The blocker is scene-surface life integration, not every offline life-oriented probe or audit.
+- Do not widen the replan into gameplay design, licensing analysis, or a repo-wide prose cleanup beyond the files needed to remove the roadmap contradiction.
+- Keep the viewer path framed as a validated evidence surface, not as an unfinished placeholder that still needs more polish before replanning.
 
 Acceptance:
 
-- `11/10` shows a distinct owning-zone provenance overlay on the focused cell's owning fragment-zone rect on the live schematic
-- `2/2` remains explicitly zero-fragment and does not render a fragment-zone overlay
-- render-path regression coverage asserts a deterministic trace op on the focused zone's projected rect for `11/10`, and asserts that no focused-zone overlay trace op appears on `2/2`
-- `pwsh -File scripts/verify-viewer.ps1` passes after the change
-- any typed history update stays within `codex-memory-v2` conventions
-- if the repo already contains the exact overlay behavior described above, land the slice as a no-op review instead of inventing another feature
+- `docs/LBA2_ZIG_PORT_PLAN.md` no longer describes the repo as if it were still at the pre-viewer `Foundation + asset CLI` boundary
+- the rewritten roadmap explicitly says the first-viewer gate has been crossed
+- the rewritten roadmap explicitly captures the `LM_DEFAULT` / `LM_END_SWITCH` decision gate for future gameplay/life integration
+- the strategic/current-state/next-slice doc hierarchy is explicit and internally consistent
+- any memory update stays within `codex-memory-v2` conventions
+- if the repo already contains this exact replan state, land the slice as a no-op review instead of inventing another roadmap change

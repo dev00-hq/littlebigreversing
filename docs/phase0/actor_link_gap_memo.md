@@ -22,7 +22,7 @@ Human verification is **not currently required** to keep moving.
 
 - It does not block the phase 0 baseline.
 - It does not need a human sign-off just to preserve the gap as unresolved.
-- It should be resolved with stronger tool-backed evidence if the first `Foundation + asset CLI` implementation spec or later runtime work actually depends on the exact body or animation linkage.
+- It should be resolved with stronger tool-backed evidence if the post-viewer gameplay/life slice or later runtime work actually depends on the exact body or animation linkage.
 
 ## What Is Needed Instead
 
