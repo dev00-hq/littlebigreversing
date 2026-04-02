@@ -3,7 +3,7 @@
 ## Current Priorities
 
 - Keep the topology-first `codex-memory-v2` tree canonical and small.
-- Continue the decode-first port path beyond the height-aware interior composition debug view, the canonical `2/2` zero-fragment probe, the landed viewer-local `BRK`-backed top-surface preview rendering, the refined `11/10` fragment comparison surface that prioritizes any composition-vs-fragment delta over exact matches, the landed viewer-local HUD/legend pass that now makes the live render path self-describing for both `11/10` and `2/2`, and the new focused owning-zone provenance overlay on the live `11/10` schematic.
+- Treat the validated `11/10` and `2/2` viewer-prep path as landed evidence surface work and shift the next narrow decision focus to Phase 4 life-boundary evidence around `LM_DEFAULT` and `LM_END_SWITCH`.
 - Keep the checked-in fragment-bearing interior evidence anchored to `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]`, not guessed pairings.
 - Keep unsupported life switch-family handling blocked until checked-in evidence changes or the product boundary rejects it explicitly.
 
@@ -20,9 +20,9 @@
 
 ## Next Actions
 
-- Build future viewer work on the viewer-local composition snapshot, height cues, HUD/legend chrome, and schematic path, not on a new handoff layer.
-- Build future viewer-local refinement on the landed `BRK`-backed top-surface previews, `11/10` fragment comparison prioritization, selected-cell detail strip, deterministic navigation, pinned selected-cell row, live render-path HUD surfaces, and focused owning-zone provenance overlay rather than replacing the viewer-local snapshot path, and keep it away from gameplay, life binding, exterior loading, or a full room-art renderer.
-- Keep future life work scoped to explicit evidence probes or deliberate rejection of unsupported switch-family opcodes.
+- Run the next narrow slice as a Phase 4 hypothesis test: decide whether checked-in evidence is sufficient to support `LM_DEFAULT` and `LM_END_SWITCH`, or whether the current parity target should explicitly reject switch-family-dependent life paths until stronger evidence appears.
+- Keep future life work scoped to explicit evidence probes, the smallest offline helpers needed to inspect known blocker hits, or deliberate rejection of unsupported switch-family opcodes.
+- Keep additional viewer-local refinement deprioritized until the Phase 4 life-boundary question is answered, and keep any viewer work away from gameplay, life binding, exterior loading, or a full room-art renderer.
 - Update subsystem packs and typed records instead of reviving timeline-heavy summary docs.
 
 ## Relevant Subsystem Packs

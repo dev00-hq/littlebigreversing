@@ -1,61 +1,72 @@
 # Next Prompt
 
-Relevant subsystem packs for this task: `architecture`, `life_scripts`, and `platform_windows`.
-Load `backgrounds` only if you need to cross-check the current viewer-prep boundary while rewriting the roadmap. Load `scene_decode` only if you need to confirm how far scene-surface integration has actually progressed.
+Relevant subsystem packs for this task: `architecture`, `life_scripts`, `scene_decode`, and `platform_windows`.
+Load `phase0_baseline` only if you need to compare the current Phase 4 question against the older milestone framing. Load `backgrounds` only if you need to prove why the next slice is not more viewer-local work.
 
-The repo has already crossed the old pre-viewer boundary. The current viewer-prep path, `11/10` and `2/2` acceptance surfaces, and the native PowerShell verification gate are landed and validated. The next step is not another viewer-local refinement slice. The next step is a doc-only replan gate that makes the strategic plan match the checked-in repo state and forces an explicit policy decision around the remaining life-script blocker.
+The previous prompt aimed at a richer blocker report. That is no longer the right next step. The current offline audit JSON already exposes the headline blocker counts for both canonical scenes and `--all-scene-entries`: canonical is `36` blobs with `5` unsupported hits (`LM_DEFAULT` `3`, `LM_END_SWITCH` `2`), and the full archive is `3109` blobs with `394` unsupported hits (`LM_DEFAULT` `188`, `LM_END_SWITCH` `206`). Another aggregate-report pass would mostly be presentation churn.
+
+The real open question for Phase 4 is narrower: do the checked-in sources, preserved docs, and real-asset probes contain enough structural evidence to support `LM_DEFAULT` and `LM_END_SWITCH` in one canonical decoder path, or is the correct current-state decision to reject switch-family-dependent life paths from the active parity target until stronger evidence exists?
 
 The current checked-in state already has:
 
-- a data-backed SDL2 interior viewer shell
-- the `2/2` zero-fragment control path and the `11/10` fragment-bearing path
-- `BRK`-backed top-surface previews, fragment comparison, live HUD / legend surfaces, and the focused owning-zone provenance overlay
-- a canonical Windows verification gate in `scripts/verify-viewer.ps1`
-- a checked-in life-program audit that says only `LM_DEFAULT` and `LM_END_SWITCH` remain as unsupported real-asset blockers for scene-surface life integration
+- a roadmap that names the Phase 4 life-boundary decision as the current strategic gate
+- an offline life audit path that already proves only `LM_DEFAULT` and `LM_END_SWITCH` are active real-asset blockers
+- a life evidence memo that already says those two opcodes still lack structural proof beyond header names and the `LM_BREAK` destination comment
+- a canonical scene-model boundary where raw `life_bytes` stay authoritative and typed life decoding remains unwired
 
-Implement a doc-only replan pass that:
+Implement a bounded hypothesis-test pass that:
 
-- updates `docs/LBA2_ZIG_PORT_PLAN.md` so it reflects reality instead of the old `Foundation + asset CLI` boundary
-- records that the first-viewer gate has already been crossed and that the current implementation stream is viewer-prep evidence work on top of a validated runtime/viewer path
-- makes the document hierarchy explicit:
-  - `docs/LBA2_ZIG_PORT_PLAN.md` owns strategic phases, gates, and product-boundary decisions
-  - `docs/codex_memory/current_focus.md` owns active repo state and current blockers
-  - `docs/PROMPT.md` owns only the next narrow slice
-- adds an explicit Phase 4 gate or equivalent decision point for `LM_DEFAULT` and `LM_END_SWITCH`
-- states the two allowed branches clearly:
-  - deepen evidence until those switch-family opcodes can be supported
-  - or explicitly reject switch-family-dependent life paths from the current parity target
-- keeps the current hard-cut policy intact: one canonical current-state codepath, fail-fast diagnostics, no compatibility bridges, no temporary second path unless explicitly justified
-- updates any nearby strategic doc references that would otherwise keep pointing readers at the stale pre-viewer boundary
-- updates memory only if the active repo status changed because of the replan, and only in canonical v2 locations
-- adds an `ISSUES.md` note only if the rewrite uncovers a new recurring repo trap rather than ordinary doc drift
+- treats the existing audit counts as sufficient inventory and does not spend the slice on report-shape polish
+- targets the actual uncertainty directly:
+  - search the checked-in classic source, preserved docs, and existing real-asset probes for structural or runtime evidence specific to `LM_DEFAULT` and `LM_END_SWITCH`
+  - use the known canonical blocker hits (`scene 2` hero, `scene 5` hero, `scene 44` hero, and the known `scene 44` object hits) as the minimum real-asset anchor set
+- if the current probe surfaces are insufficient, adds only the smallest offline helper needed to inspect the local byte window or decoded control-flow context around those unsupported hits
+- updates `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md` so it answers the real question explicitly for each opcode:
+  - what is proven
+  - what is still unproven
+  - whether branch A is supportable from checked-in evidence today
+- if the evidence memo supports a recommendation, promote the actual current-state branch recommendation through `docs/codex_memory/current_focus.md` or `docs/LBA2_ZIG_PORT_PLAN.md`, because the evidence memo is supporting context rather than the owner of product-boundary decisions
+- ends in one of two explicit outcomes:
+  - stronger checked-in evidence exists, with exact file references and the narrowest defensible decoder claim
+  - stronger checked-in evidence still does not exist, with an explicit recommendation in the owning strategic/current-state doc that the current parity target should take the Phase 4 rejection branch until new evidence appears
+- keeps all life work offline: no scene parser wiring, no runtime interpreter work, no viewer changes, no gameplay widening
+- keeps the hard-cut policy intact: fail fast on unsupported opcodes and do not invent placeholder semantics, compatibility glue, or a second life path
+- updates memory only if this prompt refresh or the new evidence pass changes active repo status, and only in canonical v2 locations
 
 Relevant files are likely in:
 
+- `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md`
 - `docs/LBA2_ZIG_PORT_PLAN.md`
 - `docs/codex_memory/current_focus.md`
-- `docs/codex_memory/subsystems/architecture.md`
 - `docs/codex_memory/subsystems/life_scripts.md`
-- `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md`
-- `docs/PORTING_REPORT.md`
-- `port/README.md`
-- `docs/codex_memory/task_events.jsonl`
+- `port/src/tools/cli.zig`
+- `port/src/game_data/scene/life_audit.zig`
+- `port/src/game_data/scene/life_program.zig`
+- `port/src/game_data/scene/tests/life_audit_tests.zig`
+- `reference/lba2-classic/SOURCES/COMMON.H`
+- `reference/lba2-classic/SOURCES/GERELIFE.CPP`
+- `reference/lba2-classic/SOURCES/DISKFUNC.CPP`
 - `ISSUES.md`
+- `docs/codex_memory/task_events.jsonl`
 
 Guardrails:
 
-- Do not turn this into another viewer feature pass, runtime refactor, or life-decoder implementation task.
-- Do not add new compatibility language that preserves the obsolete pre-viewer package boundary as if it were still canonical.
-- Do not blur the distinction between strategic roadmap, current-state memory, and next-slice prompt. Make the ownership split explicit.
-- Do not claim that all life work is blocked. The blocker is scene-surface life integration, not every offline life-oriented probe or audit.
-- Do not widen the replan into gameplay design, licensing analysis, or a repo-wide prose cleanup beyond the files needed to remove the roadmap contradiction.
-- Keep the viewer path framed as a validated evidence surface, not as an unfinished placeholder that still needs more polish before replanning.
+- Do not spend the slice on a nicer aggregate blocker report unless a tiny helper is genuinely required to inspect the target hits.
+- Do not wire typed life instructions into scene parsing or widen into scene-surface life integration.
+- Do not claim semantics or operand layouts for `LM_DEFAULT` or `LM_END_SWITCH` from header names alone.
+- Do not keep the Phase 4 decision ambiguous if the evidence pass finds nothing new; say that clearly.
+- Do not add compatibility fallbacks, partial switch-family execution, or a temporary second decoder/interpreter path.
+- Do not turn this into viewer/runtime work just because that path landed most recently.
 
 Acceptance:
 
-- `docs/LBA2_ZIG_PORT_PLAN.md` no longer describes the repo as if it were still at the pre-viewer `Foundation + asset CLI` boundary
-- the rewritten roadmap explicitly says the first-viewer gate has been crossed
-- the rewritten roadmap explicitly captures the `LM_DEFAULT` / `LM_END_SWITCH` decision gate for future gameplay/life integration
-- the strategic/current-state/next-slice doc hierarchy is explicit and internally consistent
+- from native PowerShell, after `.\scripts\dev-shell.ps1`, run:
+  - `cd port`
+  - `zig build test`
+  - `zig build tool -- audit-life-programs --json`
+  - `zig build tool -- audit-life-programs --json --all-scene-entries`
+- the resulting work explicitly answers whether checked-in evidence supports branch A for `LM_DEFAULT` and `LM_END_SWITCH`
+- if no new structural proof is found, `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md` states that plainly and the owning strategic/current-state doc carries the rejection-branch recommendation for the current parity target until new evidence lands
+- if new structural proof is found, the updated evidence memo names the exact sources and the narrowest defensible decoder claim
+- no runtime/viewer/gameplay wiring is added
 - any memory update stays within `codex-memory-v2` conventions
-- if the repo already contains this exact replan state, land the slice as a no-op review instead of inventing another roadmap change
