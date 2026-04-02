@@ -2,7 +2,7 @@ const std = @import("std");
 const paths_mod = @import("../../foundation/paths.zig");
 const background_data = @import("../../game_data/background.zig");
 const scene_data = @import("../../game_data/scene.zig");
-const state = @import("state.zig");
+const state = @import("../../runtime/room_state.zig");
 
 fn sumFloorTypeCounts(counts: [16]usize) usize {
     var total: usize = 0;
@@ -248,7 +248,7 @@ test "viewer render snapshot derives a deterministic schematic from the supporte
     try std.testing.expectEqual(@as(i32, 5120), render.world_bounds.max_x);
     try std.testing.expectEqual(@as(i32, 0), render.world_bounds.min_z);
     try std.testing.expectEqual(@as(i32, 6656), render.world_bounds.max_z);
-    try std.testing.expectEqual(@as(i32, 1987), render.hero_start.x);
+    try std.testing.expectEqual(@as(i32, 1987), render.hero_position.x);
     try std.testing.expectEqual(@as(usize, 2), render.objects.len);
     try std.testing.expectEqual(@as(usize, 4), render.zones.len);
     try std.testing.expectEqual(@as(usize, 0), render.tracks.len);

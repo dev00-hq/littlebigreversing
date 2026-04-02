@@ -11,6 +11,11 @@ pub const app = struct {
     pub const viewer_shell = @import("app/viewer_shell.zig");
 };
 
+pub const runtime = struct {
+    pub const room_state = @import("runtime/room_state.zig");
+    pub const session = @import("runtime/session.zig");
+};
+
 pub const assets = struct {
     pub const catalog = @import("assets/catalog.zig");
     pub const fixtures = @import("assets/fixtures.zig");
@@ -44,6 +49,8 @@ test {
     _ = @import("foundation/paths.zig");
     _ = @import("app/viewer_shell.zig");
     _ = @import("app/viewer_shell_test.zig");
+    _ = @import("runtime/room_state.zig");
+    _ = @import("runtime/session.zig");
     _ = @import("app/viewer/state_test.zig");
     _ = @import("app/viewer/layout_test.zig");
     _ = @import("app/viewer/draw_test.zig");

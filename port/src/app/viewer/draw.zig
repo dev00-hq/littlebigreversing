@@ -2,7 +2,7 @@ const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
 const scene_data = @import("../../game_data/scene.zig");
-const state = @import("state.zig");
+const state = @import("../../runtime/room_state.zig");
 const layout = @import("layout.zig");
 
 pub const TileRelief = struct {

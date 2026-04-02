@@ -13,7 +13,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains the only implementation workspace, the v2 memory tree replaced the old mixed-log model, and the current guarded runtime/load baseline is `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]`.
+- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains the only implementation workspace, the v2 memory tree stays canonical, and `port/src/runtime/room_state.zig` now owns the guarded `19/19` room/load seam.
 
 ## Known Traps
 

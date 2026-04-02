@@ -8,7 +8,7 @@ const background_data = @import("../game_data/background.zig");
 const scene_data = @import("../game_data/scene.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
-const viewer_state = @import("../app/viewer/state.zig");
+const room_state = @import("../runtime/room_state.zig");
 
 const Command = enum {
     inventory_assets,
@@ -699,7 +699,7 @@ fn inspectRoom(
     background_entry_index: usize,
     output_json: bool,
 ) !void {
-    const room = try viewer_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
+    const room = try room_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
     defer room.deinit(allocator);
 
     const payload = buildRoomInspectionPayload(room);
@@ -806,7 +806,7 @@ fn inspectRoom(
     try stderr.flush();
 }
 
-fn buildRoomInspectionPayload(room: viewer_state.RoomSnapshot) RoomInspectionPayload {
+fn buildRoomInspectionPayload(room: room_state.RoomSnapshot) RoomInspectionPayload {
     return .{
         .command = "inspect-room",
         .scene = .{
@@ -1617,7 +1617,7 @@ test "inspect-room composes the guarded canonical interior pair metadata" {
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try viewer_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
     const payload = buildRoomInspectionPayload(room);
@@ -1669,7 +1669,7 @@ test "inspect-room json keeps the guarded canonical interior pair stable" {
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const room = try viewer_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
     const json = try stringifyJsonAlloc(allocator, buildRoomInspectionPayload(room));

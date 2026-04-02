@@ -1,6 +1,6 @@
 const std = @import("std");
 const paths_mod = @import("../../foundation/paths.zig");
-const state = @import("state.zig");
+const state = @import("../../runtime/room_state.zig");
 const fragment_compare = @import("fragment_compare.zig");
 
 fn sumFragmentComparisonCounts(catalog: fragment_compare.FragmentComparisonCatalog) usize {
@@ -27,7 +27,7 @@ test "viewer fragment brick delta detects changed base bricks" {
         .grid_width = 8,
         .grid_depth = 8,
         .world_bounds = .{ .min_x = 0, .max_x = 1, .min_z = 0, .max_z = 1 },
-        .hero_start = .{ .x = 0, .y = 0, .z = 0 },
+        .hero_position = .{ .x = 0, .y = 0, .z = 0 },
         .objects = &.{},
         .zones = &.{},
         .tracks = &.{},
@@ -171,7 +171,7 @@ test "viewer fragment comparison catalog prioritizes any delta ahead of exact ma
         .grid_width = 8,
         .grid_depth = 8,
         .world_bounds = .{ .min_x = 0, .max_x = 1, .min_z = 0, .max_z = 1 },
-        .hero_start = .{ .x = 0, .y = 0, .z = 0 },
+        .hero_position = .{ .x = 0, .y = 0, .z = 0 },
         .objects = &.{},
         .zones = &.{},
         .tracks = &.{},
@@ -240,7 +240,7 @@ test "viewer fragment comparison selection can step ranked entries and fragment 
         .grid_width = 8,
         .grid_depth = 8,
         .world_bounds = .{ .min_x = 0, .max_x = 1, .min_z = 0, .max_z = 1 },
-        .hero_start = .{ .x = 0, .y = 0, .z = 0 },
+        .hero_position = .{ .x = 0, .y = 0, .z = 0 },
         .objects = &.{},
         .zones = &.{},
         .tracks = &.{},

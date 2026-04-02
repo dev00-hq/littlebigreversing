@@ -1,6 +1,6 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
-const state = @import("state.zig");
+const state = @import("../../runtime/room_state.zig");
 const layout = @import("layout.zig");
 const draw = @import("draw.zig");
 const fragment_compare = @import("fragment_compare.zig");
@@ -71,7 +71,7 @@ pub fn renderDebugView(
         try draw.drawMarker(canvas, point, 6, .{ .r = 255, .g = 194, .b = 92, .a = 255 });
     }
 
-    const hero = layout.projectWorldPoint(snapshot, debug_layout.schematic, snapshot.hero_start.x, snapshot.hero_start.z);
+    const hero = layout.projectWorldPoint(snapshot, debug_layout.schematic, snapshot.hero_position.x, snapshot.hero_position.z);
     try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
     try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
     try drawHud(canvas, debug_layout, snapshot, catalog, selection);

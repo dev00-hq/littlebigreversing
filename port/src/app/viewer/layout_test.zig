@@ -1,7 +1,7 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const paths_mod = @import("../../foundation/paths.zig");
-const state = @import("state.zig");
+const state = @import("../../runtime/room_state.zig");
 const layout = @import("layout.zig");
 
 test "viewer fragment debug layout reserves a deterministic comparison panel" {
@@ -34,7 +34,7 @@ test "viewer projection keeps the canonical schematic fit stable" {
     const northeast = layout.projectWorldPoint(render, schematic_layout.schematic, render.world_bounds.max_x, render.world_bounds.max_z);
     try std.testing.expectEqual(layout.ScreenPoint{ .x = 707, .y = 42 }, northeast);
 
-    const hero = layout.projectWorldPoint(render, schematic_layout.schematic, render.hero_start.x, render.hero_start.z);
+    const hero = layout.projectWorldPoint(render, schematic_layout.schematic, render.hero_position.x, render.hero_position.z);
     try std.testing.expectEqual(layout.ScreenPoint{ .x = 429, .y = 241 }, hero);
 
     const first_zone = layout.projectZoneBounds(render, schematic_layout.schematic, render.zones[0]);

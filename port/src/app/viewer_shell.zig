@@ -2,8 +2,9 @@ const std = @import("std");
 const diagnostics = @import("../foundation/diagnostics.zig");
 const paths_mod = @import("../foundation/paths.zig");
 const sdl = @import("../platform/sdl.zig");
+const runtime_session = @import("../runtime/session.zig");
 const render = @import("viewer/render.zig");
-const state = @import("viewer/state.zig");
+const state = @import("../runtime/room_state.zig");
 const layout = @import("viewer/layout.zig");
 const fragment_compare = @import("viewer/fragment_compare.zig");
 
@@ -41,6 +42,9 @@ pub const RoomSnapshot = state.RoomSnapshot;
 pub const WorldPointSnapshot = state.WorldPointSnapshot;
 pub const WorldBounds = state.WorldBounds;
 pub const RenderSnapshot = state.RenderSnapshot;
+pub const Session = runtime_session.Session;
+pub const FrameUpdate = runtime_session.FrameUpdate;
+pub const HeroWorldDelta = runtime_session.HeroWorldDelta;
 pub const DebugLayout = layout.DebugLayout;
 pub const FragmentComparisonCatalog = fragment_compare.FragmentComparisonCatalog;
 pub const FragmentComparisonEntry = fragment_compare.FragmentComparisonEntry;
@@ -99,8 +103,12 @@ pub fn loadRoomSnapshot(
     return state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
 }
 
-pub fn buildRenderSnapshot(room: RoomSnapshot) RenderSnapshot {
-    return state.buildRenderSnapshot(room);
+pub fn initSession(room: *const RoomSnapshot) Session {
+    return runtime_session.Session.init(room);
+}
+
+pub fn buildRenderSnapshot(room: RoomSnapshot, current_session: Session) RenderSnapshot {
+    return state.buildRenderSnapshotWithHeroPosition(room, current_session.heroWorldPosition());
 }
 
 pub fn computeSchematicLayout(

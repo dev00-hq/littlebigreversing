@@ -1,6 +1,6 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
-const state = @import("state.zig");
+const state = @import("../../runtime/room_state.zig");
 
 pub const DebugLayout = struct {
     frame: sdl.Rect,
