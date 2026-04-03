@@ -13,7 +13,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains the only implementation workspace, the v2 memory tree stays canonical, and `port/src/runtime/room_state.zig` now owns the guarded `19/19` room/load seam.
+- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains the only implementation workspace, the v2 memory tree stays canonical, `port/src/runtime/room_state.zig` owns the guarded `19/19` room/load seam, and `port/src/runtime/world_query.zig` owns the explicit hero-start mapping diagnostics over immutable room snapshots.
 
 ## Known Traps
 
