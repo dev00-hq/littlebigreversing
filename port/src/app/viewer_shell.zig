@@ -3,6 +3,7 @@ const diagnostics = @import("../foundation/diagnostics.zig");
 const paths_mod = @import("../foundation/paths.zig");
 const sdl = @import("../platform/sdl.zig");
 const runtime_session = @import("../runtime/session.zig");
+const runtime_query = @import("../runtime/world_query.zig");
 const world_geometry = @import("../runtime/world_geometry.zig");
 const render = @import("viewer/render.zig");
 const state = @import("../runtime/room_state.zig");
@@ -42,6 +43,8 @@ pub const BackgroundSnapshot = state.BackgroundSnapshot;
 pub const RoomSnapshot = state.RoomSnapshot;
 pub const WorldPointSnapshot = world_geometry.WorldPointSnapshot;
 pub const WorldBounds = world_geometry.WorldBounds;
+pub const GridCell = world_geometry.GridCell;
+pub const CardinalDirection = world_geometry.CardinalDirection;
 pub const RenderSnapshot = state.RenderSnapshot;
 pub const Session = runtime_session.Session;
 pub const FrameUpdate = runtime_session.FrameUpdate;
@@ -53,6 +56,20 @@ pub const FragmentComparisonPanel = fragment_compare.FragmentComparisonPanel;
 pub const FragmentComparisonSelection = fragment_compare.FragmentComparisonSelection;
 pub const SchematicLayout = layout.SchematicLayout;
 pub const ScreenPoint = layout.ScreenPoint;
+pub const ViewerLocomotionStepStatus = enum {
+    moved,
+    origin_invalid,
+    target_rejected,
+};
+pub const ViewerLocomotionStepAttempt = struct {
+    status: ViewerLocomotionStepStatus,
+    origin: runtime_query.MoveTargetEvaluation,
+    target: runtime_query.MoveTargetEvaluation,
+};
+
+pub const locomotion_fixture_scene_entry: usize = 19;
+pub const locomotion_fixture_background_entry: usize = 19;
+pub const locomotion_fixture_cell = GridCell{ .x = 39, .z = 6 };
 
 pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs {
     var asset_root_override: ?[]u8 = null;
@@ -110,6 +127,67 @@ pub fn initSession(room: *const RoomSnapshot) Session {
 
 pub fn buildRenderSnapshot(room: RoomSnapshot, current_session: Session) RenderSnapshot {
     return state.buildRenderSnapshotWithHeroPosition(room, current_session.heroWorldPosition());
+}
+
+pub fn seedSessionToLocomotionFixture(room: *const RoomSnapshot, current_session: *Session) !WorldPointSnapshot {
+    if (room.scene.entry_index != locomotion_fixture_scene_entry or
+        room.background.entry_index != locomotion_fixture_background_entry)
+    {
+        return error.ViewerLocomotionFixtureUnavailable;
+    }
+
+    const query = runtime_query.init(room);
+    const surface = try query.cellTopSurface(locomotion_fixture_cell.x, locomotion_fixture_cell.z);
+    if (try query.standabilityAtCell(locomotion_fixture_cell.x, locomotion_fixture_cell.z) != .standable) {
+        return error.ViewerLocomotionFixtureUnavailable;
+    }
+
+    const position = runtime_query.gridCellCenterWorldPosition(
+        locomotion_fixture_cell.x,
+        locomotion_fixture_cell.z,
+        surface.top_y,
+    );
+    current_session.setHeroWorldPosition(position);
+    return position;
+}
+
+pub fn attemptLocomotionStep(
+    room: *const RoomSnapshot,
+    current_session: *Session,
+    direction: CardinalDirection,
+) ViewerLocomotionStepAttempt {
+    const query = runtime_query.init(room);
+    const origin_position = current_session.heroWorldPosition();
+    const origin = query.evaluateHeroMoveTarget(origin_position);
+    if (!origin.isAllowed()) {
+        return .{
+            .status = .origin_invalid,
+            .origin = origin,
+            .target = origin,
+        };
+    }
+
+    const delta = stepDeltaForDirection(direction);
+    const target_position = WorldPointSnapshot{
+        .x = origin_position.x + delta.x,
+        .y = origin_position.y + delta.y,
+        .z = origin_position.z + delta.z,
+    };
+    const target = query.evaluateHeroMoveTarget(target_position);
+    if (!target.isAllowed()) {
+        return .{
+            .status = .target_rejected,
+            .origin = origin,
+            .target = target,
+        };
+    }
+
+    current_session.setHeroWorldPosition(target_position);
+    return .{
+        .status = .moved,
+        .origin = origin,
+        .target = target,
+    };
 }
 
 pub fn computeSchematicLayout(
@@ -179,6 +257,44 @@ pub fn renderDebugViewWithSelection(
     selection: FragmentComparisonSelection,
 ) !void {
     return render.renderDebugView(canvas, snapshot, catalog, selection);
+}
+
+pub fn printLocomotionSeedDiagnostic(writer: anytype, position: WorldPointSnapshot) !void {
+    try writer.print(
+        "event=hero_seed status=seeded fixture_cell={d}/{d} hero_x={d} hero_y={d} hero_z={d}\n",
+        .{
+            locomotion_fixture_cell.x,
+            locomotion_fixture_cell.z,
+            position.x,
+            position.y,
+            position.z,
+        },
+    );
+}
+
+pub fn printLocomotionAttemptDiagnostic(
+    writer: anytype,
+    direction: CardinalDirection,
+    attempt: ViewerLocomotionStepAttempt,
+) !void {
+    var origin_cell_buffer: [16]u8 = undefined;
+    const origin_cell = formatOptionalCell(&origin_cell_buffer, attempt.origin.raw_cell.cell);
+    var target_cell_buffer: [16]u8 = undefined;
+    const target_cell = formatOptionalCell(&target_cell_buffer, attempt.target.raw_cell.cell);
+    try writer.print(
+        "event=hero_move direction={s} status={s} origin_status={s} target_status={s} origin_cell={s} target_cell={s} hero_x={d} hero_y={d} hero_z={d}\n",
+        .{
+            directionLabel(direction),
+            locomotionAttemptStatusLabel(attempt.status),
+            @tagName(attempt.origin.status),
+            @tagName(attempt.target.status),
+            origin_cell,
+            target_cell,
+            attempt.target.target_world_position.x,
+            attempt.target.target_world_position.y,
+            attempt.target.target_world_position.z,
+        },
+    );
 }
 
 pub fn printStartupDiagnostics(
@@ -346,4 +462,37 @@ fn formatUsedBlockSummaryAlloc(
     try writer.writeAll("]");
 
     return output.toOwnedSlice(allocator);
+}
+
+fn stepDeltaForDirection(direction: CardinalDirection) HeroWorldDelta {
+    return switch (direction) {
+        .north => .{ .z = -runtime_query.world_grid_span_xz },
+        .east => .{ .x = runtime_query.world_grid_span_xz },
+        .south => .{ .z = runtime_query.world_grid_span_xz },
+        .west => .{ .x = -runtime_query.world_grid_span_xz },
+    };
+}
+
+fn directionLabel(direction: CardinalDirection) []const u8 {
+    return switch (direction) {
+        .north => "north",
+        .east => "east",
+        .south => "south",
+        .west => "west",
+    };
+}
+
+fn locomotionAttemptStatusLabel(status: ViewerLocomotionStepStatus) []const u8 {
+    return switch (status) {
+        .moved => "moved",
+        .origin_invalid => "origin_invalid",
+        .target_rejected => "target_rejected",
+    };
+}
+
+fn formatOptionalCell(buffer: []u8, cell: ?GridCell) []const u8 {
+    if (cell) |resolved| {
+        return std.fmt.bufPrint(buffer, "{d}/{d}", .{ resolved.x, resolved.z }) catch unreachable;
+    }
+    return "none";
 }

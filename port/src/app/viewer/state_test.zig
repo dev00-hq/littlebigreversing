@@ -245,9 +245,9 @@ test "viewer render snapshot derives a deterministic schematic from the supporte
     try std.testing.expectEqual(@as(usize, 64), render.grid_width);
     try std.testing.expectEqual(@as(usize, 64), render.grid_depth);
     try std.testing.expectEqual(@as(i32, 0), render.world_bounds.min_x);
-    try std.testing.expectEqual(@as(i32, 5120), render.world_bounds.max_x);
+    try std.testing.expectEqual(@as(i32, 32767), render.world_bounds.max_x);
     try std.testing.expectEqual(@as(i32, 0), render.world_bounds.min_z);
-    try std.testing.expectEqual(@as(i32, 6656), render.world_bounds.max_z);
+    try std.testing.expectEqual(@as(i32, 32767), render.world_bounds.max_z);
     try std.testing.expectEqual(@as(i32, 1987), render.hero_position.x);
     try std.testing.expectEqual(@as(usize, 2), render.objects.len);
     try std.testing.expectEqual(@as(usize, 4), render.zones.len);

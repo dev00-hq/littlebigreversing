@@ -392,12 +392,16 @@ fn drawHud(
 
     try drawOverlayLegendCard(canvas, overlay_card);
     try drawComparisonLegendCard(canvas, compare_card);
+    const nav_lines: []const []const u8 = if (selection.focus != null)
+        &.{ "LEFT RIGHT RANK", "UP DOWN CELL", "PINNED ROW FOCUS" }
+    else
+        &.{ "ENTER SEED HERO", "ARROWS MOVE HERO", "RAW START STAYS" };
     try drawHudTextCard(
         canvas,
         nav_card,
         "NAV",
         .{ .r = 112, .g = 196, .b = 255, .a = 255 },
-        &.{ "LEFT RIGHT RANK", "UP DOWN CELL", "PINNED ROW FOCUS" },
+        nav_lines,
     );
 }
 

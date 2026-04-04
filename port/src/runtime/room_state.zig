@@ -377,13 +377,18 @@ pub fn buildRenderSnapshotWithHeroPosition(
     room: RoomSnapshot,
     hero_position: WorldPointSnapshot,
 ) RenderSnapshot {
-    var world_bounds = WorldBounds.init(hero_position.x, hero_position.z);
-    for (room.scene.objects) |object| world_bounds.include(object.x, object.z);
-    for (room.scene.tracks) |track| world_bounds.include(track.x, track.z);
-    for (room.scene.zones) |zone| {
-        world_bounds.include(zone.x_min, zone.z_min);
-        world_bounds.include(zone.x_max, zone.z_max);
-    }
+    const world_bounds = WorldBounds{
+        .min_x = 0,
+        .max_x = if (room.background.column_table.width == 0)
+            0
+        else
+            @as(i32, @intCast(room.background.column_table.width * world_grid_span_xz)) - 1,
+        .min_z = 0,
+        .max_z = if (room.background.column_table.depth == 0)
+            0
+        else
+            @as(i32, @intCast(room.background.column_table.depth * world_grid_span_xz)) - 1,
+    };
 
     return .{
         .grid_width = room.background.column_table.width,
