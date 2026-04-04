@@ -4,52 +4,47 @@ This LM collaboration follows [LM_TASKS/LM_PLAN.md](/D:/repos/reverse/littlebigr
 
 ## Gate
 
-- Gate 1: static dispatch proof in `Ghidra`
+- Gate 2: deterministic repro setup
 
 ## Objective
 
-Get the minimum original-runtime structural evidence needed to decide whether `LM_DEFAULT` (`0x74`) and `LM_END_SWITCH` (`0x76`) require decoder recognition before we touch the Zig decoder boundary.
+Prepare one reproducible original-runtime entry path for the smallest decisive switch-family probe so Gate 3 can trace from `DoLife` without guesswork or scene-hunting churn.
 
 ## Collaboration Split
 
-User first pass in `Ghidra`:
+User first pass in the original game:
 
-- locate the original `DoLife` dispatch
-- locate `DoFuncLife` and `DoTest`
-- identify whether `0x74` and `0x76` have explicit dispatch cases
-- find the current-object field/path, `PtrLife`, the current script pointer or offset, and the cached switch value/type storage
+- prepare a reproducible path to the first probe target
+- confirm how to identify the active owner in the debugger when the script tick runs
+- verify the same script tick can be hit repeatedly without manual scene rediscovery
 
 Codex follow-up after the first pass:
 
-- map your findings against the checked-in opcode grammar and real-asset blocker set
-- turn the addresses/offsets into a debugger probe sheet for Gate 2 and Gate 3
-- keep the next questions falsification-oriented instead of widening scope
+- keep the target set ordered by discriminating power
+- turn your repro notes into the exact `x64dbg` breakpoint and logging sheet
+- use the recovered Gate 1 addresses and offsets to define the smallest falsification trace
 
 ## Capture Checklist
 
 Bring back these exact facts from the first pass:
 
-- dispatch function address
-- `DoFuncLife` address
-- `DoTest` address
-- whether `0x74` has an explicit handler or case target
-- whether `0x76` has an explicit handler or case target
-- address or struct offset for current object ownership
-- address or struct offset for `PtrLife`
-- address or struct offset for the current script pointer or program counter
-- address or struct offset for cached switch value
-- address or struct offset for cached switch type or state discriminator
+- target scene and owner
+- save file or exact steps to reach the target
+- what in-game action causes the target life tick to run
+- how to tell in the debugger that the owner is the intended one
+- whether you can hit the same moment repeatedly after reload or a short loop
 
 ## Guardrails
 
-- Keep this gate decoder-proof only; do not assume runtime semantics from names or comments.
-- Use original-runtime evidence first; `lba2remake` remains hypothesis material only.
+- Start with the shortest decisive target: scene `5` hero.
+- Keep the target set minimal and ordered: `5` hero, `11` object `12`, `11` object `18`, `2` hero, `44` only if needed.
+- Use original-runtime evidence first; `idajs` is only a last-mile setup aid if a natural repro is too noisy.
 - Optimize for the smallest decisive findings, not exhaustive reverse engineering.
-- Do not reopen the Zig decoder boundary until byte width and control-flow role are evidenced.
+- Do not widen into runtime semantics claims yet; this gate is only about reliable entry to the trace.
 
 ## Acceptance
 
-- we have one unambiguous dispatch site to trace from
-- we know whether `0x74` and `0x76` are explicit dispatch cases
-- we know where the active object, life base pointer, current script pointer, and switch cache live
-- the next `x64dbg` probe can be defined without guessing
+- we have one reproducible first probe target for scene `5` hero
+- we know how to recognize the intended owner when `DoLife` runs
+- the same script tick can be reached again without ad hoc exploration
+- the next `x64dbg` trace can start from a known scene/owner pair without guessing
