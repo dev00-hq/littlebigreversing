@@ -13,12 +13,12 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `DECISION_PLAN.md` owns long-term framing, `docs/LBA2_ZIG_PORT_PLAN.md` remains the execution roadmap, `port/` remains canonical, `room_state.zig` owns the guarded `19/19` seam, and `world_query.zig` owns runtime mapping/topology diagnostics.
+- `DECISION_PLAN.md` owns framing, `docs/LBA2_ZIG_PORT_PLAN.md` owns execution, `port/` remains canonical, `room_state.zig` owns the guarded `19/19` seam and hero-start adaptation, `session.zig` now seeds runtime state from explicit world-position input, and `world_query.zig` owns runtime mapping diagnostics.
 
 ## Known Traps
 
 - `docs/PROMPT.md` can lag behind repo work; cross-check current packs and history before following it literally.
-- The current viewer uses decoded `BRK` previews plus a live HUD/legend, but it is still not a full room-art renderer.
+- The viewer uses decoded `BRK` previews plus a live HUD/legend, not full room-art rendering.
 - `inspect-room --json` shares the guarded seam and reports counts, linkage, and `BRK` summaries, not projected comparison cells.
 - Treat `2/2` as the explicit zero-fragment control path and do not infer fragments from `my_grm` or `grm_entry_index` alone.
 - After the branch-B load guard landed, `2/2` stopped being a positive runtime fixture; use it as an explicit unsupported-scene-life rejection case instead.
@@ -29,7 +29,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - Canonical Windows Zig checks should run from native PowerShell after `.\scripts\dev-shell.ps1`; reserve `bash -lc` for inspection work.
 - `zig build test` is not a substitute for a prompt's explicit `zig build run` or `zig build tool` acceptance command.
 - Interrupted `zig build run` viewer launches can strand `lba2.exe` under `port/zig-out/bin/` and make the next install step fail with `AccessDenied`. If that happens, clear the stale `lba2` process before treating the runtime command as a code regression.
-- `tools/codex_memory.py` validates subsystem-pack budgets on write. If an `add-*` command fails, check oversized packs as well as JSONL drift.
+- `tools/codex_memory.py` validates pack budgets on write. If an `add-*` command fails, check oversized packs as well as JSONL drift.
 - `ISSUES.md` must stay aligned with new recurring traps instead of leaving them only in chat or task history.
 - The checked-in v2 history can already be dirty. If `python tools/codex_memory.py validate` fails at task start, inspect the flagged JSONL records for canonicalization drift such as stale `record_id` hashes, fractional-second timestamps, or overlong summaries before treating the CLI as the problem.
 - Preserved legacy docs are evidence, not numeric ground truth. If a spec mixes index bases or disagrees with asset-backed regressions, keep the structural insight but trust the checked-in probe or test for exact values.
@@ -56,4 +56,4 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Open Unknowns
 
-- Which future runtime seams deserve their own subsystem packs once work moves past the current viewer/runtime slices.
+- Which future runtime seams deserve their own subsystem packs once work moves past viewer/runtime slices.

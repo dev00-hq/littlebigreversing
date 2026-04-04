@@ -211,6 +211,14 @@ pub const WorldPointSnapshot = struct {
     z: i32,
 };
 
+pub fn heroStartWorldPoint(room: *const RoomSnapshot) WorldPointSnapshot {
+    return .{
+        .x = room.scene.hero_start.x,
+        .y = room.scene.hero_start.y,
+        .z = room.scene.hero_start.z,
+    };
+}
+
 pub const WorldBounds = struct {
     min_x: i32,
     max_x: i32,
@@ -394,11 +402,7 @@ fn loadRoomSnapshotInternal(
 }
 
 pub fn buildRenderSnapshot(room: RoomSnapshot) RenderSnapshot {
-    return buildRenderSnapshotWithHeroPosition(room, .{
-        .x = room.scene.hero_start.x,
-        .y = room.scene.hero_start.y,
-        .z = room.scene.hero_start.z,
-    });
+    return buildRenderSnapshotWithHeroPosition(room, heroStartWorldPoint(&room));
 }
 
 pub fn buildRenderSnapshotWithHeroPosition(

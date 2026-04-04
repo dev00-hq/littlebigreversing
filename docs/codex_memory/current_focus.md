@@ -4,15 +4,16 @@
 
 - Keep the topology-first `codex-memory-v2` tree canonical and small.
 - Treat `SCENE.HQR[19]` as the canonical first gameplay/runtime candidate under branch B; the supported positive runtime/load baseline is `19/19`.
-- Keep the checked-in fragment-bearing interior evidence anchored to `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]`, but do not treat that pair as a guarded runtime-positive load.
-- Keep unsupported life switch-family handling outside the supported decoder/interpreter boundary for the current repo state.
-- Keep the runtime/load seam fail-fast on unsupported scene life: `LM_DEFAULT` and `LM_END_SWITCH` stay outside the current parity target unless new checked-in primary-source evidence appears.
+- Keep `11/10` as the checked-in fragment-bearing interior evidence pair, not a guarded runtime-positive load.
+- Keep unsupported switch-family life outside the supported decoder/interpreter boundary.
+- Keep the runtime/load seam fail-fast on unsupported scene life; `LM_DEFAULT` and `LM_END_SWITCH` stay outside the current parity target unless new checked-in primary-source evidence appears.
+- Keep `runtime/session.zig` on explicit world-position seeds, not direct `RoomSnapshot` init.
 - Keep runtime mapping falsification-oriented: only `hero_start_world_point` is admitted, and `zone_world_point` still outranks `scene_object_world_point` for bounded `19/19` review.
 - Keep unchecked room topology evidence discovery-only: `2/2` and `11/10` remain flat and standable, so they do not justify richer relation classes.
 
 ## Active Streams
 
-- Scene/background inspection on the supported `19/19` baseline, runtime-owned `world_query` diagnostics, guarded `inspect-room`, `11/10` GRM evidence coverage, `BRK` previews, and viewer-local fragment/HUD surfaces.
+- Scene/background inspection on supported `19/19`, runtime-owned `world_query` diagnostics, guarded `inspect-room`, `11/10` GRM evidence coverage, `BRK` previews, and viewer-local fragment/HUD surfaces.
 - MBN corpus and phase0 evidence maintenance.
 - Windows-first validation with Linux limited to docs and source work.
 

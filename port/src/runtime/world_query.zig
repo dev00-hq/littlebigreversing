@@ -1160,11 +1160,7 @@ fn metricWorseCount(comparison: EvidenceMetricComparison) u8 {
 }
 
 fn heroStartWorldPosition(room: *const room_state.RoomSnapshot) room_state.WorldPointSnapshot {
-    return .{
-        .x = room.scene.hero_start.x,
-        .y = room.scene.hero_start.y,
-        .z = room.scene.hero_start.z,
-    };
+    return room_state.heroStartWorldPoint(room);
 }
 
 fn incrementTopYDeltaBucket(
@@ -1670,7 +1666,7 @@ test "runtime world query keeps the baked 19/19 hero start invalid under move-ta
     defer room.deinit(allocator);
 
     const query = init(&room);
-    const runtime_session = session.Session.init(&room);
+    const runtime_session = session.Session.init(room_state.heroStartWorldPoint(&room));
     const hero_start_move = query.evaluateHeroMoveTarget(runtime_session.heroWorldPosition());
 
     try std.testing.expectEqual(runtime_session.heroWorldPosition(), hero_start_move.target_world_position);
@@ -1707,7 +1703,7 @@ test "runtime world query evaluates bounded move targets from a seeded guarded 1
     };
     const height_mismatch_target = cellCenterWorldPosition(39, 7, south_surface.top_y - world_grid_span_y);
 
-    var runtime_session = session.Session.init(&room);
+    var runtime_session = session.Session.init(room_state.heroStartWorldPoint(&room));
     runtime_session.setHeroWorldPosition(seeded_start);
     try std.testing.expectEqual(seeded_start, runtime_session.heroWorldPosition());
     try std.testing.expect(runtime_session.heroWorldPosition().x != room.scene.hero_start.x);
@@ -1819,7 +1815,7 @@ test "runtime world query compares fixed mapping hypotheses without promoting di
         try std.testing.expect(!(evaluation.cell_span_xz == 64 and evaluation.axis_interpretation == .aligned));
     }
 
-    const runtime_session = session.Session.init(&room);
+    const runtime_session = session.Session.init(room_state.heroStartWorldPoint(&room));
     const hero_position = runtime_session.heroWorldPosition();
     try std.testing.expectEqual(report.raw_world_position.x, hero_position.x);
     try std.testing.expectEqual(report.raw_world_position.y, hero_position.y);

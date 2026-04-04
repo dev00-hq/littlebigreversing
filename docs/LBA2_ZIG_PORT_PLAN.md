@@ -31,6 +31,7 @@ The hard-cut product policy applies throughout this roadmap: prefer one canonica
 
 - The old `Foundation + asset CLI` boundary is already behind the repo; that baseline has landed.
 - The first-viewer gate is crossed. The checked-in port already has a runtime-backed interior viewer path, `BRK`-backed top-surface previews, viewer-local comparison and HUD surfaces, and a canonical Windows verification gate in `scripts/verify-viewer.ps1`; under the current branch-B boundary, `19/19` is the only supported positive guarded runtime/load pair, while `2/2`, `44/2`, and `11/10` are explicit guarded `ViewerUnsupportedSceneLife` rejections.
+- The first narrow runtime extraction has also landed: `runtime/session.zig` now initializes from explicit world-position input, while `runtime/room_state.zig` remains the mixed adapter that turns guarded `RoomSnapshot` data into that seed.
 - The current implementation stream is viewer-prep evidence work on top of that validated runtime/viewer path, not another foundation/bootstrap slice.
 - The remaining strategic blocker for widening from viewer-prep into scene-surface gameplay work is the life-script boundary around `LM_DEFAULT` and `LM_END_SWITCH`.
 

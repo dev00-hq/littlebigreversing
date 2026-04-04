@@ -104,7 +104,7 @@ pub fn loadRoomSnapshot(
 }
 
 pub fn initSession(room: *const RoomSnapshot) Session {
-    return runtime_session.Session.init(room);
+    return runtime_session.Session.init(state.heroStartWorldPoint(room));
 }
 
 pub fn buildRenderSnapshot(room: RoomSnapshot, current_session: Session) RenderSnapshot {

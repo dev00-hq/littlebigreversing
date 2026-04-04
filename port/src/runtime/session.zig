@@ -20,15 +20,11 @@ pub const Session = struct {
     frame_index: usize,
     hero: HeroState,
 
-    pub fn init(room: *const room_state.RoomSnapshot) Session {
+    pub fn init(hero_world_position: room_state.WorldPointSnapshot) Session {
         return .{
             .frame_index = 0,
             .hero = .{
-                .world_position = .{
-                    .x = room.scene.hero_start.x,
-                    .y = room.scene.hero_start.y,
-                    .z = room.scene.hero_start.z,
-                },
+                .world_position = hero_world_position,
             },
         };
     }
@@ -49,15 +45,12 @@ pub const Session = struct {
     }
 };
 
-test "runtime session initializes mutable hero state from the guarded room snapshot" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const runtime_session = Session.init(&room);
+test "runtime session initializes mutable hero state from an explicit world-position seed" {
+    const runtime_session = Session.init(.{
+        .x = 1987,
+        .y = 512,
+        .z = 3743,
+    });
     try std.testing.expectEqual(@as(usize, 0), runtime_session.frame_index);
     try std.testing.expectEqual(@as(i32, 1987), runtime_session.hero.world_position.x);
     try std.testing.expectEqual(@as(i32, 512), runtime_session.hero.world_position.y);
@@ -72,7 +65,7 @@ test "runtime session updates stay separate from immutable room snapshot ownersh
     const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
-    var runtime_session = Session.init(&room);
+    var runtime_session = Session.init(room_state.heroStartWorldPoint(&room));
     runtime_session.advanceFrame(.{
         .hero_world_delta = .{ .x = 32, .y = -16, .z = 64 },
     });
@@ -94,7 +87,7 @@ test "runtime render snapshots consume session state without duplicating guarded
     const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
-    var runtime_session = Session.init(&room);
+    var runtime_session = Session.init(room_state.heroStartWorldPoint(&room));
     runtime_session.setHeroWorldPosition(.{
         .x = 2222,
         .y = 640,

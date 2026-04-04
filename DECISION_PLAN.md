@@ -44,7 +44,8 @@ This decision does not authorize:
 - `11/10` remains evidence-only on unchecked test paths, not a supported runtime-positive load.
 - Branch B remains active: `LM_DEFAULT` and `LM_END_SWITCH` stay outside the supported decoder/interpreter boundary unless new checked-in primary-source evidence reopens that decision.
 - The current viewer/runtime path is real and valuable, but it is still LBA2-shaped.
-- No current module should be described as clean engine core without extraction work.
+- The first narrow extraction has landed: `port/src/runtime/session.zig` now initializes from explicit world-position input, while `port/src/runtime/room_state.zig` owns the checked-in `RoomSnapshot` to hero-start adaptation.
+- No runtime seam broader than `port/src/runtime/session.zig` should be described as clean engine core without further extraction work.
 
 Current working classification:
 
@@ -54,7 +55,7 @@ Current working classification:
 - compatibility: `port/src/game_data/scene/life_program.zig`
 - compatibility: `port/src/game_data/scene/track_program.zig`
 - mixed/currently coupled: `port/src/runtime/room_state.zig`
-- mixed/currently coupled: `port/src/runtime/session.zig`
+- mixed/currently coupled: `port/src/runtime/session.zig` beyond its explicit world-position construction boundary
 - mixed/currently coupled: `port/src/runtime/world_query.zig`
 
 This classification is a decision rule, not branding.
@@ -133,7 +134,7 @@ Future sessions should:
 - keep fail-fast rejection for unsupported scene life
 - classify modules honestly as compatibility, mixed, tools, or core
 - prefer extracting a narrow neutral runtime seam over inventing a broad engine-wide abstraction
-- use `port/src/runtime/session.zig` as the first concrete extraction target by removing direct `RoomSnapshot`-based initialization before claiming broader generic runtime ownership
+- treat the `port/src/runtime/session.zig` construction seam as the landed first extraction target, and do not inflate that into broader runtime-generic claims until more LBA2-shaped dependencies are removed
 - treat refactors as architecture progress only when they remove an actual LBA2-shaped dependency
 - keep tool work first-class when it strengthens parity evidence, diagnostics, or validation
 
