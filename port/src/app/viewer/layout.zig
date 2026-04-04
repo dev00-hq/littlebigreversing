@@ -175,7 +175,7 @@ pub fn projectWorldPoint(snapshot: state.RenderSnapshot, schematic: sdl.Rect, wo
 
     return .{
         .x = left + @as(i32, @intFromFloat(@round(normalized_x * @as(f64, @floatFromInt(screen_span_x))))),
-        .y = bottom - @as(i32, @intFromFloat(@round(normalized_z * @as(f64, @floatFromInt(screen_span_z))))),
+        .y = top + @as(i32, @intFromFloat(@round(normalized_z * @as(f64, @floatFromInt(screen_span_z))))),
     };
 }
 
