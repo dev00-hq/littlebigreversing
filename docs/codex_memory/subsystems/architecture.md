@@ -13,7 +13,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains canonical, `room_state.zig` owns the guarded `19/19` seam, and `world_query.zig` owns runtime mapping/topology diagnostics.
+- `DECISION_PLAN.md` owns long-term framing, `docs/LBA2_ZIG_PORT_PLAN.md` remains the execution roadmap, `port/` remains canonical, `room_state.zig` owns the guarded `19/19` seam, and `world_query.zig` owns runtime mapping/topology diagnostics.
 
 ## Known Traps
 
@@ -37,6 +37,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Canonical Entry Points
 
+- `DECISION_PLAN.md`
 - `docs/LBA2_ZIG_PORT_PLAN.md`
 - `docs/codex_memory/project_brief.md`
 - `docs/codex_memory/current_focus.md`
