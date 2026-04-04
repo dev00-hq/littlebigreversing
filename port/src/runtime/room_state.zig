@@ -4,6 +4,7 @@ const paths_mod = @import("../foundation/paths.zig");
 const background_data = @import("../game_data/background.zig");
 const scene_data = @import("../game_data/scene.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
+const world_geometry = @import("world_geometry.zig");
 
 pub const HeroStartSnapshot = struct {
     x: i16,
@@ -205,11 +206,7 @@ pub const RoomSnapshot = struct {
     }
 };
 
-pub const WorldPointSnapshot = struct {
-    x: i32,
-    y: i32,
-    z: i32,
-};
+const WorldPointSnapshot = world_geometry.WorldPointSnapshot;
 
 pub fn heroStartWorldPoint(room: *const RoomSnapshot) WorldPointSnapshot {
     return .{
@@ -219,36 +216,7 @@ pub fn heroStartWorldPoint(room: *const RoomSnapshot) WorldPointSnapshot {
     };
 }
 
-pub const WorldBounds = struct {
-    min_x: i32,
-    max_x: i32,
-    min_z: i32,
-    max_z: i32,
-
-    pub fn init(x: i32, z: i32) WorldBounds {
-        return .{
-            .min_x = x,
-            .max_x = x,
-            .min_z = z,
-            .max_z = z,
-        };
-    }
-
-    pub fn include(self: *WorldBounds, x: i32, z: i32) void {
-        self.min_x = @min(self.min_x, x);
-        self.max_x = @max(self.max_x, x);
-        self.min_z = @min(self.min_z, z);
-        self.max_z = @max(self.max_z, z);
-    }
-
-    pub fn spanX(self: WorldBounds) i32 {
-        return @max(1, self.max_x - self.min_x);
-    }
-
-    pub fn spanZ(self: WorldBounds) i32 {
-        return @max(1, self.max_z - self.min_z);
-    }
-};
+const WorldBounds = world_geometry.WorldBounds;
 
 pub const RenderSnapshot = struct {
     pub const Metadata = struct {

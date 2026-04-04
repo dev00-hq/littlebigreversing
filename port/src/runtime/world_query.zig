@@ -1,7 +1,11 @@
 const std = @import("std");
 const paths_mod = @import("../foundation/paths.zig");
+const world_geometry = @import("world_geometry.zig");
 const room_state = @import("room_state.zig");
 const session = @import("session.zig");
+
+const WorldPointSnapshot = world_geometry.WorldPointSnapshot;
+const WorldBounds = world_geometry.WorldBounds;
 
 pub const world_grid_span_xz: i32 = 512;
 pub const world_grid_span_y: i32 = 256;
@@ -61,7 +65,7 @@ pub const MoveTargetStatus = enum {
 };
 
 pub const MoveTargetEvaluation = struct {
-    target_world_position: room_state.WorldPointSnapshot,
+    target_world_position: WorldPointSnapshot,
     raw_cell: WorldPointCellProbe,
     occupied_coverage: OccupiedCoverageProbe,
     status: MoveTargetStatus,
@@ -81,7 +85,7 @@ pub const CardinalDirection = enum {
 pub const CellNeighborProbe = struct {
     direction: CardinalDirection,
     cell: ?GridCell,
-    world_bounds: ?room_state.WorldBounds,
+    world_bounds: ?WorldBounds,
     status: CellProbeStatus,
     occupied: bool,
     surface: ?CellTopSurface,
@@ -192,7 +196,7 @@ pub const DiagnosticCandidateKind = enum {
 pub const DiagnosticCandidate = struct {
     kind: DiagnosticCandidateKind,
     cell: GridCell,
-    world_bounds: room_state.WorldBounds,
+    world_bounds: WorldBounds,
     surface: CellTopSurface,
     standability: Standability,
     x_distance: i32,
@@ -201,7 +205,7 @@ pub const DiagnosticCandidate = struct {
 };
 
 pub const HeroStartProbe = struct {
-    raw_world_position: room_state.WorldPointSnapshot,
+    raw_world_position: WorldPointSnapshot,
     raw_cell: WorldPointCellProbe,
     occupied_coverage: OccupiedCoverageProbe,
     exact_status: HeroStartExactStatus,
@@ -405,7 +409,7 @@ pub const HeroStartMappingEvaluation = struct {
     evidence_case: MappingEvidenceCase,
     axis_interpretation: MappingAxisInterpretation,
     cell_span_xz: i32,
-    raw_world_position: room_state.WorldPointSnapshot,
+    raw_world_position: WorldPointSnapshot,
     raw_cell: WorldPointCellProbe,
     occupied_coverage: OccupiedCoverageProbe,
     exact_status: HeroStartExactStatus,
@@ -416,7 +420,7 @@ pub const HeroStartMappingEvaluation = struct {
 };
 
 pub const HeroStartMappingEvaluationReport = struct {
-    raw_world_position: room_state.WorldPointSnapshot,
+    raw_world_position: WorldPointSnapshot,
     evaluations: [mapping_hypothesis_definitions.len]HeroStartMappingEvaluation,
 
     pub fn evaluation(
@@ -462,7 +466,7 @@ pub const WorldQuery = struct {
         };
     }
 
-    pub fn roomWorldBounds(self: WorldQuery) room_state.WorldBounds {
+    pub fn roomWorldBounds(self: WorldQuery) WorldBounds {
         const bounds = self.gridBounds();
         return .{
             .min_x = 0,
@@ -482,7 +486,7 @@ pub const WorldQuery = struct {
         return self.room.background.composition.height_grid[cell_index] > 0;
     }
 
-    pub fn cellWorldBounds(self: WorldQuery, x: usize, z: usize) !room_state.WorldBounds {
+    pub fn cellWorldBounds(self: WorldQuery, x: usize, z: usize) !WorldBounds {
         _ = try self.cellIndex(x, z);
         return gridCellWorldBounds(x, z);
     }
@@ -528,7 +532,7 @@ pub const WorldQuery = struct {
 
     pub fn evaluateHeroMoveTarget(
         self: WorldQuery,
-        target_world_position: room_state.WorldPointSnapshot,
+        target_world_position: WorldPointSnapshot,
     ) MoveTargetEvaluation {
         const raw_cell = self.probeCellAtWorldPoint(
             target_world_position.x,
@@ -809,7 +813,7 @@ pub const WorldQuery = struct {
 
     fn evaluateHeroStartCore(
         self: WorldQuery,
-        hero_position: room_state.WorldPointSnapshot,
+        hero_position: WorldPointSnapshot,
         hypothesis: MappingHypothesis,
     ) !HeroStartEvaluationCore {
         const raw_cell = self.probeCellAtWorldPointWithHypothesis(
@@ -1011,12 +1015,12 @@ pub fn topologyRelationEvidencePolicy(
     };
 }
 
-pub fn gridCellWorldBounds(x: usize, z: usize) room_state.WorldBounds {
+pub fn gridCellWorldBounds(x: usize, z: usize) WorldBounds {
     return gridCellWorldBoundsForHypothesis(x, z, .canonical_axis_aligned_512);
 }
 
 fn buildMappingEvaluation(
-    raw_world_position: room_state.WorldPointSnapshot,
+    raw_world_position: WorldPointSnapshot,
     hypothesis: MappingHypothesis,
     evidence_case: MappingEvidenceCase,
     core: HeroStartEvaluationCore,
@@ -1159,7 +1163,7 @@ fn metricWorseCount(comparison: EvidenceMetricComparison) u8 {
     return if (comparison == .worse) 1 else 0;
 }
 
-fn heroStartWorldPosition(room: *const room_state.RoomSnapshot) room_state.WorldPointSnapshot {
+fn heroStartWorldPosition(room: *const room_state.RoomSnapshot) WorldPointSnapshot {
     return room_state.heroStartWorldPoint(room);
 }
 
@@ -1210,7 +1214,7 @@ fn gridCellWorldBoundsForHypothesis(
     x: usize,
     z: usize,
     hypothesis: MappingHypothesis,
-) room_state.WorldBounds {
+) WorldBounds {
     const span_usize: usize = @intCast(hypothesis.cellSpan());
     const x_min_aligned: i32 = @intCast(x * span_usize);
     const z_min_aligned: i32 = @intCast(z * span_usize);
@@ -1468,7 +1472,7 @@ test "runtime world query consumes the guarded room snapshot for base topology q
             .max_z = 58,
         },
     }, query.gridBounds());
-    try std.testing.expectEqual(room_state.WorldBounds{
+    try std.testing.expectEqual(WorldBounds{
         .min_x = 0,
         .max_x = 32767,
         .min_z = 0,
@@ -1526,7 +1530,7 @@ test "runtime world query reports diagnostic local neighbor topology for an occu
         if (expected_cell == null) {
             try std.testing.expectEqual(CellProbeStatus.out_of_bounds, neighbor.status);
             try std.testing.expectEqual(false, neighbor.occupied);
-            try std.testing.expectEqual(@as(?room_state.WorldBounds, null), neighbor.world_bounds);
+            try std.testing.expectEqual(@as(?WorldBounds, null), neighbor.world_bounds);
             try std.testing.expectEqual(@as(?CellTopSurface, null), neighbor.surface);
             try std.testing.expectEqual(@as(?Standability, null), neighbor.standability);
             try std.testing.expectEqual(@as(?i32, null), neighbor.top_y_delta);
@@ -1696,7 +1700,7 @@ test "runtime world query evaluates bounded move targets from a seeded guarded 1
     const seeded_start = cellCenterWorldPosition(39, 6, seeded_surface.top_y);
     const allowed_target = cellCenterWorldPosition(39, 7, south_surface.top_y);
     const empty_target = cellCenterWorldPosition(38, 6, seeded_surface.top_y);
-    const out_of_bounds_target = room_state.WorldPointSnapshot{
+    const out_of_bounds_target = WorldPointSnapshot{
         .x = -1,
         .y = seeded_surface.top_y,
         .z = allowed_target.z,
@@ -2297,7 +2301,7 @@ fn cellCenterWorldPosition(
     cell_x: usize,
     cell_z: usize,
     world_y: i32,
-) room_state.WorldPointSnapshot {
+) WorldPointSnapshot {
     const bounds = gridCellWorldBounds(cell_x, cell_z);
     return .{
         .x = bounds.min_x + @divFloor(world_grid_span_xz, 2),

@@ -13,7 +13,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `DECISION_PLAN.md` owns framing, `docs/LBA2_ZIG_PORT_PLAN.md` owns execution, `port/` remains canonical, `room_state.zig` owns the guarded `19/19` seam and hero-start adaptation, `session.zig` now seeds runtime state from explicit world-position input, and `world_query.zig` owns runtime mapping diagnostics.
+- `DECISION_PLAN.md` frames, `docs/LBA2_ZIG_PORT_PLAN.md` guides execution, `port/` stays canonical, `runtime/world_geometry.zig` owns neutral point/bounds, `room_state.zig` owns the guarded `19/19` seam plus hero-start adaptation, `session.zig` seeds from explicit input, and `world_query.zig` stays mixed.
 
 ## Known Traps
 

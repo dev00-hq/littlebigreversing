@@ -1,6 +1,6 @@
 const std = @import("std");
 const paths_mod = @import("../foundation/paths.zig");
-const room_state = @import("room_state.zig");
+const world_geometry = @import("world_geometry.zig");
 
 pub const HeroWorldDelta = struct {
     x: i32 = 0,
@@ -13,14 +13,14 @@ pub const FrameUpdate = struct {
 };
 
 pub const HeroState = struct {
-    world_position: room_state.WorldPointSnapshot,
+    world_position: world_geometry.WorldPointSnapshot,
 };
 
 pub const Session = struct {
     frame_index: usize,
     hero: HeroState,
 
-    pub fn init(hero_world_position: room_state.WorldPointSnapshot) Session {
+    pub fn init(hero_world_position: world_geometry.WorldPointSnapshot) Session {
         return .{
             .frame_index = 0,
             .hero = .{
@@ -29,11 +29,11 @@ pub const Session = struct {
         };
     }
 
-    pub fn heroWorldPosition(self: Session) room_state.WorldPointSnapshot {
+    pub fn heroWorldPosition(self: Session) world_geometry.WorldPointSnapshot {
         return self.hero.world_position;
     }
 
-    pub fn setHeroWorldPosition(self: *Session, position: room_state.WorldPointSnapshot) void {
+    pub fn setHeroWorldPosition(self: *Session, position: world_geometry.WorldPointSnapshot) void {
         self.hero.world_position = position;
     }
 
@@ -62,6 +62,7 @@ test "runtime session updates stay separate from immutable room snapshot ownersh
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
+    const room_state = @import("room_state.zig");
     const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
@@ -84,6 +85,7 @@ test "runtime render snapshots consume session state without duplicating guarded
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
+    const room_state = @import("room_state.zig");
     const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
