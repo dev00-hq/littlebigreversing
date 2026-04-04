@@ -4,23 +4,18 @@ This sidequest continues the layer-boundary work in [sidequest/DECISION_PLAN.md]
 
 ## Landed Slice
 
-- `port/src/runtime/world_geometry.zig` now owns the neutral runtime point and bounds types.
-- `port/src/runtime/session.zig` depends on that module instead of `room_state.zig`.
-- `port/src/runtime/world_query.zig` now imports the shared geometry module for its neutral point, bounds, grid-cell, and direction types.
+- `port/src/runtime/world_geometry.zig` owns `WorldPointSnapshot`, `WorldBounds`, `GridCell`, and `CardinalDirection`.
+- `port/src/runtime/session.zig` and `port/src/runtime/world_query.zig` import that module instead of defining those shared types locally.
 
 ## Next Slice
 
-Look for the next neutral runtime type seam that can leave `world_query.zig` without pulling query semantics out with it.
+Do not extract more from `world_query.zig` unless a type is both neutral and shared with a non-query consumer. If no such type exists, stop here.
 
-Keep the boundary honest:
+Keep these boundaries intact:
 
 - leave occupancy, probe, and status logic in `world_query.zig`
 - leave `RoomSnapshot` and room-shaped adaptation in `room_state.zig`
 - keep query-specific evidence structures and unsupported-scene guards in `world_query.zig`
-
-## Why This Matters
-
-The session-to-room-state type coupling is gone. `world_query.zig` still mixes neutral geometry with room-backed topology logic, so the next slice should only extract a type if it stays neutral on its own.
 
 ## Guardrails
 
@@ -31,7 +26,7 @@ The session-to-room-state type coupling is gone. `world_query.zig` still mixes n
 
 ## Acceptance
 
+- no further `world_query.zig` type extraction happens unless a real shared neutral type appears
 - `world_query.zig` keeps its room-dependent topology/query behavior
-- any extracted type remains neutral and compile-safe across the viewer/runtime call paths
-- guarded runtime/viewer behavior is unchanged
+- guarded runtime/viewer behavior stays unchanged
 - from native PowerShell, after `.\scripts\dev-shell.ps1`, `cd port` and run `zig build test`
