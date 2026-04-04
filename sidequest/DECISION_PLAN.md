@@ -10,7 +10,7 @@ Its job is to stop future sessions from re-litigating project identity while the
 
 - `docs/LBA2_ZIG_PORT_PLAN.md` remains the canonical roadmap for phases, gates, and acceptance checks.
 - `docs/codex_memory/current_focus.md` remains the canonical source for the checked-in supported baseline, blockers, and active execution focus.
-- `DECISION_PLAN.md` records the long-term framing decision and the layer-boundary policy that roadmap work must follow.
+- `sidequest/DECISION_PLAN.md` records the long-term framing decision and the layer-boundary policy that roadmap work must follow.
 - If those docs diverge, align them in the same diff. Do not leave split strategy owners in-tree.
 
 ## Current Strategic Decision

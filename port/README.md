@@ -20,7 +20,7 @@ Current landed baseline:
 - native PowerShell viewer verification through `scripts/verify-viewer.ps1`, with guarded success for `19/19` and expected guarded `ViewerUnsupportedSceneLife` rejection for `2/2`, `44/2`, and `11/10`
 - explicit runtime session seeding from world-position input, with `runtime/room_state.zig` remaining the `RoomSnapshot` adaptation boundary
 
-Long-term framing and layer-boundary policy live in `DECISION_PLAN.md`. Active roadmap phases, gates, and acceptance checks live in `docs/LBA2_ZIG_PORT_PLAN.md`. Active repo state and current blockers live in `docs/codex_memory/current_focus.md`.
+Long-term framing and layer-boundary policy live in `sidequest/DECISION_PLAN.md`. Active roadmap phases, gates, and acceptance checks live in `docs/LBA2_ZIG_PORT_PLAN.md`. Active repo state and current blockers live in `docs/codex_memory/current_focus.md`.
 
 Keep `port/` separate from:
 

@@ -8,7 +8,7 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 
 ## Document Ownership
 
-- `DECISION_PLAN.md` owns long-term strategic framing and the promotion rules for calling code engine core rather than compatibility.
+- `sidequest/DECISION_PLAN.md` owns long-term strategic framing and the promotion rules for calling code engine core rather than compatibility.
 - `docs/LBA2_ZIG_PORT_PLAN.md` owns active roadmap phases, replan gates, and acceptance checks on the current execution path.
 - `docs/codex_memory/current_focus.md` owns active repo state, current blockers, and the operating focus for the checked-in tree.
 - `docs/PROMPT.md` owns only the next narrow slice to execute.
@@ -21,7 +21,7 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 - Product goal: high-parity reimplementation with one canonical codepath per subsystem
 - Tooling goal: make discovery, inspection, validation, and fixture generation first-class deliverables
 
-Long-term framing and layer-boundary policy live in `DECISION_PLAN.md`. This roadmap stays parity-first on the checked-in execution path and should only claim extracted engine seams when they satisfy that document's promotion rules.
+Long-term framing and layer-boundary policy live in `sidequest/DECISION_PLAN.md`. This roadmap stays parity-first on the checked-in execution path and should only claim extracted engine seams when they satisfy that document's promotion rules.
 
 If a format or behavior is not yet understood, fail with a precise diagnostic and deepen evidence for that subsystem. Do not add fallback parsers, compatibility shims, or speculative dual behavior.
 
