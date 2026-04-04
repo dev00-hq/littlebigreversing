@@ -4,6 +4,11 @@ pub const WorldPointSnapshot = struct {
     z: i32,
 };
 
+pub const GridCell = struct {
+    x: usize,
+    z: usize,
+};
+
 pub const WorldBounds = struct {
     min_x: i32,
     max_x: i32,
@@ -33,4 +38,11 @@ pub const WorldBounds = struct {
     pub fn spanZ(self: WorldBounds) i32 {
         return @max(1, self.max_z - self.min_z);
     }
+};
+
+pub const CardinalDirection = enum {
+    north,
+    east,
+    south,
+    west,
 };

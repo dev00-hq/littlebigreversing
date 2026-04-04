@@ -4,23 +4,23 @@ This sidequest continues the layer-boundary work in [sidequest/DECISION_PLAN.md]
 
 ## Landed Slice
 
-- `port/src/runtime/world_geometry.zig` now owns the neutral runtime point/bounds types.
+- `port/src/runtime/world_geometry.zig` now owns the neutral runtime point and bounds types.
 - `port/src/runtime/session.zig` depends on that module instead of `room_state.zig`.
-- `port/src/runtime/room_state.zig`, `port/src/runtime/world_query.zig`, `port/src/app/viewer_shell.zig`, and `port/src/app/viewer/state.zig` now consume the shared geometry module.
+- `port/src/runtime/world_query.zig` now imports the shared geometry module for its neutral point, bounds, grid-cell, and direction types.
 
-## Next Concrete Slice
+## Next Slice
 
-Extract the remaining neutral grid primitives, starting with `GridCell` and `CardinalDirection`, into `port/src/runtime/world_geometry.zig`, then rewire `port/src/runtime/world_query.zig` and the viewer/runtime call paths to use them.
+Look for the next neutral runtime type seam that can leave `world_query.zig` without pulling query semantics out with it.
 
 Keep the boundary honest:
 
 - leave occupancy, probe, and status logic in `world_query.zig`
-- leave `RoomSnapshot` and all room-shaped adaptation in `room_state.zig`
-- do not move query-specific evidence structures or unsupported-scene guards out of `world_query.zig`
+- leave `RoomSnapshot` and room-shaped adaptation in `room_state.zig`
+- keep query-specific evidence structures and unsupported-scene guards in `world_query.zig`
 
-## Why This Is Next
+## Why This Matters
 
-The session-to-room-state coupling is gone, but `world_query.zig` still owns a small cluster of neutral geometry primitives that are shared with the viewer path. Extracting those next tightens the runtime seam without pretending the whole query layer is generic.
+The session-to-room-state type coupling is gone. `world_query.zig` still mixes neutral geometry with room-backed topology logic, so the next slice should only extract a type if it stays neutral on its own.
 
 ## Guardrails
 
@@ -31,8 +31,7 @@ The session-to-room-state coupling is gone, but `world_query.zig` still owns a s
 
 ## Acceptance
 
-- `GridCell` and `CardinalDirection` live outside `world_query.zig` if they can be extracted cleanly as neutral runtime data
-- `world_query.zig` still compiles and owns the room-dependent topology/query behavior
-- viewer/runtime call paths still compile cleanly against the extracted types
+- `world_query.zig` keeps its room-dependent topology/query behavior
+- any extracted type remains neutral and compile-safe across the viewer/runtime call paths
 - guarded runtime/viewer behavior is unchanged
 - from native PowerShell, after `.\scripts\dev-shell.ps1`, `cd port` and run `zig build test`

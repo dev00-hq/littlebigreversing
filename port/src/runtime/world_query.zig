@@ -6,15 +6,12 @@ const session = @import("session.zig");
 
 const WorldPointSnapshot = world_geometry.WorldPointSnapshot;
 const WorldBounds = world_geometry.WorldBounds;
+const GridCell = world_geometry.GridCell;
+const CardinalDirection = world_geometry.CardinalDirection;
 
 pub const world_grid_span_xz: i32 = 512;
 pub const world_grid_span_y: i32 = 256;
 const world_grid_span_xz_usize: usize = 512;
-
-pub const GridCell = struct {
-    x: usize,
-    z: usize,
-};
 
 pub const GridBounds = struct {
     width: usize,
@@ -73,13 +70,6 @@ pub const MoveTargetEvaluation = struct {
     pub fn isAllowed(self: MoveTargetEvaluation) bool {
         return self.status == .allowed;
     }
-};
-
-pub const CardinalDirection = enum {
-    north,
-    east,
-    south,
-    west,
 };
 
 pub const CellNeighborProbe = struct {
