@@ -7,11 +7,12 @@
 - Keep the checked-in fragment-bearing interior evidence anchored to `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]`, but do not treat that pair as a guarded runtime-positive load.
 - Keep unsupported life switch-family handling outside the supported decoder/interpreter boundary for the current repo state.
 - Keep the runtime/load seam fail-fast on unsupported scene life: `LM_DEFAULT` and `LM_END_SWITCH` stay outside the current parity target unless new checked-in primary-source evidence appears.
-- Keep runtime mapping evaluation falsification-oriented: hero-start evidence only, poor canonical evidence, partial single-metric wins, and stricter diagnostic-only wins stay explicit.
+- Keep runtime mapping falsification-oriented: only `hero_start_world_point` is admitted, and `zone_world_point` still outranks `scene_object_world_point` for bounded `19/19` review.
+- Keep unchecked room topology evidence discovery-only: `2/2` and `11/10` remain flat and standable, so they do not justify richer relation classes.
 
 ## Active Streams
 
-- Scene/background inspection, the supported `19/19` runtime/load baseline, the runtime-owned `world_query` slice over immutable room snapshots, `19/19` hero-start mapping diagnostics plus admission policy and stricter candidate dispositions, branch-B life rejection at the load seam, the guarded `inspect-room` boundary, `11/10` GRM evidence coverage, `BRK` previews, and viewer-local fragment/HUD/provenance surfaces.
+- Scene/background inspection on the supported `19/19` baseline, runtime-owned `world_query` diagnostics, guarded `inspect-room`, `11/10` GRM evidence coverage, `BRK` previews, and viewer-local fragment/HUD surfaces.
 - MBN corpus and phase0 evidence maintenance.
 - Windows-first validation with Linux limited to docs and source work.
 
@@ -23,9 +24,10 @@
 
 ## Next Actions
 
-- Keep gameplay/runtime widening centered on `SCENE.HQR[19]`, build hero-motion topology on `runtime/world_query.zig`, and keep hardened mapping tiers plus nearest-cell probes diagnostic-only instead of backsliding query ownership into `room_state.zig` or `session.zig` or silently promoting spawn correction.
+- Keep gameplay/runtime widening centered on `SCENE.HQR[19]`, build any future hero-motion topology on `runtime/world_query.zig`, and keep mapping tiers plus nearest-cell probes diagnostic-only.
+- Stop topology relation expansion unless new evidence shows blocked or non-flat occupied neighbors; exclude `44/2` from unchecked interior-room scans because skipping the life guard reveals an exterior.
 - Keep future life work scoped to rejection diagnostics, fail-fast coverage for unsupported switch-family opcodes, or a reopened evidence pass only if new checked-in primary-source evidence appears.
-- Keep `2/2` and `44/2` as negative branch-B load cases, and keep `11/10` on explicit evidence-only/test-local paths unless a later prompt widens the supported runtime boundary.
+- Keep `2/2` and `44/2` as negative branch-B load cases, and keep `11/10` on explicit evidence-only/test-local paths unless the supported runtime boundary widens.
 - Keep future viewer work away from gameplay, life binding, exterior loading, or full room-art rendering unless a later prompt widens scope.
 - Update subsystem packs and typed records instead of reviving timeline-heavy summary docs.
 

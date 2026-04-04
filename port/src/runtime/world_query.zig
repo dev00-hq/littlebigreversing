@@ -51,6 +51,89 @@ pub const WorldPointCellProbe = struct {
     standability: ?Standability,
 };
 
+pub const CardinalDirection = enum {
+    north,
+    east,
+    south,
+    west,
+};
+
+pub const CellNeighborProbe = struct {
+    direction: CardinalDirection,
+    cell: ?GridCell,
+    world_bounds: ?room_state.WorldBounds,
+    status: CellProbeStatus,
+    occupied: bool,
+    surface: ?CellTopSurface,
+    standability: ?Standability,
+    top_y_delta: ?i32,
+};
+
+pub const LocalNeighborTopologyProbe = struct {
+    origin_surface: CellTopSurface,
+    origin_standability: Standability,
+    neighbors: [4]CellNeighborProbe,
+
+    pub fn standableNeighborCount(self: LocalNeighborTopologyProbe) usize {
+        var count: usize = 0;
+        for (self.neighbors) |neighbor| {
+            if (neighbor.standability == .standable) count += 1;
+        }
+        return count;
+    }
+};
+
+pub const ObservedTopYDeltaBucket = struct {
+    delta: i32,
+    count: usize,
+};
+
+pub const ObservedNeighborPatternSummary = struct {
+    origin_cell_count: usize,
+    total_neighbor_count: usize,
+    occupied_surface_count: usize,
+    empty_count: usize,
+    out_of_bounds_count: usize,
+    missing_top_surface_count: usize,
+    standable_neighbor_count: usize,
+    blocked_neighbor_count: usize,
+    top_y_delta_buckets: []ObservedTopYDeltaBucket,
+
+    pub fn deinit(self: ObservedNeighborPatternSummary, allocator: std.mem.Allocator) void {
+        allocator.free(self.top_y_delta_buckets);
+    }
+};
+
+pub const TopologyRelationEvidenceBasis = enum {
+    guarded_runtime_room_snapshot,
+    unchecked_evidence_room_snapshot,
+};
+
+pub const TopologyRelationEvidenceAdmission = enum {
+    admitted_supported_runtime,
+    admitted_discovery_only,
+    rejected,
+};
+
+pub const TopologyRelationEvidencePolicy = struct {
+    basis: TopologyRelationEvidenceBasis,
+    admission: TopologyRelationEvidenceAdmission,
+    rationale: []const u8,
+
+    pub fn allowsDiscovery(self: TopologyRelationEvidencePolicy) bool {
+        return switch (self.admission) {
+            .admitted_supported_runtime,
+            .admitted_discovery_only,
+            => true,
+            .rejected => false,
+        };
+    }
+
+    pub fn allowsRuntimeSemantics(self: TopologyRelationEvidencePolicy) bool {
+        return self.admission == .admitted_supported_runtime;
+    }
+};
+
 pub const OccupiedCoverageRelation = enum {
     unmapped_world_point,
     no_occupied_bounds,
@@ -209,6 +292,13 @@ const mapping_hypotheses = [_]MappingHypothesis{
     .dense_swapped_axes_64,
 };
 
+const cardinal_directions = [_]CardinalDirection{
+    .north,
+    .east,
+    .south,
+    .west,
+};
+
 const all_evidence_metrics = [_]EvidenceMetricKind{
     .exact_status,
     .occupied_coverage,
@@ -267,6 +357,26 @@ pub const MappingEvidenceCaseComparison = struct {
     comparison: MappingEvidenceComparison,
 };
 
+pub const AdditionalAnchorInvestigationPriority = enum {
+    primary,
+    secondary,
+};
+
+pub const AdditionalAnchorCandidateRanking = struct {
+    anchor_kind: EvidenceAnchorKind,
+    priority: AdditionalAnchorInvestigationPriority,
+    sample_count: usize,
+    floor_aligned_sample_count: usize,
+    rationale: []const u8,
+};
+
+pub const AdditionalAnchorInvestigation = struct {
+    ranked_candidates: [2]AdditionalAnchorCandidateRanking,
+    chosen_anchor_kind: EvidenceAnchorKind,
+    chosen_evidence_case: MappingEvidenceCase,
+    decision_rationale: []const u8,
+};
+
 pub const HeroStartMappingEvaluation = struct {
     hypothesis: MappingHypothesis,
     family: MappingHypothesisFamily,
@@ -307,6 +417,14 @@ const HeroStartEvaluationCore = struct {
     diagnostic_status: HeroStartDiagnosticStatus,
     nearest_occupied: ?DiagnosticCandidate,
     nearest_standable: ?DiagnosticCandidate,
+};
+
+const AnchorCandidateAssessment = struct {
+    anchor_kind: EvidenceAnchorKind,
+    sample_count: usize,
+    floor_aligned_sample_count: usize,
+    priority_score: u8,
+    rationale: []const u8,
 };
 
 pub const WorldQuery = struct {
@@ -386,6 +504,66 @@ pub const WorldQuery = struct {
 
     pub fn probeCellAtWorldPoint(self: WorldQuery, world_x: i32, world_z: i32) WorldPointCellProbe {
         return self.probeCellAtWorldPointWithHypothesis(world_x, world_z, .canonical_axis_aligned_512);
+    }
+
+    pub fn probeLocalNeighborTopology(self: WorldQuery, x: usize, z: usize) !LocalNeighborTopologyProbe {
+        const origin_surface = try self.cellTopSurface(x, z);
+        var neighbors: [cardinal_directions.len]CellNeighborProbe = undefined;
+        inline for (cardinal_directions, 0..) |direction, index| {
+            neighbors[index] = self.probeNeighborAtCell(origin_surface, direction);
+        }
+
+        return .{
+            .origin_surface = origin_surface,
+            .origin_standability = standabilityForSurface(origin_surface),
+            .neighbors = neighbors,
+        };
+    }
+
+    pub fn summarizeObservedNeighborPatterns(
+        self: WorldQuery,
+        allocator: std.mem.Allocator,
+    ) !ObservedNeighborPatternSummary {
+        var delta_buckets = try std.ArrayList(ObservedTopYDeltaBucket).initCapacity(allocator, 0);
+        defer delta_buckets.deinit(allocator);
+
+        var summary = ObservedNeighborPatternSummary{
+            .origin_cell_count = 0,
+            .total_neighbor_count = 0,
+            .occupied_surface_count = 0,
+            .empty_count = 0,
+            .out_of_bounds_count = 0,
+            .missing_top_surface_count = 0,
+            .standable_neighbor_count = 0,
+            .blocked_neighbor_count = 0,
+            .top_y_delta_buckets = &.{},
+        };
+
+        for (self.room.background.composition.tiles) |tile| {
+            const topology = try self.probeLocalNeighborTopology(tile.x, tile.z);
+            summary.origin_cell_count += 1;
+            summary.total_neighbor_count += topology.neighbors.len;
+
+            for (topology.neighbors) |neighbor| {
+                switch (neighbor.status) {
+                    .occupied_surface => {
+                        summary.occupied_surface_count += 1;
+                        switch (neighbor.standability.?) {
+                            .standable => summary.standable_neighbor_count += 1,
+                            .blocked => summary.blocked_neighbor_count += 1,
+                        }
+                        try incrementTopYDeltaBucket(&delta_buckets, allocator, neighbor.top_y_delta.?);
+                    },
+                    .empty => summary.empty_count += 1,
+                    .out_of_bounds => summary.out_of_bounds_count += 1,
+                    .missing_top_surface => summary.missing_top_surface_count += 1,
+                }
+            }
+        }
+
+        std.mem.sort(ObservedTopYDeltaBucket, delta_buckets.items, {}, lessThanTopYDeltaBucket);
+        summary.top_y_delta_buckets = try delta_buckets.toOwnedSlice(allocator);
+        return summary;
     }
 
     pub fn occupiedCoverageForCell(self: WorldQuery, cell: ?GridCell) OccupiedCoverageProbe {
@@ -489,6 +667,19 @@ pub const WorldQuery = struct {
         }
     }
 
+    pub fn investigateAdditionalEvidenceAnchor(self: WorldQuery) AdditionalAnchorInvestigation {
+        const zone_candidate = assessZoneAnchorCandidate(self.room);
+        const scene_object_candidate = assessSceneObjectAnchorCandidate(self.room);
+        const ranked_candidates = rankAdditionalAnchorCandidates(zone_candidate, scene_object_candidate);
+        const chosen_anchor_kind = ranked_candidates[0].anchor_kind;
+        return .{
+            .ranked_candidates = ranked_candidates,
+            .chosen_anchor_kind = chosen_anchor_kind,
+            .chosen_evidence_case = evidenceCaseForAnchor(chosen_anchor_kind),
+            .decision_rationale = decisionRationaleForAnchor(chosen_anchor_kind),
+        };
+    }
+
     fn cellIndex(self: WorldQuery, x: usize, z: usize) !usize {
         const bounds = self.gridBounds();
         if (x >= bounds.width or z >= bounds.depth) return error.WorldCellOutOfBounds;
@@ -500,6 +691,84 @@ pub const WorldQuery = struct {
             if (tile.x == x and tile.z == z) return tile;
         }
         return null;
+    }
+
+    fn probeNeighborAtCell(
+        self: WorldQuery,
+        origin_surface: CellTopSurface,
+        direction: CardinalDirection,
+    ) CellNeighborProbe {
+        const neighbor_cell = self.neighborCellInDirection(origin_surface.cell, direction) orelse {
+            return .{
+                .direction = direction,
+                .cell = null,
+                .world_bounds = null,
+                .status = .out_of_bounds,
+                .occupied = false,
+                .surface = null,
+                .standability = null,
+                .top_y_delta = null,
+            };
+        };
+        const world_bounds = gridCellWorldBounds(neighbor_cell.x, neighbor_cell.z);
+        const cell_index = self.cellIndex(neighbor_cell.x, neighbor_cell.z) catch unreachable;
+        const occupied = self.room.background.composition.height_grid[cell_index] > 0;
+        if (!occupied) {
+            return .{
+                .direction = direction,
+                .cell = neighbor_cell,
+                .world_bounds = world_bounds,
+                .status = .empty,
+                .occupied = false,
+                .surface = null,
+                .standability = null,
+                .top_y_delta = null,
+            };
+        }
+
+        const tile = self.findCompositionTile(neighbor_cell.x, neighbor_cell.z) orelse {
+            return .{
+                .direction = direction,
+                .cell = neighbor_cell,
+                .world_bounds = world_bounds,
+                .status = .missing_top_surface,
+                .occupied = true,
+                .surface = null,
+                .standability = null,
+                .top_y_delta = null,
+            };
+        };
+        const surface = CellTopSurface{
+            .cell = neighbor_cell,
+            .total_height = self.room.background.composition.height_grid[cell_index],
+            .top_y = topSurfaceY(tile.total_height),
+            .stack_depth = tile.stack_depth,
+            .top_floor_type = tile.top_floor_type,
+            .top_shape = tile.top_shape,
+            .top_shape_class = tile.top_shape_class,
+            .top_brick_index = tile.top_brick_index,
+        };
+        const standability = standabilityForSurface(surface);
+        return .{
+            .direction = direction,
+            .cell = neighbor_cell,
+            .world_bounds = world_bounds,
+            .status = .occupied_surface,
+            .occupied = true,
+            .surface = surface,
+            .standability = standability,
+            .top_y_delta = surface.top_y - origin_surface.top_y,
+        };
+    }
+
+    fn neighborCellInDirection(self: WorldQuery, origin: GridCell, direction: CardinalDirection) ?GridCell {
+        const bounds = self.gridBounds();
+        return switch (direction) {
+            .north => if (origin.z == 0) null else .{ .x = origin.x, .z = origin.z - 1 },
+            .east => if (origin.x + 1 >= bounds.width) null else .{ .x = origin.x + 1, .z = origin.z },
+            .south => if (origin.z + 1 >= bounds.depth) null else .{ .x = origin.x, .z = origin.z + 1 },
+            .west => if (origin.x == 0) null else .{ .x = origin.x - 1, .z = origin.z },
+        };
     }
 
     fn evaluateHeroStartCore(
@@ -689,6 +958,23 @@ pub fn init(room: *const room_state.RoomSnapshot) WorldQuery {
     return WorldQuery.init(room);
 }
 
+pub fn topologyRelationEvidencePolicy(
+    basis: TopologyRelationEvidenceBasis,
+) TopologyRelationEvidencePolicy {
+    return switch (basis) {
+        .guarded_runtime_room_snapshot => .{
+            .basis = basis,
+            .admission = .admitted_supported_runtime,
+            .rationale = "Guarded room snapshots remain the only supported basis for runtime-facing topology semantics.",
+        },
+        .unchecked_evidence_room_snapshot => .{
+            .basis = basis,
+            .admission = .admitted_discovery_only,
+            .rationale = "Unchecked evidence-only room snapshots may inform discovery-only topology observation because they still decode immutable room geometry, but unsupported scene life keeps them outside the supported runtime boundary and insufficient on their own for runtime-facing relation classes.",
+        },
+    };
+}
+
 pub fn gridCellWorldBounds(x: usize, z: usize) room_state.WorldBounds {
     return gridCellWorldBoundsForHypothesis(x, z, .canonical_axis_aligned_512);
 }
@@ -845,6 +1131,31 @@ fn heroStartWorldPosition(room: *const room_state.RoomSnapshot) room_state.World
     };
 }
 
+fn incrementTopYDeltaBucket(
+    buckets: *std.ArrayList(ObservedTopYDeltaBucket),
+    allocator: std.mem.Allocator,
+    delta: i32,
+) !void {
+    for (buckets.items) |*bucket| {
+        if (bucket.delta == delta) {
+            bucket.count += 1;
+            return;
+        }
+    }
+    try buckets.append(allocator, .{
+        .delta = delta,
+        .count = 1,
+    });
+}
+
+fn lessThanTopYDeltaBucket(
+    _: void,
+    left: ObservedTopYDeltaBucket,
+    right: ObservedTopYDeltaBucket,
+) bool {
+    return left.delta < right.delta;
+}
+
 fn mapWorldPointToCellIndices(
     world_x: i32,
     world_z: i32,
@@ -991,6 +1302,80 @@ fn worldAxisMax(cell_count: usize) i32 {
     return @intCast((cell_count * world_grid_span_xz_usize) - 1);
 }
 
+fn assessZoneAnchorCandidate(room: *const room_state.RoomSnapshot) AnchorCandidateAssessment {
+    var floor_aligned_sample_count: usize = 0;
+    for (room.scene.zones) |zone| {
+        if (isFloorAlignedY(zone.y_min) and isFloorAlignedY(zone.y_max)) {
+            floor_aligned_sample_count += 1;
+        }
+    }
+
+    return .{
+        .anchor_kind = .zone_world_point,
+        .sample_count = room.scene.zones.len,
+        .floor_aligned_sample_count = floor_aligned_sample_count,
+        .priority_score = if (room.scene.zones.len > 0 and floor_aligned_sample_count == room.scene.zones.len) 2 else if (floor_aligned_sample_count > 0) 1 else 0,
+        .rationale = "Zone bounds are the stronger current candidate because they stay in room-world coordinates and their Y extents remain floor-grid aligned, even though they still describe trigger volumes rather than floor points.",
+    };
+}
+
+fn assessSceneObjectAnchorCandidate(room: *const room_state.RoomSnapshot) AnchorCandidateAssessment {
+    var sample_count: usize = 0;
+    var floor_aligned_sample_count: usize = 0;
+    for (room.scene.objects) |object| {
+        if (object.x == 0 and object.y == 0 and object.z == 0) continue;
+        sample_count += 1;
+        if (isFloorAlignedY(object.y)) floor_aligned_sample_count += 1;
+    }
+
+    return .{
+        .anchor_kind = .scene_object_world_point,
+        .sample_count = sample_count,
+        .floor_aligned_sample_count = floor_aligned_sample_count,
+        .priority_score = if (sample_count > 0 and floor_aligned_sample_count == sample_count) 2 else if (floor_aligned_sample_count > 0) 1 else 0,
+        .rationale = "Scene-object placements are weaker current evidence because the positioned non-origin samples are sparse and can sit off the 256-unit floor grid, so they do not presently read as reliable standable-floor anchors.",
+    };
+}
+
+fn rankAdditionalAnchorCandidates(
+    first: AnchorCandidateAssessment,
+    second: AnchorCandidateAssessment,
+) [2]AdditionalAnchorCandidateRanking {
+    const ordered = if (first.priority_score >= second.priority_score)
+        [_]AnchorCandidateAssessment{ first, second }
+    else
+        [_]AnchorCandidateAssessment{ second, first };
+    return .{
+        .{
+            .anchor_kind = ordered[0].anchor_kind,
+            .priority = .primary,
+            .sample_count = ordered[0].sample_count,
+            .floor_aligned_sample_count = ordered[0].floor_aligned_sample_count,
+            .rationale = ordered[0].rationale,
+        },
+        .{
+            .anchor_kind = ordered[1].anchor_kind,
+            .priority = .secondary,
+            .sample_count = ordered[1].sample_count,
+            .floor_aligned_sample_count = ordered[1].floor_aligned_sample_count,
+            .rationale = ordered[1].rationale,
+        },
+    };
+}
+
+fn decisionRationaleForAnchor(anchor_kind: EvidenceAnchorKind) []const u8 {
+    return switch (anchor_kind) {
+        .zone_world_point => "Zone bounds stay rejected because the checked-in room snapshot only proves volumetric trigger regions; admitting a single point would require inventing an unsupported center, corner, or floor-projection policy.",
+        .scene_object_world_point => "Scene-object points stay rejected because the checked-in room snapshot does not show a source-backed floor-truth relationship between those placements and standable surfaces.",
+        .hero_start_world_point => "Hero start remains the canonical admitted floor-truth anchor class for current mapping evaluation.",
+        .fragment_world_point => "Fragment anchors remain outside the current evidence basis.",
+    };
+}
+
+fn isFloorAlignedY(world_y: i32) bool {
+    return @mod(world_y, world_grid_span_y) == 0;
+}
+
 fn exactStatusForProbe(raw_cell: WorldPointCellProbe, hero_y: i32) HeroStartExactStatus {
     return switch (raw_cell.status) {
         .out_of_bounds => .mapped_cell_out_of_bounds,
@@ -1071,6 +1456,114 @@ test "runtime world query rejects empty and out-of-bounds cells explicitly" {
     try std.testing.expectError(error.WorldCellEmpty, query.cellTopSurface(0, 0));
     try std.testing.expectError(error.WorldCellOutOfBounds, query.cellTopSurface(64, 0));
     try std.testing.expectError(error.WorldPointOutOfBounds, query.gridCellAtWorldPoint(-1, 0));
+}
+
+test "runtime world query reports diagnostic local neighbor topology for an occupied 19/19 cell" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer room.deinit(allocator);
+
+    const query = init(&room);
+    const origin_tile = room.background.composition.tiles[0];
+    const topology = try query.probeLocalNeighborTopology(origin_tile.x, origin_tile.z);
+
+    try std.testing.expectEqual(origin_tile.x, topology.origin_surface.cell.x);
+    try std.testing.expectEqual(origin_tile.z, topology.origin_surface.cell.z);
+    try std.testing.expectEqual(try query.standabilityAtCell(origin_tile.x, origin_tile.z), topology.origin_standability);
+
+    var expected_standable_neighbor_count: usize = 0;
+    for (topology.neighbors, cardinal_directions) |neighbor, direction| {
+        try std.testing.expectEqual(direction, neighbor.direction);
+
+        const expected_cell = expectedNeighborCell(query.gridBounds(), topology.origin_surface.cell, direction);
+        try std.testing.expectEqual(expected_cell, neighbor.cell);
+        if (expected_cell == null) {
+            try std.testing.expectEqual(CellProbeStatus.out_of_bounds, neighbor.status);
+            try std.testing.expectEqual(false, neighbor.occupied);
+            try std.testing.expectEqual(@as(?room_state.WorldBounds, null), neighbor.world_bounds);
+            try std.testing.expectEqual(@as(?CellTopSurface, null), neighbor.surface);
+            try std.testing.expectEqual(@as(?Standability, null), neighbor.standability);
+            try std.testing.expectEqual(@as(?i32, null), neighbor.top_y_delta);
+            continue;
+        }
+
+        try std.testing.expectEqual(gridCellWorldBounds(expected_cell.?.x, expected_cell.?.z), neighbor.world_bounds.?);
+
+        const occupied = try query.isOccupiedCell(expected_cell.?.x, expected_cell.?.z);
+        try std.testing.expectEqual(occupied, neighbor.occupied);
+        if (!occupied) {
+            try std.testing.expectEqual(CellProbeStatus.empty, neighbor.status);
+            try std.testing.expectEqual(@as(?CellTopSurface, null), neighbor.surface);
+            try std.testing.expectEqual(@as(?Standability, null), neighbor.standability);
+            try std.testing.expectEqual(@as(?i32, null), neighbor.top_y_delta);
+            continue;
+        }
+
+        const expected_surface = query.cellTopSurface(expected_cell.?.x, expected_cell.?.z) catch |err| switch (err) {
+            error.WorldCellMissingTopSurface => {
+                try std.testing.expectEqual(CellProbeStatus.missing_top_surface, neighbor.status);
+                try std.testing.expectEqual(@as(?CellTopSurface, null), neighbor.surface);
+                try std.testing.expectEqual(@as(?Standability, null), neighbor.standability);
+                try std.testing.expectEqual(@as(?i32, null), neighbor.top_y_delta);
+                continue;
+            },
+            else => return err,
+        };
+        const expected_standability = try query.standabilityAtCell(expected_cell.?.x, expected_cell.?.z);
+        try std.testing.expectEqual(CellProbeStatus.occupied_surface, neighbor.status);
+        try std.testing.expectEqual(expected_surface, neighbor.surface.?);
+        try std.testing.expectEqual(expected_standability, neighbor.standability.?);
+        try std.testing.expectEqual(expected_surface.top_y - topology.origin_surface.top_y, neighbor.top_y_delta.?);
+        if (expected_standability == .standable) expected_standable_neighbor_count += 1;
+    }
+
+    try std.testing.expectEqual(expected_standable_neighbor_count, topology.standableNeighborCount());
+}
+
+test "runtime world query rejects invalid origin cells for local neighbor topology probes" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer room.deinit(allocator);
+
+    const query = init(&room);
+
+    try std.testing.expectError(error.WorldCellEmpty, query.probeLocalNeighborTopology(0, 0));
+    try std.testing.expectError(error.WorldCellOutOfBounds, query.probeLocalNeighborTopology(64, 0));
+}
+
+test "runtime world query summarizes observed local neighbor patterns on the guarded 19/19 baseline" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer room.deinit(allocator);
+
+    const query = init(&room);
+    const summary = try query.summarizeObservedNeighborPatterns(allocator);
+    defer summary.deinit(allocator);
+
+    try std.testing.expectEqual(room.background.composition.tiles.len, summary.origin_cell_count);
+    try std.testing.expectEqual(summary.origin_cell_count * cardinal_directions.len, summary.total_neighbor_count);
+    try std.testing.expectEqual(@as(usize, 4828), summary.occupied_surface_count);
+    try std.testing.expectEqual(@as(usize, 107), summary.empty_count);
+    try std.testing.expectEqual(@as(usize, 49), summary.out_of_bounds_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.missing_top_surface_count);
+    try std.testing.expectEqual(@as(usize, 4828), summary.standable_neighbor_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.blocked_neighbor_count);
+    try std.testing.expectEqual(summary.occupied_surface_count, summary.standable_neighbor_count + summary.blocked_neighbor_count);
+    try std.testing.expectEqual(summary.total_neighbor_count, summary.occupied_surface_count + summary.empty_count + summary.out_of_bounds_count + summary.missing_top_surface_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.top_y_delta_buckets.len);
+    try std.testing.expectEqual(ObservedTopYDeltaBucket{
+        .delta = 0,
+        .count = 4828,
+    }, summary.top_y_delta_buckets[0]);
 }
 
 test "runtime world query separates raw hero-start mapping evidence from heuristic candidates on the supported snapshot" {
@@ -1347,6 +1840,61 @@ test "runtime world query rejects scene-object anchors without floor-truth scori
     try std.testing.expectEqual(MappingEvidenceDisposition.diagnostic_candidate_only_not_better, assessment.comparison.disposition);
 }
 
+test "runtime world query ranks zones ahead of scene objects for the bounded extra-anchor investigation" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer room.deinit(allocator);
+
+    const query = init(&room);
+    const investigation = query.investigateAdditionalEvidenceAnchor();
+
+    try std.testing.expectEqual(EvidenceAnchorKind.zone_world_point, investigation.ranked_candidates[0].anchor_kind);
+    try std.testing.expectEqual(AdditionalAnchorInvestigationPriority.primary, investigation.ranked_candidates[0].priority);
+    try std.testing.expectEqual(@as(usize, 4), investigation.ranked_candidates[0].sample_count);
+    try std.testing.expectEqual(@as(usize, 4), investigation.ranked_candidates[0].floor_aligned_sample_count);
+    try std.testing.expectEqualStrings(
+        "Zone bounds are the stronger current candidate because they stay in room-world coordinates and their Y extents remain floor-grid aligned, even though they still describe trigger volumes rather than floor points.",
+        investigation.ranked_candidates[0].rationale,
+    );
+
+    try std.testing.expectEqual(EvidenceAnchorKind.scene_object_world_point, investigation.ranked_candidates[1].anchor_kind);
+    try std.testing.expectEqual(AdditionalAnchorInvestigationPriority.secondary, investigation.ranked_candidates[1].priority);
+    try std.testing.expectEqual(@as(usize, 1), investigation.ranked_candidates[1].sample_count);
+    try std.testing.expectEqual(@as(usize, 0), investigation.ranked_candidates[1].floor_aligned_sample_count);
+    try std.testing.expectEqualStrings(
+        "Scene-object placements are weaker current evidence because the positioned non-origin samples are sparse and can sit off the 256-unit floor grid, so they do not presently read as reliable standable-floor anchors.",
+        investigation.ranked_candidates[1].rationale,
+    );
+
+    try std.testing.expectEqual(EvidenceAnchorKind.zone_world_point, investigation.chosen_anchor_kind);
+    try std.testing.expectEqual(EvidenceAdmission.rejected_no_floor_truth, investigation.chosen_evidence_case.admission);
+    try std.testing.expectEqual(@as(usize, 0), investigation.chosen_evidence_case.allowed_metrics.len);
+    try std.testing.expectEqualStrings(
+        "Zone bounds stay rejected because the checked-in room snapshot only proves volumetric trigger regions; admitting a single point would require inventing an unsupported center, corner, or floor-projection policy.",
+        investigation.decision_rationale,
+    );
+}
+
+test "runtime world query keeps the investigated zone anchors out of mapping scores" {
+    const canonical = testHeroStartCore(.mapped_cell_empty, 36, 64, 144);
+    const candidate = testHeroStartCore(.surface_height_mismatch, 0, 4, 9);
+
+    const assessment = compareEvidenceCaseAgainstCanonical(.zone_world_point, canonical, candidate);
+    try std.testing.expectEqual(EvidenceAnchorKind.zone_world_point, assessment.evidence_case.anchor_kind);
+    try std.testing.expectEqual(EvidenceAdmission.rejected_no_floor_truth, assessment.evidence_case.admission);
+    try std.testing.expectEqual(@as(usize, 0), assessment.evidence_case.allowed_metrics.len);
+    try std.testing.expectEqual(EvidenceMetricComparison.equal, assessment.comparison.exact_status);
+    try std.testing.expectEqual(EvidenceMetricComparison.equal, assessment.comparison.occupied_coverage);
+    try std.testing.expectEqual(EvidenceMetricComparison.equal, assessment.comparison.nearest_occupied);
+    try std.testing.expectEqual(EvidenceMetricComparison.equal, assessment.comparison.nearest_standable);
+    try std.testing.expectEqual(@as(u8, 0), assessment.comparison.better_metric_count);
+    try std.testing.expectEqual(@as(u8, 0), assessment.comparison.worse_metric_count);
+    try std.testing.expectEqual(MappingEvidenceDisposition.diagnostic_candidate_only_not_better, assessment.comparison.disposition);
+}
+
 test "runtime world query keeps fragment anchors out of the current evidence basis" {
     const canonical = testHeroStartCore(.mapped_cell_empty, 36, 64, 144);
     const candidate = testHeroStartCore(.surface_height_mismatch, 0, 4, 9);
@@ -1356,6 +1904,194 @@ test "runtime world query keeps fragment anchors out of the current evidence bas
     try std.testing.expectEqual(EvidenceAdmission.rejected_out_of_scope_basis, assessment.evidence_case.admission);
     try std.testing.expectEqual(@as(usize, 0), assessment.evidence_case.allowed_metrics.len);
     try std.testing.expectEqual(MappingEvidenceDisposition.diagnostic_candidate_only_not_better, assessment.comparison.disposition);
+}
+
+test "runtime world query keeps unchecked evidence-room topology discovery outside the runtime boundary" {
+    const guarded_policy = topologyRelationEvidencePolicy(.guarded_runtime_room_snapshot);
+    try std.testing.expectEqual(
+        TopologyRelationEvidenceAdmission.admitted_supported_runtime,
+        guarded_policy.admission,
+    );
+    try std.testing.expectEqual(true, guarded_policy.allowsDiscovery());
+    try std.testing.expectEqual(true, guarded_policy.allowsRuntimeSemantics());
+    try std.testing.expectEqualStrings(
+        "Guarded room snapshots remain the only supported basis for runtime-facing topology semantics.",
+        guarded_policy.rationale,
+    );
+
+    const unchecked_policy = topologyRelationEvidencePolicy(.unchecked_evidence_room_snapshot);
+    try std.testing.expectEqual(
+        TopologyRelationEvidenceAdmission.admitted_discovery_only,
+        unchecked_policy.admission,
+    );
+    try std.testing.expectEqual(true, unchecked_policy.allowsDiscovery());
+    try std.testing.expectEqual(false, unchecked_policy.allowsRuntimeSemantics());
+    try std.testing.expectEqualStrings(
+        "Unchecked evidence-only room snapshots may inform discovery-only topology observation because they still decode immutable room geometry, but unsupported scene life keeps them outside the supported runtime boundary and insufficient on their own for runtime-facing relation classes.",
+        unchecked_policy.rationale,
+    );
+}
+
+test "runtime world query ranks checked-in unchecked evidence rooms and finds no richer topology relation source" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const baseline_room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer baseline_room.deinit(allocator);
+
+    const baseline_query = init(&baseline_room);
+    const baseline_summary = try baseline_query.summarizeObservedNeighborPatterns(allocator);
+    defer baseline_summary.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), baseline_summary.blocked_neighbor_count);
+    try std.testing.expectEqual(@as(usize, 0), countNonFlatOccupiedNeighbors(baseline_summary));
+
+    var candidates = [_]UncheckedEvidenceRoomCandidateScan{
+        try scanUncheckedEvidenceRoomCandidate(allocator, resolved, 2, 2),
+        try scanUncheckedEvidenceRoomCandidate(allocator, resolved, 44, 2),
+        try scanUncheckedEvidenceRoomCandidate(allocator, resolved, 11, 10),
+    };
+    std.mem.sort(UncheckedEvidenceRoomCandidateScan, &candidates, {}, lessThanUncheckedEvidenceRoomCandidate);
+
+    try std.testing.expectEqual(
+        UncheckedEvidenceRoomCandidateStatus.ranked,
+        candidates[0].status,
+    );
+    try std.testing.expectEqual(@as(usize, 11), candidates[0].scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 10), candidates[0].background_entry_index);
+
+    try std.testing.expectEqual(
+        UncheckedEvidenceRoomCandidateStatus.ranked,
+        candidates[1].status,
+    );
+    try std.testing.expectEqual(@as(usize, 2), candidates[1].scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 2), candidates[1].background_entry_index);
+
+    try std.testing.expectEqual(
+        UncheckedEvidenceRoomCandidateStatus.excluded_not_interior,
+        candidates[2].status,
+    );
+    try std.testing.expectEqual(@as(usize, 44), candidates[2].scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 2), candidates[2].background_entry_index);
+
+    for (candidates[0..2]) |candidate| {
+        try std.testing.expectEqual(@as(usize, 0), candidate.blocked_neighbor_count);
+        try std.testing.expectEqual(@as(usize, 0), candidate.nonflat_occupied_neighbor_count);
+        try std.testing.expectEqual(@as(usize, 1), candidate.top_y_delta_bucket_count);
+        try std.testing.expectEqual(false, candidate.introduces_cases_beyond_baseline);
+        try std.testing.expectEqual(false, candidate.qualifies_for_relation_followup);
+    }
+
+    try std.testing.expectEqual(@as(?usize, null), firstQualifiedCandidateIndex(candidates[0..]));
+}
+
+const UncheckedEvidenceRoomCandidateStatus = enum {
+    ranked,
+    excluded_not_interior,
+};
+
+const UncheckedEvidenceRoomCandidateScan = struct {
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    status: UncheckedEvidenceRoomCandidateStatus,
+    blocked_neighbor_count: usize,
+    nonflat_occupied_neighbor_count: usize,
+    top_y_delta_bucket_count: usize,
+    occupied_surface_count: usize,
+    introduces_cases_beyond_baseline: bool,
+    qualifies_for_relation_followup: bool,
+};
+
+fn scanUncheckedEvidenceRoomCandidate(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+) !UncheckedEvidenceRoomCandidateScan {
+    const room = room_state.loadRoomSnapshotUncheckedForTests(
+        allocator,
+        resolved,
+        scene_entry_index,
+        background_entry_index,
+    ) catch |err| switch (err) {
+        error.ViewerSceneMustBeInterior => {
+            return .{
+                .scene_entry_index = scene_entry_index,
+                .background_entry_index = background_entry_index,
+                .status = .excluded_not_interior,
+                .blocked_neighbor_count = 0,
+                .nonflat_occupied_neighbor_count = 0,
+                .top_y_delta_bucket_count = 0,
+                .occupied_surface_count = 0,
+                .introduces_cases_beyond_baseline = false,
+                .qualifies_for_relation_followup = false,
+            };
+        },
+        else => return err,
+    };
+    defer room.deinit(allocator);
+
+    const query = init(&room);
+    const summary = try query.summarizeObservedNeighborPatterns(allocator);
+    defer summary.deinit(allocator);
+
+    const nonflat_occupied_neighbor_count = countNonFlatOccupiedNeighbors(summary);
+    const introduces_cases_beyond_baseline =
+        summary.blocked_neighbor_count > 0 or nonflat_occupied_neighbor_count > 0;
+    return .{
+        .scene_entry_index = scene_entry_index,
+        .background_entry_index = background_entry_index,
+        .status = .ranked,
+        .blocked_neighbor_count = summary.blocked_neighbor_count,
+        .nonflat_occupied_neighbor_count = nonflat_occupied_neighbor_count,
+        .top_y_delta_bucket_count = summary.top_y_delta_buckets.len,
+        .occupied_surface_count = summary.occupied_surface_count,
+        .introduces_cases_beyond_baseline = introduces_cases_beyond_baseline,
+        .qualifies_for_relation_followup = introduces_cases_beyond_baseline,
+    };
+}
+
+fn countNonFlatOccupiedNeighbors(summary: ObservedNeighborPatternSummary) usize {
+    var count: usize = 0;
+    for (summary.top_y_delta_buckets) |bucket| {
+        if (bucket.delta != 0) count += bucket.count;
+    }
+    return count;
+}
+
+fn firstQualifiedCandidateIndex(candidates: []const UncheckedEvidenceRoomCandidateScan) ?usize {
+    for (candidates, 0..) |candidate, index| {
+        if (candidate.qualifies_for_relation_followup) return index;
+    }
+    return null;
+}
+
+fn lessThanUncheckedEvidenceRoomCandidate(
+    _: void,
+    left: UncheckedEvidenceRoomCandidateScan,
+    right: UncheckedEvidenceRoomCandidateScan,
+) bool {
+    if (left.status != right.status) return left.status == .ranked;
+    if (left.qualifies_for_relation_followup != right.qualifies_for_relation_followup) {
+        return left.qualifies_for_relation_followup;
+    }
+    if (left.blocked_neighbor_count != right.blocked_neighbor_count) {
+        return left.blocked_neighbor_count > right.blocked_neighbor_count;
+    }
+    if (left.nonflat_occupied_neighbor_count != right.nonflat_occupied_neighbor_count) {
+        return left.nonflat_occupied_neighbor_count > right.nonflat_occupied_neighbor_count;
+    }
+    if (left.top_y_delta_bucket_count != right.top_y_delta_bucket_count) {
+        return left.top_y_delta_bucket_count > right.top_y_delta_bucket_count;
+    }
+    if (left.occupied_surface_count != right.occupied_surface_count) {
+        return left.occupied_surface_count > right.occupied_surface_count;
+    }
+    if (left.scene_entry_index != right.scene_entry_index) {
+        return left.scene_entry_index < right.scene_entry_index;
+    }
+    return left.background_entry_index < right.background_entry_index;
 }
 
 fn testTopSurface() CellTopSurface {
@@ -1420,5 +2156,14 @@ fn testDiagnosticCandidate(kind: DiagnosticCandidateKind, distance_sq: i64) Diag
         .x_distance = @intCast(distance_sq),
         .z_distance = 0,
         .distance_sq = distance_sq,
+    };
+}
+
+fn expectedNeighborCell(bounds: GridBounds, origin: GridCell, direction: CardinalDirection) ?GridCell {
+    return switch (direction) {
+        .north => if (origin.z == 0) null else .{ .x = origin.x, .z = origin.z - 1 },
+        .east => if (origin.x + 1 >= bounds.width) null else .{ .x = origin.x + 1, .z = origin.z },
+        .south => if (origin.z + 1 >= bounds.depth) null else .{ .x = origin.x, .z = origin.z + 1 },
+        .west => if (origin.x == 0) null else .{ .x = origin.x - 1, .z = origin.z },
     };
 }

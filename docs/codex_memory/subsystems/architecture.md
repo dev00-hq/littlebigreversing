@@ -13,15 +13,16 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains the only implementation workspace, the v2 memory tree stays canonical, `port/src/runtime/room_state.zig` owns the guarded `19/19` room/load seam, and `port/src/runtime/world_query.zig` owns the explicit hero-start mapping diagnostics over immutable room snapshots.
+- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains the only implementation workspace, `room_state.zig` owns the guarded `19/19` seam, and `world_query.zig` owns runtime mapping/topology diagnostics over immutable room snapshots.
 
 ## Known Traps
 
 - `docs/PROMPT.md` can lag behind repo work; cross-check current packs and history before following it literally.
-- The current viewer uses decoded `BRK` previews plus a live HUD/legend, but it is still not a full room-art renderer and the window title/stderr dump is no longer the canonical debug surface.
-- `inspect-room --json` now shares the guarded runtime/load seam, so `11/10` no longer succeeds there by design. Even on supported rooms it still reports counts, linkage, and `BRK` summaries rather than projected comparison cells, so validate per-cell deltas via viewer tests/runtime.
+- The current viewer uses decoded `BRK` previews plus a live HUD/legend, but it is still not a full room-art renderer.
+- `inspect-room --json` shares the guarded runtime/load seam; even on supported rooms it reports counts, linkage, and `BRK` summaries, not projected comparison cells.
 - Treat `2/2` as the explicit zero-fragment control path and do not infer fragments from `my_grm` or `grm_entry_index` alone.
 - After the branch-B load guard landed, `2/2` stopped being a positive runtime fixture; use it as an explicit unsupported-scene-life rejection case instead.
+- `44/2` is only a guarded life-boundary negative. On the unchecked test path it becomes `ViewerSceneMustBeInterior`, so it is not an interior topology candidate.
 - The positive fragment evidence pair is `11/10`, not a same-index guess, and its `grm` projection needs boundary-aligned max-coordinate handling.
 - `11/10` is still valuable fragment evidence, but it is no longer a guarded runtime-positive load; keep it on explicit test-only evidence paths unless the supported life boundary widens.
 - `docs/PORTING_REPORT.md` still carries older feasibility context; use it as evidence background, not as the execution owner.
@@ -32,6 +33,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - `ISSUES.md` must stay aligned with new recurring traps instead of leaving them only in chat or task history.
 - The checked-in v2 history can already be dirty. If `python tools/codex_memory.py validate` fails at task start, inspect the flagged JSONL records for canonicalization drift such as stale `record_id` hashes, fractional-second timestamps, or overlong summaries before treating the CLI as the problem.
 - Preserved legacy docs are evidence, not numeric ground truth. If a spec mixes index bases or disagrees with asset-backed regressions, keep the structural insight but trust the checked-in probe or test for exact values.
+- `SCENE.HQR[19]` zone bounds are still trigger volumes, not admitted floor-truth mapping anchors. Even with floor-grid-aligned Y extents, do not invent a center, corner, or camera-anchor projection policy and then treat it as runtime mapping evidence.
 
 ## Canonical Entry Points
 
