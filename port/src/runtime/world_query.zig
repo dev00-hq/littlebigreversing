@@ -51,6 +51,26 @@ pub const WorldPointCellProbe = struct {
     standability: ?Standability,
 };
 
+pub const MoveTargetStatus = enum {
+    allowed,
+    target_out_of_bounds,
+    target_empty,
+    target_missing_top_surface,
+    target_blocked,
+    target_height_mismatch,
+};
+
+pub const MoveTargetEvaluation = struct {
+    target_world_position: room_state.WorldPointSnapshot,
+    raw_cell: WorldPointCellProbe,
+    occupied_coverage: OccupiedCoverageProbe,
+    status: MoveTargetStatus,
+
+    pub fn isAllowed(self: MoveTargetEvaluation) bool {
+        return self.status == .allowed;
+    }
+};
+
 pub const CardinalDirection = enum {
     north,
     east,
@@ -504,6 +524,22 @@ pub const WorldQuery = struct {
 
     pub fn probeCellAtWorldPoint(self: WorldQuery, world_x: i32, world_z: i32) WorldPointCellProbe {
         return self.probeCellAtWorldPointWithHypothesis(world_x, world_z, .canonical_axis_aligned_512);
+    }
+
+    pub fn evaluateHeroMoveTarget(
+        self: WorldQuery,
+        target_world_position: room_state.WorldPointSnapshot,
+    ) MoveTargetEvaluation {
+        const raw_cell = self.probeCellAtWorldPoint(
+            target_world_position.x,
+            target_world_position.z,
+        );
+        return .{
+            .target_world_position = target_world_position,
+            .raw_cell = raw_cell,
+            .occupied_coverage = self.occupiedCoverageForCell(raw_cell.cell),
+            .status = moveTargetStatusForProbe(raw_cell, target_world_position.y),
+        };
     }
 
     pub fn probeLocalNeighborTopology(self: WorldQuery, x: usize, z: usize) !LocalNeighborTopologyProbe {
@@ -1403,6 +1439,17 @@ fn diagnosticStatusForProbe(
     return .exact_invalid_no_candidate;
 }
 
+fn moveTargetStatusForProbe(raw_cell: WorldPointCellProbe, hero_y: i32) MoveTargetStatus {
+    return switch (exactStatusForProbe(raw_cell, hero_y)) {
+        .valid => .allowed,
+        .mapped_cell_out_of_bounds => .target_out_of_bounds,
+        .mapped_cell_empty => .target_empty,
+        .mapped_cell_missing_top_surface => .target_missing_top_surface,
+        .mapped_cell_blocked => .target_blocked,
+        .surface_height_mismatch => .target_height_mismatch,
+    };
+}
+
 test "runtime world query consumes the guarded room snapshot for base topology queries" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
@@ -1612,6 +1659,97 @@ test "runtime world query separates raw hero-start mapping evidence from heurist
     try std.testing.expect(hero_start.nearest_standable.?.distance_sq >= hero_start.nearest_occupied.?.distance_sq);
     try std.testing.expect(hero_start.nearest_standable.?.world_bounds.min_x > hero_start.raw_world_position.x);
     try std.testing.expectEqual(@as(i32, 0), hero_start.nearest_standable.?.z_distance);
+}
+
+test "runtime world query keeps the baked 19/19 hero start invalid under move-target evaluation" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer room.deinit(allocator);
+
+    const query = init(&room);
+    const runtime_session = session.Session.init(&room);
+    const hero_start_move = query.evaluateHeroMoveTarget(runtime_session.heroWorldPosition());
+
+    try std.testing.expectEqual(runtime_session.heroWorldPosition(), hero_start_move.target_world_position);
+    try std.testing.expectEqual(MoveTargetStatus.target_empty, hero_start_move.status);
+    try std.testing.expectEqual(false, hero_start_move.isAllowed());
+    try std.testing.expectEqual(@as(?GridCell, .{ .x = 3, .z = 7 }), hero_start_move.raw_cell.cell);
+    try std.testing.expectEqual(CellProbeStatus.empty, hero_start_move.raw_cell.status);
+    try std.testing.expectEqual(OccupiedCoverageRelation.outside_occupied_bounds, hero_start_move.occupied_coverage.relation);
+}
+
+test "runtime world query evaluates bounded move targets from a seeded guarded 19/19 fixture" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer room.deinit(allocator);
+
+    const query = init(&room);
+    const seeded_surface = try query.cellTopSurface(39, 6);
+    const south_surface = try query.cellTopSurface(39, 7);
+    try std.testing.expectEqual(Standability.standable, try query.standabilityAtCell(39, 6));
+    try std.testing.expectEqual(Standability.standable, try query.standabilityAtCell(39, 7));
+    try std.testing.expectEqual(@as(i32, 6400), seeded_surface.top_y);
+    try std.testing.expectEqual(seeded_surface.top_y, south_surface.top_y);
+
+    const seeded_start = cellCenterWorldPosition(39, 6, seeded_surface.top_y);
+    const allowed_target = cellCenterWorldPosition(39, 7, south_surface.top_y);
+    const empty_target = cellCenterWorldPosition(38, 6, seeded_surface.top_y);
+    const out_of_bounds_target = room_state.WorldPointSnapshot{
+        .x = -1,
+        .y = seeded_surface.top_y,
+        .z = allowed_target.z,
+    };
+    const height_mismatch_target = cellCenterWorldPosition(39, 7, south_surface.top_y - world_grid_span_y);
+
+    var runtime_session = session.Session.init(&room);
+    runtime_session.setHeroWorldPosition(seeded_start);
+    try std.testing.expectEqual(seeded_start, runtime_session.heroWorldPosition());
+    try std.testing.expect(runtime_session.heroWorldPosition().x != room.scene.hero_start.x);
+    try std.testing.expect(runtime_session.heroWorldPosition().z != room.scene.hero_start.z);
+
+    const seeded_origin_eval = query.evaluateHeroMoveTarget(runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(MoveTargetStatus.allowed, seeded_origin_eval.status);
+    try std.testing.expectEqual(true, seeded_origin_eval.isAllowed());
+    try std.testing.expectEqual(@as(?GridCell, .{ .x = 39, .z = 6 }), seeded_origin_eval.raw_cell.cell);
+
+    const allowed_move = query.evaluateHeroMoveTarget(allowed_target);
+    try std.testing.expectEqual(MoveTargetStatus.allowed, allowed_move.status);
+    try std.testing.expectEqual(true, allowed_move.isAllowed());
+    try std.testing.expectEqual(@as(?GridCell, .{ .x = 39, .z = 7 }), allowed_move.raw_cell.cell);
+    try std.testing.expectEqual(OccupiedCoverageRelation.within_occupied_bounds, allowed_move.occupied_coverage.relation);
+
+    const empty_move = query.evaluateHeroMoveTarget(empty_target);
+    try std.testing.expectEqual(MoveTargetStatus.target_empty, empty_move.status);
+    try std.testing.expectEqual(false, empty_move.isAllowed());
+    try std.testing.expectEqual(@as(?GridCell, .{ .x = 38, .z = 6 }), empty_move.raw_cell.cell);
+    try std.testing.expectEqual(OccupiedCoverageRelation.outside_occupied_bounds, empty_move.occupied_coverage.relation);
+
+    const out_of_bounds_move = query.evaluateHeroMoveTarget(out_of_bounds_target);
+    try std.testing.expectEqual(MoveTargetStatus.target_out_of_bounds, out_of_bounds_move.status);
+    try std.testing.expectEqual(false, out_of_bounds_move.isAllowed());
+    try std.testing.expectEqual(@as(?GridCell, null), out_of_bounds_move.raw_cell.cell);
+    try std.testing.expectEqual(OccupiedCoverageRelation.unmapped_world_point, out_of_bounds_move.occupied_coverage.relation);
+
+    const height_mismatch_move = query.evaluateHeroMoveTarget(height_mismatch_target);
+    try std.testing.expectEqual(MoveTargetStatus.target_height_mismatch, height_mismatch_move.status);
+    try std.testing.expectEqual(false, height_mismatch_move.isAllowed());
+    try std.testing.expectEqual(@as(?GridCell, .{ .x = 39, .z = 7 }), height_mismatch_move.raw_cell.cell);
+    try std.testing.expectEqual(OccupiedCoverageRelation.within_occupied_bounds, height_mismatch_move.occupied_coverage.relation);
+
+    var first_blocked_cell: ?GridCell = null;
+    for (room.background.composition.tiles) |tile| {
+        if (try query.standabilityAtCell(tile.x, tile.z) == .blocked) {
+            first_blocked_cell = .{ .x = tile.x, .z = tile.z };
+            break;
+        }
+    }
+    try std.testing.expectEqual(@as(?GridCell, null), first_blocked_cell);
 }
 
 test "runtime world query compares fixed mapping hypotheses without promoting diagnostic candidates" {
@@ -2156,6 +2294,19 @@ fn testDiagnosticCandidate(kind: DiagnosticCandidateKind, distance_sq: i64) Diag
         .x_distance = @intCast(distance_sq),
         .z_distance = 0,
         .distance_sq = distance_sq,
+    };
+}
+
+fn cellCenterWorldPosition(
+    cell_x: usize,
+    cell_z: usize,
+    world_y: i32,
+) room_state.WorldPointSnapshot {
+    const bounds = gridCellWorldBounds(cell_x, cell_z);
+    return .{
+        .x = bounds.min_x + @divFloor(world_grid_span_xz, 2),
+        .y = world_y,
+        .z = bounds.min_z + @divFloor(world_grid_span_xz, 2),
     };
 }
 
