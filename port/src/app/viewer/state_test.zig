@@ -274,7 +274,7 @@ test "viewer render snapshot derives a deterministic schematic from the supporte
     try std.testing.expectEqual(@as(usize, 0), render.metadata.owned_fragment_count);
 }
 
-test "viewer room snapshot rejects unsupported branch-b life scenes before later runtime widening" {
+test "viewer room snapshot collapses the bounded negative scene set to the guarded unsupported-life error" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -282,6 +282,15 @@ test "viewer room snapshot rejects unsupported branch-b life scenes before later
     try std.testing.expectError(error.ViewerUnsupportedSceneLife, state.loadRoomSnapshot(allocator, resolved, 2, 2));
     try std.testing.expectError(error.ViewerUnsupportedSceneLife, state.loadRoomSnapshot(allocator, resolved, 44, 2));
     try std.testing.expectError(error.ViewerUnsupportedSceneLife, state.loadRoomSnapshot(allocator, resolved, 11, 10));
+}
+
+test "viewer room snapshot keeps 44/2 life rejection ahead of unchecked exterior classification" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    try std.testing.expectError(error.ViewerUnsupportedSceneLife, state.loadRoomSnapshot(allocator, resolved, 44, 2));
+    try std.testing.expectError(error.ViewerSceneMustBeInterior, state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 44, 2));
 }
 
 test "viewer room snapshot still rejects decoded exterior scene entries" {

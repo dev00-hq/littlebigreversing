@@ -3,6 +3,33 @@ const life_audit = @import("../life_audit.zig");
 const life_program = @import("../life_program.zig");
 const support = @import("support.zig");
 
+fn expectUnsupportedLifeHit(
+    actual: life_audit.UnsupportedSceneLifeHit,
+    expected_scene_entry_index: usize,
+    expected_classic_loader_scene_number: ?usize,
+    expected_scene_kind: []const u8,
+    expected_owner: life_audit.LifeBlobOwner,
+    expected_opcode_mnemonic: []const u8,
+    expected_opcode_id: u8,
+    expected_byte_offset: usize,
+) !void {
+    try std.testing.expectEqual(expected_scene_entry_index, actual.scene_entry_index);
+    try std.testing.expectEqual(expected_classic_loader_scene_number, actual.classic_loader_scene_number);
+    try std.testing.expectEqualStrings(expected_scene_kind, actual.scene_kind);
+    switch (expected_owner) {
+        .hero => try std.testing.expect(actual.owner == .hero),
+        .object => |expected_object_index| {
+            switch (actual.owner) {
+                .hero => return error.ExpectedObjectOwnedUnsupportedLifeHit,
+                .object => |actual_object_index| try std.testing.expectEqual(expected_object_index, actual_object_index),
+            }
+        },
+    }
+    try std.testing.expectEqualStrings(expected_opcode_mnemonic, actual.unsupported_opcode_mnemonic);
+    try std.testing.expectEqual(expected_opcode_id, actual.unsupported_opcode_id);
+    try std.testing.expectEqual(expected_byte_offset, actual.byte_offset);
+}
+
 test "canonical life audit pins the known scene 2 hero blocker and scene 2 object 5 success" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
@@ -100,30 +127,65 @@ test "scene-level life validation pins the canonical decoded interior candidate 
     try std.testing.expect(validation == .decoded);
 }
 
-test "scene-level life validation returns explicit first-hit blocker diagnostics" {
+test "scene-level life validation returns explicit first-hit blocker diagnostics for the guarded negative set" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
     defer allocator.free(archive_path);
 
     const scene2 = try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 2);
     try std.testing.expect(scene2 == .unsupported_life_blob);
-    try std.testing.expectEqual(@as(usize, 2), scene2.unsupported_life_blob.scene_entry_index);
-    try std.testing.expectEqual(@as(?usize, 0), scene2.unsupported_life_blob.classic_loader_scene_number);
-    try std.testing.expectEqualStrings("interior", scene2.unsupported_life_blob.scene_kind);
-    try std.testing.expect(scene2.unsupported_life_blob.owner == .hero);
-    try std.testing.expectEqualStrings("LM_DEFAULT", scene2.unsupported_life_blob.unsupported_opcode_mnemonic);
-    try std.testing.expectEqual(@as(u8, 116), scene2.unsupported_life_blob.unsupported_opcode_id);
-    try std.testing.expectEqual(@as(usize, 170), scene2.unsupported_life_blob.byte_offset);
+    try expectUnsupportedLifeHit(
+        scene2.unsupported_life_blob,
+        2,
+        0,
+        "interior",
+        .{ .hero = {} },
+        "LM_DEFAULT",
+        116,
+        170,
+    );
 
     const scene44 = try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 44);
     try std.testing.expect(scene44 == .unsupported_life_blob);
-    try std.testing.expectEqual(@as(usize, 44), scene44.unsupported_life_blob.scene_entry_index);
-    try std.testing.expectEqual(@as(?usize, 42), scene44.unsupported_life_blob.classic_loader_scene_number);
-    try std.testing.expectEqualStrings("exterior", scene44.unsupported_life_blob.scene_kind);
-    try std.testing.expect(scene44.unsupported_life_blob.owner == .hero);
-    try std.testing.expectEqualStrings("LM_END_SWITCH", scene44.unsupported_life_blob.unsupported_opcode_mnemonic);
-    try std.testing.expectEqual(@as(u8, 118), scene44.unsupported_life_blob.unsupported_opcode_id);
-    try std.testing.expectEqual(@as(usize, 713), scene44.unsupported_life_blob.byte_offset);
+    try expectUnsupportedLifeHit(
+        scene44.unsupported_life_blob,
+        44,
+        42,
+        "exterior",
+        .{ .hero = {} },
+        "LM_END_SWITCH",
+        118,
+        713,
+    );
+
+    const scene11 = try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 11);
+    try std.testing.expect(scene11 == .unsupported_life_blob);
+    try expectUnsupportedLifeHit(
+        scene11.unsupported_life_blob,
+        11,
+        9,
+        "interior",
+        .{ .object = 12 },
+        "LM_DEFAULT",
+        116,
+        38,
+    );
+}
+
+test "scene 11 life audit keeps the guarded first hit ahead of the later unsupported switch-family blob" {
+    const allocator = std.testing.allocator;
+    const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
+    defer allocator.free(archive_path);
+
+    const scene11_object12 = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 11, .{ .object = 12 });
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_DEFAULT, scene11_object12.status.unsupported_opcode.opcode);
+    try std.testing.expectEqual(@as(u8, 116), scene11_object12.status.unsupported_opcode.opcode_id);
+    try std.testing.expectEqual(@as(usize, 38), scene11_object12.status.unsupported_opcode.offset);
+
+    const scene11_object18 = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 11, .{ .object = 18 });
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_END_SWITCH, scene11_object18.status.unsupported_opcode.opcode);
+    try std.testing.expectEqual(@as(u8, 118), scene11_object18.status.unsupported_opcode.opcode_id);
+    try std.testing.expectEqual(@as(usize, 84), scene11_object18.status.unsupported_opcode.offset);
 }
 
 test "canonical life audit covers the locked scene set" {

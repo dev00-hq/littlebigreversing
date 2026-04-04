@@ -13,18 +13,18 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains the only implementation workspace, `room_state.zig` owns the guarded `19/19` seam, and `world_query.zig` owns runtime mapping/topology diagnostics over immutable room snapshots.
+- `docs/LBA2_ZIG_PORT_PLAN.md` remains the roadmap, `port/` remains canonical, `room_state.zig` owns the guarded `19/19` seam, and `world_query.zig` owns runtime mapping/topology diagnostics.
 
 ## Known Traps
 
 - `docs/PROMPT.md` can lag behind repo work; cross-check current packs and history before following it literally.
 - The current viewer uses decoded `BRK` previews plus a live HUD/legend, but it is still not a full room-art renderer.
-- `inspect-room --json` shares the guarded runtime/load seam; even on supported rooms it reports counts, linkage, and `BRK` summaries, not projected comparison cells.
+- `inspect-room --json` shares the guarded seam and reports counts, linkage, and `BRK` summaries, not projected comparison cells.
 - Treat `2/2` as the explicit zero-fragment control path and do not infer fragments from `my_grm` or `grm_entry_index` alone.
 - After the branch-B load guard landed, `2/2` stopped being a positive runtime fixture; use it as an explicit unsupported-scene-life rejection case instead.
 - `44/2` is only a guarded life-boundary negative. On the unchecked test path it becomes `ViewerSceneMustBeInterior`, so it is not an interior topology candidate.
 - The positive fragment evidence pair is `11/10`, not a same-index guess, and its `grm` projection needs boundary-aligned max-coordinate handling.
-- `11/10` is still valuable fragment evidence, but it is no longer a guarded runtime-positive load; keep it on explicit test-only evidence paths unless the supported life boundary widens.
+- `11/10` stays evidence-only on explicit test paths, and its guarded blocker is the first-hit object `12` `LM_DEFAULT` at byte offset `38`, not the later object `18` `LM_END_SWITCH` at offset `84`.
 - `docs/PORTING_REPORT.md` still carries older feasibility context; use it as evidence background, not as the execution owner.
 - Canonical Windows Zig checks should run from native PowerShell after `.\scripts\dev-shell.ps1`; reserve `bash -lc` for inspection work.
 - `zig build test` is not a substitute for a prompt's explicit `zig build run` or `zig build tool` acceptance command.
