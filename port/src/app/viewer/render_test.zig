@@ -314,6 +314,30 @@ test "viewer render path keeps the selected cell pinned at the head of the compa
     try std.testing.expect(hasTraceRectOp(trace, .draw_rect, first_row, focused_row_border));
 }
 
+test "viewer render path advertises locomotion controls on the zero-fragment guarded path" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer room.deinit(allocator);
+
+    const snapshot = state.buildRenderSnapshot(room);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+    const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
+
+    var trace: sdl.CanvasTrace = .{};
+    defer trace.deinit(allocator);
+    var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
+
+    try render.renderDebugView(&canvas, snapshot, catalog, selection);
+
+    try std.testing.expect(hasTraceText(trace, "ENTER SEED HERO"));
+    try std.testing.expect(hasTraceText(trace, "ARROWS MOVE HERO"));
+    try std.testing.expect(hasTraceText(trace, "RAW START STAYS"));
+}
+
 test "viewer render path keeps the zero-fragment room out of the comparison panel" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);

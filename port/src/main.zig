@@ -48,7 +48,7 @@ pub fn main() !void {
     };
     defer room.deinit(allocator);
 
-    const runtime_session = lba2.app.viewer_shell.initSession(&room);
+    var runtime_session = lba2.app.viewer_shell.initSession(&room);
     try lba2.app.viewer_shell.printStartupDiagnostics(stderr, resolved, room);
     var render = lba2.app.viewer_shell.buildRenderSnapshot(room, runtime_session);
     var fragment_catalog = try lba2.app.viewer_shell.buildFragmentComparisonCatalog(allocator, render);
@@ -85,12 +85,34 @@ pub fn main() !void {
             .quit => break,
             .redraw => try renderCurrentFrame(allocator, &canvas, stderr, room, runtime_session, &render, &fragment_catalog, fragment_selection),
             .key_down => |key| {
-                fragment_selection = switch (key) {
-                    .left => lba2.app.viewer_shell.stepRankedFragmentComparisonSelection(fragment_catalog, fragment_selection, -1),
-                    .right => lba2.app.viewer_shell.stepRankedFragmentComparisonSelection(fragment_catalog, fragment_selection, 1),
-                    .up => lba2.app.viewer_shell.stepCellFragmentComparisonSelection(fragment_catalog, fragment_selection, -1),
-                    .down => lba2.app.viewer_shell.stepCellFragmentComparisonSelection(fragment_catalog, fragment_selection, 1),
-                };
+                switch (key) {
+                    .enter => {
+                        const seeded = try lba2.app.viewer_shell.seedSessionToLocomotionFixture(&room, &runtime_session);
+                        try lba2.app.viewer_shell.printLocomotionSeedDiagnostic(stderr, seeded);
+                    },
+                    .left, .right, .up, .down => {
+                        if (fragment_selection.focus != null) {
+                            fragment_selection = switch (key) {
+                                .left => lba2.app.viewer_shell.stepRankedFragmentComparisonSelection(fragment_catalog, fragment_selection, -1),
+                                .right => lba2.app.viewer_shell.stepRankedFragmentComparisonSelection(fragment_catalog, fragment_selection, 1),
+                                .up => lba2.app.viewer_shell.stepCellFragmentComparisonSelection(fragment_catalog, fragment_selection, -1),
+                                .down => lba2.app.viewer_shell.stepCellFragmentComparisonSelection(fragment_catalog, fragment_selection, 1),
+                                else => unreachable,
+                            };
+                        } else {
+                            const direction: lba2.app.viewer_shell.CardinalDirection = switch (key) {
+                                .left => .west,
+                                .right => .east,
+                                .up => .north,
+                                .down => .south,
+                                else => unreachable,
+                            };
+                            const attempt = lba2.app.viewer_shell.attemptLocomotionStep(&room, &runtime_session, direction);
+                            try lba2.app.viewer_shell.printLocomotionAttemptDiagnostic(stderr, direction, attempt);
+                        }
+                    },
+                }
+                try stderr.flush();
                 try renderCurrentFrame(allocator, &canvas, stderr, room, runtime_session, &render, &fragment_catalog, fragment_selection);
             },
             .other => {},

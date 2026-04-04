@@ -1009,6 +1009,19 @@ pub fn gridCellWorldBounds(x: usize, z: usize) WorldBounds {
     return gridCellWorldBoundsForHypothesis(x, z, .canonical_axis_aligned_512);
 }
 
+pub fn gridCellCenterWorldPosition(
+    cell_x: usize,
+    cell_z: usize,
+    world_y: i32,
+) WorldPointSnapshot {
+    const bounds = gridCellWorldBounds(cell_x, cell_z);
+    return .{
+        .x = bounds.min_x + @divFloor(world_grid_span_xz, 2),
+        .y = world_y,
+        .z = bounds.min_z + @divFloor(world_grid_span_xz, 2),
+    };
+}
+
 fn buildMappingEvaluation(
     raw_world_position: WorldPointSnapshot,
     hypothesis: MappingHypothesis,
@@ -1687,15 +1700,15 @@ test "runtime world query evaluates bounded move targets from a seeded guarded 1
     try std.testing.expectEqual(@as(i32, 6400), seeded_surface.top_y);
     try std.testing.expectEqual(seeded_surface.top_y, south_surface.top_y);
 
-    const seeded_start = cellCenterWorldPosition(39, 6, seeded_surface.top_y);
-    const allowed_target = cellCenterWorldPosition(39, 7, south_surface.top_y);
-    const empty_target = cellCenterWorldPosition(38, 6, seeded_surface.top_y);
+    const seeded_start = gridCellCenterWorldPosition(39, 6, seeded_surface.top_y);
+    const allowed_target = gridCellCenterWorldPosition(39, 7, south_surface.top_y);
+    const empty_target = gridCellCenterWorldPosition(38, 6, seeded_surface.top_y);
     const out_of_bounds_target = WorldPointSnapshot{
         .x = -1,
         .y = seeded_surface.top_y,
         .z = allowed_target.z,
     };
-    const height_mismatch_target = cellCenterWorldPosition(39, 7, south_surface.top_y - world_grid_span_y);
+    const height_mismatch_target = gridCellCenterWorldPosition(39, 7, south_surface.top_y - world_grid_span_y);
 
     var runtime_session = session.Session.init(room_state.heroStartWorldPoint(&room));
     runtime_session.setHeroWorldPosition(seeded_start);
@@ -2284,19 +2297,6 @@ fn testDiagnosticCandidate(kind: DiagnosticCandidateKind, distance_sq: i64) Diag
         .x_distance = @intCast(distance_sq),
         .z_distance = 0,
         .distance_sq = distance_sq,
-    };
-}
-
-fn cellCenterWorldPosition(
-    cell_x: usize,
-    cell_z: usize,
-    world_y: i32,
-) WorldPointSnapshot {
-    const bounds = gridCellWorldBounds(cell_x, cell_z);
-    return .{
-        .x = bounds.min_x + @divFloor(world_grid_span_xz, 2),
-        .y = world_y,
-        .z = bounds.min_z + @divFloor(world_grid_span_xz, 2),
     };
 }
 

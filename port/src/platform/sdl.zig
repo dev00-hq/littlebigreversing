@@ -77,6 +77,7 @@ const sdl = struct {
     pub const SDLK_RIGHT: i32 = 1073741903;
     pub const SDLK_UP: i32 = 1073741906;
     pub const SDLK_DOWN: i32 = 1073741905;
+    pub const SDLK_RETURN: i32 = '\r';
     pub const SDL_WINDOW_SHOWN: u32 = 0x00000004;
     pub const SDL_WINDOWPOS_CENTERED: c_int = 0x2FFF0000;
     pub const SDL_RENDERER_ACCELERATED: u32 = 0x00000002;
@@ -120,6 +121,7 @@ pub const Key = enum {
     right,
     up,
     down,
+    enter,
 };
 
 pub const Event = union(enum) {
@@ -322,6 +324,7 @@ pub const Canvas = struct {
                 sdl.SDLK_RIGHT => .{ .key_down = .right },
                 sdl.SDLK_UP => .{ .key_down = .up },
                 sdl.SDLK_DOWN => .{ .key_down = .down },
+                sdl.SDLK_RETURN => .{ .key_down = .enter },
                 else => .other,
             };
         }
