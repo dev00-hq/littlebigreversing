@@ -1,0 +1,589 @@
+INFO  Using log config file: jar:file:/D:/repos/reverse/ghidra/build/dist/ghidra_12.2_DEV/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (778 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (DefaultSSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (DefaultTrustManagerFactory)  
+INFO  Headless startup complete (1904 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 59 extension points (20 false positives) (ClassSearcher)  
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldOffset has been called by org.apache.felix.framework.util.SecureAction (file:/D:/repos/reverse/ghidra/build/dist/ghidra_12.2_DEV/Ghidra/Features/Base/lib/org.apache.felix.framework-7.0.5.jar)
+WARNING: Please consider reporting this to the maintainers of class org.apache.felix.framework.util.SecureAction
+WARNING: sun.misc.Unsafe::staticFieldOffset will be removed in a future release
+INFO  HEADLESS Script Paths:
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\PDB\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\PIC\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\repos\reverse\littlebigreversing\work\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Jython\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\WildcardAssembler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\JVM\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\8051\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\BSim\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\DATA\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Creating temporary project: D:\repos\reverse\littlebigreversing\work\ghidra_verify_projects\lba2_morexref (HeadlessAnalyzer)  
+INFO  Creating project: D:\repos\reverse\littlebigreversing\work\ghidra_verify_projects\lba2_morexref (DefaultProject)  
+INFO  REPORT: Processing input files:  (HeadlessAnalyzer)  
+INFO       project: D:\repos\reverse\littlebigreversing\work\ghidra_verify_projects\lba2_morexref (HeadlessAnalyzer)  
+INFO  IMPORTING: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE (HeadlessAnalyzer)  
+INFO  Using Loader: Portable Executable (PE) (ProgramLoader)  
+INFO  Using Language/Compiler: x86:LE:32:default:windows (ProgramLoader)  
+INFO  Using Library Search Path: [., C:\WINDOWS\SysWOW64, C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin, C:\WINDOWS\Sun\Java\bin, C:\WINDOWS\system32, C:\WINDOWS, C:\Program Files\PowerShell\7, C:\Users\sebam\.codex\tmp\arg0\codex-arg0ZiNZd0, C:\Python312\Scripts\, C:\Python312\, C:\WINDOWS\System32\Wbem, C:\WINDOWS\System32\WindowsPowerShell\v1.0\, C:\WINDOWS\System32\OpenSSH\, C:\Program Files\dotnet\, C:\Program Files\Docker\Docker\resources\bin, C:\ProgramData\chocolatey\bin, C:\Program Files\Microsoft SQL Server\150\Tools\Binn\, C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\, C:\Program Files\Git\cmd, C:\Users\sebam\AppData\Roaming\nvm, c:\Users\sebam\AppData\Local\Programs\cursor\resources\app\bin, C:\nvm4w\nodejs, C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\, C:\Program Files\PowerShell\7\, C:\Users\sebam\.cargo\bin, C:\Users\sebam\AppData\Local\Programs\Python\Python313\Scripts\, C:\Users\sebam\AppData\Local\Programs\Python\Python313\, C:\Users\sebam\AppData\Local\Microsoft\WindowsApps, C:\Users\sebam\.dotnet\tools, C:\Users\sebam\AppData\Local\Programs\Microsoft VS Code\bin, C:\Users\sebam\.cache\lm-studio\bin, C:\Users\sebam\AppData\Roaming\npm, C:\Users\sebam\Downloads\AIShell-1.0.0-preview.1-win-x64, C:\Users\sebam\AppData\Local\Programs\Ollama, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\dscharrer.innoextract_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\zig.zig_Microsoft.Winget.Source_8wekyb3d8bbwe\zig-x86_64-windows-0.15.2, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\ripgrep-15.1.0-x86_64-pc-windows-msvc, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\sharkdp.fd_Microsoft.Winget.Source_8wekyb3d8bbwe\fd-v10.4.2-x86_64-pc-windows-msvc, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\junegunn.fzf_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\mbuilov.sed_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\JesseDuffield.lazygit_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jdx.mise_Microsoft.Winget.Source_8wekyb3d8bbwe\mise\bin, D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV, D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\support, C:\Users\sebam\AppData\Local\OpenAI\Codex\bin, C:\Program Files\WindowsApps\OpenAI.Codex_26.325.3894.0_x64__2p2nqsd0c76g0\app\resources] (ProgramLoader)  
+WARN  Invalid or missing function at 100c028c (ExportDataDirectory)  
+INFO  Additional info:
+Loading file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE?MD5=e425093d677b7c534c2e415ada5711bc...
+------------------------------------------------
+
+Searching 41 paths for library ADVAPI32.DLL...
+Loading file:///C:/Windows/SysWOW64/advapi32.dll?MD5=159434ceb1811894a131636602e011fe...
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\advapi32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library DDRAW.DLL...
+Loading file:///C:/Windows/SysWOW64/ddraw.dll?MD5=9acb96d2662e1db2bbbc679517fd316b...
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\ddraw.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library GDI32.DLL...
+Loading file:///C:/Windows/SysWOW64/gdi32.dll?MD5=6b94687b36c901abac925c16d1e14019...
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\gdi32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library KERNEL32.DLL...
+Loading file:///C:/Windows/SysWOW64/kernel32.dll?MD5=0de4b67526d63b15fe8437a467bc6235...
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\kernel32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library MSS32.DLL...
+Library not found.
+------------------------------------------------
+
+Searching 41 paths for library SMACKW32.DLL...
+Library not found.
+------------------------------------------------
+
+Searching 41 paths for library USER32.DLL...
+Loading file:///C:/Windows/SysWOW64/user32.dll?MD5=695395ad71666a47f78199a2e4ed54a7...
+[user32.dll]: failed to create WEVTResource at 100d9a70: Failed to resolve data length for WEVTResource
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\user32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library WINMM.DLL...
+Loading file:///C:/Windows/SysWOW64/winmm.dll?MD5=5a55e4b74a2bf6f2ac5cd9b903a91d83...
+[winmm.dll]: failed to create WEVTResource at 1002b310: Failed to resolve data length for WEVTResource
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\winmm.exports
+Library not saved to project.
+------------------------------------------------
+
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\gdi32.exports
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\winmm.exports
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\kernel32.exports
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\user32.exports
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\advapi32.exports
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\ddraw.exports
+Linking the External Programs of 'LBA2.EXE' to imported libraries...
+  [GDI32.DLL] -> not found in project
+  [WINMM.DLL] -> not found in project
+  [KERNEL32.DLL] -> not found in project
+  [USER32.DLL] -> not found in project
+  [MSS32.DLL] -> not found in project
+  [SMACKW32.DLL] -> not found in project
+  [ADVAPI32.DLL] -> not found in project
+  [DDRAW.DLL] -> not found in project
+------------------------------------------------
+
+ (ProgramLoader)  
+INFO  IMPORTING: Loaded 0 additional files (HeadlessAnalyzer)  
+INFO  ANALYZING all memory and code: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE (HeadlessAnalyzer)  
+WARN  Ignoring leading '_' chars on no-return name '___raise_securityfailure' specified in file: D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\data\PEFunctionsThatDoNotReturn (NoReturnFunctionAnalyzer)  
+WARN  Ignoring leading '_' chars on no-return name '___report_rangecheckfailure' specified in file: D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\data\PEFunctionsThatDoNotReturn (NoReturnFunctionAnalyzer)  
+INFO  Skipping PDB processing: missing PDB information in program metadata (PdbUniversalAnalyzer)  
+INFO  hit non-returning function, restarting decompiler switch analyzer later (DecompilerSwitchAnalyzer)  
+INFO  Packed database cache: C:\Users\sebam\AppData\Local\ghidra\packed-db-cache (PackedDatabaseCache)  
+INFO  Applied data type archive: windows_vs12_32 (ApplyDataArchiveAnalyzer)  
+INFO  hit non-returning function, restarting decompiler switch analyzer later (DecompilerSwitchAnalyzer)  
+INFO  Applied data type archive: windows_vs12_32 (ApplyDataArchiveAnalyzer)  
+INFO  -----------------------------------------------------
+    ASCII Strings                              0.247 secs
+    Apply Data Archives                        0.464 secs
+    Call Convention ID                         0.006 secs
+    Call-Fixup Installer                       0.027 secs
+    Create Address Tables                      0.183 secs
+    Create Address Tables - One Time           0.331 secs
+    Create Function                            0.215 secs
+    Data Reference                             0.182 secs
+    Decompiler Parameter ID                   12.549 secs
+    Decompiler Switch Analysis                17.030 secs
+    Decompiler Switch Analysis - One Time      0.000 secs
+    Demangler Microsoft                        0.010 secs
+    Disassemble                                0.283 secs
+    Disassemble Entry Points                   0.102 secs
+    Embedded Media                             0.008 secs
+    External Entry References                  0.000 secs
+    Function ID                                0.436 secs
+    Function Start Pre Search                  0.013 secs
+    Function Start Search                      0.030 secs
+    Function Start Search After Code           0.010 secs
+    Function Start Search After Data           0.010 secs
+    Function Start Search delayed - One Time   0.001 secs
+    Non-Returning Functions - Discovered       0.163 secs
+    Non-Returning Functions - Known            0.003 secs
+    PDB Universal                              0.002 secs
+    Reference                                  0.399 secs
+    Scalar Operand References                  0.463 secs
+    Shared Return Calls                        0.102 secs
+    Stack                                      1.750 secs
+    Subroutine References                      0.816 secs
+    Subroutine References - One Time           0.002 secs
+    WindowsResourceReference                   0.365 secs
+    X86 Function Callee Purge                  0.055 secs
+    x86 Constant Reference Analyzer            2.299 secs
+-----------------------------------------------------
+     Total Time   38 secs
+-----------------------------------------------------
+ (AutoAnalysisManager)  
+INFO  REPORT: Analysis succeeded for file: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE (HeadlessAnalyzer)  
+INFO  REPORT: Execute script: DescribeFunction.java '004201a0' '260'  (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\repos\reverse\littlebigreversing\work\ghidra_scripts\DescribeFunction.java (HeadlessAnalyzer)  
+INFO  Function FUN_004201a0 at 004201a0 (GhidraScript)  
+INFO  Signature: undefined __fastcall FUN_004201a0(undefined4 param_1, int param_2) (GhidraScript)  
+INFO  Callees: (GhidraScript)  
+INFO    FUN_0040b2d4@0040b2d4 x2 (GhidraScript)  
+INFO    FUN_00454ae8@00454ae8 x1 (GhidraScript)  
+INFO    FUN_00454b20@00454b20 x1 (GhidraScript)  
+INFO  External/data refs: (GhidraScript)  
+INFO    00420170 pointer addr 004201e4 (GhidraScript)  
+INFO    004976d0 undefined4 undefined4 ?? (GhidraScript)  
+INFO    00497ed0 undefined4 undefined4 ?? (GhidraScript)  
+INFO    004d08d4 undefined4 undefined4 ?? (GhidraScript)  
+INFO    Stack[-0x18] (GhidraScript)  
+INFO    Stack[-0x1c] (GhidraScript)  
+INFO  Decompiled C: (GhidraScript)  
+INFO     1   (GhidraScript)  
+INFO     2  void __fastcall FUN_004201a0(undefined4 param_1,int param_2) (GhidraScript)  
+INFO     3   (GhidraScript)  
+INFO     4  { (GhidraScript)  
+INFO     5    byte bVar1; (GhidraScript)  
+INFO     6    int in_EAX; (GhidraScript)  
+INFO     7    undefined4 uVar2; (GhidraScript)  
+INFO     8    uint uVar3; (GhidraScript)  
+INFO     9     (GhidraScript)  
+INFO    10    switch(*(undefined1 *)(in_EAX + 0x1f8)) { (GhidraScript)  
+INFO    11    default: (GhidraScript)  
+INFO    12      return; (GhidraScript)  
+INFO    13    case 6: (GhidraScript)  
+INFO    14    case 0xb: (GhidraScript)  
+INFO    15      if ((*(ushort *)(in_EAX + 0x1f6) != 0xffff) && ((*(ushort *)(in_EAX + 0x1f6) & 0x400) == 0)) { (GhidraScript)  
+INFO    16        *(undefined2 *)(in_EAX + 0x1f6) = 0xffff; (GhidraScript)  
+INFO    17      } (GhidraScript)  
+INFO    18    case 2: (GhidraScript)  
+INFO    19      bVar1 = *DAT_004976d0; (GhidraScript)  
+INFO    20      DAT_004976d0 = DAT_004976d0 + 1; (GhidraScript)  
+INFO    21      *(uint *)(in_EAX + 0x20) = (uint)bVar1; (GhidraScript)  
+INFO    22      return; (GhidraScript)  
+INFO    23    case 9: (GhidraScript)  
+INFO    24    case 10: (GhidraScript)  
+INFO    25      bVar1 = *DAT_004976d0; (GhidraScript)  
+INFO    26      *(uint *)(in_EAX + 0x20) = (uint)bVar1; (GhidraScript)  
+INFO    27      DAT_004976d0 = DAT_004976d0 + 1; (GhidraScript)  
+INFO    28      uVar2 = FUN_00454ae8(*(int *)(DAT_00497ed0 + 8 + (uint)bVar1 * 0xc),*(int *)(in_EAX + 0x46)); (GhidraScript)  
+INFO    29      *(undefined4 *)(in_EAX + 0x14) = uVar2; (GhidraScript)  
+INFO    30      uVar3 = FUN_00454b20(); (GhidraScript)  
+INFO    31      *(uint *)(in_EAX + 0x18) = uVar3; (GhidraScript)  
+INFO    32      *(undefined4 *)(in_EAX + 0x1c) = DAT_004d08d4; (GhidraScript)  
+INFO    33      return; (GhidraScript)  
+INFO    34    case 0xc: (GhidraScript)  
+INFO    35      if (param_2 != 0xd) { (GhidraScript)  
+INFO    36        FUN_0040b2d4(); (GhidraScript)  
+INFO    37      } (GhidraScript)  
+INFO    38      *(byte *)(in_EAX + 0x208) = *(byte *)(in_EAX + 0x208) & 0xdf; (GhidraScript)  
+INFO    39      return; (GhidraScript)  
+INFO    40    case 0xd: (GhidraScript)  
+INFO    41      if (param_2 != 0xc) { (GhidraScript)  
+INFO    42        FUN_0040b2d4(); (GhidraScript)  
+INFO    43      } (GhidraScript)  
+INFO    44    case 8: (GhidraScript)  
+INFO    45      *(byte *)(in_EAX + 0x208) = *(byte *)(in_EAX + 0x208) | 0x20; (GhidraScript)  
+INFO    46      return; (GhidraScript)  
+INFO    47    } (GhidraScript)  
+INFO    48  } (GhidraScript)  
+INFO  REPORT: Execute script: DescribeFunction.java '004237e0' '260'  (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\repos\reverse\littlebigreversing\work\ghidra_scripts\DescribeFunction.java (HeadlessAnalyzer)  
+INFO  Function FUN_004237e0 at 004237e0 (GhidraScript)  
+INFO  Signature: ulonglong __fastcall FUN_004237e0(uint param_1, uint param_2) (GhidraScript)  
+INFO  Callees: (GhidraScript)  
+INFO    FUN_00454b20@00454b20 x5 (GhidraScript)  
+INFO    FUN_0045713b@0045713b x5 (GhidraScript)  
+INFO    FUN_00454ae8@00454ae8 x4 (GhidraScript)  
+INFO    FUN_00408a04@00408a04 x3 (GhidraScript)  
+INFO    FUN_0043848c@0043848c x3 (GhidraScript)  
+INFO    FUN_0045826c@0045826c x3 (GhidraScript)  
+INFO    FUN_00438340@00438340 x2 (GhidraScript)  
+INFO    FUN_0043b07c@0043b07c x2 (GhidraScript)  
+INFO    FUN_00456cf0@00456cf0 x2 (GhidraScript)  
+INFO    FUN_00458208@00458208 x2 (GhidraScript)  
+INFO    FUN_00458220@00458220 x2 (GhidraScript)  
+INFO    FUN_004086b4@004086b4 x1 (GhidraScript)  
+INFO    FUN_00408b70@00408b70 x1 (GhidraScript)  
+INFO    FUN_00408f28@00408f28 x1 (GhidraScript)  
+INFO    FUN_0040931c@0040931c x1 (GhidraScript)  
+INFO    FUN_00418cd0@00418cd0 x1 (GhidraScript)  
+INFO    FUN_0042506c@0042506c x1 (GhidraScript)  
+INFO    FUN_00437ae4@00437ae4 x1 (GhidraScript)  
+INFO    FUN_004385ec@004385ec x1 (GhidraScript)  
+INFO    FUN_0043c548@0043c548 x1 (GhidraScript)  
+INFO    FUN_0043f90c@0043f90c x1 (GhidraScript)  
+INFO    FUN_004438e0@004438e0 x1 (GhidraScript)  
+INFO    FUN_00456170@00456170 x1 (GhidraScript)  
+INFO    FUN_00456190@00456190 x1 (GhidraScript)  
+INFO    FUN_00456ec0@00456ec0 x1 (GhidraScript)  
+INFO    FUN_00458190@00458190 x1 (GhidraScript)  
+INFO    FUN_00458ed8@00458ed8 x1 (GhidraScript)  
+INFO  External/data refs: (GhidraScript)  
+INFO    004236fc pointer addr 00424445 (GhidraScript)  
+INFO    0042370c pointer addr 00424831 (GhidraScript)  
+INFO    00475584 undefined4 undefined4 00000001h (GhidraScript)  
+INFO    004755a0 undefined1 undefined1 7Fh (GhidraScript)  
+INFO    00475618 undefined4 undefined4 00000001h (GhidraScript)  
+INFO    00478e10 undefined4 undefined4 00000000h (GhidraScript)  
+INFO    00478e14 undefined4 undefined4 00000000h (GhidraScript)  
+INFO    00478e18 undefined4 undefined4 00000000h (GhidraScript)  
+INFO    00497040 undefined4 undefined4 ?? (GhidraScript)  
+INFO    00497c1c undefined4 undefined4 ?? (GhidraScript)  
+INFO    00497d44 undefined4 undefined4 ?? (GhidraScript)  
+INFO    00497d45 (GhidraScript)  
+INFO    00497d48 undefined1 undefined1 ?? (GhidraScript)  
+INFO    00497d5c undefined4 undefined4 ?? (GhidraScript)  
+INFO    00497d60 undefined4 undefined4 ?? (GhidraScript)  
+INFO    00497d68 undefined4 undefined4 ?? (GhidraScript)  
+INFO    00497e90 undefined4 undefined4 ?? (GhidraScript)  
+INFO    00497ed0 undefined4 undefined4 ?? (GhidraScript)  
+INFO    00497f04 undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a0c4 undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a19c undefined1 undefined1 ?? (GhidraScript)  
+INFO    0049a19e undefined2 undefined2 ?? (GhidraScript)  
+INFO    0049a1b0 undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a1b4 undefined1 undefined1 ?? (GhidraScript)  
+INFO    0049a1c0 undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a1c4 undefined1 undefined1 ?? (GhidraScript)  
+INFO    0049a1c8 undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a1d4 (GhidraScript)  
+INFO    0049a1d8 undefined2 undefined2 ?? (GhidraScript)  
+INFO    0049a1da undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a1de undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a1e2 undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a1e6 (GhidraScript)  
+INFO    0049a1ea undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a352 undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a382 (GhidraScript)  
+INFO    0049a386 (GhidraScript)  
+INFO    0049a388 undefined2 undefined2 ?? (GhidraScript)  
+INFO    0049a392 (GhidraScript)  
+INFO    0049a394 undefined1 undefined1 ?? (GhidraScript)  
+INFO    0049a398 undefined2 undefined2 ?? (GhidraScript)  
+INFO    0049a39e undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a39f (GhidraScript)  
+INFO    0049a3a0 (GhidraScript)  
+INFO    0049a3a2 undefined1 undefined1 ?? (GhidraScript)  
+INFO    0049a3a4 undefined1 undefined1 ?? (GhidraScript)  
+INFO    0049a3a6 undefined2 undefined2 ?? (GhidraScript)  
+INFO    0049a3b2 undefined4 undefined4 ?? (GhidraScript)  
+INFO    0049a3b6 undefined1 undefined1 ?? (GhidraScript)  
+INFO    004d08d4 undefined4 undefined4 ?? (GhidraScript)  
+INFO    Stack[-0x1c] (GhidraScript)  
+INFO    Stack[-0x20] (GhidraScript)  
+INFO    Stack[-0x24] (GhidraScript)  
+INFO    Stack[-0x28] (GhidraScript)  
+INFO    Stack[-0x2c] (GhidraScript)  
+INFO    Stack[-0x30] (GhidraScript)  
+INFO    Stack[-0x34] (GhidraScript)  
+INFO  Decompiled C: (GhidraScript)  
+INFO     1   (GhidraScript)  
+INFO     2  /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO     3   (GhidraScript)  
+INFO     4  ulonglong __fastcall FUN_004237e0(uint param_1,uint param_2) (GhidraScript)  
+INFO     5   (GhidraScript)  
+INFO     6  { (GhidraScript)  
+INFO     7    byte *pbVar1; (GhidraScript)  
+INFO     8    short *psVar2; (GhidraScript)  
+INFO     9    byte bVar3; (GhidraScript)  
+INFO    10    byte bVar4; (GhidraScript)  
+INFO    11    char cVar5; (GhidraScript)  
+INFO    12    ushort uVar6; (GhidraScript)  
+INFO    13    uint3 uVar7; (GhidraScript)  
+INFO    14    byte in_AL; (GhidraScript)  
+INFO    15    int3 iVar10; (GhidraScript)  
+INFO    16    undefined2 extraout_var; (GhidraScript)  
+INFO    17    undefined2 extraout_var_00; (GhidraScript)  
+INFO    18    undefined2 extraout_var_01; (GhidraScript)  
+INFO    19    undefined4 uVar8; (GhidraScript)  
+INFO    20    byte *pbVar9; (GhidraScript)  
+INFO    21    short sVar11; (GhidraScript)  
+INFO    22    byte bVar12; (GhidraScript)  
+INFO    23    undefined2 uVar14; (GhidraScript)  
+INFO    24    uint extraout_ECX; (GhidraScript)  
+INFO    25    uint extraout_ECX_00; (GhidraScript)  
+INFO    26    uint extraout_ECX_01; (GhidraScript)  
+INFO    27    uint extraout_ECX_02; (GhidraScript)  
+INFO    28    uint extraout_ECX_03; (GhidraScript)  
+INFO    29    uint extraout_ECX_04; (GhidraScript)  
+INFO    30    undefined4 extraout_ECX_05; (GhidraScript)  
+INFO    31    undefined4 extraout_ECX_06; (GhidraScript)  
+INFO    32    undefined4 extraout_ECX_07; (GhidraScript)  
+INFO    33    undefined4 extraout_ECX_08; (GhidraScript)  
+INFO    34    uint extraout_ECX_09; (GhidraScript)  
+INFO    35    uint extraout_ECX_10; (GhidraScript)  
+INFO    36    uint extraout_ECX_11; (GhidraScript)  
+INFO    37    uint extraout_ECX_12; (GhidraScript)  
+INFO    38    uint extraout_ECX_13; (GhidraScript)  
+INFO    39    uint extraout_ECX_14; (GhidraScript)  
+INFO    40    uint extraout_ECX_15; (GhidraScript)  
+INFO    41    uint extraout_ECX_16; (GhidraScript)  
+INFO    42    uint extraout_ECX_17; (GhidraScript)  
+INFO    43    uint extraout_ECX_18; (GhidraScript)  
+INFO    44    undefined2 extraout_var_02; (GhidraScript)  
+INFO    45    undefined4 extraout_ECX_19; (GhidraScript)  
+INFO    46    uint extraout_ECX_20; (GhidraScript)  
+INFO    47    uint extraout_ECX_21; (GhidraScript)  
+INFO    48    uint extraout_ECX_22; (GhidraScript)  
+INFO    49    uint extraout_ECX_23; (GhidraScript)  
+INFO    50    uint extraout_ECX_24; (GhidraScript)  
+INFO    51    uint extraout_ECX_25; (GhidraScript)  
+INFO    52    uint extraout_ECX_26; (GhidraScript)  
+INFO    53    uint extraout_ECX_27; (GhidraScript)  
+INFO    54    uint extraout_ECX_28; (GhidraScript)  
+INFO    55    uint extraout_ECX_29; (GhidraScript)  
+INFO    56    undefined3 uVar13; (GhidraScript)  
+INFO    57    undefined4 extraout_EDX; (GhidraScript)  
+INFO    58    undefined4 extraout_EDX_00; (GhidraScript)  
+INFO    59    undefined4 uVar15; (GhidraScript)  
+INFO    60    int iVar16; (GhidraScript)  
+INFO    61    uint uVar17; (GhidraScript)  
+INFO    62    int iVar18; (GhidraScript)  
+INFO    63    byte *pbVar19; (GhidraScript)  
+INFO    64    int iVar20; (GhidraScript)  
+INFO    65    int *piVar21; (GhidraScript)  
+INFO    66    byte *unaff_EDI; (GhidraScript)  
+INFO    67    byte *pbVar22; (GhidraScript)  
+INFO    68    undefined2 uVar23; (GhidraScript)  
+INFO    69    longlong lVar24; (GhidraScript)  
+INFO    70    ulonglong uVar25; (GhidraScript)  
+INFO    71    int local_24; (GhidraScript)  
+INFO    72     (GhidraScript)  
+INFO    73    iVar20 = (uint)in_AL * 0x21b; (GhidraScript)  
+INFO    74    piVar21 = (int *)(&DAT_0049a19c + iVar20); (GhidraScript)  
+INFO    75    pbVar1 = (byte *)((int)&DAT_0049a36e + iVar20); (GhidraScript)  
+INFO    76    local_24 = 1; (GhidraScript)  
+INFO    77  LAB_00423816: (GhidraScript)  
+INFO    78    sVar11 = *(short *)((int)&DAT_0049a384 + iVar20 + 2); (GhidraScript)  
+INFO    79    uVar14 = (undefined2)(param_1 >> 0x10); (GhidraScript)  
+INFO    80    param_1 = CONCAT22(uVar14,sVar11); (GhidraScript)  
+INFO    81    pbVar19 = (byte *)(*(int *)(&DAT_0049a382 + iVar20) + (int)sVar11); (GhidraScript)  
+INFO    82    bVar12 = *pbVar19; (GhidraScript)  
+INFO    83    cVar5 = (char)((ushort)sVar11 >> 8); (GhidraScript)  
+INFO    84    iVar10 = (int3)cVar5; (GhidraScript)  
+INFO    85    pbVar9 = (byte *)CONCAT31(iVar10,bVar12); (GhidraScript)  
+INFO    86    pbVar22 = pbVar19 + 1; (GhidraScript)  
+INFO    87    *(short *)((int)&DAT_0049a384 + iVar20 + 2) = sVar11 + 1; (GhidraScript)  
+INFO    88    if (0x34 < bVar12) goto switchD_00424cbf_caseD_1; (GhidraScript)  
+INFO    89    uVar17 = (uint)bVar12; (GhidraScript)  
+INFO    90    uVar13 = (undefined3)(param_1 >> 8); (GhidraScript)  
+INFO    91    sVar11 = (short)(cVar5 >> 7); (GhidraScript)  
+INFO    92    uVar23 = (undefined2)((uint)unaff_EDI >> 0x10); (GhidraScript)  
+INFO    93    switch(uVar17) { (GhidraScript)  
+INFO    94    case 0: (GhidraScript)  
+INFO    95      *(undefined2 *)((int)&DAT_0049a384 + iVar20 + 2) = 0xffff; (GhidraScript)  
+INFO    96      return CONCAT44(param_2,pbVar9); (GhidraScript)  
+INFO    97    case 2: (GhidraScript)  
+INFO    98      uVar8 = FUN_00438340(param_1,(uint)in_AL); (GhidraScript)  
+INFO    99      psVar2 = (short *)((int)&DAT_0049a384 + iVar20 + 2); (GhidraScript)  
+INFO   100      *psVar2 = *psVar2 + 1; (GhidraScript)  
+INFO   101      param_1 = extraout_ECX_10; (GhidraScript)  
+INFO   102      if (local_24 == 0) { (GhidraScript)  
+INFO   103        return CONCAT44(param_2,uVar8); (GhidraScript)  
+INFO   104      } (GhidraScript)  
+INFO   105      goto LAB_00423816; (GhidraScript)  
+INFO   106    case 3: (GhidraScript)  
+INFO   107      iVar16 = FUN_004385ec(param_1,0); (GhidraScript)  
+INFO   108      param_1 = extraout_ECX_12; (GhidraScript)  
+INFO   109      if (iVar16 == 0) { (GhidraScript)  
+INFO   110        *(short *)((int)&DAT_0049a384 + iVar20 + 2) = (short)extraout_ECX_12; (GhidraScript)  
+INFO   111        return (ulonglong)param_2 << 0x20; (GhidraScript)  
+INFO   112      } (GhidraScript)  
+INFO   113      goto LAB_004239b5; (GhidraScript)  
+INFO   114    case 4: (GhidraScript)  
+INFO   115      *(short *)((int)&DAT_0049a384 + iVar20 + 2) = *(short *)((int)&DAT_0049a384 + iVar20 + 2) + 1; (GhidraScript)  
+INFO   116      DAT_00497d44 = (byte *)(uint)*pbVar22; (GhidraScript)  
+INFO   117      DAT_00478e10 = *(undefined4 *)(DAT_00497ed0 + (int)DAT_00497d44 * 0xc); (GhidraScript)  
+INFO   118      DAT_00478e14 = *(undefined4 *)((int)DAT_00497d44 * 0xc + 4 + DAT_00497ed0); (GhidraScript)  
+INFO   119      unaff_EDI = *(byte **)((int)&DAT_0049a1da + iVar20); (GhidraScript)  
+INFO   120      DAT_00478e18 = *(int *)((int)DAT_00497d44 * 0xc + 8 + DAT_00497ed0); (GhidraScript)  
+INFO   121      pbVar9 = (byte *)FUN_00454b20(); (GhidraScript)  
+INFO   122      param_1 = FUN_00454ae8(*(int *)((int)&DAT_0049a1e2 + iVar20),DAT_00478e18); (GhidraScript)  
+INFO   123      if ((*(byte *)((int)&DAT_0049a39e + iVar20 + 1) & 4) == 0) { (GhidraScript)  
+INFO   124        pbVar9 = (byte *)FUN_00458220(param_1,(uint)pbVar9); (GhidraScript)  
+INFO   125        param_1 = extraout_ECX_15; (GhidraScript)  
+INFO   126        unaff_EDI = pbVar1; (GhidraScript)  
+INFO   127      } (GhidraScript)  
+INFO   128      else { (GhidraScript)  
+INFO   129        *(byte **)((int)&DAT_0049a1ea + iVar20) = pbVar9; (GhidraScript)  
+INFO   130      } (GhidraScript)  
+INFO   131      if (500 < (int)param_1) { (GhidraScript)  
+INFO   132        *(short *)((int)&DAT_0049a384 + iVar20 + 2) = *(short *)((int)&DAT_0049a384 + iVar20 + 2) + -2 (GhidraScript)  
+INFO   133        ; (GhidraScript)  
+INFO   134        return (ulonglong)param_2 << 0x20; (GhidraScript)  
+INFO   135      } (GhidraScript)  
+INFO   136      break; (GhidraScript)  
+INFO   137    case 5: (GhidraScript)  
+INFO   138      if (((&DAT_0049a3a2)[iVar20] & 4) == 0) { (GhidraScript)  
+INFO   139        iVar16 = CONCAT22(sVar11,*(undefined2 *)((int)&DAT_0049a384 + iVar20 + 2)) + -1; (GhidraScript)  
+INFO   140        *(short *)((int)&DAT_0049a384 + iVar20 + 2) = (short)iVar16; (GhidraScript)  
+INFO   141        return CONCAT44(param_2,iVar16); (GhidraScript)  
+INFO   142      } (GhidraScript)  
+INFO   143      uVar8 = FUN_0043b07c(); (GhidraScript)  
+INFO   144      return CONCAT44(param_2,uVar8); (GhidraScript)  
+INFO   145    case 6: (GhidraScript)  
+INFO   146      pbVar9 = pbVar19 + 2; (GhidraScript)  
+INFO   147      param_1 = CONCAT22((short)((uint)pbVar9 >> 0x10), (GhidraScript)  
+INFO   148                         *(undefined2 *)((int)&DAT_0049a384 + iVar20 + 2)) + 1; (GhidraScript)  
+INFO   149      bVar12 = *pbVar22; (GhidraScript)  
+INFO   150      *(short *)((int)&DAT_0049a384 + iVar20 + 2) = (short)param_1; (GhidraScript)  
+INFO   151      *pbVar9 = *pbVar9 - 1; (GhidraScript)  
+INFO   152      if (*pbVar9 == 0) { (GhidraScript)  
+INFO   153        *pbVar9 = bVar12; (GhidraScript)  
+INFO   154        sVar11 = *(short *)((int)&DAT_0049a384 + iVar20 + 2); (GhidraScript)  
+INFO   155        *(short *)((int)&DAT_0049a384 + iVar20 + 2) = sVar11 + 1; (GhidraScript)  
+INFO   156        unaff_EDI = (byte *)(CONCAT22((short)((uint)pbVar22 >> 0x10),sVar11) + 3); (GhidraScript)  
+INFO   157        *(short *)((int)&DAT_0049a384 + iVar20 + 2) = (short)unaff_EDI; (GhidraScript)  
+INFO   158        if (local_24 == 0) { (GhidraScript)  
+INFO   159          return (ulonglong)param_2 << 0x20; (GhidraScript)  
+INFO   160        } (GhidraScript)  
+INFO   161      } (GhidraScript)  
+INFO   162      else { (GhidraScript)  
+INFO   163        uVar6 = *(ushort *)(pbVar19 + 3); (GhidraScript)  
+INFO   164        *(ushort *)((int)&DAT_0049a384 + iVar20 + 2) = uVar6; (GhidraScript)  
+INFO   165        if (local_24 == 0) { (GhidraScript)  
+INFO   166          return CONCAT44(param_2,(uint)uVar6); (GhidraScript)  
+INFO   167        } (GhidraScript)  
+INFO   168      } (GhidraScript)  
+INFO   169      goto LAB_00423816; (GhidraScript)  
+INFO   170    case 7: (GhidraScript)  
+INFO   171      psVar2 = (short *)((int)&DAT_0049a384 + iVar20 + 2); (GhidraScript)  
+INFO   172      *psVar2 = *psVar2 + 2; (GhidraScript)  
+INFO   173      if ((*(byte *)((int)&DAT_0049a39e + iVar20 + 1) & 4) == 0) { (GhidraScript)  
+INFO   174        DAT_00497d44 = (byte *)(int)*(short *)pbVar22; (GhidraScript)  
+INFO   175        if (((uint)DAT_00497d44 & 0x8000) == 0) { (GhidraScript)  
+INFO   176          FUN_0045826c(*(uint *)((int)&DAT_0049a1ea + iVar20),(uint)DAT_00497d44); (GhidraScript)  
+INFO   177          pbVar19[2] = pbVar19[2] | 0x80; (GhidraScript)  
+INFO   178          param_1 = extraout_ECX_18; (GhidraScript)  
+INFO   179        } (GhidraScript)  
+INFO   180        unaff_EDI = (byte *)((uint)DAT_00497d44 & 0x7fff); (GhidraScript)  
+INFO   181        pbVar9 = *(byte **)((int)&DAT_0049a1ea + iVar20); (GhidraScript)  
+INFO   182        DAT_00497d44 = unaff_EDI; (GhidraScript)  
+INFO   183        if (pbVar9 != unaff_EDI) { (GhidraScript)  
+INFO   184          sVar11 = *(short *)((int)&DAT_0049a384 + iVar20 + 2); (GhidraScript)  
+INFO   185          (&DAT_0049a3a4)[iVar20] = (&DAT_0049a3a4)[iVar20] | 4; (GhidraScript)  
+INFO   186          *(short *)((int)&DAT_0049a384 + iVar20 + 2) = sVar11 + -3; (GhidraScript)  
+INFO   187          return CONCAT44(param_2,pbVar9); (GhidraScript)  
+INFO   188        } (GhidraScript)  
+INFO   189        param_1 = CONCAT31((int3)(param_1 >> 8),(&DAT_0049a3a4)[iVar20]) & 0xfffffffb; (GhidraScript)  
+INFO   190        DAT_00497d44._0_2_ = SUB42(unaff_EDI,0); (GhidraScript)  
+INFO   191        uVar14 = DAT_00497d44._0_2_; (GhidraScript)  
+INFO   192        uVar8 = CONCAT22((short)((uint)pbVar9 >> 0x10),DAT_00497d44._0_2_); (GhidraScript)  
+INFO   193        (&DAT_0049a3a4)[iVar20] = (char)param_1; (GhidraScript)  
+INFO   194        *(undefined2 *)pbVar22 = uVar14; (GhidraScript)  
+INFO   195        if (local_24 == 0) { (GhidraScript)  
+INFO   196          return CONCAT44(param_2,uVar8); (GhidraScript)  
+INFO   197        } (GhidraScript)  
+INFO   198        goto LAB_00423816; (GhidraScript)  
+INFO   199      } (GhidraScript)  
+INFO   200      break; (GhidraScript)  
+INFO   201    case 8: (GhidraScript)  
+INFO   202      psVar2 = (short *)((int)&DAT_0049a384 + iVar20 + 2); (GhidraScript)  
+INFO   203      *psVar2 = *psVar2 + 1; (GhidraScript)  
+INFO   204      DAT_00497d44 = (byte *)(uint)*pbVar22; (GhidraScript)  
+INFO   205      DAT_00478e10 = *(undefined4 *)(DAT_00497ed0 + (int)DAT_00497d44 * 0xc); (GhidraScript)  
+INFO   206      DAT_00478e14 = *(undefined4 *)(DAT_00497ed0 + 4 + (int)DAT_00497d44 * 0xc); (GhidraScript)  
+INFO   207      DAT_00478e18 = *(int *)(DAT_00497ed0 + 8 + (int)DAT_00497d44 * 0xc); (GhidraScript)  
+INFO   208      if ((*(byte *)((int)&DAT_0049a39e + iVar20 + 1) & 4) != 0) { (GhidraScript)  
+INFO   209        *(undefined2 *)((int)&DAT_0049a388 + iVar20) = 0; (GhidraScript)  
+INFO   210      } (GhidraScript)  
+INFO   211      *(undefined4 *)((int)&DAT_0049a1da + iVar20) = DAT_00478e10; (GhidraScript)  
+INFO   212      *(undefined4 *)((int)&DAT_0049a1de + iVar20) = DAT_00478e14; (GhidraScript)  
+INFO   213      *(int *)((int)&DAT_0049a1e2 + iVar20) = DAT_00478e18; (GhidraScript)  
+INFO   214      FUN_0043f90c(param_1,in_AL); (GhidraScript)  
+INFO   215      FUN_00437ae4(); (GhidraScript)  
+INFO   216      uVar6 = *(ushort *)((int)&DAT_0049a390 + iVar20 + 2); (GhidraScript)  
+INFO   217      pbVar9 = (byte *)CONCAT22(extraout_var_01,uVar6); (GhidraScript)  
+INFO   218      if ((uVar6 != 0xffff) && ((uVar6 & 0x400) == 0)) { (GhidraScript)  
+INFO   219        *(undefined2 *)((int)&DAT_0049a390 + iVar20 + 2) = 0xffff; (GhidraScript)  
+INFO   220      } (GhidraScript)  
+INFO   221      param_1 = extraout_ECX_24; (GhidraScript)  
+INFO   222      if (in_AL == 0) { (GhidraScript)  
+INFO   223        DAT_0049a0c4 = 0; (GhidraScript)  
+INFO   224        if (local_24 == 0) { (GhidraScript)  
+INFO   225          return CONCAT44(param_2,pbVar9); (GhidraScript)  
+INFO   226        } (GhidraScript)  
+INFO   227        goto LAB_00423816; (GhidraScript)  
+INFO   228      } (GhidraScript)  
+INFO   229      break; (GhidraScript)  
+INFO   230    case 9: (GhidraScript)  
+INFO   231      iVar16 = CONCAT22(uVar23,*(undefined2 *)((int)&DAT_0049a384 + iVar20 + 2)); (GhidraScript)  
+INFO   232      unaff_EDI = (byte *)(iVar16 + 1); (GhidraScript)  
+INFO   233      *(ushort *)((int)&DAT_0049a398 + iVar20) = (ushort)*pbVar22; (GhidraScript)  
+INFO   234      *(short *)((int)&DAT_0049a384 + iVar20 + 2) = (short)unaff_EDI; (GhidraScript)  
+INFO   235      iVar16 = iVar16 + -1; (GhidraScript)  
+INFO   236      *(short *)((int)&DAT_0049a1d8 + iVar20) = (short)iVar16; (GhidraScript)  
+INFO   237      if (local_24 == 0) { (GhidraScript)  
+INFO   238        return CONCAT44(param_2,iVar16); (GhidraScript)  
+INFO   239      } (GhidraScript)  
+INFO   240      goto LAB_00423816; (GhidraScript)  
+INFO   241    case 10: (GhidraScript)  
+INFO   242      uVar14 = *(undefined2 *)pbVar22; (GhidraScript)  
+INFO   243      *(undefined2 *)((int)&DAT_0049a384 + iVar20 + 2) = uVar14; (GhidraScript)  
+INFO   244      if (local_24 == 0) { (GhidraScript)  
+INFO   245        return CONCAT44(param_2,CONCAT22(sVar11,uVar14)); (GhidraScript)  
+INFO   246      } (GhidraScript)  
+INFO   247      goto LAB_00423816; (GhidraScript)  
+INFO   248    case 0xb: (GhidraScript)  
+INFO   249      *(undefined2 *)((int)&DAT_0049a384 + iVar20 + 2) = 0xffff; (GhidraScript)  
+INFO   250      return CONCAT44(param_2,pbVar9); (GhidraScript)  
+INFO   251    case 0xc: (GhidraScript)  
+INFO   252      *(short *)((int)&DAT_0049a384 + iVar20 + 2) = *(short *)((int)&DAT_0049a384 + iVar20 + 2) + 1; (GhidraScript)  
+INFO   253      DAT_00497d44 = (byte *)(uint)*pbVar22; (GhidraScript)  
+INFO   254      DAT_00478e10 = *(undefined4 *)(DAT_00497ed0 + (int)DAT_00497d44 * 0xc); (GhidraScript)  
+INFO   255      DAT_00478e14 = *(undefined4 *)(DAT_00497ed0 + 4 + (int)DAT_00497d44 * 0xc); (GhidraScript)  
+INFO   256      DAT_00478e18 = *(int *)(DAT_00497ed0 + 8 + (int)DAT_00497d44 * 0xc); (GhidraScript)  
+INFO   257      uVar17 = FUN_00454b20(); (GhidraScript)  
+INFO   258      pbVar9 = (byte *)(uVar17 + 0x800); (GhidraScript)  
+INFO   259      param_1 = FUN_00454ae8(*(int *)((int)&DAT_0049a1e2 + iVar20),DAT_00478e18); (GhidraScript)  
+INFO   260      if ((*(byte *)((int)&DAT_0049a39e + iVar20 + 1) & 4) == 0) { (GhidraScript)  
+INFO  ... (945 total lines) (GhidraScript)  
+INFO  ANALYZING changes made by post scripts: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE (HeadlessAnalyzer)  
+INFO  REPORT: Post-analysis succeeded for file: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE (HeadlessAnalyzer)  
+INFO  /LBA2.EXE: file created (sebam) (LocalFileSystem)  
+INFO  REPORT: Save succeeded for: /LBA2.EXE (lba2_morexref:/LBA2.EXE) (HeadlessAnalyzer)  
+INFO  REPORT: Import succeeded (HeadlessAnalyzer)  

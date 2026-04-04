@@ -1,0 +1,636 @@
+INFO  Using log config file: jar:file:/D:/repos/reverse/ghidra/build/dist/ghidra_12.2_DEV/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (738 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (DefaultSSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (DefaultTrustManagerFactory)  
+INFO  Headless startup complete (1774 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 59 extension points (20 false positives) (ClassSearcher)  
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldOffset has been called by org.apache.felix.framework.util.SecureAction (file:/D:/repos/reverse/ghidra/build/dist/ghidra_12.2_DEV/Ghidra/Features/Base/lib/org.apache.felix.framework-7.0.5.jar)
+WARNING: Please consider reporting this to the maintainers of class org.apache.felix.framework.util.SecureAction
+WARNING: sun.misc.Unsafe::staticFieldOffset will be removed in a future release
+INFO  HEADLESS Script Paths:
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\PDB\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\PIC\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\repos\reverse\littlebigreversing\work\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Jython\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\WildcardAssembler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\JVM\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\8051\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\BSim\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\DATA\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Creating temporary project: D:\repos\reverse\littlebigreversing\work\ghidra_verify_projects\lba2_xrefcheck (HeadlessAnalyzer)  
+INFO  Creating project: D:\repos\reverse\littlebigreversing\work\ghidra_verify_projects\lba2_xrefcheck (DefaultProject)  
+INFO  REPORT: Processing input files:  (HeadlessAnalyzer)  
+INFO       project: D:\repos\reverse\littlebigreversing\work\ghidra_verify_projects\lba2_xrefcheck (HeadlessAnalyzer)  
+INFO  IMPORTING: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE (HeadlessAnalyzer)  
+INFO  Using Loader: Portable Executable (PE) (ProgramLoader)  
+INFO  Using Language/Compiler: x86:LE:32:default:windows (ProgramLoader)  
+INFO  Using Library Search Path: [., C:\WINDOWS\SysWOW64, C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin, C:\WINDOWS\Sun\Java\bin, C:\WINDOWS\system32, C:\WINDOWS, C:\Program Files\PowerShell\7, C:\Users\sebam\.codex\tmp\arg0\codex-arg0ZiNZd0, C:\Python312\Scripts\, C:\Python312\, C:\WINDOWS\System32\Wbem, C:\WINDOWS\System32\WindowsPowerShell\v1.0\, C:\WINDOWS\System32\OpenSSH\, C:\Program Files\dotnet\, C:\Program Files\Docker\Docker\resources\bin, C:\ProgramData\chocolatey\bin, C:\Program Files\Microsoft SQL Server\150\Tools\Binn\, C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\, C:\Program Files\Git\cmd, C:\Users\sebam\AppData\Roaming\nvm, c:\Users\sebam\AppData\Local\Programs\cursor\resources\app\bin, C:\nvm4w\nodejs, C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\, C:\Program Files\PowerShell\7\, C:\Users\sebam\.cargo\bin, C:\Users\sebam\AppData\Local\Programs\Python\Python313\Scripts\, C:\Users\sebam\AppData\Local\Programs\Python\Python313\, C:\Users\sebam\AppData\Local\Microsoft\WindowsApps, C:\Users\sebam\.dotnet\tools, C:\Users\sebam\AppData\Local\Programs\Microsoft VS Code\bin, C:\Users\sebam\.cache\lm-studio\bin, C:\Users\sebam\AppData\Roaming\npm, C:\Users\sebam\Downloads\AIShell-1.0.0-preview.1-win-x64, C:\Users\sebam\AppData\Local\Programs\Ollama, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\dscharrer.innoextract_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\zig.zig_Microsoft.Winget.Source_8wekyb3d8bbwe\zig-x86_64-windows-0.15.2, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\ripgrep-15.1.0-x86_64-pc-windows-msvc, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\sharkdp.fd_Microsoft.Winget.Source_8wekyb3d8bbwe\fd-v10.4.2-x86_64-pc-windows-msvc, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\junegunn.fzf_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\mbuilov.sed_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\JesseDuffield.lazygit_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jdx.mise_Microsoft.Winget.Source_8wekyb3d8bbwe\mise\bin, D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV, D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\support, C:\Users\sebam\AppData\Local\OpenAI\Codex\bin, C:\Program Files\WindowsApps\OpenAI.Codex_26.325.3894.0_x64__2p2nqsd0c76g0\app\resources] (ProgramLoader)  
+WARN  Invalid or missing function at 100c028c (ExportDataDirectory)  
+INFO  Additional info:
+Loading file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE?MD5=e425093d677b7c534c2e415ada5711bc...
+------------------------------------------------
+
+Searching 41 paths for library ADVAPI32.DLL...
+Loading file:///C:/Windows/SysWOW64/advapi32.dll?MD5=159434ceb1811894a131636602e011fe...
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\advapi32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library DDRAW.DLL...
+Loading file:///C:/Windows/SysWOW64/ddraw.dll?MD5=9acb96d2662e1db2bbbc679517fd316b...
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\ddraw.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library GDI32.DLL...
+Loading file:///C:/Windows/SysWOW64/gdi32.dll?MD5=6b94687b36c901abac925c16d1e14019...
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\gdi32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library KERNEL32.DLL...
+Loading file:///C:/Windows/SysWOW64/kernel32.dll?MD5=0de4b67526d63b15fe8437a467bc6235...
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\kernel32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library MSS32.DLL...
+Library not found.
+------------------------------------------------
+
+Searching 41 paths for library SMACKW32.DLL...
+Library not found.
+------------------------------------------------
+
+Searching 41 paths for library USER32.DLL...
+Loading file:///C:/Windows/SysWOW64/user32.dll?MD5=695395ad71666a47f78199a2e4ed54a7...
+[user32.dll]: failed to create WEVTResource at 100d9a70: Failed to resolve data length for WEVTResource
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\user32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library WINMM.DLL...
+Loading file:///C:/Windows/SysWOW64/winmm.dll?MD5=5a55e4b74a2bf6f2ac5cd9b903a91d83...
+[winmm.dll]: failed to create WEVTResource at 1002b310: Failed to resolve data length for WEVTResource
+Using existing exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\winmm.exports
+Library not saved to project.
+------------------------------------------------
+
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\gdi32.exports
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\winmm.exports
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\kernel32.exports
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\user32.exports
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\advapi32.exports
+Applying C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\ddraw.exports
+Linking the External Programs of 'LBA2.EXE' to imported libraries...
+  [GDI32.DLL] -> not found in project
+  [WINMM.DLL] -> not found in project
+  [KERNEL32.DLL] -> not found in project
+  [USER32.DLL] -> not found in project
+  [MSS32.DLL] -> not found in project
+  [SMACKW32.DLL] -> not found in project
+  [ADVAPI32.DLL] -> not found in project
+  [DDRAW.DLL] -> not found in project
+------------------------------------------------
+
+ (ProgramLoader)  
+INFO  IMPORTING: Loaded 0 additional files (HeadlessAnalyzer)  
+INFO  ANALYZING all memory and code: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE (HeadlessAnalyzer)  
+WARN  Ignoring leading '_' chars on no-return name '___raise_securityfailure' specified in file: D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\data\PEFunctionsThatDoNotReturn (NoReturnFunctionAnalyzer)  
+WARN  Ignoring leading '_' chars on no-return name '___report_rangecheckfailure' specified in file: D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\data\PEFunctionsThatDoNotReturn (NoReturnFunctionAnalyzer)  
+INFO  Skipping PDB processing: missing PDB information in program metadata (PdbUniversalAnalyzer)  
+INFO  hit non-returning function, restarting decompiler switch analyzer later (DecompilerSwitchAnalyzer)  
+INFO  Packed database cache: C:\Users\sebam\AppData\Local\ghidra\packed-db-cache (PackedDatabaseCache)  
+INFO  Applied data type archive: windows_vs12_32 (ApplyDataArchiveAnalyzer)  
+INFO  hit non-returning function, restarting decompiler switch analyzer later (DecompilerSwitchAnalyzer)  
+INFO  Applied data type archive: windows_vs12_32 (ApplyDataArchiveAnalyzer)  
+INFO  -----------------------------------------------------
+    ASCII Strings                              0.209 secs
+    Apply Data Archives                        0.609 secs
+    Call Convention ID                         0.005 secs
+    Call-Fixup Installer                       0.044 secs
+    Create Address Tables                      0.090 secs
+    Create Address Tables - One Time           0.455 secs
+    Create Function                            0.223 secs
+    Data Reference                             0.195 secs
+    Decompiler Parameter ID                   15.178 secs
+    Decompiler Switch Analysis                18.291 secs
+    Decompiler Switch Analysis - One Time      0.000 secs
+    Demangler Microsoft                        0.010 secs
+    Disassemble                                0.350 secs
+    Disassemble Entry Points                   0.120 secs
+    Embedded Media                             0.010 secs
+    External Entry References                  0.000 secs
+    Function ID                                0.460 secs
+    Function Start Pre Search                  0.014 secs
+    Function Start Search                      0.028 secs
+    Function Start Search After Code           0.018 secs
+    Function Start Search After Data           0.015 secs
+    Function Start Search delayed - One Time   0.001 secs
+    Non-Returning Functions - Discovered       0.159 secs
+    Non-Returning Functions - Known            0.003 secs
+    PDB Universal                              0.001 secs
+    Reference                                  0.437 secs
+    Scalar Operand References                  0.523 secs
+    Shared Return Calls                        0.102 secs
+    Stack                                      1.857 secs
+    Subroutine References                      0.873 secs
+    Subroutine References - One Time           0.005 secs
+    WindowsResourceReference                   0.371 secs
+    X86 Function Callee Purge                  0.091 secs
+    x86 Constant Reference Analyzer            3.173 secs
+-----------------------------------------------------
+     Total Time   43 secs
+-----------------------------------------------------
+ (AutoAnalysisManager)  
+INFO  REPORT: Analysis succeeded for file: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE (HeadlessAnalyzer)  
+INFO  REPORT: Execute script: FindGlobalRefFunctions.java '004976d0' '004976d4' '00497d44'  (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\repos\reverse\littlebigreversing\work\ghidra_scripts\FindGlobalRefFunctions.java (HeadlessAnalyzer)  
+INFO  FUN_0041f0a8@0041f0a8 (GhidraScript)  
+INFO    004976d4 from 0041f0b5 (GhidraScript)  
+INFO    004976d0 from 0041f0bb (GhidraScript)  
+INFO    004976d0 from 0041f0c4 (GhidraScript)  
+INFO    00497d44 from 0041f0e8 (GhidraScript)  
+INFO    00497d44 from 0041f0ff (GhidraScript)  
+INFO    00497d44 from 0041f116 (GhidraScript)  
+INFO    004976d4 from 0041f12d (GhidraScript)  
+INFO    00497d44 from 0041f133 (GhidraScript)  
+INFO    00497d44 from 0041f147 (GhidraScript)  
+INFO    004976d0 from 0041f156 (GhidraScript)  
+INFO    00497d44 from 0041f172 (GhidraScript)  
+INFO    004976d0 from 0041f178 (GhidraScript)  
+INFO    00497d44 from 0041f18e (GhidraScript)  
+INFO    004976d0 from 0041f19d (GhidraScript)  
+INFO    004976d0 from 0041f1b1 (GhidraScript)  
+INFO    004976d4 from 0041f1b7 (GhidraScript)  
+INFO    004976d0 from 0041f1c7 (GhidraScript)  
+INFO    00497d44 from 0041f1cd (GhidraScript)  
+INFO    004976d0 from 0041f1dc (GhidraScript)  
+INFO    004976d0 from 0041f1f2 (GhidraScript)  
+INFO    004976d0 from 0041f202 (GhidraScript)  
+INFO    00497d44 from 0041f20c (GhidraScript)  
+INFO    00497d44 from 0041f233 (GhidraScript)  
+INFO    004976d0 from 0041f242 (GhidraScript)  
+INFO    004976d4 from 0041f258 (GhidraScript)  
+INFO    004976d0 from 0041f263 (GhidraScript)  
+INFO    004976d0 from 0041f270 (GhidraScript)  
+INFO    00497d44 from 0041f27b (GhidraScript)  
+INFO    00497d44 from 0041f2de (GhidraScript)  
+INFO    004976d0 from 0041f2f2 (GhidraScript)  
+INFO    004976d4 from 0041f305 (GhidraScript)  
+INFO    004976d0 from 0041f318 (GhidraScript)  
+INFO    00497d44 from 0041f322 (GhidraScript)  
+INFO    00497d44 from 0041f377 (GhidraScript)  
+INFO    004976d0 from 0041f38b (GhidraScript)  
+INFO    004976d4 from 0041f3a1 (GhidraScript)  
+INFO    004976d0 from 0041f3ad (GhidraScript)  
+INFO    004976d0 from 0041f3ba (GhidraScript)  
+INFO    00497d44 from 0041f3c5 (GhidraScript)  
+INFO    00497d44 from 0041f48e (GhidraScript)  
+INFO    00497d44 from 0041f4a9 (GhidraScript)  
+INFO    00497d44 from 0041f4c1 (GhidraScript)  
+INFO    00497d44 from 0041f4e5 (GhidraScript)  
+INFO    004976d4 from 0041f4ea (GhidraScript)  
+INFO    00497d44 from 0041f502 (GhidraScript)  
+INFO    00497d44 from 0041f518 (GhidraScript)  
+INFO    00497d44 from 0041f52e (GhidraScript)  
+INFO    00497d44 from 0041f544 (GhidraScript)  
+INFO    004976d4 from 0041f55d (GhidraScript)  
+INFO    00497d44 from 0041f563 (GhidraScript)  
+INFO    004976d4 from 0041f57d (GhidraScript)  
+INFO    00497d44 from 0041f583 (GhidraScript)  
+INFO    004976d0 from 0041f592 (GhidraScript)  
+INFO    004976d0 from 0041f5a4 (GhidraScript)  
+INFO    004976d0 from 0041f5b4 (GhidraScript)  
+INFO    00497d44 from 0041f5ba (GhidraScript)  
+INFO    004976d0 from 0041f5c9 (GhidraScript)  
+INFO    004976d0 from 0041f5e2 (GhidraScript)  
+INFO    00497d44 from 0041f5e8 (GhidraScript)  
+INFO    004976d4 from 0041f5ee (GhidraScript)  
+INFO    004976d0 from 0041f5f4 (GhidraScript)  
+INFO    004976d0 from 0041f604 (GhidraScript)  
+INFO    00497d44 from 0041f61a (GhidraScript)  
+INFO    004976d4 from 0041f61f (GhidraScript)  
+INFO    004976d0 from 0041f626 (GhidraScript)  
+INFO    004976d0 from 0041f636 (GhidraScript)  
+INFO    004976d0 from 0041f641 (GhidraScript)  
+INFO    00497d44 from 0041f653 (GhidraScript)  
+INFO    00497d44 from 0041f685 (GhidraScript)  
+INFO    00497d44 from 0041f693 (GhidraScript)  
+INFO    00497d44 from 0041f6bf (GhidraScript)  
+INFO    00497d44 from 0041f6ea (GhidraScript)  
+INFO    004976d0 from 0041f746 (GhidraScript)  
+INFO    004976d0 from 0041f75a (GhidraScript)  
+INFO    004976d4 from 0041f760 (GhidraScript)  
+INFO    004976d0 from 0041f770 (GhidraScript)  
+INFO    00497d44 from 0041f776 (GhidraScript)  
+INFO    00497d44 from 0041f78a (GhidraScript)  
+INFO    004976d0 from 0041f799 (GhidraScript)  
+INFO    004976d0 from 0041f7b1 (GhidraScript)  
+INFO    00497d44 from 0041f7bd (GhidraScript)  
+INFO    004976d0 from 0041f7c2 (GhidraScript)  
+INFO    004976d4 from 0041f7da (GhidraScript)  
+INFO    00497d44 from 0041f7e0 (GhidraScript)  
+INFO    004976d0 from 0041f7ef (GhidraScript)  
+INFO    004976d0 from 0041f80f (GhidraScript)  
+INFO    00497d44 from 0041f815 (GhidraScript)  
+INFO    004976d4 from 0041f81b (GhidraScript)  
+INFO    004976d0 from 0041f821 (GhidraScript)  
+INFO    00497d44 from 0041f83a (GhidraScript)  
+INFO    004976d0 from 0041f849 (GhidraScript)  
+INFO    004976d0 from 0041f862 (GhidraScript)  
+INFO    00497d44 from 0041f867 (GhidraScript)  
+INFO    00497d44 from 0041f877 (GhidraScript)  
+INFO    004976d0 from 0041f890 (GhidraScript)  
+INFO    00497d44 from 0041f89a (GhidraScript)  
+INFO    004976d0 from 0041f8a7 (GhidraScript)  
+INFO    00497d44 from 0041f8e4 (GhidraScript)  
+INFO    00497d44 from 0041f8ea (GhidraScript)  
+INFO    004976d0 from 0041f903 (GhidraScript)  
+INFO    00497d44 from 0041f90d (GhidraScript)  
+INFO    004976d0 from 0041f913 (GhidraScript)  
+INFO    00497d44 from 0041f923 (GhidraScript)  
+INFO    00497d44 from 0041f92e (GhidraScript)  
+INFO    004976d4 from 0041f934 (GhidraScript)  
+INFO    004976d0 from 0041f94a (GhidraScript)  
+INFO    00497d44 from 0041f954 (GhidraScript)  
+INFO    004976d0 from 0041f961 (GhidraScript)  
+INFO    00497d44 from 0041f99e (GhidraScript)  
+INFO    00497d44 from 0041f9a4 (GhidraScript)  
+INFO    004976d4 from 0041f9c2 (GhidraScript)  
+INFO    00497d44 from 0041f9c8 (GhidraScript)  
+INFO    004976d4 from 0041f9d7 (GhidraScript)  
+INFO    004976d0 from 0041f9de (GhidraScript)  
+INFO    004976d0 from 0041f9f4 (GhidraScript)  
+INFO    00497d44 from 0041f9f9 (GhidraScript)  
+INFO    004976d0 from 0041fa09 (GhidraScript)  
+INFO    004976d0 from 0041fa1f (GhidraScript)  
+INFO    004976d4 from 0041fa2a (GhidraScript)  
+INFO    00497d44 from 0041fa34 (GhidraScript)  
+INFO    00497d44 from 0041fa7f (GhidraScript)  
+INFO    00497d44 from 0041fa94 (GhidraScript)  
+INFO    00497d44 from 0041fa9c (GhidraScript)  
+INFO    004976d0 from 0041faab (GhidraScript)  
+INFO    004976d4 from 0041fab8 (GhidraScript)  
+INFO    004976d0 from 0041face (GhidraScript)  
+INFO    00497d44 from 0041fad8 (GhidraScript)  
+INFO    00497d44 from 0041fb16 (GhidraScript)  
+INFO    00497d44 from 0041fb2b (GhidraScript)  
+INFO    00497d44 from 0041fb33 (GhidraScript)  
+INFO    004976d0 from 0041fb42 (GhidraScript)  
+INFO    004976d4 from 0041fb55 (GhidraScript)  
+INFO    004976d0 from 0041fb68 (GhidraScript)  
+INFO    00497d44 from 0041fb72 (GhidraScript)  
+INFO    00497d44 from 0041fbad (GhidraScript)  
+INFO    00497d44 from 0041fbbe (GhidraScript)  
+INFO    00497d44 from 0041fbc6 (GhidraScript)  
+INFO    00497d44 from 0041fbd9 (GhidraScript)  
+INFO    004976d0 from 0041fbe9 (GhidraScript)  
+INFO    004976d4 from 0041fbf4 (GhidraScript)  
+INFO    004976d0 from 0041fc0b (GhidraScript)  
+INFO    00497d44 from 0041fc15 (GhidraScript)  
+INFO    00497d44 from 0041fca4 (GhidraScript)  
+INFO    00497d44 from 0041fcc2 (GhidraScript)  
+INFO    00497d44 from 0041fcd6 (GhidraScript)  
+INFO    00497d44 from 0041fcf0 (GhidraScript)  
+INFO    00497d44 from 0041fd08 (GhidraScript)  
+INFO    004976d4 from 0041fd0d (GhidraScript)  
+INFO    004976d0 from 0041fd1e (GhidraScript)  
+INFO    004976d0 from 0041fd3b (GhidraScript)  
+INFO    00497d44 from 0041fd44 (GhidraScript)  
+INFO    00497d44 from 0041fd67 (GhidraScript)  
+INFO    00497d44 from 0041fd8d (GhidraScript)  
+INFO    004976d0 from 0041fd9d (GhidraScript)  
+INFO    004976d0 from 0041fdb3 (GhidraScript)  
+INFO    00497d44 from 0041fdc3 (GhidraScript)  
+INFO  FUN_0041fe30@0041fe30 (GhidraScript)  
+INFO    00497d44 from 0041fe36 (GhidraScript)  
+INFO    004976d0 from 0041fe3c (GhidraScript)  
+INFO    004976d4 from 0041fe43 (GhidraScript)  
+INFO    004976d0 from 0041fe6d (GhidraScript)  
+INFO    00497d44 from 0041fe73 (GhidraScript)  
+INFO    004976d0 from 0041fe8d (GhidraScript)  
+INFO    00497d44 from 0041fe93 (GhidraScript)  
+INFO    004976d0 from 0041fead (GhidraScript)  
+INFO    00497d44 from 0041feb3 (GhidraScript)  
+INFO    004976d0 from 0041fecd (GhidraScript)  
+INFO    00497d44 from 0041fed3 (GhidraScript)  
+INFO    004976d0 from 0041feed (GhidraScript)  
+INFO    00497d44 from 0041fef3 (GhidraScript)  
+INFO    004976d0 from 0041ff0d (GhidraScript)  
+INFO    00497d44 from 0041ff13 (GhidraScript)  
+INFO    004976d0 from 0041ff48 (GhidraScript)  
+INFO    00497d44 from 0041ff4e (GhidraScript)  
+INFO    004976d0 from 0041ff6a (GhidraScript)  
+INFO    00497d44 from 0041ff70 (GhidraScript)  
+INFO    004976d0 from 0041ff8c (GhidraScript)  
+INFO    00497d44 from 0041ff92 (GhidraScript)  
+INFO    004976d0 from 0041ffae (GhidraScript)  
+INFO    00497d44 from 0041ffb4 (GhidraScript)  
+INFO    004976d0 from 0041ffd0 (GhidraScript)  
+INFO    00497d44 from 0041ffd6 (GhidraScript)  
+INFO    004976d0 from 0041fff2 (GhidraScript)  
+INFO    00497d44 from 0041fff8 (GhidraScript)  
+INFO    00497d44 from 00420012 (GhidraScript)  
+INFO    00497d44 from 00420030 (GhidraScript)  
+INFO    004976d0 from 00420048 (GhidraScript)  
+INFO    00497d44 from 0042004e (GhidraScript)  
+INFO    004976d0 from 00420065 (GhidraScript)  
+INFO    00497d44 from 0042006b (GhidraScript)  
+INFO    004976d0 from 0042007f (GhidraScript)  
+INFO    004976d0 from 0042008a (GhidraScript)  
+INFO    004976d0 from 0042009c (GhidraScript)  
+INFO    00497d44 from 004200aa (GhidraScript)  
+INFO    00497d44 from 004200bc (GhidraScript)  
+INFO    004976d0 from 004200cc (GhidraScript)  
+INFO    00497d44 from 004200d2 (GhidraScript)  
+INFO  FUN_004201a0@004201a0 (GhidraScript)  
+INFO    004976d0 from 004201e4 (GhidraScript)  
+INFO    004976d0 from 004201ef (GhidraScript)  
+INFO    004976d0 from 00420200 (GhidraScript)  
+INFO    004976d0 from 0042021b (GhidraScript)  
+INFO  FUN_00420574@00420574 (GhidraScript)  
+INFO    004976d0 from 004205b3 (GhidraScript)  
+INFO    004976d0 from 004205bc (GhidraScript)  
+INFO    004976d0 from 004205c7 (GhidraScript)  
+INFO    004976d0 from 00420609 (GhidraScript)  
+INFO    004976d0 from 00420686 (GhidraScript)  
+INFO    004976d0 from 004206cd (GhidraScript)  
+INFO    004976d0 from 004206d4 (GhidraScript)  
+INFO    004976d0 from 004206e0 (GhidraScript)  
+INFO    004976d0 from 00420730 (GhidraScript)  
+INFO    004976d0 from 00420758 (GhidraScript)  
+INFO    004976d0 from 00420773 (GhidraScript)  
+INFO    004976d0 from 004207ca (GhidraScript)  
+INFO    004976d0 from 0042089b (GhidraScript)  
+INFO    004976d0 from 00420908 (GhidraScript)  
+INFO    004976d0 from 00420914 (GhidraScript)  
+INFO    004976d0 from 004209d7 (GhidraScript)  
+INFO    004976d0 from 004209e4 (GhidraScript)  
+INFO    004976d0 from 00420a4f (GhidraScript)  
+INFO    004976d0 from 00420a60 (GhidraScript)  
+INFO    004976d0 from 00420aac (GhidraScript)  
+INFO    004976d0 from 00420ace (GhidraScript)  
+INFO    004976d0 from 00420b0a (GhidraScript)  
+INFO    004976d0 from 00420b29 (GhidraScript)  
+INFO    004976d0 from 00420b56 (GhidraScript)  
+INFO    004976d0 from 00420b9c (GhidraScript)  
+INFO    004976d0 from 00420bb7 (GhidraScript)  
+INFO    004976d0 from 00420bfa (GhidraScript)  
+INFO    004976d0 from 00420c1d (GhidraScript)  
+INFO    004976d0 from 00420c66 (GhidraScript)  
+INFO    004976d0 from 00420ca8 (GhidraScript)  
+INFO    004976d0 from 00420cc3 (GhidraScript)  
+INFO    004976d0 from 00420d16 (GhidraScript)  
+INFO    004976d0 from 00420d44 (GhidraScript)  
+INFO    004976d0 from 00420d65 (GhidraScript)  
+INFO    004976d0 from 00420d6d (GhidraScript)  
+INFO    004976d0 from 00420d82 (GhidraScript)  
+INFO    004976d0 from 00420dbc (GhidraScript)  
+INFO    004976d0 from 00420de2 (GhidraScript)  
+INFO    004976d0 from 00420e03 (GhidraScript)  
+INFO    004976d0 from 00420e6b (GhidraScript)  
+INFO    004976d0 from 00420f00 (GhidraScript)  
+INFO    004976d0 from 00420f58 (GhidraScript)  
+INFO    004976d0 from 00420f6b (GhidraScript)  
+INFO    004976d0 from 00420f99 (GhidraScript)  
+INFO    004976d0 from 00420fac (GhidraScript)  
+INFO    004976d0 from 00420fd5 (GhidraScript)  
+INFO    004976d0 from 00420fe8 (GhidraScript)  
+INFO    004976d0 from 00421001 (GhidraScript)  
+INFO    004976d0 from 0042100d (GhidraScript)  
+INFO    004976d0 from 0042103a (GhidraScript)  
+INFO    004976d0 from 0042104d (GhidraScript)  
+INFO    004976d0 from 00421077 (GhidraScript)  
+INFO    004976d0 from 0042108a (GhidraScript)  
+INFO    004976d0 from 004210a3 (GhidraScript)  
+INFO    004976d0 from 004210af (GhidraScript)  
+INFO    004976d0 from 004210d5 (GhidraScript)  
+INFO    004976d0 from 004210e9 (GhidraScript)  
+INFO    004976d0 from 0042110f (GhidraScript)  
+INFO    00497d44 from 00421139 (GhidraScript)  
+INFO    004976d4 from 00421146 (GhidraScript)  
+INFO    00497d44 from 00421170 (GhidraScript)  
+INFO    004976d0 from 00421183 (GhidraScript)  
+INFO    004976d4 from 00421189 (GhidraScript)  
+INFO    004976d0 from 004211a9 (GhidraScript)  
+INFO    00497d44 from 004211ce (GhidraScript)  
+INFO    004976d0 from 004211e1 (GhidraScript)  
+INFO    004976d4 from 004211e7 (GhidraScript)  
+INFO    004976d0 from 00421207 (GhidraScript)  
+INFO    004976d0 from 0042122f (GhidraScript)  
+INFO    004976d0 from 00421269 (GhidraScript)  
+INFO    004976d0 from 00421275 (GhidraScript)  
+INFO    004976d0 from 00421289 (GhidraScript)  
+INFO    004976d0 from 004212bc (GhidraScript)  
+INFO    004976d0 from 004212c6 (GhidraScript)  
+INFO    004976d0 from 004212df (GhidraScript)  
+INFO    004976d0 from 004212f9 (GhidraScript)  
+INFO    004976d0 from 00421312 (GhidraScript)  
+INFO    004976d0 from 0042133f (GhidraScript)  
+INFO    004976d0 from 00421375 (GhidraScript)  
+INFO    004976d0 from 004213a0 (GhidraScript)  
+INFO    004976d0 from 004213b2 (GhidraScript)  
+INFO    004976d0 from 004213e6 (GhidraScript)  
+INFO    004976d0 from 00421411 (GhidraScript)  
+INFO    004976d0 from 00421423 (GhidraScript)  
+INFO    004976d0 from 0042145d (GhidraScript)  
+INFO    004976d0 from 0042146f (GhidraScript)  
+INFO    004976d0 from 004214b3 (GhidraScript)  
+INFO    004976d0 from 004214c5 (GhidraScript)  
+INFO    004976d0 from 004214d6 (GhidraScript)  
+INFO    004976d0 from 004214ff (GhidraScript)  
+INFO    004976d0 from 0042150c (GhidraScript)  
+INFO    004976d0 from 0042152f (GhidraScript)  
+INFO    004976d0 from 0042154f (GhidraScript)  
+INFO    004976d0 from 0042156b (GhidraScript)  
+INFO    004976d0 from 0042158e (GhidraScript)  
+INFO    004976d0 from 004215ab (GhidraScript)  
+INFO    004976d0 from 004215cc (GhidraScript)  
+INFO    004976d0 from 004215f4 (GhidraScript)  
+INFO    004976d0 from 00421632 (GhidraScript)  
+INFO    004976d0 from 00421653 (GhidraScript)  
+INFO    004976d0 from 00421671 (GhidraScript)  
+INFO    004976d0 from 004216bf (GhidraScript)  
+INFO    004976d0 from 004216e0 (GhidraScript)  
+INFO    004976d0 from 004216ff (GhidraScript)  
+INFO    004976d0 from 0042174d (GhidraScript)  
+INFO    004976d0 from 00421777 (GhidraScript)  
+INFO    004976d0 from 004217f8 (GhidraScript)  
+INFO    004976d0 from 0042180b (GhidraScript)  
+INFO    004976d0 from 0042191d (GhidraScript)  
+INFO    004976d0 from 00421936 (GhidraScript)  
+INFO    004976d0 from 00421a61 (GhidraScript)  
+INFO    004976d0 from 00421a72 (GhidraScript)  
+INFO    004976d0 from 00421a97 (GhidraScript)  
+INFO    004976d0 from 00421a9e (GhidraScript)  
+INFO    004976d0 from 00421aaa (GhidraScript)  
+INFO    004976d0 from 00421b05 (GhidraScript)  
+INFO    004976d0 from 00421b4e (GhidraScript)  
+INFO    004976d0 from 00421b9c (GhidraScript)  
+INFO    004976d0 from 00421bd3 (GhidraScript)  
+INFO    004976d0 from 00421bf1 (GhidraScript)  
+INFO    004976d0 from 00421c20 (GhidraScript)  
+INFO    004976d0 from 00421c28 (GhidraScript)  
+INFO    004976d0 from 00421c5d (GhidraScript)  
+INFO    004976d0 from 00421c6f (GhidraScript)  
+INFO    004976d0 from 00421c8b (GhidraScript)  
+INFO    004976d0 from 00421cad (GhidraScript)  
+INFO    004976d0 from 00421cff (GhidraScript)  
+INFO    004976d0 from 00421d3b (GhidraScript)  
+INFO    004976d0 from 00421d63 (GhidraScript)  
+INFO    004976d0 from 00421da0 (GhidraScript)  
+INFO    004976d0 from 00421dc9 (GhidraScript)  
+INFO    004976d0 from 00421df0 (GhidraScript)  
+INFO    004976d0 from 00421e4e (GhidraScript)  
+INFO    004976d0 from 00421e97 (GhidraScript)  
+INFO    004976d0 from 00421ef1 (GhidraScript)  
+INFO    00497d44 from 00421f4c (GhidraScript)  
+INFO    00497d44 from 00421f5d (GhidraScript)  
+INFO    004976d0 from 00421fa9 (GhidraScript)  
+INFO    004976d0 from 00422051 (GhidraScript)  
+INFO    004976d0 from 004220a1 (GhidraScript)  
+INFO    004976d0 from 004220b1 (GhidraScript)  
+INFO    004976d0 from 004220bf (GhidraScript)  
+INFO    004976d0 from 00422111 (GhidraScript)  
+INFO    004976d0 from 0042216c (GhidraScript)  
+INFO    004976d0 from 00422179 (GhidraScript)  
+INFO    004976d0 from 0042218b (GhidraScript)  
+INFO    004976d0 from 004221dc (GhidraScript)  
+INFO    004976d0 from 0042221d (GhidraScript)  
+INFO    004976d0 from 00422242 (GhidraScript)  
+INFO    004976d0 from 004222b3 (GhidraScript)  
+INFO    004976d0 from 004222d7 (GhidraScript)  
+INFO    004976d0 from 004223ac (GhidraScript)  
+INFO    004976d0 from 004223c7 (GhidraScript)  
+INFO    004976d0 from 004223e6 (GhidraScript)  
+INFO    004976d0 from 00422408 (GhidraScript)  
+INFO    004976d0 from 0042244b (GhidraScript)  
+INFO    004976d0 from 00422476 (GhidraScript)  
+INFO    004976d0 from 004224af (GhidraScript)  
+INFO    004976d0 from 004224e4 (GhidraScript)  
+INFO    004976d0 from 004224fd (GhidraScript)  
+INFO    004976d0 from 00422556 (GhidraScript)  
+INFO    004976d0 from 004225c5 (GhidraScript)  
+INFO    004976d0 from 004225fd (GhidraScript)  
+INFO    004976d0 from 00422621 (GhidraScript)  
+INFO    004976d0 from 0042264d (GhidraScript)  
+INFO    004976d0 from 0042266f (GhidraScript)  
+INFO    004976d0 from 00422690 (GhidraScript)  
+INFO    004976d0 from 00422770 (GhidraScript)  
+INFO    004976d0 from 004227dc (GhidraScript)  
+INFO    004976d0 from 004227f2 (GhidraScript)  
+INFO    004976d0 from 0042281a (GhidraScript)  
+INFO    004976d0 from 004228c6 (GhidraScript)  
+INFO    004976d0 from 004228f4 (GhidraScript)  
+INFO    00497d44 from 004229a6 (GhidraScript)  
+INFO    004976d0 from 004229b8 (GhidraScript)  
+INFO    004976d0 from 004229d3 (GhidraScript)  
+INFO    004976d0 from 004229f4 (GhidraScript)  
+INFO    004976d0 from 00422a39 (GhidraScript)  
+INFO    004976d0 from 00422aad (GhidraScript)  
+INFO    004976d0 from 00422ad1 (GhidraScript)  
+INFO    004976d0 from 00422b02 (GhidraScript)  
+INFO    004976d0 from 00422b16 (GhidraScript)  
+INFO    004976d0 from 00422b52 (GhidraScript)  
+INFO    004976d0 from 00422b58 (GhidraScript)  
+INFO    004976d0 from 00422b67 (GhidraScript)  
+INFO    004976d0 from 00422b8e (GhidraScript)  
+INFO    004976d0 from 00422bba (GhidraScript)  
+INFO    004976d0 from 00422bea (GhidraScript)  
+INFO    004976d0 from 00422c34 (GhidraScript)  
+INFO    004976d0 from 00422c7b (GhidraScript)  
+INFO    004976d0 from 00422cb0 (GhidraScript)  
+INFO    004976d0 from 00422ce8 (GhidraScript)  
+INFO    004976d0 from 00422def (GhidraScript)  
+INFO    004976d0 from 00422e1c (GhidraScript)  
+INFO    004976d0 from 00422e62 (GhidraScript)  
+INFO    004976d0 from 00422e98 (GhidraScript)  
+INFO    004976d0 from 00422eae (GhidraScript)  
+INFO    004976d0 from 00422ebe (GhidraScript)  
+INFO    004976d0 from 00422f3b (GhidraScript)  
+INFO    004976d0 from 00422f7a (GhidraScript)  
+INFO    004976d0 from 00422fb3 (GhidraScript)  
+INFO    004976d0 from 0042305d (GhidraScript)  
+INFO    004976d0 from 00423076 (GhidraScript)  
+INFO    004976d0 from 00423088 (GhidraScript)  
+INFO    004976d0 from 004230cb (GhidraScript)  
+INFO    00497d44 from 004230ec (GhidraScript)  
+INFO    00497d44 from 004230fc (GhidraScript)  
+INFO    004976d0 from 0042312d (GhidraScript)  
+INFO    004976d0 from 0042313d (GhidraScript)  
+INFO    004976d0 from 0042315b (GhidraScript)  
+INFO    004976d0 from 00423178 (GhidraScript)  
+INFO    004976d0 from 004231d4 (GhidraScript)  
+INFO    004976d0 from 0042329d (GhidraScript)  
+INFO    004976d0 from 004232c8 (GhidraScript)  
+INFO    004976d0 from 004232ef (GhidraScript)  
+INFO    004976d0 from 00423304 (GhidraScript)  
+INFO    004976d0 from 0042331f (GhidraScript)  
+INFO    004976d0 from 0042332e (GhidraScript)  
+INFO    004976d0 from 00423369 (GhidraScript)  
+INFO    004976d0 from 00423371 (GhidraScript)  
+INFO    004976d0 from 00423386 (GhidraScript)  
+INFO    004976d0 from 004233b8 (GhidraScript)  
+INFO    004976d0 from 004233c7 (GhidraScript)  
+INFO    004976d0 from 0042340b (GhidraScript)  
+INFO    004976d0 from 00423436 (GhidraScript)  
+INFO    004976d0 from 00423465 (GhidraScript)  
+INFO    004976d0 from 00423483 (GhidraScript)  
+INFO    004976d0 from 004234c9 (GhidraScript)  
+INFO    004976d0 from 004234e7 (GhidraScript)  
+INFO  FUN_004237e0@004237e0 (GhidraScript)  
+INFO    00497d44 from 00423e54 (GhidraScript)  
+INFO    00497d44 from 00423e62 (GhidraScript)  
+INFO    00497d44 from 00423f4a (GhidraScript)  
+INFO    00497d44 from 00423f5a (GhidraScript)  
+INFO    00497d44 from 00423f72 (GhidraScript)  
+INFO    00497d44 from 00424059 (GhidraScript)  
+INFO    00497d44 from 00424132 (GhidraScript)  
+INFO    00497d44 from 0042415b (GhidraScript)  
+INFO    00497d44 from 0042416a (GhidraScript)  
+INFO    00497d44 from 004241bc (GhidraScript)  
+INFO    00497d44 from 00424205 (GhidraScript)  
+INFO    00497d44 from 0042423b (GhidraScript)  
+INFO    00497d44 from 00424249 (GhidraScript)  
+INFO    00497d44 from 00424252 (GhidraScript)  
+INFO    00497d44 from 004242ed (GhidraScript)  
+INFO    00497d44 from 00424302 (GhidraScript)  
+INFO    00497d44 from 00424310 (GhidraScript)  
+INFO    00497d44 from 00424320 (GhidraScript)  
+INFO    00497d44 from 00424338 (GhidraScript)  
+INFO    00497d44 from 00424340 (GhidraScript)  
+INFO    00497d44 from 00424350 (GhidraScript)  
+INFO    00497d44 from 00424369 (GhidraScript)  
+INFO    00497d44 from 00424372 (GhidraScript)  
+INFO    00497d44 from 0042438d (GhidraScript)  
+INFO    00497d44 from 00424397 (GhidraScript)  
+INFO    00497d44 from 004245c1 (GhidraScript)  
+INFO    00497d44 from 004245d2 (GhidraScript)  
+INFO  ANALYZING changes made by post scripts: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE (HeadlessAnalyzer)  
+INFO  REPORT: Post-analysis succeeded for file: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE (HeadlessAnalyzer)  
+INFO  /LBA2.EXE: file created (sebam) (LocalFileSystem)  
+INFO  REPORT: Save succeeded for: /LBA2.EXE (lba2_xrefcheck:/LBA2.EXE) (HeadlessAnalyzer)  
+INFO  REPORT: Import succeeded (HeadlessAnalyzer)  

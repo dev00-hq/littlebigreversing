@@ -1,0 +1,237 @@
+2026-04-04 05:25:00 INFO  (LoggingInitialization) Using log config file: jar:file:/D:/repos/reverse/ghidra/build/dist/ghidra_12.2_DEV/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml  
+2026-04-04 05:25:00 INFO  (LoggingInitialization) Using log file: D:\repos\reverse\littlebigreversing\work\ghidra_projects\lba2_lm_application.log  
+2026-04-04 05:25:00 INFO  (Preferences) Loading user preferences: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\preferences  
+2026-04-04 05:25:00 INFO  (ClassSearcher) Searching for classes...  
+2026-04-04 05:25:01 INFO  (ClassSearcher) Class search complete (790 ms)  
+2026-04-04 05:25:01 INFO  (DefaultSSLContextInitializer) Initializing SSL Context  
+2026-04-04 05:25:01 INFO  (SecureRandomFactory) Initializing Random Number Generator...  
+2026-04-04 05:25:01 INFO  (SecureRandomFactory) Random Number Generator initialization complete: SHA1PRNG  
+2026-04-04 05:25:01 INFO  (DefaultTrustManagerFactory) Trust manager disabled, cacerts have not been set  
+2026-04-04 05:25:01 INFO  (FileCacheMaintenanceDaemon) Starting cache cleanup: C:\Users\sebam\AppData\Local\ghidra\fscache2  
+2026-04-04 05:25:01 INFO  (FileCacheMaintenanceDaemon) Finished cache cleanup, estimated storage used: 0  
+2026-04-04 05:25:01 INFO  (AnalyzeHeadless) Headless startup complete (1889 ms)  
+2026-04-04 05:25:01 INFO  (ClassSearcher) Class searcher loaded 59 extension points (20 false positives)  
+2026-04-04 05:25:01 INFO  (HeadlessAnalyzer) HEADLESS Script Paths:
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\PDB\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\PIC\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\repos\reverse\littlebigreversing\work\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Jython\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\WildcardAssembler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\JVM\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\8051\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\BSim\ghidra_scripts
+    D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\DATA\ghidra_scripts  
+2026-04-04 05:25:01 INFO  (HeadlessAnalyzer) HEADLESS: execution starts  
+2026-04-04 05:25:01 INFO  (HeadlessAnalyzer) Creating project: D:\repos\reverse\littlebigreversing\work\ghidra_projects\lba2_lm  
+2026-04-04 05:25:01 INFO  (DefaultProject) Creating project: D:\repos\reverse\littlebigreversing\work\ghidra_projects\lba2_lm  
+2026-04-04 05:25:01 INFO  (HeadlessAnalyzer) REPORT: Processing input files:   
+2026-04-04 05:25:01 INFO  (HeadlessAnalyzer)      project: D:\repos\reverse\littlebigreversing\work\ghidra_projects\lba2_lm  
+2026-04-04 05:25:01 INFO  (HeadlessAnalyzer) IMPORTING: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE  
+2026-04-04 05:25:03 DEBUG (SleighLanguage) Took 260ms (103ms inside lock) to initialize language D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\x86\data\languages\x86.slaspec -> D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Processors\x86\data\languages\x86.sla  
+2026-04-04 05:25:03 INFO  (ProgramLoader) Using Loader: Portable Executable (PE)  
+2026-04-04 05:25:03 INFO  (ProgramLoader) Using Language/Compiler: x86:LE:32:default:windows  
+2026-04-04 05:25:03 INFO  (ProgramLoader) Using Library Search Path: [., C:\WINDOWS\SysWOW64, C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin, C:\WINDOWS\Sun\Java\bin, C:\WINDOWS\system32, C:\WINDOWS, C:\Program Files\PowerShell\7, C:\Users\sebam\.codex\tmp\arg0\codex-arg0ZiNZd0, C:\Python312\Scripts\, C:\Python312\, C:\WINDOWS\System32\Wbem, C:\WINDOWS\System32\WindowsPowerShell\v1.0\, C:\WINDOWS\System32\OpenSSH\, C:\Program Files\dotnet\, C:\Program Files\Docker\Docker\resources\bin, C:\ProgramData\chocolatey\bin, C:\Program Files\Microsoft SQL Server\150\Tools\Binn\, C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\, C:\Program Files\Git\cmd, C:\Users\sebam\AppData\Roaming\nvm, c:\Users\sebam\AppData\Local\Programs\cursor\resources\app\bin, C:\nvm4w\nodejs, C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\, C:\Program Files\PowerShell\7\, C:\Users\sebam\.cargo\bin, C:\Users\sebam\AppData\Local\Programs\Python\Python313\Scripts\, C:\Users\sebam\AppData\Local\Programs\Python\Python313\, C:\Users\sebam\AppData\Local\Microsoft\WindowsApps, C:\Users\sebam\.dotnet\tools, C:\Users\sebam\AppData\Local\Programs\Microsoft VS Code\bin, C:\Users\sebam\.cache\lm-studio\bin, C:\Users\sebam\AppData\Roaming\npm, C:\Users\sebam\Downloads\AIShell-1.0.0-preview.1-win-x64, C:\Users\sebam\AppData\Local\Programs\Ollama, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\dscharrer.innoextract_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\zig.zig_Microsoft.Winget.Source_8wekyb3d8bbwe\zig-x86_64-windows-0.15.2, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\ripgrep-15.1.0-x86_64-pc-windows-msvc, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\sharkdp.fd_Microsoft.Winget.Source_8wekyb3d8bbwe\fd-v10.4.2-x86_64-pc-windows-msvc, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\junegunn.fzf_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\mbuilov.sed_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\JesseDuffield.lazygit_Microsoft.Winget.Source_8wekyb3d8bbwe, C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jdx.mise_Microsoft.Winget.Source_8wekyb3d8bbwe\mise\bin, D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV, D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\support, C:\Users\sebam\AppData\Local\OpenAI\Codex\bin, C:\Program Files\WindowsApps\OpenAI.Codex_26.325.3894.0_x64__2p2nqsd0c76g0\app\resources]  
+2026-04-04 05:25:06 WARN  (ExportDataDirectory) Invalid or missing function at 100c028c  
+2026-04-04 05:25:06 DEBUG (WEVTResourceDataType) Error processing Provider Element.  
+2026-04-04 05:25:06 DEBUG (WEVTResourceDataType) Error processing Provider Element.  
+2026-04-04 05:25:06 INFO  (ProgramLoader) Additional info:
+Loading file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE?MD5=e425093d677b7c534c2e415ada5711bc...
+------------------------------------------------
+
+Searching 41 paths for library ADVAPI32.DLL...
+Loading file:///C:/Windows/SysWOW64/advapi32.dll?MD5=159434ceb1811894a131636602e011fe...
+Created exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\advapi32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library DDRAW.DLL...
+Loading file:///C:/Windows/SysWOW64/ddraw.dll?MD5=9acb96d2662e1db2bbbc679517fd316b...
+Created exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\ddraw.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library GDI32.DLL...
+Loading file:///C:/Windows/SysWOW64/gdi32.dll?MD5=6b94687b36c901abac925c16d1e14019...
+Created exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\gdi32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library KERNEL32.DLL...
+Loading file:///C:/Windows/SysWOW64/kernel32.dll?MD5=0de4b67526d63b15fe8437a467bc6235...
+Created exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\kernel32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library MSS32.DLL...
+Library not found.
+------------------------------------------------
+
+Searching 41 paths for library SMACKW32.DLL...
+Library not found.
+------------------------------------------------
+
+Searching 41 paths for library USER32.DLL...
+Loading file:///C:/Windows/SysWOW64/user32.dll?MD5=695395ad71666a47f78199a2e4ed54a7...
+[user32.dll]: failed to create WEVTResource at 100d9a70: Failed to resolve data length for WEVTResource
+Created exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\user32.exports
+Library not saved to project.
+------------------------------------------------
+
+Searching 41 paths for library WINMM.DLL...
+Loading file:///C:/Windows/SysWOW64/winmm.dll?MD5=5a55e4b74a2bf6f2ac5cd9b903a91d83...
+[winmm.dll]: failed to create WEVTResource at 1002b310: Failed to resolve data length for WEVTResource
+Created exports file: C:\Users\sebam\AppData\Roaming\ghidra\ghidra_12.2_DEV\symbols\win32\winmm.exports
+Library not saved to project.
+------------------------------------------------
+
+Applying cached symbols from GDI32.DLL
+Applying cached symbols from WINMM.DLL
+Applying cached symbols from KERNEL32.DLL
+Applying cached symbols from USER32.DLL
+Applying cached symbols from ADVAPI32.DLL
+Applying cached symbols from DDRAW.DLL
+Linking the External Programs of 'LBA2.EXE' to imported libraries...
+  [GDI32.DLL] -> not found in project
+  [WINMM.DLL] -> not found in project
+  [KERNEL32.DLL] -> not found in project
+  [USER32.DLL] -> not found in project
+  [MSS32.DLL] -> not found in project
+  [SMACKW32.DLL] -> not found in project
+  [ADVAPI32.DLL] -> not found in project
+  [DDRAW.DLL] -> not found in project
+------------------------------------------------
+
+  
+2026-04-04 05:25:06 INFO  (HeadlessAnalyzer) IMPORTING: Loaded 0 additional files  
+2026-04-04 05:25:07 INFO  (HeadlessAnalyzer) ANALYZING all memory and code: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE  
+2026-04-04 05:25:07 WARN  (NoReturnFunctionAnalyzer) Ignoring leading '_' chars on no-return name '___raise_securityfailure' specified in file: D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\data\PEFunctionsThatDoNotReturn  
+2026-04-04 05:25:07 WARN  (NoReturnFunctionAnalyzer) Ignoring leading '_' chars on no-return name '___report_rangecheckfailure' specified in file: D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\data\PEFunctionsThatDoNotReturn  
+2026-04-04 05:25:07 INFO  (PdbUniversalAnalyzer) Skipping PDB processing: missing PDB information in program metadata  
+2026-04-04 05:25:07 INFO  (DecompilerSwitchAnalyzer) hit non-returning function, restarting decompiler switch analyzer later  
+2026-04-04 05:25:24 INFO  (PackedDatabaseCache) Packed database cache: C:\Users\sebam\AppData\Local\ghidra\packed-db-cache  
+2026-04-04 05:25:24 DEBUG (PackedDatabaseCache) Caching packed database: D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\data\typeinfo\win32\windows_vs12_32.gdt  
+2026-04-04 05:25:24 DEBUG (PackedDatabase) Unpacking database D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\data\typeinfo\win32\windows_vs12_32.gdt -> C:\Users\sebam\AppData\Local\ghidra\packed-db-cache\pdb89642DE7\db.1.gbf  
+2026-04-04 05:25:24 DEBUG (PackedDatabaseCache) Cache update completed: D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\Ghidra\Features\Base\data\typeinfo\win32\windows_vs12_32.gdt  
+2026-04-04 05:25:25 INFO  (ApplyDataArchiveAnalyzer) Applied data type archive: windows_vs12_32  
+2026-04-04 05:25:30 INFO  (DecompilerSwitchAnalyzer) hit non-returning function, restarting decompiler switch analyzer later  
+2026-04-04 05:25:30 INFO  (ApplyDataArchiveAnalyzer) Applied data type archive: windows_vs12_32  
+2026-04-04 05:25:48 INFO  (AutoAnalysisManager) -----------------------------------------------------
+    ASCII Strings                              0.257 secs
+    Apply Data Archives                        0.504 secs
+    Call Convention ID                         0.004 secs
+    Call-Fixup Installer                       0.033 secs
+    Create Address Tables                      0.173 secs
+    Create Address Tables - One Time           0.313 secs
+    Create Function                            0.231 secs
+    Data Reference                             0.179 secs
+    Decompiler Parameter ID                   12.880 secs
+    Decompiler Switch Analysis                17.179 secs
+    Decompiler Switch Analysis - One Time      0.000 secs
+    Demangler Microsoft                        0.009 secs
+    Disassemble                                0.189 secs
+    Disassemble Entry Points                   0.068 secs
+    Embedded Media                             0.007 secs
+    External Entry References                  0.000 secs
+    Function ID                                0.377 secs
+    Function Start Pre Search                  0.013 secs
+    Function Start Search                      0.027 secs
+    Function Start Search After Code           0.012 secs
+    Function Start Search After Data           0.009 secs
+    Function Start Search delayed - One Time   0.001 secs
+    Non-Returning Functions - Discovered       0.141 secs
+    Non-Returning Functions - Known            0.003 secs
+    PDB Universal                              0.001 secs
+    Reference                                  0.359 secs
+    Scalar Operand References                  0.411 secs
+    Shared Return Calls                        0.130 secs
+    Stack                                      1.928 secs
+    Subroutine References                      0.815 secs
+    Subroutine References - One Time           0.009 secs
+    WindowsResourceReference                   2.545 secs
+    X86 Function Callee Purge                  0.045 secs
+    x86 Constant Reference Analyzer            2.115 secs
+-----------------------------------------------------
+     Total Time   40 secs
+-----------------------------------------------------
+  
+2026-04-04 05:25:48 INFO  (HeadlessAnalyzer) REPORT: Analysis succeeded for file: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE  
+2026-04-04 05:25:48 INFO  (HeadlessAnalyzer) REPORT: Execute script: ListTopFunctions.java   
+2026-04-04 05:25:48 INFO  (HeadlessAnalyzer) SCRIPT: D:\repos\reverse\littlebigreversing\work\ghidra_scripts\ListTopFunctions.java  
+2026-04-04 05:25:48 INFO  (GhidraScript) Top 40 functions by body size:  
+2026-04-04 05:25:48 INFO  (GhidraScript)  1. FUN_00431cac 00431cac body=1 insns=1 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript)  2. FUN_00442640 00442640 body=1 insns=1 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript)  3. FUN_0045d837 0045d837 body=1 insns=1 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript)  4. FUN_0045f70c 0045f70c body=1 insns=1 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript)  5. FUN_0046a8ff 0046a8ff body=1 insns=1 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript)  6. FUN_0046eff2 0046eff2 body=1 insns=1 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript)  7. FUN_0046f61f 0046f61f body=1 insns=1 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript)  8. FUN_00470554 00470554 body=3 insns=2 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript)  9. FUN_00472d94 00472d94 body=3 insns=2 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 10. FUN_0046a8fa 0046a8fa body=5 insns=1 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 11. FUN_00457a60 00457a60 body=6 insns=2 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 12. FUN_0046c557 0046c557 body=7 insns=6 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 13. FUN_0046bd1b 0046bd1b body=7 insns=2 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_00470609@00470609 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 14. FUN_00472d9e 00472d9e body=7 insns=2 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_00473124@00473124 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 15. FUN_00472da5 00472da5 body=7 insns=2 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_00472d94@00472d94 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 16. FUN_00472d8b 00472d8b body=9 insns=4 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 17. FUN_00404c58 00404c58 body=9 insns=3 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 18. FUN_0046ff8e 0046ff8e body=10 insns=6 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     GetCurrentProcessId@00473368 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 19. FUN_004579f0 004579f0 body=10 insns=5 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_00457910@00457910 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 20. FUN_0046ac64 0046ac64 body=10 insns=5 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_0046ac2b@0046ac2b x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 21. FUN_00457131 00457131 body=10 insns=3 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_0046a8fa@0046a8fa x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 22. FUN_00434dd0 00434dd0 body=10 insns=2 calls=2  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_00457a70@00457a70 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_00457e10@00457e10 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 23. FUN_00447238 00447238 body=11 insns=5 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 24. FUN_00458180 00458180 body=11 insns=5 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 25. FUN_00409f28 00409f28 body=11 insns=3 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 26. FUN_0042867c 0042867c body=11 insns=3 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 27. FUN_00457ba0 00457ba0 body=11 insns=3 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_00457b50@00457b50 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 28. FUN_0045bd4c 0045bd4c body=11 insns=2 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 29. FUN_0045bd57 0045bd57 body=11 insns=2 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 30. FUN_00470ae8 00470ae8 body=11 insns=2 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 31. FUN_0045d142 0045d142 body=12 insns=5 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_0045d128@0045d128 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 32. FUN_0046ada4 0046ada4 body=12 insns=5 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 33. FUN_004088b4 004088b4 body=12 insns=3 calls=2  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_004568c0@004568c0 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_00456d30@00456d30 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 34. FUN_00457710 00457710 body=13 insns=5 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_004576f0@004576f0 x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 35. FUN_00459410 00459410 body=13 insns=5 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 36. FUN_00426e20 00426e20 body=14 insns=7 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 37. FUN_00458030 00458030 body=14 insns=6 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_0046b03f@0046b03f x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 38. FUN_00458705 00458705 body=14 insns=6 calls=0  
+2026-04-04 05:25:48 INFO  (GhidraScript) 39. FUN_0046d825 0046d825 body=14 insns=6 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_0046a8fa@0046a8fa x1  
+2026-04-04 05:25:48 INFO  (GhidraScript) 40. FUN_0046d84a 0046d84a body=14 insns=6 calls=1  
+2026-04-04 05:25:48 INFO  (GhidraScript)     FUN_0046a8fa@0046a8fa x1  
+2026-04-04 05:25:48 INFO  (HeadlessAnalyzer) ANALYZING changes made by post scripts: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE  
+2026-04-04 05:25:48 INFO  (HeadlessAnalyzer) REPORT: Post-analysis succeeded for file: file:///D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2.EXE  
+2026-04-04 05:25:48 INFO  (LocalFileSystem) /LBA2.EXE: file created (sebam)  
+2026-04-04 05:25:48 INFO  (HeadlessAnalyzer) REPORT: Save succeeded for: /LBA2.EXE (lba2_lm:/LBA2.EXE)  
+2026-04-04 05:25:48 INFO  (HeadlessAnalyzer) REPORT: Import succeeded  
