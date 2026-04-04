@@ -22,6 +22,7 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 
 - `COMMON.H` names more `LM_*` ids than `GERELIFE.CPP` actually handles.
 - The switch-family source pass is complete for the current checked-in evidence; repeating it without new evidence is churn.
+- Real asset `LM_BREAK` targets can land on the first byte after `LM_END_SWITCH`, so the classic `saute au END_SWITCH` comment is only a rough control-flow hint, not byte-level structural proof for `LM_END_SWITCH`.
 - A useful viewer evidence pair is not automatically a guarded runtime-safe scene; `11/10` still crosses unsupported scene life and now requires the test-only unchecked loader path for fragment evidence coverage.
 
 ## Canonical Entry Points
