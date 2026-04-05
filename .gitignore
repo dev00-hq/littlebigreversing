@@ -7,6 +7,7 @@ Thumbs.db
 __pycache__/
 .idea/
 .vscode/
+node_modules/
 
 # Parked nested Git metadata so the parent repo can track contents normally.
 
@@ -17,6 +18,7 @@ reference/littlebigreversing/mbn_tools/*/
 dist/
 work/_innoextract_full/
 work/_installer_extract/
+work/life_trace/
 work/mbn_workbench/
 work/phase0/
 work/port/

@@ -14,12 +14,14 @@ Own the canonical host assumptions for end-to-end Zig build, test, and runtime v
 
 - `zig build test`, `zig build tool`, and `zig build run` are validated through the Windows-first build graph.
 - PowerShell helper scripts exist for environment setup and checks.
+- A repo-local PowerShell wrapper plus Frida agent can attach to the original Windows `LBA2.EXE` for bounded life-interpreter probes.
 - The build graph still hard-codes Windows SDL2 paths.
 
 ## Known Traps
 
 - The runtime path is not host-agnostic today.
 - Repo-local SDL2 wiring is a checked-in assumption, not an ambient PATH fallback.
+- The bounded original-runtime Frida probe is not a general play harness. `scripts/trace-life.ps1 -Launch` now kills its spawned `LBA2.EXE` on exit unless `-KeepAlive` is set, and `-TimeoutSeconds` is the canonical fail-fast way to turn a no-hit wait into an explicit setup failure.
 
 ## Canonical Entry Points
 
@@ -32,6 +34,7 @@ Own the canonical host assumptions for end-to-end Zig build, test, and runtime v
 - `port/README.md`
 - `docs/PHASE1_IMPLEMENTATION_MEMO.md`
 - `docs/LBA2_ZIG_PORT_PLAN.md`
+- `scripts/trace-life.ps1`
 
 ## Test / Probe Commands
 

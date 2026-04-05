@@ -21,7 +21,7 @@ User first pass in the original game:
 Codex follow-up after the first pass:
 
 - keep the target set ordered by discriminating power
-- turn your repro notes into the exact `x64dbg` breakpoint and logging sheet
+- turn your repro notes into the exact bounded Frida invocation plus the Gate 3 `x64dbg` breakpoint and logging sheet
 - use the recovered Gate 1 addresses and offsets to define the smallest falsification trace
 
 ## Capture Checklist
@@ -38,6 +38,7 @@ Bring back these exact facts from the first pass:
 
 - Start with the shortest decisive target: scene `5` hero.
 - Keep the target set minimal and ordered: `5` hero, `11` object `12`, `11` object `18`, `2` hero, `44` only if needed.
+- Use the repo-local bounded tracer for Gate 2 owner recognition and `PtrPrg` attribution before widening back into manual `x64dbg` work.
 - Use original-runtime evidence first; `idajs` is only a last-mile setup aid if a natural repro is too noisy.
 - Optimize for the smallest decisive findings, not exhaustive reverse engineering.
 - Do not widen into runtime semantics claims yet; this gate is only about reliable entry to the trace.

@@ -14,6 +14,7 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 
 - `life_program.zig` is an unwired structural decoder.
 - `life_audit.zig` plus `audit-life-programs` is the canonical blocker report and scene-level validation surface.
+- `tools/life_trace/` plus `scripts/trace-life.ps1` provide the bounded original-runtime probe for `DoLife` owner and `PtrPrg` attribution without manual register inspection.
 - `listDecodedInteriorSceneCandidates` currently proves there are `50` fully-decoded interior candidates; the earliest canonical runtime candidate is `SCENE.HQR[19]` (`classic_loader_scene_number = 17`, `blob_count = 3`).
 - Only `LM_DEFAULT` and `LM_END_SWITCH` are active unsupported real-asset blockers in the current archive.
 - The guarded runtime/load seam rejects unsupported scene life before later interior/exterior widening; `2/2`, `44/2`, and `11/10` are negative guarded load cases, with `11/10` preserved only on explicit test-only evidence paths.
@@ -36,6 +37,9 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 - `port/src/game_data/scene/tests/life_program_tests.zig`
 - `port/src/game_data/scene/tests/life_audit_tests.zig`
 - `port/src/tools/cli.zig`
+- `tools/life_trace/trace_life.py`
+- `tools/life_trace/agent.js`
+- `scripts/trace-life.ps1`
 
 ## Test / Probe Commands
 
