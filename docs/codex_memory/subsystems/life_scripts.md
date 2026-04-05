@@ -38,7 +38,8 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 ## Important Files
 
 - `port/src/game_data/scene/tests/life_program_tests.zig`
-- `port/src/game_data/scene/tests/life_audit_tests.zig`
+- `port/src/game_data/scene/tests/life_audit_fast_tests.zig`
+- `port/src/game_data/scene/tests/life_audit_all_scene_tests.zig`
 - `port/src/tools/cli.zig`
 - `tools/life_trace/trace_life.py`
 - `tools/life_trace/agent.js`
@@ -48,6 +49,8 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 
 - `cd port && zig build tool -- audit-life-programs --json`
 - `cd port && zig build tool -- audit-life-programs --json --all-scene-entries`
+- `cd port && zig build test-fast`
+- `cd port && zig build test-life-audit-all`
 - `cd port && zig build test`
 
 ## Open Unknowns
