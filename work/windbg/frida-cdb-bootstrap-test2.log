@@ -1,0 +1,306 @@
+Opened log file 'D:\repos\reverse\littlebigreversing\work\windbg\frida-cdb-bootstrap-test2.log'
+
+************* Preparing the environment for Debugger Extensions Gallery repositories **************
+   ExtensionRepository : Implicit
+   UseExperimentalFeatureForNugetShare : true
+   AllowNugetExeUpdate : true
+   NonInteractiveNuget : true
+   AllowNugetMSCredentialProviderInstall : true
+   AllowParallelInitializationOfLocalRepositories : true
+   EnableRedirectToChakraJsProvider : false
+
+   -- Configuring repositories
+      ----> Repository : LocalInstalled, Enabled: true
+      ----> Repository : UserExtensions, Enabled: true
+
+>>>>>>>>>>>>> Preparing the environment for Debugger Extensions Gallery repositories completed, duration 0.000 seconds
+
+************* Waiting for Debugger Extensions Gallery to Initialize **************
+
+>>>>>>>>>>>>> Waiting for Debugger Extensions Gallery to Initialize completed, duration 0.016 seconds
+   ----> Repository : UserExtensions, Enabled: true, Packages count: 0
+   ----> Repository : LocalInstalled, Enabled: true, Packages count: 46
+
+Microsoft (R) Windows Debugger Version 10.0.29547.1002 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+*** wait with pending attach
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\atlmfc.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\concurrency.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\cpp_rest.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\ObjectiveC.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\stl.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Data.Json.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Geolocation.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Sensors.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Media.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\windows.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\winrt.natvis'
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+
++------------------------------------------------------------------------+
+| This target supports Hardware-enforced Stack Protection. A HW based    |
+| "Shadow Stack" may be available to assist in debugging and analysis.   |
+| See aka.ms/userhsp for more info.                                      |
+|                                                                        |
+| dps @ssp                                                               |
+|                                                                        |
++------------------------------------------------------------------------+
+
+ModLoad: 00000000`00400000 00000000`004e3000   D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE
+ModLoad: 00007fff`34960000 00007fff`34bc7000   C:\WINDOWS\SYSTEM32\ntdll.dll
+ModLoad: 00000000`77ab0000 00000000`77c6f000   ntdll.dll
+ModLoad: 00007fff`32ce0000 00007fff`32d35000   C:\WINDOWS\System32\wow64.dll
+ModLoad: 00007fff`343c0000 00007fff`343cb000   C:\WINDOWS\System32\wow64base.dll
+ModLoad: 00007fff`343d0000 00007fff`34459000   C:\WINDOWS\System32\wow64win.dll
+ModLoad: 00007fff`330f0000 00007fff`33109000   C:\WINDOWS\System32\wow64con.dll
+ModLoad: 00000000`77aa0000 00000000`77aaa000   C:\WINDOWS\System32\wow64cpu.dll
+ModLoad: 00000000`75dd0000 00000000`75ec0000   KERNEL32.dll
+ModLoad: 00000000`76060000 00000000`76328000   KERNELBASE.dll
+ModLoad: 00000000`74d00000 00000000`74dae000   apphelp.dll
+ModLoad: 00000000`76b20000 00000000`76b42000   GDI32.dll
+ModLoad: 00000000`77880000 00000000`7789a000   win32u.dll
+ModLoad: 00000000`76360000 00000000`7644b000   gdi32full.dll
+ModLoad: 00000000`75d40000 00000000`75dc5000   msvcp_win.dll
+ModLoad: 00000000`76c30000 00000000`76d40000   ucrtbase.dll
+ModLoad: 00000000`776b0000 00000000`77879000   USER32.dll
+ModLoad: 00000000`75390000 00000000`75415000   ADVAPI32.dll
+ModLoad: 00000000`775e0000 00000000`776a7000   msvcrt.dll
+ModLoad: 00000000`75ca0000 00000000`75d23000   SECHOST.dll
+ModLoad: 00000000`75130000 00000000`751ec000   RPCRT4.dll
+ModLoad: 00000000`74c30000 00000000`74c63000   WINMM.dll
+ModLoad: 00000000`664a0000 00000000`6658c000   DDRAW.dll
+ModLoad: 00000000`63680000 00000000`63789000   dxgi.dll
+ModLoad: 00000000`66490000 00000000`66497000   DCIMAN32.dll
+ModLoad: 00000000`74bd0000 00000000`74c25000   POWRPROF.dll
+ModLoad: 00000000`65840000 00000000`65876000   dxcore.dll
+ModLoad: 00000000`00cf0000 00000000`00d1b000   mss32.dll
+ModLoad: 00000000`00d20000 00000000`00d36000   smackw32.dll
+ModLoad: 00000000`76330000 00000000`76355000   IMM32.dll
+ModLoad: 00000000`74ad0000 00000000`74ade000   UMPDC.dll
+ModLoad: 00000000`73820000 00000000`7383c000   bcrypt.dll
+ModLoad: 00000000`6f620000 00000000`6f62a000   CRYPTBASE.dll
+ModLoad: 00000000`77910000 00000000`77984000   bcryptPrimitives.dll
+ModLoad: 00000000`69bf0000 00000000`69c70000   UxTheme.dll
+ModLoad: 00000000`772d0000 00000000`77562000   combase.dll
+ModLoad: 00000000`10000000 00000000`100cf000   dxwnd.dll
+ModLoad: 00000000`75010000 00000000`75129000   MSCTF.dll
+ModLoad: 00000000`74ab0000 00000000`74ac5000   AppCore.dll
+ModLoad: 00000000`77990000 00000000`77a2f000   OLEAUT32.dll
+ModLoad: 00000000`63350000 00000000`63453000   TextInputFramework.dll
+ModLoad: 00000000`63040000 00000000`6311d000   CoreMessaging.dll
+ModLoad: 00000000`62da0000 00000000`63032000   CoreUIComponents.dll
+ModLoad: 00000000`75290000 00000000`75389000   WinTypes.dll
+ModLoad: 00000000`65d00000 00000000`65d76000   DSOUND.dll
+ModLoad: 00000000`66460000 00000000`66486000   WINMMBASE.dll
+ModLoad: 00000000`65c60000 00000000`65cfa000   ResampleDmo.DLL
+ModLoad: 00000000`76b50000 00000000`76c22000   SHCORE.dll
+ModLoad: 00000000`65a00000 00000000`65a09000   msdmo.dll
+ModLoad: 00000000`75ed0000 00000000`76021000   ole32.dll
+ModLoad: 00000000`76a90000 00000000`76b16000   CLBCatQ.DLL
+ModLoad: 00000000`66870000 00000000`668ee000   MMDevAPI.DLL
+ModLoad: 00000000`74080000 00000000`740a4000   DEVOBJ.dll
+ModLoad: 00000000`74af0000 00000000`74b33000   CFGMGR32.dll
+ModLoad: 00000000`66700000 00000000`6686d000   AudioSes.DLL
+ModLoad: 00000000`628b0000 00000000`628c0000   ResourcePolicyClient.dll
+ModLoad: 00000000`62870000 00000000`628ad000   WDMAUD.dll
+ModLoad: 00000000`62850000 00000000`6286b000   WDMAUD2.dll
+ModLoad: 00000000`62840000 00000000`62849000   AVRT.dll
+ModLoad: 00000000`62830000 00000000`6283b000   MSACM32.DRV
+ModLoad: 00000000`62810000 00000000`6282a000   MSACM32.dll
+ModLoad: 00000000`62800000 00000000`62808000   MIDIMAP.dll
+ModLoad: 00000000`665f0000 00000000`666fd000   Windows.UI.dll
+ModLoad: 00000000`65820000 00000000`6583a000   atidx9loader32.dll
+ModLoad: 00000000`63790000 00000000`65811000   amdxn32.dll
+ModLoad: 00000000`76450000 00000000`76a86000   SHELL32.dll
+ModLoad: 00000000`76d50000 00000000`771a1000   SETUPAPI.dll
+ModLoad: 00000000`75420000 00000000`75b04000   Windows.Storage.dll
+ModLoad: 00000000`75bd0000 00000000`75c22000   SHLWAPI.dll
+ModLoad: 00000000`63650000 00000000`6367e000   amdihk32.dll
+ModLoad: 00000000`66950000 00000000`66975000   dwmapi.dll
+(4d60.2c60): Break instruction exception - code 80000003 (first chance)
+ntdll!DbgBreakPoint:
+00007fff`34a80c80 cc              int     3
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       SRV*C:\Symbols*https://msdl.microsoft.com/download/symbols
+BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954) connected at Sun Apr  5 04:43:09 2026
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010> !peb
+Wow64 PEB32 at 294000
+    InheritedAddressSpace:    No
+    ReadImageFileExecOptions: No
+    BeingDebugged:            Yes
+    ImageBaseAddress:         0000000000400000
+    NtGlobalFlag:             0
+    NtGlobalFlag2:            0
+    Ldr                       0000000077be7340
+    ***  _PEB_LDR_DATA type was not found...
+    *** unable to read Ldr table at 0000000077be7340
+    SubSystemData:     0000000000000000
+    ProcessHeap:       00000000008c0000
+    ProcessParameters: 00000000006d6538
+    ***  _CURDIR type was not found...
+    WindowTitle:  '< Name not readable >'
+    ImageFile:    '< Name not readable >'
+    CommandLine:  '< Name not readable >'
+    DllPath:      '< Name not readable >'
+    Environment:  0000000000000000
+       Unable to read Environment string.
+
+
+Wow64 PEB at 0000000000293000
+    InheritedAddressSpace:    No
+    ReadImageFileExecOptions: No
+    BeingDebugged:            Yes
+    ImageBaseAddress:         0000000000400000
+    NtGlobalFlag:             0
+    NtGlobalFlag2:            0
+    Ldr                       00007fff34b32920
+    Ldr.Initialized:          Yes
+    Ldr.InInitializationOrderModuleList: 0000000000654db0 . 000000000065a8b0
+    Ldr.InLoadOrderModuleList:           0000000000654fc0 . 000000000065a890
+    Ldr.InMemoryOrderModuleList:         0000000000654fd0 . 000000000065a8a0
+            Base TimeStamp                     Module
+          400000 33b0dd46 Jun 25 04:56:38 1997 D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE
+    7fff34960000 5ffc11eb Jan 11 05:52:59 2021 C:\WINDOWS\SYSTEM32\ntdll.dll
+    7fff32ce0000 fc6f0b3b Mar 16 15:36:43 2104 C:\WINDOWS\System32\wow64.dll
+    7fff343c0000 0ca5a7c6 Sep 21 16:43:02 1976 C:\WINDOWS\System32\wow64base.dll
+    7fff343d0000 4c37b19f Jul 09 19:32:47 2010 C:\WINDOWS\System32\wow64win.dll
+    7fff330f0000 8d3695cf Jan 27 18:19:11 2045 C:\WINDOWS\System32\wow64con.dll
+        77aa0000 181bb337 Oct 26 05:22:15 1982 C:\WINDOWS\System32\wow64cpu.dll
+    SubSystemData:     0000000000000000
+    ProcessHeap:       0000000000650000
+    ProcessParameters: 0000000000659270
+    CurrentDirectory:  'C:\WINDOWS\'
+    WindowTitle:  'D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE'
+    ImageFile:    'D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE'
+    CommandLine:  '"D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE"'
+    DllPath:      '< Name not readable >'
+    Environment:  0000000000652240
+        ALLUSERSPROFILE=C:\ProgramData
+        AMDRMSDKPATH=C:\Program Files\AMD\RyzenMasterSDK\
+        APPDATA=C:\Users\sebam\AppData\Roaming
+        ChocolateyInstall=C:\ProgramData\chocolatey
+        ChocolateyLastPathUpdate=133735844417618933
+        CHROME_CRASHPAD_PIPE_NAME=\\.\pipe\crashpad_5340_VWQZYBAHMWBVEWLW
+        CODEX_INTERNAL_ORIGINATOR_OVERRIDE=Codex Desktop
+        CODEX_SHELL=1
+        CODEX_THREAD_ID=019d5c21-a695-7d82-8575-d243e860b127
+        CommonProgramFiles=C:\Program Files\Common Files
+        CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+        CommonProgramW6432=C:\Program Files\Common Files
+        COMPUTERNAME=BEEEE
+        ComSpec=C:\WINDOWS\system32\cmd.exe
+        CONDA_PROMPT_MODIFIER=False
+        DISABLE_AUTO_UPDATE=true
+        DriverData=C:\Windows\System32\Drivers\DriverData
+        HOMEDRIVE=C:
+        HOMEPATH=\Users\sebam
+        JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\
+        LOCALAPPDATA=C:\Users\sebam\AppData\Local
+        LOGONSERVER=\\BEEEE
+        NUMBER_OF_PROCESSORS=12
+        NVM_HOME=C:\Users\sebam\AppData\Roaming\nvm
+        NVM_SYMLINK=C:\nvm4w\nodejs
+        OneDrive=C:\Users\sebam\OneDrive
+        OneDriveConsumer=C:\Users\sebam\OneDrive
+        OS=Windows_NT
+        Path=D:\repos\reverse\frida\build\install-root\Program Files\Frida\bin;D:\repos\reverse\frida\build\install-root\Program Files\Frida\lib\frida\x86_64;C:\Program Files\PowerShell\7;C:\Users\sebam\.codex\tmp\arg0\codex-arg0HqgywB;C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin;C:\Python312\Scripts\;C:\Python312\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files\Git\cmd;C:\Users\sebam\AppData\Roaming\nvm;c:\Users\sebam\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\sebam\AppData\Roaming\nvm;C:\nvm4w\nodejs;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\PowerShell\7\;C:\Users\sebam\.cargo\bin;C:\Users\sebam\AppData\Local\Programs\Python\Python313\Scripts\;C:\Users\sebam\AppData\Local\Programs\Python\Python313\;C:\Users\sebam\AppData\Local\Microsoft\WindowsApps;C:\Users\sebam\.dotnet\tools;C:\Users\sebam\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\sebam\.cache\lm-studio\bin;C:\Users\sebam\AppData\Roaming\npm;C:\Users\sebam\Downloads\AIShell-1.0.0-preview.1-win-x64;C:\Users\sebam\.dotnet\tools;C:\Users\sebam\AppData\Local\Microsoft\WindowsApps;C:\Users\sebam\AppData\Local\Programs\Ollama;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\dscharrer.innoextract_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\zig.zig_Microsoft.Winget.Source_8wekyb3d8bbwe\zig-x86_64-windows-0.15.2;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\ripgrep-15.1.0-x86_64-pc-windows-msvc;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\sharkdp.fd_Microsoft.Winget.Source_8wekyb3d8bbwe\fd-v10.4.2-x86_64-pc-windows-msvc;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\junegunn.fzf_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\mbuilov.sed_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\JesseDuffield.lazygit_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jdx.mise_Microsoft.Winget.Source_8wekyb3d8bbwe\mise\bin;D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV;D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\support;C:\Users\sebam\AppData\Local\Programs\Zed\bin;C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64;C:\Users\sebam\AppData\Local\OpenAI\Codex\bin;C:\Program Files\WindowsApps\OpenAI.Codex_26.325.3894.0_x64__2p2nqsd0c76g0\app\resources
+        PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL
+        POSH_SESSION_ID=92f6d5ef-b82b-498b-b79b-a46a98be1a8c
+        POSH_SHELL=pwsh
+        POSH_SHELL_VERSION=7.5.5
+        POWERLINE_COMMAND=oh-my-posh
+        POWERSHELL_DISTRIBUTION_CHANNEL=MSI:Windows 10 Pro
+        PROCESSOR_ARCHITECTURE=AMD64
+        PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD
+        PROCESSOR_LEVEL=25
+        PROCESSOR_REVISION=6102
+        ProgramData=C:\ProgramData
+        ProgramFiles=C:\Program Files
+        ProgramFiles(x86)=C:\Program Files (x86)
+        ProgramW6432=C:\Program Files
+        PSModulePath=C:\Users\sebam\OneDrive\Documentos\PowerShell\Modules;C:\Program Files\PowerShell\Modules;c:\program files\powershell\7\Modules;C:\Users\sebam\OneDrive\Documentos\WindowsPowerShell\Modules;C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules
+        PUBLIC=C:\Users\Public
+        PYENV_VIRTUALENV_DISABLE_PROMPT=1
+        PYTHONPATH=D:\repos\reverse\frida\build\install-root\Program Files\Frida\lib\site-packages
+        RUST_LOG=warn
+        SHELL=C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
+        SystemDrive=C:
+        SystemRoot=C:\WINDOWS
+        TEMP=C:\Users\sebam\AppData\Local\Temp
+        TMP=C:\Users\sebam\AppData\Local\Temp
+        USERDOMAIN=BEEEE
+        USERDOMAIN_ROAMINGPROFILE=BEEEE
+        USERNAME=sebam
+        USERPROFILE=C:\Users\sebam
+        VBOX_MSI_INSTALL_PATH=C:\Program Files\Oracle\VirtualBox\
+        VIRTUAL_ENV_DISABLE_PROMPT=1
+        windir=C:\WINDOWS
+        ZSH_TMUX_AUTOSTART=false
+        ZSH_TMUX_AUTOSTARTED=true
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010> r
+rax=0000000000000000 rbx=0000000000000000 rcx=0000000000000000
+rdx=0000000000000000 rsi=0000000000000000 rdi=0000000000000000
+rip=00007fff34a80c80 rsp=000000000ea6f498 rbp=0000000000000000
+ r8=0000000000000000  r9=00007fff34a92d60 r10=0000000000000000
+r11=0000000000000000 r12=0000000000000000 r13=0000000000000000
+r14=0000000000000000 r15=0000000000000000
+iopl=0         nv up ei pl nz na po nc
+cs=0033  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00000202
+ntdll!DbgBreakPoint:
+00007fff`34a80c80 cc              int     3
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010> !wow64exts.sw
+Switched to Guest (WoW) mode
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010:x86> dd 0x004976D0 L1
+004976d0  00000000
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010:x86> u 0x004205B0 L10
+*** WARNING: Unable to verify checksum for D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE
+LBA2+0x205b0:
+004205b0 83c03e          add     eax,3Eh
+004205b3 8915d0764900    mov     dword ptr [LBA2+0x976d0 (004976d0)],edx
+004205b9 8945ec          mov     dword ptr [ebp-14h],eax
+004205bc 8b15d0764900    mov     edx,dword ptr [LBA2+0x976d0 (004976d0)]
+004205c2 8d5a01          lea     ebx,[edx+1]
+004205c5 8a02            mov     al,byte ptr [edx]
+004205c7 891dd0764900    mov     dword ptr [LBA2+0x976d0 (004976d0)],ebx
+004205cd 3c9a            cmp     al,9Ah
+004205cf 0f86612f0000    jbe     LBA2+0x23536 (00423536)
+004205d5 837de8ff        cmp     dword ptr [ebp-18h],0FFFFFFFFh
+004205d9 75e1            jne     LBA2+0x205bc (004205bc)
+004205db 89ec            mov     esp,ebp
+004205dd 5d              pop     ebp
+004205de 5f              pop     edi
+004205df 5e              pop     esi
+004205e0 5a              pop     edx
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:64954)] 0:010:x86> qqd
+quit:
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\atlmfc.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\concurrency.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\cpp_rest.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\ObjectiveC.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\stl.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Data.Json.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Geolocation.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Sensors.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Media.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\windows.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\winrt.natvis'

@@ -27,9 +27,11 @@ Verified current-state behavior:
 - The canonical launch command completed successfully against the live Tavern save:
   - `pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -Launch -TimeoutSeconds 120`
 - The current proof-success artifact is:
-  - [life-trace-20260405-025312.jsonl](/D:/repos/reverse/littlebigreversing/work/life_trace/life-trace-20260405-025312.jsonl)
+  - [life-trace-20260405-033836.jsonl](/D:/repos/reverse/littlebigreversing/work/life_trace/life-trace-20260405-033836.jsonl)
 - The Codex app now has a configured `windbg` MCP server backed by `mcp-windbg`.
 - The repo-local `scripts/cdb-session.ps1` wrapper remains in the tree as a failed experiment, not as the canonical Gate 3 owner.
+- The first live WinDbg MCP pass against the real `LBA2.EXE` is now validated end-to-end for attach, x86 mode switch, code disassembly, pointer reads, and clean detach.
+- A fresh-process launch-and-attach pass is now validated too: launch `LBA2.EXE`, attach remote `cdb`, switch to WoW x86 mode through MCP, read `DoLife`, read `PtrPrg`, and detach back to a responsive game.
 
 ## Verified Runtime Facts
 
@@ -61,6 +63,7 @@ From the successful proof run in [life-trace-20260405-011732.jsonl](/D:/repos/re
 
 Gate 2's Tavern deterministic repro objective is satisfied.
 Gate 3's first Frida proof on the current live Tavern save is captured.
+Gate 3's first live WinDbg MCP attach on the current Tavern runtime is captured.
 Gate 3 now pivots to WinDbg MCP control over an existing remote session; the old shell-managed detached `cdb` wrapper is no longer canonical after host-freeze evidence on 2026-04-05.
 
 Canonical Tavern proof path:
@@ -75,17 +78,38 @@ Important interpretation rule:
 
 - keep `break_jump 4805 -> 103` as runtime evidence, but do not require it as the proof gate for the visible later `0x76`
 
+Latest live MCP facts:
+
+- `open_windbg_remote(connection_string="tcp:Port=5023,Server=127.0.0.1,Password=test")` succeeded against the real `LBA2.EXE`
+- `!wow64exts.sw` succeeded and exposed the live x86 `LBA2` image
+- `u 0x004205B0 L10` disassembled the checked-in `DoLife` loop and confirmed `004205bc 8b15d0764900`
+- `dd 0x004976D0 L1` returned `032f3572`
+- `db poi(0x004976D0) L8` returned `00 03 00 00 00 1e 00 2f`
+- `bp 0x004205BC` armed successfully, but `g` did not return within the MCP tool timeout window
+- `qqd` detached and exited the live server successfully; `LBA2.EXE` returned to `Responding = True`
+- a follow-up live session with one-shot logging breakpoints showed no hits at `0x004205BC` and no hardware watchpoint hits on `PtrPrg = 0x004976D0` during two separate 30-second resumed windows
+- `!runaway` still showed real CPU time advancing while resumed, so the failure is not just a dead-stopped process
+- after the resumed windows, thread instruction pointers were parked in `wow64cpu` / `ntdll` break states rather than an obvious `LBA2` code frame
+- a fresh launch on PID `3824` also attached cleanly on `tcp:Port=5025,Server=127.0.0.1,Password=test`
+- on that fresh launch, `u 0x004205B0 L10` again showed the expected `DoLife` loop and `dd 0x004976D0 L1` returned `00000000` before the scene logic had advanced
+- `qqd` detached successfully again and returned the fresh-launch game to `Responding = True`
+
 ## Collaboration Split
 
 Codex next session:
 
-- reuse [life-trace-20260405-025312.jsonl](/D:/repos/reverse/littlebigreversing/work/life_trace/life-trace-20260405-025312.jsonl) and its screenshot set as the canonical Tavern acceptance artifact
+- reuse [life-trace-20260405-033836.jsonl](/D:/repos/reverse/littlebigreversing/work/life_trace/life-trace-20260405-033836.jsonl) and its screenshot set as the canonical Tavern acceptance artifact
 - leave the Frida-launched Tavern runtime alive with `-KeepAlive`, then open the debugger through the configured `windbg` MCP server
-- capture the first Gate 3 MCP-controlled opcode-loop pass with:
+- reuse the validated live MCP sequence:
   - `open_windbg_remote`
+  - `run_windbg_cmd("!wow64exts.sw")`
   - `run_windbg_cmd("bp 0x004205BC")`
-  - `run_windbg_cmd("g")`
+  - `run_windbg_cmd("u 0x004205B0 L10")`
   - `run_windbg_cmd("dd 0x004976D0 L1")`
+  - `run_windbg_cmd("db poi(0x004976D0) L8")`
+  - `run_windbg_cmd("qqd")`
+- treat the remaining blocker as a late-attach timing/state problem, not as an MCP transport problem
+- investigate whether the next proof should attach earlier, break on a broader `DoLife` entry site, or use a different in-game trigger window before the post-settle standing state
 - keep future Tavern work loop-only unless a later prompt explicitly widens scope beyond the current attribution pass
 
 ## Immediate Next Step
@@ -94,8 +118,8 @@ Recommended path:
 
 1. Re-run the canonical Tavern tracer with `-KeepAlive` so the live process stays available for debugger attach.
 2. Start or obtain a WinDbg/CDB remote session on that already-running `LBA2.EXE`.
-3. Open that session through the `windbg` MCP server and break at `0x004205BC`.
-4. Record whether the first live MCP-controlled pass reaches the opcode-loop site cleanly on the established Tavern repro path.
+3. Open that session through the `windbg` MCP server and switch to guest WoW mode.
+4. Reuse the validated read-only MCP probes first, then isolate why `g` does not stop back on the armed `0x004205BC` breakpoint within the tool timeout.
 
 Canonical command sequence:
 
@@ -106,9 +130,13 @@ Canonical command sequence:
 4. In Codex, call:
    - `open_windbg_remote(connection_string=...)`
 5. Run one command per MCP call:
+   - `run_windbg_cmd(command="!wow64exts.sw")`
    - `run_windbg_cmd(command="bp 0x004205BC")`
-   - `run_windbg_cmd(command="g")`
+   - `run_windbg_cmd(command="u 0x004205B0 L10")`
    - `run_windbg_cmd(command="dd 0x004976D0 L1")`
+   - `run_windbg_cmd(command="db poi(0x004976D0) L8")`
+   - only then retry `run_windbg_cmd(command="g")`
+   - if `g` still times out, prefer a different attach timing or broader trigger over repeatedly reusing the same standing-Tavern state
 6. Compare against:
    - fingerprint bytes `28 14 00 21 2F 00 23 0D 0E 00`
    - target `0x76 @ 4883`
@@ -134,7 +162,13 @@ Canonical command sequence:
 - first successful canonical proof run:
   - [life-trace-20260405-011732.jsonl](/D:/repos/reverse/littlebigreversing/work/life_trace/life-trace-20260405-011732.jsonl)
 - current live-save proof run after the cue/save recovery:
-  - [life-trace-20260405-025312.jsonl](/D:/repos/reverse/littlebigreversing/work/life_trace/life-trace-20260405-025312.jsonl)
+  - [life-trace-20260405-033836.jsonl](/D:/repos/reverse/littlebigreversing/work/life_trace/life-trace-20260405-033836.jsonl)
+- live WinDbg MCP server log for the first real `LBA2.EXE` attach:
+  - [mcp-live-lba2-cdb.log](/D:/repos/reverse/littlebigreversing/work/windbg/mcp-live-lba2-cdb.log)
+- live WinDbg MCP log for the resumed-breakpoint investigation:
+  - [mcp-live-lba2-breakpoint-test.log](/D:/repos/reverse/littlebigreversing/work/windbg/mcp-live-lba2-breakpoint-test.log)
+- live WinDbg MCP log for the fresh launch-and-attach verification:
+  - [mcp-final-launch-attach.log](/D:/repos/reverse/littlebigreversing/work/windbg/mcp-final-launch-attach.log)
 - earlier live-save fingerprint match with excessive branch spam:
   - [life-trace-20260405-005345.jsonl](/D:/repos/reverse/littlebigreversing/work/life_trace/life-trace-20260405-005345.jsonl)
 - stable but preset-mismatched Tavern run:
