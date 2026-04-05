@@ -1,0 +1,301 @@
+Opened log file 'D:\repos\reverse\littlebigreversing\work\windbg\mcp-test-cmd-cdb.log'
+
+************* Preparing the environment for Debugger Extensions Gallery repositories **************
+   ExtensionRepository : Implicit
+   UseExperimentalFeatureForNugetShare : true
+   AllowNugetExeUpdate : true
+   NonInteractiveNuget : true
+   AllowNugetMSCredentialProviderInstall : true
+   AllowParallelInitializationOfLocalRepositories : true
+   EnableRedirectToChakraJsProvider : false
+
+   -- Configuring repositories
+      ----> Repository : LocalInstalled, Enabled: true
+      ----> Repository : UserExtensions, Enabled: true
+
+>>>>>>>>>>>>> Preparing the environment for Debugger Extensions Gallery repositories completed, duration 0.000 seconds
+
+************* Waiting for Debugger Extensions Gallery to Initialize **************
+
+>>>>>>>>>>>>> Waiting for Debugger Extensions Gallery to Initialize completed, duration 0.016 seconds
+   ----> Repository : UserExtensions, Enabled: true, Packages count: 0
+   ----> Repository : LocalInstalled, Enabled: true, Packages count: 46
+
+Microsoft (R) Windows Debugger Version 10.0.29547.1002 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+*** wait with pending attach
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\atlmfc.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\concurrency.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\cpp_rest.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\ObjectiveC.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\stl.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Data.Json.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Geolocation.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Sensors.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Media.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\windows.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\winrt.natvis'
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+WARNING: Process 4348 is not attached as a debuggee
+         The process can be examined but debug events will not be received
+......
+(10fc.404): Wake debugger - code 80000007 (first chance)
+
++------------------------------------------------------------------------+
+| This target supports Hardware-enforced Stack Protection. A HW based    |
+| "Shadow Stack" may be available to assist in debugging and analysis.   |
+| See aka.ms/userhsp for more info.                                      |
+|                                                                        |
+| dps @ssp                                                               |
+|                                                                        |
++------------------------------------------------------------------------+
+
+ntdll!NtWaitForSingleObject+0x14:
+00007fff`34ac1b14 c3              ret
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       SRV*C:\Symbols*https://msdl.microsoft.com/download/symbols
+BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373) connected at Sun Apr  5 03:35:17 2026
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> !peb
+PEB at 00000044d6365000
+    InheritedAddressSpace:    No
+    ReadImageFileExecOptions: No
+    BeingDebugged:            No
+    ImageBaseAddress:         00007ff6d82d0000
+    NtGlobalFlag:             0
+    NtGlobalFlag2:            0
+    Ldr                       00007fff34b32920
+    Ldr.Initialized:          Yes
+    Ldr.InInitializationOrderModuleList: 0000015a32fa50e0 . 0000015a32fa2f70
+    Ldr.InLoadOrderModuleList:           0000015a32fa5260 . 0000015a32fa2f50
+    Ldr.InMemoryOrderModuleList:         0000015a32fa5270 . 0000015a32fa2f60
+                    Base TimeStamp                     Module
+            7ff6d82d0000 939ae359 Jun 21 21:18:17 2048 C:\WINDOWS\system32\cmd.exe
+            7fff34960000 5ffc11eb Jan 11 05:52:59 2021 C:\WINDOWS\SYSTEM32\ntdll.dll
+            7fff33500000 10824ec0 Oct 11 14:34:56 1978 C:\WINDOWS\System32\KERNEL32.DLL
+            7fff31240000 0cc2a083 Oct 13 16:07:47 1976 C:\WINDOWS\System32\KERNELBASE.dll
+            7fff32030000 53a0792e Jun 17 13:21:50 2014 C:\WINDOWS\System32\ucrtbase.dll
+            7fff33b50000 5adfc0dd Apr 24 19:42:21 2018 C:\WINDOWS\System32\sechost.dll
+    SubSystemData:     0000000000000000
+    ProcessHeap:       0000015a32fa0000
+    ProcessParameters: 0000015a32fa95a0
+    CurrentDirectory:  'D:\repos\reverse\littlebigreversing\'
+    WindowTitle:  'C:\WINDOWS\system32\cmd.exe'
+    ImageFile:    'C:\WINDOWS\system32\cmd.exe'
+    CommandLine:  '"C:\WINDOWS\system32\cmd.exe" /k ping -t 127.0.0.1'
+    DllPath:      '< Name not readable >'
+    Environment:  0000015a32ff2130
+        =D:=D:\repos\reverse\littlebigreversing
+        ALLUSERSPROFILE=C:\ProgramData
+        AMDRMSDKPATH=C:\Program Files\AMD\RyzenMasterSDK\
+        APPDATA=C:\Users\sebam\AppData\Roaming
+        ChocolateyInstall=C:\ProgramData\chocolatey
+        ChocolateyLastPathUpdate=133735844417618933
+        CHROME_CRASHPAD_PIPE_NAME=\\.\pipe\crashpad_20660_ETVUQDCFEIFGMOPA
+        CODEX_INTERNAL_ORIGINATOR_OVERRIDE=Codex Desktop
+        CODEX_SHELL=1
+        CODEX_THREAD_ID=019d5c21-a695-7d82-8575-d243e860b127
+        CommonProgramFiles=C:\Program Files\Common Files
+        CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+        CommonProgramW6432=C:\Program Files\Common Files
+        COMPUTERNAME=BEEEE
+        ComSpec=C:\WINDOWS\system32\cmd.exe
+        CONDA_PROMPT_MODIFIER=False
+        DISABLE_AUTO_UPDATE=true
+        DriverData=C:\Windows\System32\Drivers\DriverData
+        HOMEDRIVE=C:
+        HOMEPATH=\Users\sebam
+        JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\
+        LOCALAPPDATA=C:\Users\sebam\AppData\Local
+        LOGONSERVER=\\BEEEE
+        NUMBER_OF_PROCESSORS=12
+        NVM_HOME=C:\Users\sebam\AppData\Roaming\nvm
+        NVM_SYMLINK=C:\nvm4w\nodejs
+        OneDrive=C:\Users\sebam\OneDrive
+        OneDriveConsumer=C:\Users\sebam\OneDrive
+        OS=Windows_NT
+        Path=C:\Program Files\PowerShell\7;C:\Users\sebam\.codex\tmp\arg0\codex-arg0kwxcW7;C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin;C:\Python312\Scripts\;C:\Python312\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files\Git\cmd;C:\Users\sebam\AppData\Roaming\nvm;c:\Users\sebam\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\sebam\AppData\Roaming\nvm;C:\nvm4w\nodejs;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\PowerShell\7\;C:\Users\sebam\.cargo\bin;C:\Users\sebam\AppData\Local\Programs\Python\Python313\Scripts\;C:\Users\sebam\AppData\Local\Programs\Python\Python313\;C:\Users\sebam\AppData\Local\Microsoft\WindowsApps;C:\Users\sebam\.dotnet\tools;C:\Users\sebam\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\sebam\.cache\lm-studio\bin;C:\Users\sebam\AppData\Roaming\npm;C:\Users\sebam\Downloads\AIShell-1.0.0-preview.1-win-x64;C:\Users\sebam\.dotnet\tools;C:\Users\sebam\AppData\Local\Microsoft\WindowsApps;C:\Users\sebam\AppData\Local\Programs\Ollama;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\dscharrer.innoextract_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\zig.zig_Microsoft.Winget.Source_8wekyb3d8bbwe\zig-x86_64-windows-0.15.2;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\ripgrep-15.1.0-x86_64-pc-windows-msvc;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\sharkdp.fd_Microsoft.Winget.Source_8wekyb3d8bbwe\fd-v10.4.2-x86_64-pc-windows-msvc;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\junegunn.fzf_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\mbuilov.sed_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\JesseDuffield.lazygit_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jdx.mise_Microsoft.Winget.Source_8wekyb3d8bbwe\mise\bin;D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV;D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\support;C:\Users\sebam\AppData\Local\Programs\Zed\bin;C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64;C:\Users\sebam\AppData\Local\OpenAI\Codex\bin;C:\Program Files\WindowsApps\OpenAI.Codex_26.325.3894.0_x64__2p2nqsd0c76g0\app\resources
+        PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL
+        POSH_SESSION_ID=a7adfe38-6ec0-44ef-9ce1-410123a9fad5
+        POSH_SHELL=pwsh
+        POSH_SHELL_VERSION=7.5.5
+        POWERLINE_COMMAND=oh-my-posh
+        POWERSHELL_DISTRIBUTION_CHANNEL=MSI:Windows 10 Pro
+        PROCESSOR_ARCHITECTURE=AMD64
+        PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD
+        PROCESSOR_LEVEL=25
+        PROCESSOR_REVISION=6102
+        ProgramData=C:\ProgramData
+        ProgramFiles=C:\Program Files
+        ProgramFiles(x86)=C:\Program Files (x86)
+        ProgramW6432=C:\Program Files
+        PROMPT=$P$G
+        PSModulePath=C:\Users\sebam\OneDrive\Documentos\PowerShell\Modules;C:\Program Files\PowerShell\Modules;c:\program files\powershell\7\Modules;C:\Users\sebam\OneDrive\Documentos\WindowsPowerShell\Modules;C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules
+        PUBLIC=C:\Users\Public
+        PYENV_VIRTUALENV_DISABLE_PROMPT=1
+        RUST_LOG=warn
+        SHELL=C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
+        SystemDrive=C:
+        SystemRoot=C:\WINDOWS
+        TEMP=C:\Users\sebam\AppData\Local\Temp
+        TMP=C:\Users\sebam\AppData\Local\Temp
+        USERDOMAIN=BEEEE
+        USERDOMAIN_ROAMINGPROFILE=BEEEE
+        USERNAME=sebam
+        USERPROFILE=C:\Users\sebam
+        VBOX_MSI_INSTALL_PATH=C:\Program Files\Oracle\VirtualBox\
+        VIRTUAL_ENV_DISABLE_PROMPT=1
+        windir=C:\WINDOWS
+        ZSH_TMUX_AUTOSTART=false
+        ZSH_TMUX_AUTOSTARTED=true
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> r
+rax=0000000000000004 rbx=00000000000000e0 rcx=00000000000000e0
+rdx=0000000000000000 rsi=00000000ffffffff rdi=0000000000000000
+rip=00007fff34ac1b14 rsp=00000044d61cf258 rbp=0000000000000000
+ r8=0000000000000000  r9=000000000000001b r10=00000000000000e0
+r11=00000000000000e0 r12=0000000000000000 r13=0000000000000000
+r14=0000000000000000 r15=0000000000000000
+iopl=0         nv up ei pl zr na pe nc
+cs=0033  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00000246
+ntdll!NtWaitForSingleObject+0x14:
+00007fff`34ac1b14 c3              ret
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> kb
+RetAddr               : Args to Child                                                           : Call Site
+00007fff`3127b1bf     : 00000000`00000004 00007ff6`d830d210 00000000`00000000 00007ff6`d8315410 : ntdll!NtWaitForSingleObject+0x14
+00007ff6`d82dfb16     : 00000000`000000e0 00000000`00000001 0000015a`00000000 00000000`000000e0 : KERNELBASE!WaitForSingleObjectEx+0xaf
+00007ff6`d82f3e5b     : 00000000`00000001 00000000`ffffffff 00000000`00000001 00000000`00000001 : cmd!WaitProcAndCloseHandle+0x1e
+00007ff6`d82df140     : 0000015a`32fa8af0 0000015a`32fa8af0 0000015a`32fb2670 0000015a`32fdf8e0 : cmd!ExecPgm+0x7cb
+00007ff6`d82d8d52     : 0000015a`32fb2670 00000000`00000001 00000000`00000000 0000015a`32fb2670 : cmd!ECWork+0xac
+00007ff6`d82deb93     : 00000000`00000000 0000015a`32fb2670 00000000`00000001 00000000`00000000 : cmd!FindFixAndRun+0x2b2
+00007ff6`d83040a4     : 00000044`d61cfe20 0000015a`32fac850 00000000`00000002 00000000`00000002 : cmd!Dispatch+0x163
+00007ff6`d82f7aab     : 0000015a`32fac850 00000000`00000000 0000015a`32fb2ae0 00000000`00000000 : cmd!main+0x1a8
+00007fff`3352e8d7     : 00000000`00000000 00000000`00000000 00000000`00000000 00000000`00000000 : cmd!__scrt_common_main_seh+0x10b
+00007fff`349ec48c     : 00000000`00000000 00000000`00000000 000004f0`fffffb30 000004d0`fffffb30 : KERNEL32!BaseThreadInitThunk+0x17
+00000000`00000000     : 00000000`00000000 00000000`00000000 00000000`00000000 00000000`00000000 : ntdll!RtlUserThreadStart+0x2c
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> lm
+start             end                 module name
+00007ff6`d82d0000 00007ff6`d8340000   cmd        (pdb symbols)          c:\symbols\cmd.pdb\8BBF25BB998BF25D2271C7ADA3A50E1E1\cmd.pdb
+00007fff`31240000 00007fff`31631000   KERNELBASE   (pdb symbols)          c:\symbols\kernelbase.pdb\92F6993C1974DB86F9A4DE4D51FB4CB41\kernelbase.pdb
+00007fff`32030000 00007fff`3217b000   ucrtbase   (deferred)             
+00007fff`33500000 00007fff`335c9000   KERNEL32   (pdb symbols)          c:\symbols\kernel32.pdb\F7B745DE7A69EF1B7C8BE0C4FDED10A11\kernel32.pdb
+00007fff`33b50000 00007fff`33bf7000   sechost    (deferred)             
+00007fff`34960000 00007fff`34bc7000   ntdll      (pdb symbols)          c:\symbols\ntdll.pdb\5A9F4004DB806B50BCBD7B6C55417B041\ntdll.pdb
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> ~
+.  0  Id: 10fc.404 Suspend: 0 Teb: 00000044`d6366000 Unfrozen
+   1  Id: 10fc.2558 Suspend: 0 Teb: 00000044`d6368000 Unfrozen
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> .lastevent; !peb
+Last event: 10fc.404: Wake debugger - code 80000007 (first chance)
+  debugger time: Sun Apr  5 03:35:07.232 2026 (UTC - 4:00)
+PEB at 00000044d6365000
+    InheritedAddressSpace:    No
+    ReadImageFileExecOptions: No
+    BeingDebugged:            No
+    ImageBaseAddress:         00007ff6d82d0000
+    NtGlobalFlag:             0
+    NtGlobalFlag2:            0
+    Ldr                       00007fff34b32920
+    Ldr.Initialized:          Yes
+    Ldr.InInitializationOrderModuleList: 0000015a32fa50e0 . 0000015a32fa2f70
+    Ldr.InLoadOrderModuleList:           0000015a32fa5260 . 0000015a32fa2f50
+    Ldr.InMemoryOrderModuleList:         0000015a32fa5270 . 0000015a32fa2f60
+                    Base TimeStamp                     Module
+            7ff6d82d0000 939ae359 Jun 21 21:18:17 2048 C:\WINDOWS\system32\cmd.exe
+            7fff34960000 5ffc11eb Jan 11 05:52:59 2021 C:\WINDOWS\SYSTEM32\ntdll.dll
+            7fff33500000 10824ec0 Oct 11 14:34:56 1978 C:\WINDOWS\System32\KERNEL32.DLL
+            7fff31240000 0cc2a083 Oct 13 16:07:47 1976 C:\WINDOWS\System32\KERNELBASE.dll
+            7fff32030000 53a0792e Jun 17 13:21:50 2014 C:\WINDOWS\System32\ucrtbase.dll
+            7fff33b50000 5adfc0dd Apr 24 19:42:21 2018 C:\WINDOWS\System32\sechost.dll
+    SubSystemData:     0000000000000000
+    ProcessHeap:       0000015a32fa0000
+    ProcessParameters: 0000015a32fa95a0
+    CurrentDirectory:  'D:\repos\reverse\littlebigreversing\'
+    WindowTitle:  'C:\WINDOWS\system32\cmd.exe'
+    ImageFile:    'C:\WINDOWS\system32\cmd.exe'
+    CommandLine:  '"C:\WINDOWS\system32\cmd.exe" /k ping -t 127.0.0.1'
+    DllPath:      '< Name not readable >'
+    Environment:  0000015a32ff2130
+        =D:=D:\repos\reverse\littlebigreversing
+        ALLUSERSPROFILE=C:\ProgramData
+        AMDRMSDKPATH=C:\Program Files\AMD\RyzenMasterSDK\
+        APPDATA=C:\Users\sebam\AppData\Roaming
+        ChocolateyInstall=C:\ProgramData\chocolatey
+        ChocolateyLastPathUpdate=133735844417618933
+        CHROME_CRASHPAD_PIPE_NAME=\\.\pipe\crashpad_20660_ETVUQDCFEIFGMOPA
+        CODEX_INTERNAL_ORIGINATOR_OVERRIDE=Codex Desktop
+        CODEX_SHELL=1
+        CODEX_THREAD_ID=019d5c21-a695-7d82-8575-d243e860b127
+        CommonProgramFiles=C:\Program Files\Common Files
+        CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+        CommonProgramW6432=C:\Program Files\Common Files
+        COMPUTERNAME=BEEEE
+        ComSpec=C:\WINDOWS\system32\cmd.exe
+        CONDA_PROMPT_MODIFIER=False
+        DISABLE_AUTO_UPDATE=true
+        DriverData=C:\Windows\System32\Drivers\DriverData
+        HOMEDRIVE=C:
+        HOMEPATH=\Users\sebam
+        JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\
+        LOCALAPPDATA=C:\Users\sebam\AppData\Local
+        LOGONSERVER=\\BEEEE
+        NUMBER_OF_PROCESSORS=12
+        NVM_HOME=C:\Users\sebam\AppData\Roaming\nvm
+        NVM_SYMLINK=C:\nvm4w\nodejs
+        OneDrive=C:\Users\sebam\OneDrive
+        OneDriveConsumer=C:\Users\sebam\OneDrive
+        OS=Windows_NT
+        Path=C:\Program Files\PowerShell\7;C:\Users\sebam\.codex\tmp\arg0\codex-arg0kwxcW7;C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin;C:\Python312\Scripts\;C:\Python312\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files\Git\cmd;C:\Users\sebam\AppData\Roaming\nvm;c:\Users\sebam\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\sebam\AppData\Roaming\nvm;C:\nvm4w\nodejs;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\PowerShell\7\;C:\Users\sebam\.cargo\bin;C:\Users\sebam\AppData\Local\Programs\Python\Python313\Scripts\;C:\Users\sebam\AppData\Local\Programs\Python\Python313\;C:\Users\sebam\AppData\Local\Microsoft\WindowsApps;C:\Users\sebam\.dotnet\tools;C:\Users\sebam\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\sebam\.cache\lm-studio\bin;C:\Users\sebam\AppData\Roaming\npm;C:\Users\sebam\Downloads\AIShell-1.0.0-preview.1-win-x64;C:\Users\sebam\.dotnet\tools;C:\Users\sebam\AppData\Local\Microsoft\WindowsApps;C:\Users\sebam\AppData\Local\Programs\Ollama;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\dscharrer.innoextract_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\zig.zig_Microsoft.Winget.Source_8wekyb3d8bbwe\zig-x86_64-windows-0.15.2;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\ripgrep-15.1.0-x86_64-pc-windows-msvc;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\sharkdp.fd_Microsoft.Winget.Source_8wekyb3d8bbwe\fd-v10.4.2-x86_64-pc-windows-msvc;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\junegunn.fzf_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\mbuilov.sed_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\JesseDuffield.lazygit_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jdx.mise_Microsoft.Winget.Source_8wekyb3d8bbwe\mise\bin;D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV;D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\support;C:\Users\sebam\AppData\Local\Programs\Zed\bin;C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64;C:\Users\sebam\AppData\Local\OpenAI\Codex\bin;C:\Program Files\WindowsApps\OpenAI.Codex_26.325.3894.0_x64__2p2nqsd0c76g0\app\resources
+        PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL
+        POSH_SESSION_ID=a7adfe38-6ec0-44ef-9ce1-410123a9fad5
+        POSH_SHELL=pwsh
+        POSH_SHELL_VERSION=7.5.5
+        POWERLINE_COMMAND=oh-my-posh
+        POWERSHELL_DISTRIBUTION_CHANNEL=MSI:Windows 10 Pro
+        PROCESSOR_ARCHITECTURE=AMD64
+        PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD
+        PROCESSOR_LEVEL=25
+        PROCESSOR_REVISION=6102
+        ProgramData=C:\ProgramData
+        ProgramFiles=C:\Program Files
+        ProgramFiles(x86)=C:\Program Files (x86)
+        ProgramW6432=C:\Program Files
+        PROMPT=$P$G
+        PSModulePath=C:\Users\sebam\OneDrive\Documentos\PowerShell\Modules;C:\Program Files\PowerShell\Modules;c:\program files\powershell\7\Modules;C:\Users\sebam\OneDrive\Documentos\WindowsPowerShell\Modules;C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules
+        PUBLIC=C:\Users\Public
+        PYENV_VIRTUALENV_DISABLE_PROMPT=1
+        RUST_LOG=warn
+        SHELL=C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
+        SystemDrive=C:
+        SystemRoot=C:\WINDOWS
+        TEMP=C:\Users\sebam\AppData\Local\Temp
+        TMP=C:\Users\sebam\AppData\Local\Temp
+        USERDOMAIN=BEEEE
+        USERDOMAIN_ROAMINGPROFILE=BEEEE
+        USERNAME=sebam
+        USERPROFILE=C:\Users\sebam
+        VBOX_MSI_INSTALL_PATH=C:\Program Files\Oracle\VirtualBox\
+        VIRTUAL_ENV_DISABLE_PROMPT=1
+        windir=C:\WINDOWS
+        ZSH_TMUX_AUTOSTART=false
+        ZSH_TMUX_AUTOSTARTED=true
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58373)] 0:000> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+BEEEE\sebam (tcp [::ffff:127.0.0.1]:58379) disconnected at Sun Apr  5 03:35:31 2026

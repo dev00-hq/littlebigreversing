@@ -1,6 +1,6 @@
 # Frida Workflow For Gate 2
 
-This note replaces the manual "watch the CPU/registers in `x64dbg`" part of Gate 2 with a bounded runtime probe.
+This note replaces the manual "watch the CPU/registers in a GUI debugger" part of Gate 2 with a bounded runtime probe.
 
 The user still drives the game to the right moment. The repo-local tracer handles the `DoLife` / `PtrPrg` inspection, Tavern gating, screenshot capture, and terminal verdict automatically.
 
@@ -20,7 +20,7 @@ Current automation target:
 
 Current non-goals:
 
-- full single-step replacement for `x64dbg`
+- full Gate 3 WinDbg attribution
 - generic Windows debugging for unrelated subsystems
 - proof of `CASE` / `OR_CASE` / `BREAK` jump-target semantics beyond the bounded capture below
 
@@ -136,7 +136,9 @@ The canonical success path is:
 
 ## Follow-Up
 
-If Gate 3 needs more than bounded opcode-loop attribution, extend this tracer with additional hooks for:
+If Gate 3 needs more than bounded opcode-loop attribution, hand the live process off to [CDB_GATE3_WORKFLOW.md](/D:/repos/reverse/littlebigreversing/LM_TASKS/CDB_GATE3_WORKFLOW.md) and keep this tracer scoped to bounded repro proof. Only extend the tracer further if the WinDbg MCP pass proves that a missing Frida hook is the narrowest blocker.
+
+If a later prompt still needs more Frida-side detail, extend this tracer with additional hooks for:
 
 - the `LM_SWITCH` write path
 - `CASE` / `OR_CASE` jump assignment

@@ -113,7 +113,7 @@ For the hero pass specifically:
 
 The repo does not currently contain a checked-in save near the target, so the first pass should create one.
 
-Prefer the bounded Frida probe for owner recognition and `PtrPrg` attribution before widening into manual `x64dbg` stepping. Keep `x64dbg` for Gate 3 once the repro loop is stable.
+Prefer the bounded Frida probe for owner recognition and `PtrPrg` attribution before widening into WinDbg attribution. Keep the Frida run alive, then hand off to the configured `windbg` MCP server for Gate 3 once the repro loop is stable.
 
 Recommended first pass:
 
@@ -127,7 +127,13 @@ pwsh -File scripts\trace-life.ps1 -Launch -TimeoutSeconds 30
 
 4. Load the Tavern save and perform the smallest action that makes the intended hero tick run.
 5. Confirm whether the tracer records the hero-owned `0x76` hit without ad hoc wandering.
-6. Move to `x64dbg` only after the save plus action loop is repeatable.
+6. Move to WinDbg MCP only after the save plus action loop is repeatable:
+
+```powershell
+open_windbg_remote(connection_string=...)
+run_windbg_cmd(command="bp 0x004205BC")
+run_windbg_cmd(command="g")
+```
 
 The key behavioral question for the first pass is not deep semantics yet. It is only:
 

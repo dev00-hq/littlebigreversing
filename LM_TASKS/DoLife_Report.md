@@ -179,7 +179,7 @@ Wording that should be avoided:
 
 ## Recommended Next Step
 
-Do one dynamic falsification pass in `x64dbg`:
+Do one dynamic falsification pass through the detached `cdb` workflow:
 
 - break at `0x004205BC`
 - use a scene/object known to contain `0x74` or `0x76`

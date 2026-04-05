@@ -21,6 +21,34 @@ function Find-FirstExistingPath {
     return $null
 }
 
+function Resolve-CdbPath {
+    $command = Get-Command cdb -ErrorAction SilentlyContinue
+    if ($command) {
+        return $command.Source
+    }
+
+    $candidate = Find-FirstExistingPath -Candidates @(
+        "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe",
+        "C:\Program Files (x86)\Windows Kits\10\Debuggers\x86\cdb.exe",
+        "C:\Program Files\Windows Kits\10\Debuggers\x64\cdb.exe",
+        "C:\Program Files\Windows Kits\10\Debuggers\x86\cdb.exe"
+    )
+    if ($candidate) {
+        return $candidate
+    }
+
+    $appx = Get-AppxPackage Microsoft.WinDbg* -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($appx) {
+        return Find-FirstExistingPath -Candidates @(
+            (Join-Path $appx.InstallLocation "amd64\cdb.exe"),
+            (Join-Path $appx.InstallLocation "x86\cdb.exe"),
+            (Join-Path $appx.InstallLocation "arm64\cdb.exe")
+        )
+    }
+
+    return $null
+}
+
 function Add-CheckResult {
     param(
         [System.Collections.Generic.List[object]]$Results,
@@ -53,7 +81,6 @@ $paths = [ordered]@{
     "Extracted CD data"    = (Join-Path $repoRoot "work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2")
     "Porting report"       = (Join-Path $repoRoot "docs\PORTING_REPORT.md")
     "Ghidra"               = "D:\repos\reverse\ghidra"
-    "x64dbg"               = "D:\repos\reverse\x64dbg"
     "Detect It Easy"       = "D:\repos\reverse\Detect-It-Easy"
     "PE-bear"              = "D:\repos\reverse\PE-bear_0.7.1_qt6.8_x64_win_vs22\PE-bear.exe"
 }
@@ -150,6 +177,11 @@ $dosbox = Find-FirstExistingPath -Candidates @(
     (Join-Path $repoRoot "reference\lba2-classic\Speedrun\Windows\DOSBOX\DOSBox.exe"),
     (Join-Path $repoRoot "work\_innoextract_full\Speedrun\Windows\DOSBOX\DOSBox.exe")
 )
+$cdb = Resolve-CdbPath
+$x64dbg = Find-FirstExistingPath -Candidates @(
+    "D:\repos\reverse\x64dbg\x64dbg.exe",
+    "D:\repos\reverse\x64dbg"
+)
 $dosboxX = Find-FirstExistingPath -Candidates @(
     "C:\Program Files\DOSBox-X\dosbox-x.exe",
     "C:\Program Files (x86)\DOSBox-X\dosbox-x.exe",
@@ -176,9 +208,11 @@ $sdl2Lib = Find-FirstExistingPath -Candidates @(
 )
 
 foreach ($tool in @(
+    @{ Name = "CDB"; Path = $cdb; Category = "Runtime debugging"; Required = $false },
     @{ Name = "DOSBox runtime"; Path = $dosbox; Category = "Reference build"; Required = $false },
     @{ Name = "DOSBox-X"; Path = $dosboxX; Category = "Reference build"; Required = $false },
     @{ Name = "OpenWatcom"; Path = $openWatcom; Category = "Reference build"; Required = $false },
+    @{ Name = "x64dbg"; Path = $x64dbg; Category = "Reference build"; Required = $false },
     @{ Name = "SDL2 headers"; Path = $sdl2Header; Category = "Modern port" },
     @{ Name = "SDL2 library"; Path = $sdl2Lib; Category = "Modern port" }
 )) {
@@ -214,7 +248,7 @@ if ($missingRequired.Count -eq 0) {
 
 Write-Host ""
 if ($missingOptional.Count -gt 0) {
-    Write-Host "Optional reference-track tools not installed:" -ForegroundColor Cyan
+    Write-Host "Optional runtime/reference tools not installed:" -ForegroundColor Cyan
     foreach ($item in $missingOptional) {
         Write-Host ("  - [{0}] {1}" -f $item.Category, $item.Name)
     }
@@ -227,7 +261,12 @@ Write-Host "  - Visual Studio toolchain"
 Write-Host "  - SDL2 development package"
 Write-Host "  - Extracted CD data"
 Write-Host ""
+Write-Host "Canonical Windows runtime-debug path:" -ForegroundColor Cyan
+Write-Host "  - staged local Frida repo"
+Write-Host "  - CDB for detached Gate 3 debugger sessions"
+Write-Host ""
 Write-Host "Optional installs for reference-track work:" -ForegroundColor Cyan
+Write-Host "  - x64dbg for historical/debugger-comparison reference only"
 Write-Host "  - DOSBox-X for DOS-side runtime investigation"
 Write-Host "  - OpenWatcom for historic-build experiments"
 Write-Host ""

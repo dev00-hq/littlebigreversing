@@ -5,7 +5,7 @@
 - Split the problem in two:
   - Decoder proof: byte width, control-flow role, and whether these bytes must be recognized structurally.
   - Runtime proof: whether either opcode has executable behavior beyond being a structural marker.
-- Evidence priority: original Windows runtime in `x64dbg`, then `Ghidra`, then local asset slices; `idajs` is only for repro/synthetic experiments, and `lba2remake` is only a hypothesis source.
+- Evidence priority: original Windows runtime through the bounded Frida tracer first, then detached `cdb` sessions on the same live process, then `Ghidra`, then local asset slices; `idajs` is only for repro/synthetic experiments, and `lba2remake` is only a hypothesis source.
 
 ## Collaboration Workflow
 1. **Gate 1: Static dispatch proof in `Ghidra`**
@@ -33,8 +33,8 @@
   - how to identify the active actor/object in the debugger
   - confirmation that the same script tick can be hit repeatedly
 
-3. **Gate 3: Attribution-first `x64dbg` tracing**
-- You trace one hit at a time from the dispatch site, not from generic opcode scans.
+3. **Gate 3: Attribution-first detached `cdb` tracing**
+- You keep the Frida-established repro loop intact, start the repo-local detached `cdb` server on the already-running process, and trace one hit at a time from the dispatch site instead of from generic opcode scans.
 - I decode each trace row against the local raw bytes and tell you exactly what the next probe should be.
 - For every captured hit, record:
   - scene entry and owner (`hero` or object index)
@@ -50,6 +50,12 @@
   - after opcode fetch
   - jump assignment for `CASE`, `OR_CASE`, and `BREAK`
   - any code path that changes the switch cache or clears it
+- Canonical operator flow:
+  - bootstrap a WinDbg/CDB remote session out-of-band on the already-running target
+  - `open_windbg_remote(connection_string=...)`
+  - `run_windbg_cmd(command="...")`
+  - `send_ctrl_break(connection_string=...)` when a fresh break-in is needed
+  - `close_windbg_remote(connection_string=...)` when the session is done
 
 4. **Gate 4: Fast falsification tests**
 - We do not try to “confirm the hypothesis”; we try to break it.
@@ -108,7 +114,7 @@
 - Regression-ready asset test after proof: local decoder must fully scan the selected life blobs without hitting unsupported opcode errors.
 
 ## Assumptions And Defaults
-- Primary platform is the original Windows runtime with `x64dbg`; `DOSBox-X` is out of scope unless Windows tracing fails.
+- Primary platform is the original Windows runtime with staged Frida plus WinDbg MCP control over an existing remote session; `DOSBox-X` is out of scope unless Windows tracing fails.
 - We optimize for the smallest decisive evidence, not exhaustive reverse engineering.
 - `scene 44` is deferred because it is large and noisy.
 - The first acceptable success state is decoder proof, not full interpreter proof.
