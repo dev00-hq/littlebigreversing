@@ -2,7 +2,7 @@
 
 This note replaces the manual "watch the CPU/registers in `x64dbg`" part of Gate 2 with a bounded runtime probe.
 
-The user still drives the game to the right moment. The repo-local tracer handles the `DoLife` / `PtrPrg` inspection automatically.
+The user still drives the game to the right moment. The repo-local tracer handles the `DoLife` / `PtrPrg` inspection, Tavern gating, screenshot capture, and terminal verdict automatically.
 
 ## Scope
 
@@ -11,8 +11,12 @@ Current automation target:
 - original Windows `LBA2.EXE`
 - `DoLife` entry `0x00420574`
 - `DoLife` opcode-loop entry `0x004205BC`
+- `LM_SWITCH` / `LM_CASE` / `LM_OR_CASE` / `LM_BREAK` branch hooks from the recovered `DoLife` switch sites
 - current `PtrPrg`, `TypeAnswer`, `Value`
 - per-object `PtrLife`, `OffsetLife`, and `ExeSwitch` cache
+- Tavern fingerprint validation at `PtrLife + 40`
+- bounded Tavern screenshots correlated by tracer-minted event id
+- one terminal Tavern verdict
 
 Current non-goals:
 
@@ -43,39 +47,40 @@ The first automated probe still matches the existing Gate 2 target:
 - expected opcode `0x76`
 - expected `PtrPrg - PtrLife == 46`
 
-These values are the defaults in `scripts/trace-life.ps1`.
+These values are the Tavern defaults behind `scripts/trace-life.ps1 -Mode TavernTrace`.
 
 ## Run It
 
 Attach to an already-running game:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1
+pwsh -File scripts\trace-life.ps1 -Mode TavernTrace
 ```
 
 Or launch the canonical checked-in Windows executable under the tracer:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -Launch
+pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -Launch
 ```
 
 For a fail-fast bounded run while you validate the setup:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -Launch -TimeoutSeconds 30
+pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -Launch -TimeoutSeconds 30
 ```
 
 That launch path defaults to the DLL-complete checked-in runtime under `work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE`.
 
 Spawned `LBA2.EXE` instances are now cleaned up by default when the tracer exits. Use `-KeepAlive` only when you intentionally want to leave the game running for manual follow-up after attach/resume.
+In TavernTrace mode, `-TargetObject`, `-TargetOpcode`, and `-TargetOffset` are rejected because the mode is intentionally Tavern-specific.
 
 If the staged Frida repo is somewhere else:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -FridaRepoRoot D:\path\to\frida
+pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -FridaRepoRoot D:\path\to\frida
 ```
 
-If you need a different bounded target:
+If you need a different bounded target, stay in the generic mode:
 
 ```powershell
 pwsh -File scripts\trace-life.ps1 `
@@ -87,13 +92,13 @@ pwsh -File scripts\trace-life.ps1 `
 To capture every `DoLife` loop hit instead of only matching rows:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -LogAll -MaxHits 200
+pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -LogAll
 ```
 
 To keep the launched game alive after a successful or timed-out probe:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -Launch -KeepAlive
+pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -Launch -KeepAlive
 ```
 
 ## User Role During The Probe
@@ -102,33 +107,32 @@ The user only needs to:
 
 1. move the game to the target scene or save
 2. perform the in-game action that causes the life tick
-3. stop once the tracer records the bounded hit
+3. stop once the tracer records the Tavern verdict
 
 No manual register inspection is required.
 
 ## Output
 
-The tracer writes JSONL under `work/life_trace/`.
+The tracer writes JSONL under `work/life_trace/` and Tavern screenshots under `work/life_trace/shots/<run-id>/`.
 
-Each matching trace row includes:
+TavernTrace now emits:
 
-- owner kind and object index
-- current-object base
-- `PtrLife`
-- `OffsetLife`
-- current `PtrPrg`
-- `PtrPrg - PtrLife`
-- opcode byte
-- surrounding bytes around `PtrPrg`
-- current `TypeAnswer`
-- current `Value`
-- cached `ExeSwitch` fields
+- `target_validation`
+- `window_trace`
+- `branch_trace`
+- `screenshot`
+- `screenshot_error`
+- `do_life_return`
+- `verdict`
 
-That is enough to automate the old Gate 2 owner-recognition checks:
+The canonical success path is:
 
-- hero hit: `object_index == 0`
-- target opcode: `opcode_hex == 0x76`
-- expected offset: `ptr_prg_offset == 46`
+- fingerprint match on hero object `0`
+- `LM_BREAK` at offset `43` targeting offset `46`
+- hero opcode fetch `0x76` at offset `46`
+- explicit post-`0x76` outcome
+- four bounded screenshots, each keyed by the same event id as the proof event it documents
+- terminal verdict `tavern_trace_complete`
 
 ## Follow-Up
 

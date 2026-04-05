@@ -1,14 +1,17 @@
 param(
+    [ValidateSet("Basic", "TavernTrace")]
+    [string]$Mode = "Basic",
     [string]$ProcessName = "LBA2.EXE",
     [switch]$Launch,
     [string]$GameExe = "",
     [string]$OutputPath = "",
+    [string]$ScreenshotDir = "",
     [string]$FridaRepoRoot = "D:\repos\reverse\frida",
     [int]$TargetObject = 0,
     [int]$TargetOpcode = 0x76,
     [int]$TargetOffset = 46,
     [int]$MaxHits = 1,
-    [double]$TimeoutSeconds = 0,
+    [Nullable[double]]$TimeoutSeconds = $null,
     [switch]$KeepAlive,
     [switch]$LogAll
 )
@@ -36,19 +39,55 @@ if ([string]::IsNullOrWhiteSpace($OutputPath)) {
     $OutputPath = Join-Path $outputDir "life-trace-$timestamp.jsonl"
 }
 
+$resolvedMode = if ($Mode -eq "TavernTrace") { "tavern-trace" } else { "basic" }
+$resolvedTimeoutSeconds = $TimeoutSeconds
+
+if ($Mode -eq "TavernTrace") {
+    $conflictingFlags = @()
+    foreach ($parameterName in @("TargetObject", "TargetOpcode", "TargetOffset")) {
+        if ($PSBoundParameters.ContainsKey($parameterName)) {
+            $conflictingFlags += "-$parameterName"
+        }
+    }
+
+    if ($conflictingFlags.Count -gt 0) {
+        throw "The following flags conflict with -Mode TavernTrace: $($conflictingFlags -join ', ')"
+    }
+
+    if ([string]::IsNullOrWhiteSpace($ScreenshotDir)) {
+        $ScreenshotDir = Join-Path $repoRoot "work\life_trace\shots"
+    }
+
+    New-Item -ItemType Directory -Path $ScreenshotDir -Force | Out-Null
+
+    if (-not $PSBoundParameters.ContainsKey("TimeoutSeconds")) {
+        $resolvedTimeoutSeconds = 60
+    }
+} elseif (-not [string]::IsNullOrWhiteSpace($ScreenshotDir)) {
+    throw "-ScreenshotDir is only supported with -Mode TavernTrace"
+}
+
 $pythonArguments = @(
     $driver,
+    "--mode", $resolvedMode,
     "--process", $ProcessName,
     "--output", $OutputPath,
     "--frida-repo-root", (Resolve-Path $FridaRepoRoot).Path,
-    "--target-object", $TargetObject,
-    "--target-opcode", ("0x{0:X}" -f $TargetOpcode),
-    "--target-offset", $TargetOffset,
     "--max-hits", $MaxHits
 )
 
-if ($TimeoutSeconds -gt 0) {
-    $pythonArguments += @("--timeout-sec", $TimeoutSeconds)
+if ($Mode -eq "TavernTrace") {
+    $pythonArguments += @("--screenshot-dir", (Resolve-Path $ScreenshotDir).Path)
+} else {
+    $pythonArguments += @(
+        "--target-object", $TargetObject,
+        "--target-opcode", ("0x{0:X}" -f $TargetOpcode),
+        "--target-offset", $TargetOffset
+    )
+}
+
+if ($resolvedTimeoutSeconds -ne $null) {
+    $pythonArguments += @("--timeout-sec", [string]$resolvedTimeoutSeconds)
 }
 
 if ($KeepAlive) {

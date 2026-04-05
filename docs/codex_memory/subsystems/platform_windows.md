@@ -22,6 +22,7 @@ Own the canonical host assumptions for end-to-end Zig build, test, and runtime v
 - The runtime path is not host-agnostic today.
 - Repo-local SDL2 wiring is a checked-in assumption, not an ambient PATH fallback.
 - The bounded original-runtime Frida probe is not a general play harness. `scripts/trace-life.ps1 -Launch` now kills its spawned `LBA2.EXE` on exit unless `-KeepAlive` is set, and `-TimeoutSeconds` is the canonical fail-fast way to turn a no-hit wait into an explicit setup failure.
+- `scripts/trace-life.ps1 -Mode TavernTrace` is the canonical Windows entrypoint for the raw Tavern trace. It defaults to a `60` second timeout, writes screenshots under `work/life_trace/shots/<run-id>/`, and fails the run if any required screenshot cannot be captured from the live `LBA2` window.
 
 ## Canonical Entry Points
 
