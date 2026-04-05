@@ -1,6 +1,8 @@
 # Current Task
 
-This LM collaboration follows [LM_TASKS/LM_PLAN.md](/D:/repos/reverse/littlebigreversing/LM_TASKS/LM_PLAN.md).
+This file is the live handoff for the LM investigation stream.
+
+It follows the workflow in [LM_TASKS/LM_PLAN.md](/D:/repos/reverse/littlebigreversing/LM_TASKS/LM_PLAN.md), but it does not replace the repo's canonical product plan in `docs/codex_memory/`.
 
 ## Gate
 
