@@ -8,11 +8,12 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 
 ## Document Ownership
 
-- `sidequest/DECISION_PLAN.md` owns long-term strategic framing and the promotion rules for calling code engine core rather than compatibility.
 - `docs/LBA2_ZIG_PORT_PLAN.md` owns active roadmap phases, replan gates, and acceptance checks on the current execution path.
 - `docs/codex_memory/current_focus.md` owns active repo state, current blockers, and the operating focus for the checked-in tree.
+- Relevant subsystem packs under `docs/codex_memory/subsystems/` own durable current-state facts for their subsystem.
 - `docs/PROMPT.md` owns only the next narrow slice to execute.
-- `docs/PORTING_REPORT.md` plus the evidence memos remain supporting context, not execution owners.
+- `docs/PORTING_REPORT.md`, the evidence memos, and other research notes remain supporting context, not execution owners.
+- Canonical current-state pickup does not depend on `sidequest/` or `LM_TASKS/`; treat those as independent workstreams unless they are explicitly promoted.
 
 ## Canonical Direction
 
@@ -21,7 +22,7 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 - Product goal: high-parity reimplementation with one canonical codepath per subsystem
 - Tooling goal: make discovery, inspection, validation, and fixture generation first-class deliverables
 
-Long-term framing and layer-boundary policy live in `sidequest/DECISION_PLAN.md`. This roadmap stays parity-first on the checked-in execution path and should only claim extracted engine seams when they satisfy that document's promotion rules.
+This roadmap stays parity-first on the checked-in execution path and should only claim extracted engine seams when the live code and checked-in evidence justify them.
 
 If a format or behavior is not yet understood, fail with a precise diagnostic and deepen evidence for that subsystem. Do not add fallback parsers, compatibility shims, or speculative dual behavior.
 
@@ -32,7 +33,7 @@ The hard-cut product policy applies throughout this roadmap: prefer one canonica
 - The old `Foundation + asset CLI` boundary is already behind the repo; that baseline has landed.
 - The first-viewer gate is crossed. The checked-in port already has a runtime-backed interior viewer path, `BRK`-backed top-surface previews, viewer-local comparison and HUD surfaces, and a canonical Windows verification gate in `scripts/verify-viewer.ps1`; under the current branch-B boundary, `19/19` is the only supported positive guarded runtime/load pair, while `2/2`, `44/2`, and `11/10` are explicit guarded `ViewerUnsupportedSceneLife` rejections.
 - The first narrow runtime extraction has also landed: `runtime/session.zig` now initializes from explicit world-position input, while `runtime/room_state.zig` remains the mixed adapter that turns guarded `RoomSnapshot` data into that seed.
-- The current implementation stream is viewer-prep evidence work on top of that validated runtime/viewer path, not another foundation/bootstrap slice.
+- The current implementation stream is guarded runtime/viewer maintenance and bounded widening on top of that validated runtime/viewer path, not another foundation/bootstrap slice.
 - The remaining strategic blocker for widening from viewer-prep into scene-surface gameplay work is the life-script boundary around `LM_DEFAULT` and `LM_END_SWITCH`.
 
 ## Delivery Structure

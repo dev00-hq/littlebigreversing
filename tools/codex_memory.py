@@ -50,6 +50,10 @@ HISTORY_FILES = (
     "compat_events.jsonl",
     "task_events.jsonl",
 )
+CONTEXT_EXCLUDED_PATH_PREFIXES = ("sidequest/", "LM_TASKS/")
+CONTEXT_EXCLUDED_TASK_STREAMS = {"prompt-refresh", "windows-debug-workflow"}
+CONTEXT_EXCLUDED_TASK_STREAM_PREFIXES = ("lm-",)
+CONTEXT_EXCLUDED_TASK_STATUSES = {"planned", "in_progress"}
 OBSOLETE_PATHS = (
     "docs/codex_memory/handoff.md",
     "docs/codex_memory/decision_log.jsonl",
@@ -438,19 +442,26 @@ def select_subsystems(paths: MemoryPaths, names: list[str], repo_paths: list[str
     return selected
 
 
-def history_entries(paths: MemoryPaths, selected: set[str]) -> list[str]:
+def history_entries(paths: MemoryPaths, selected: set[str], *, include_excluded: bool = False) -> list[str]:
     _, rules = load_index(paths)
+    superseded_ids = history_superseded_ids(paths)
     entries = []
     for filename in HISTORY_FILES:
         kind = filename.replace(".jsonl", "")
         for _, record in load_jsonl(paths.history_path(filename)):
-            relevant = record.get("subsystem") in selected
-            if not relevant:
+            if record["record_id"] in superseded_ids:
+                continue
+            if "subsystem" in record:
+                relevant = record.get("subsystem") in selected
+            else:
+                relevant = False
                 for affected in record.get("affected_paths", []):
                     if any(name in selected for name in resolve_subsystems(affected, rules)):
                         relevant = True
                         break
             if not relevant:
+                continue
+            if not include_excluded and exclude_from_default_context(kind, record):
                 continue
             if kind == "policies":
                 text = f"{record['topic']}: {record['statement']} ({record['status']})"
@@ -467,7 +478,37 @@ def history_entries(paths: MemoryPaths, selected: set[str]) -> list[str]:
     return [item[1] for item in entries]
 
 
-def render_context(paths: MemoryPaths, subsystem_names: list[str] | None = None, repo_paths: list[str] | None = None, include_history: int = 0) -> str:
+def exclude_from_default_context(kind: str, record: dict) -> bool:
+    for field in ("affected_paths", "evidence_refs"):
+        for value in record.get(field, []):
+            normalized = normalize_path(value)
+            if any(normalized.startswith(prefix) for prefix in CONTEXT_EXCLUDED_PATH_PREFIXES):
+                return True
+    if kind != "task_events":
+        return False
+    if record.get("status") in CONTEXT_EXCLUDED_TASK_STATUSES:
+        return True
+    stream = record.get("stream", "")
+    if stream in CONTEXT_EXCLUDED_TASK_STREAMS:
+        return True
+    return any(stream.startswith(prefix) for prefix in CONTEXT_EXCLUDED_TASK_STREAM_PREFIXES)
+
+
+def history_superseded_ids(paths: MemoryPaths) -> set[str]:
+    ids = set()
+    for filename in HISTORY_FILES:
+        for _, record in load_jsonl(paths.history_path(filename)):
+            ids.update(record.get("supersedes", []))
+    return ids
+
+
+def render_context(
+    paths: MemoryPaths,
+    subsystem_names: list[str] | None = None,
+    repo_paths: list[str] | None = None,
+    include_history: int = 0,
+    include_excluded_history: bool = False,
+) -> str:
     errors = validate_all(paths)
     if errors:
         raise ValueError("\n".join(errors))
@@ -479,7 +520,7 @@ def render_context(paths: MemoryPaths, subsystem_names: list[str] | None = None,
         parts.extend(["", read_text(paths.subsystem_path(name)).strip()])
     if include_history > 0:
         targets = set(selected or parse_focus_subsystems(paths))
-        items = history_entries(paths, targets)
+        items = history_entries(paths, targets, include_excluded=include_excluded_history)
         if items:
             parts.extend(["", "## Recent History", *items[-include_history:]])
     return "\n".join(parts).strip() + "\n"
@@ -622,6 +663,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     context.add_argument("--subsystem", action="append", default=[])
     context.add_argument("--path", action="append", default=[])
     context.add_argument("--include-history", type=int, default=0)
+    context.add_argument(
+        "--include-excluded-history",
+        action="store_true",
+        help="Include history normally excluded from default canonical pickup, such as sidequest/ or LM task streams.",
+    )
 
     policy = sub.add_parser("add-policy", help="Append a policy record")
     policy.add_argument("--topic", required=True)
@@ -692,7 +738,16 @@ def main(argv: list[str] | None = None) -> int:
             print("ok")
             return 0
         if args.command == "context":
-            print(render_context(paths, args.subsystem, args.path, args.include_history), end="")
+            print(
+                render_context(
+                    paths,
+                    args.subsystem,
+                    args.path,
+                    args.include_history,
+                    args.include_excluded_history,
+                ),
+                end="",
+            )
             return 0
         if args.command == "add-policy":
             record = add_policy(paths, topic=args.topic, status=args.status, statement=args.statement, rationale=args.rationale, supersedes=args.supersedes, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)

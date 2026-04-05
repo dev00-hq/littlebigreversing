@@ -234,6 +234,166 @@ Repo-scoped memory for tests.
         self.assertNotIn("# Scene_Decode", output)
         self.assertNotIn("Scene inspection stays", output)
 
+    def test_context_history_prefers_fact_subsystem_over_affected_paths(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_fact(
+            paths,
+            subsystem="platform_linux",
+            status="current",
+            fact="Linux remains an analysis-only host.",
+            rationale="The checked-in runtime path is still Windows-first.",
+            supersedes=[],
+            evidence_refs=["docs/PHASE1_IMPLEMENTATION_MEMO.md"],
+            affected_paths=["scripts/check-env.ps1"],
+            author="tester",
+            timestamp="2026-03-26T22:07:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            subsystem_names=["platform_windows"],
+            include_history=5,
+        )
+        self.assertNotIn("Linux remains an analysis-only host.", output)
+
+    def test_context_history_excludes_noncanonical_and_nonfinal_task_records(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_task_event(
+            paths,
+            stream="viewer-prep",
+            status="completed",
+            summary="Background evidence boundary landed.",
+            next_actions=["Keep the guarded path explicit."],
+            evidence_refs=["port/src/game_data/background/parser.zig"],
+            affected_paths=["port/src/game_data/background/"],
+            author="tester",
+            timestamp="2026-03-26T23:10:00Z",
+        )
+        codex_memory.add_task_event(
+            paths,
+            stream="prompt-refresh",
+            status="completed",
+            summary="Refreshed prompt text for the next slice.",
+            next_actions=["Keep prompts narrow."],
+            evidence_refs=["docs/PROMPT.md"],
+            affected_paths=["port/src/game_data/background/"],
+            author="tester",
+            timestamp="2026-03-26T23:11:00Z",
+        )
+        codex_memory.add_task_event(
+            paths,
+            stream="viewer-prep",
+            status="in_progress",
+            summary="Still iterating on the boundary.",
+            next_actions=["Finish the boundary work."],
+            evidence_refs=["port/src/game_data/background/parser.zig"],
+            affected_paths=["port/src/game_data/background/"],
+            author="tester",
+            timestamp="2026-03-26T23:12:00Z",
+        )
+        codex_memory.add_task_event(
+            paths,
+            stream="windows-debug-workflow",
+            status="completed",
+            summary="LM debugger notes touched the background workflow.",
+            next_actions=["Keep debugger work task-local."],
+            evidence_refs=["tools/life_trace/trace_life.py"],
+            affected_paths=["port/src/game_data/background/"],
+            author="tester",
+            timestamp="2026-03-26T23:13:00Z",
+        )
+        codex_memory.add_task_event(
+            paths,
+            stream="lm-switch-repro-setup",
+            status="completed",
+            summary="LM trace work touched the same background code.",
+            next_actions=["Keep LM traces out of default pickup."],
+            evidence_refs=["tools/life_trace/trace_life.py"],
+            affected_paths=["port/src/game_data/background/"],
+            author="tester",
+            timestamp="2026-03-26T23:14:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            repo_paths=["port/src/game_data/background/parser.zig"],
+            include_history=10,
+        )
+        self.assertIn("Background evidence boundary landed.", output)
+        self.assertNotIn("Refreshed prompt text", output)
+        self.assertNotIn("Still iterating on the boundary.", output)
+        self.assertNotIn("LM debugger notes touched", output)
+        self.assertNotIn("LM trace work touched", output)
+
+    def test_context_history_can_include_excluded_records_on_request(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_task_event(
+            paths,
+            stream="prompt-refresh",
+            status="completed",
+            summary="Refreshed prompt text for the next slice.",
+            next_actions=["Keep prompts narrow."],
+            evidence_refs=["docs/PROMPT.md"],
+            affected_paths=["port/src/game_data/background/"],
+            author="tester",
+            timestamp="2026-03-26T23:11:00Z",
+        )
+        codex_memory.add_task_event(
+            paths,
+            stream="lm-switch-repro-setup",
+            status="completed",
+            summary="LM trace work touched the same background code.",
+            next_actions=["Keep LM traces out of default pickup unless requested."],
+            evidence_refs=["tools/life_trace/trace_life.py"],
+            affected_paths=["port/src/game_data/background/"],
+            author="tester",
+            timestamp="2026-03-26T23:14:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            repo_paths=["port/src/game_data/background/parser.zig"],
+            include_history=10,
+            include_excluded_history=True,
+        )
+        self.assertIn("Refreshed prompt text", output)
+        self.assertIn("LM trace work touched", output)
+
+    def test_context_history_hides_superseded_policies(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        old = codex_memory.add_policy(
+            paths,
+            topic="repo-framing",
+            status="accepted",
+            statement="Old framing rule.",
+            rationale="Older framing guidance.",
+            supersedes=[],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=["tools/codex_memory.py"],
+            author="tester",
+            timestamp="2026-03-26T23:15:00Z",
+        )
+        codex_memory.add_policy(
+            paths,
+            topic="repo-framing",
+            status="accepted",
+            statement="New framing rule.",
+            rationale="Newer framing guidance.",
+            supersedes=[old["record_id"]],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=["tools/codex_memory.py"],
+            author="tester",
+            timestamp="2026-03-26T23:16:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            subsystem_names=["architecture"],
+            include_history=5,
+        )
+        self.assertIn("New framing rule.", output)
+        self.assertNotIn("Old framing rule.", output)
+
     def test_add_each_record_type(self) -> None:
         paths = self.make_paths()
         self.scaffold(paths)

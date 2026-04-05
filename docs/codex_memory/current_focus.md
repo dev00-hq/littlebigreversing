@@ -4,19 +4,18 @@
 
 - Keep the topology-first `codex-memory-v2` tree canonical and small.
 - Treat `19/19` as the only supported positive branch-B runtime/load baseline.
-- Keep `11/10` as checked-in fragment evidence, not a guarded runtime-positive load.
+- Keep `2/2`, `44/2`, and `11/10` as guarded negative load cases, with `11/10` preserved only on explicit evidence or test paths.
 - Keep switch-family life outside the supported decoder/interpreter boundary.
 - Keep the runtime/load seam fail-fast on unsupported switch-family scene life.
 - Keep `runtime/session.zig` on explicit world-position seeds, not direct `RoomSnapshot` init.
-- Keep viewer-local locomotion explicit: raw `19/19` stays invalid until opt-in `39/6` seed.
-- Keep mapping falsification-oriented: only `hero_start_world_point` is admitted on bounded `19/19`.
-- Keep unchecked room topology evidence discovery-only: `2/2` and `11/10` remain flat and standable, so they do not justify richer relation classes.
+- Keep `runtime/world_query.zig` on bounded hero-motion evaluation and mapping falsification rather than broader gameplay widening.
+- Keep fast Windows validation additive: `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` are for iteration, while bare commands remain canonical.
 
 ## Active Streams
 
-- Supported-`19/19` scene/background inspection, `world_query` diagnostics, guarded `inspect-room`, `11/10` GRM evidence coverage, `BRK` previews, and viewer-local locomotion-status work.
+- Guarded `19/19` runtime/viewer maintenance and bounded widening on top of the landed `world_query` movement-evaluation path.
 - Fast Windows validation through `zig build test-fast` and `scripts/verify-viewer.ps1 -Fast`, with bare commands still canonical.
-- MBN corpus and phase0 evidence maintenance.
+- Memory hygiene: keep canonical pickup on `docs/codex_memory/`, the roadmap, and the live `port/` tree instead of `sidequest/` or `LM_TASKS/`.
 
 ## Blocked Items
 
@@ -26,21 +25,17 @@
 
 ## Next Actions
 
-- Keep gameplay/runtime widening centered on `SCENE.HQR[19]`, keep hero-motion evaluation on `runtime/world_query.zig`, and make viewer-local locomotion explicit before widening controls or spawn policy.
+- Keep gameplay/runtime widening centered on `SCENE.HQR[19]` and `runtime/world_query.zig`; do not widen spawn or control policy past the current guarded boundary without a new slice.
 - Use `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` during iteration, and keep bare `zig build test` plus `scripts/verify-viewer.ps1` as the before-close pass.
-- Stop topology relation expansion unless new evidence shows blocked or non-flat occupied neighbors; exclude `44/2` from unchecked interior-room scans because skipping the life guard reveals an exterior.
 - Keep future life work scoped to rejection diagnostics, fail-fast coverage for unsupported switch-family opcodes, or a reopened evidence pass only if new checked-in primary-source evidence appears.
-- Keep `2/2` and `44/2` as negative branch-B load cases, and keep `11/10` on explicit evidence-only/test-local paths unless the runtime boundary widens.
-- Keep future viewer work away from gameplay, life binding, exterior loading, or full room-art rendering unless a later prompt widens scope; prefer status work over broader input churn.
+- Keep `2/2`, `44/2`, and `11/10` on their current guarded or evidence-only roles unless the runtime boundary widens explicitly.
+- Keep canonical memory surfaces focused on current-state port work; treat `sidequest/` and `LM_TASKS/` as independent until they are deliberately promoted.
 
 ## Relevant Subsystem Packs
 
 - architecture
 - assets
-- mbn_corpus
-- phase0_baseline
 - scene_decode
 - backgrounds
 - life_scripts
 - platform_windows
-- platform_linux

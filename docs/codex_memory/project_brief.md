@@ -15,9 +15,7 @@ Reverse-engineering and port-planning workspace for Twinsen's Little Big Adventu
 ## Canonical Sources
 
 - `docs/LBA2_ZIG_PORT_PLAN.md`
-- `docs/PORTING_REPORT.md`
-- `docs/mbn_reference/README.md`
-- `docs/phase0/README.md`
+- `docs/codex_memory/current_focus.md`
 - `port/README.md`
 
 ## Invariants
@@ -25,6 +23,7 @@ Reverse-engineering and port-planning workspace for Twinsen's Little Big Adventu
 - One canonical current-state codepath per subsystem.
 - Codex memory lives only under `docs/codex_memory/`.
 - Structured history uses only `codex-memory-v2` JSONL files.
+- Default canonical memory pickup excludes `sidequest/` and `LM_TASKS/`.
 - Fail fast instead of adding silent fallbacks or compatibility glue.
 
 ## Non-Goals
@@ -32,4 +31,5 @@ Reverse-engineering and port-planning workspace for Twinsen's Little Big Adventu
 - cross-repo personal memory
 - transcript archiving
 - v1 memory compatibility
+- task-local sidequest or LM trackers as canonical memory
 - canonical generated mirrors or SQLite indexes
