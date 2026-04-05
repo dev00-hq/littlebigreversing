@@ -82,6 +82,7 @@ Use explicit replan gates after the evidence baseline, the first-viewer gate, th
 
 - Status: crossed.
 - Keep the runtime-backed interior viewer path on Windows validated through `scripts/verify-viewer.ps1`, with `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]` as the only supported positive guarded runtime/load baseline.
+- Keep `scripts/verify-viewer.ps1 -Fast` as the additive daily local loop, not as a replacement for the canonical bare script.
 - Keep `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, `SCENE.HQR[44]` plus `LBA_BKG.HQR[2]`, and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as explicit guarded negative `inspect-room` / viewer-load cases under branch B.
 - Preserve `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as the checked-in fragment-bearing evidence pair only on explicit test-only unchecked paths, not as a supported guarded runtime fixture.
 - Treat viewer-local composition snapshots, `BRK`-backed previews, fragment comparison, HUD/legend cues, and provenance overlays as evidence surfaces on top of a landed runtime path, not as proof that the repo is still pre-viewer.
@@ -138,6 +139,8 @@ Expose a small set of first-class commands early:
 ### Foundation and Decode Tests
 
 - `zig build` and `zig build test` pass for the checked-in workspace and decode/runtime baseline.
+- `zig build test-fast` is the daily local loop and excludes only the isolated all-scene life-audit inventory shard.
+- `zig build test-life-audit-all` holds the slow all-scene life-audit inventory coverage that still rolls up under `zig build test`.
 - Invalid asset roots and missing canonical files fail with explicit diagnostics.
 - HQR header and table parsing match known fixture bytes.
 - Selected entries from `RESS.HQR`, `SCENE.HQR`, `ANIM.HQR`, and `SPRITES.HQR` decode consistently across repeated runs.
@@ -146,6 +149,7 @@ Expose a small set of first-class commands early:
 ### Viewer Gate Tests
 
 - `scripts/verify-viewer.ps1` is the canonical Windows acceptance gate for the landed viewer/runtime path.
+- `scripts/verify-viewer.ps1 -Fast` reuses the same staged `lba2-tool` / `lba2` assertions but swaps in `zig build test-fast` for daily iteration.
 - `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]` is the only positive guarded runtime/load launch and `inspect-room` success case.
 - `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, `SCENE.HQR[44]` plus `LBA_BKG.HQR[2]`, and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` remain explicit guarded `ViewerUnsupportedSceneLife` rejection cases for `inspect-room`.
 - Fragment-bearing `11/10` evidence stays covered on explicit test-only unchecked loader paths, not through the canonical guarded CLI/runtime seam.

@@ -3,6 +3,7 @@ const paths_mod = @import("../../foundation/paths.zig");
 const background_data = @import("../../game_data/background.zig");
 const scene_data = @import("../../game_data/scene.zig");
 const state = @import("../../runtime/room_state.zig");
+const room_fixtures = @import("../../testing/room_fixtures.zig");
 
 fn sumFloorTypeCounts(counts: [16]usize) usize {
     var total: usize = 0;
@@ -129,12 +130,7 @@ test "viewer fragment zones project canonical cell coverage from scene bounds" {
 }
 
 test "viewer room snapshot keeps the supported canonical interior pair stable" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
     try std.testing.expectEqual(@as(usize, 19), room.scene.entry_index);
     try std.testing.expectEqual(@as(?usize, 17), room.scene.classic_loader_scene_number);
@@ -187,12 +183,7 @@ test "viewer room snapshot keeps the supported canonical interior pair stable" {
 }
 
 test "viewer room snapshot projects the checked-in fragment-bearing evidence pair on the unchecked path" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.unchecked1110();
 
     try std.testing.expectEqual(@as(usize, 11), room.scene.entry_index);
     try std.testing.expectEqual(@as(?usize, 9), room.scene.classic_loader_scene_number);
@@ -234,12 +225,7 @@ test "viewer room snapshot projects the checked-in fragment-bearing evidence pai
 }
 
 test "viewer render snapshot derives a deterministic schematic from the supported room baseline" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
     const render = state.buildRenderSnapshot(room);
     try std.testing.expectEqual(@as(usize, 64), render.grid_width);

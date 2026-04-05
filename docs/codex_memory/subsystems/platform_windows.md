@@ -13,6 +13,8 @@ Own the canonical host assumptions for end-to-end Zig build, test, and runtime v
 ## Current Parity Status
 
 - `zig build test`, `zig build tool`, and `zig build run` are validated through the Windows-first build graph.
+- The Windows build graph now also exposes `zig build test-fast`, `zig build test-life-audit-all`, and `zig build stage-viewer`.
+- `scripts/verify-viewer.ps1 -Fast` is the additive daily local loop; bare `scripts/verify-viewer.ps1` remains canonical.
 - PowerShell helper scripts exist for environment setup and checks.
 - A repo-local PowerShell wrapper plus Frida agent can attach to the original Windows `LBA2.EXE` for bounded life-interpreter probes.
 - The Codex app can now use the configured `windbg` MCP server to control an existing WinDbg/CDB remote session for Gate 3 debugger work.
@@ -27,6 +29,7 @@ Own the canonical host assumptions for end-to-end Zig build, test, and runtime v
 - The current safe debugger control surface is the `windbg` MCP server, not a shell-managed reconnect wrapper.
 - `mcp-windbg` currently controls crash dumps and existing remote debug sessions; it does not attach directly to a local PID for us, so remote-session bootstrap still stays out-of-band until a stable attach method exists.
 - The repo-local `scripts/cdb-session.ps1` experiment is not canonical after host freezes reproduced during shell-managed remote reconnect tests on 2026-04-05.
+- `scripts/verify-viewer.ps1 -Fast` is not the canonical acceptance gate; it intentionally skips only the isolated slow all-scene life-audit shard.
 
 ## Canonical Entry Points
 
@@ -48,8 +51,10 @@ Own the canonical host assumptions for end-to-end Zig build, test, and runtime v
 - `pwsh -File scripts/dev-shell.ps1`
 - configured `windbg` MCP server: `open_windbg_remote`
 - configured `windbg` MCP server: `run_windbg_cmd`
+- `cd port && zig build test-fast`
+- `pwsh -File .\scripts\verify-viewer.ps1 -Fast`
 - `cd port && zig build test`
-- `cd port && zig build run`
+- `pwsh -File .\scripts\verify-viewer.ps1`
 
 ## Open Unknowns
 

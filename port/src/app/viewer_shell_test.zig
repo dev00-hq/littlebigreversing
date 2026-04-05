@@ -1,5 +1,5 @@
 const std = @import("std");
-const paths_mod = @import("../foundation/paths.zig");
+const room_fixtures = @import("../testing/room_fixtures.zig");
 const runtime_query = @import("../runtime/world_query.zig");
 const viewer_shell = @import("viewer_shell.zig");
 
@@ -21,11 +21,7 @@ test "viewer argument parsing requires explicit scene and background entries" {
 
 test "viewer window title carries the canonical room metadata" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try viewer_shell.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
     const title = try viewer_shell.formatWindowTitleZ(allocator, room);
     defer allocator.free(title);
@@ -46,17 +42,12 @@ test "viewer window title carries the canonical room metadata" {
 }
 
 test "viewer locomotion harness keeps raw invalid 19/19 starts non-mutating" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try viewer_shell.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    var runtime_session = viewer_shell.initSession(&room);
+    var runtime_session = viewer_shell.initSession(room);
     const raw_start = runtime_session.heroWorldPosition();
-    const status = try viewer_shell.initLocomotionStatus(&room, runtime_session);
-    const attempt = viewer_shell.attemptLocomotionStep(&room, &runtime_session, .south);
+    const status = try viewer_shell.initLocomotionStatus(room, runtime_session);
+    const attempt = viewer_shell.attemptLocomotionStep(room, &runtime_session, .south);
 
     switch (status) {
         .raw_invalid_start => |value| {
@@ -74,18 +65,13 @@ test "viewer locomotion harness keeps raw invalid 19/19 starts non-mutating" {
 }
 
 test "viewer locomotion harness seeds the session to the checked-in 19/19 movement fixture" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try viewer_shell.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    var runtime_session = viewer_shell.initSession(&room);
-    const seeded = try viewer_shell.seedSessionToLocomotionFixture(&room, &runtime_session);
-    const query = runtime_query.init(&room);
+    var runtime_session = viewer_shell.initSession(room);
+    const seeded = try viewer_shell.seedSessionToLocomotionFixture(room, &runtime_session);
+    const query = runtime_query.init(room);
     const seeded_eval = query.evaluateHeroMoveTarget(seeded);
-    const status = try viewer_shell.locomotionStatusAfterSeed(&room, runtime_session);
+    const status = try viewer_shell.locomotionStatusAfterSeed(room, runtime_session);
 
     try std.testing.expectEqual(seeded, runtime_session.heroWorldPosition());
     try std.testing.expectEqual(runtime_query.MoveTargetStatus.allowed, seeded_eval.status);
@@ -102,18 +88,13 @@ test "viewer locomotion harness seeds the session to the checked-in 19/19 moveme
 }
 
 test "viewer locomotion harness mutates only on allowed seeded steps" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try viewer_shell.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    var runtime_session = viewer_shell.initSession(room);
+    const seeded = try viewer_shell.seedSessionToLocomotionFixture(room, &runtime_session);
 
-    var runtime_session = viewer_shell.initSession(&room);
-    const seeded = try viewer_shell.seedSessionToLocomotionFixture(&room, &runtime_session);
-
-    const moved = viewer_shell.attemptLocomotionStep(&room, &runtime_session, .south);
-    const moved_status = viewer_shell.locomotionStatusAfterAttempt(&room, runtime_session, .south, moved);
+    const moved = viewer_shell.attemptLocomotionStep(room, &runtime_session, .south);
+    const moved_status = viewer_shell.locomotionStatusAfterAttempt(room, runtime_session, .south, moved);
     try std.testing.expectEqual(viewer_shell.ViewerLocomotionStepStatus.moved, moved.status);
     try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 39, .z = 7 }), moved.target.raw_cell.cell);
     try std.testing.expect(runtime_session.heroWorldPosition().z > seeded.z);
@@ -128,8 +109,8 @@ test "viewer locomotion harness mutates only on allowed seeded steps" {
 
     runtime_session.setHeroWorldPosition(seeded);
     const before_reject = runtime_session.heroWorldPosition();
-    const rejected = viewer_shell.attemptLocomotionStep(&room, &runtime_session, .west);
-    const rejected_status = viewer_shell.locomotionStatusAfterAttempt(&room, runtime_session, .west, rejected);
+    const rejected = viewer_shell.attemptLocomotionStep(room, &runtime_session, .west);
+    const rejected_status = viewer_shell.locomotionStatusAfterAttempt(room, runtime_session, .west, rejected);
     try std.testing.expectEqual(viewer_shell.ViewerLocomotionStepStatus.target_rejected, rejected.status);
     try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_empty, rejected.target.status);
     try std.testing.expectEqual(before_reject, runtime_session.heroWorldPosition());

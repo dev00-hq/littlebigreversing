@@ -1,6 +1,6 @@
 const std = @import("std");
-const paths_mod = @import("../../foundation/paths.zig");
 const state = @import("../../runtime/room_state.zig");
+const room_fixtures = @import("../../testing/room_fixtures.zig");
 const fragment_compare = @import("fragment_compare.zig");
 
 fn sumFragmentComparisonCounts(catalog: fragment_compare.FragmentComparisonCatalog) usize {
@@ -273,11 +273,7 @@ test "viewer fragment comparison selection can step ranked entries and fragment 
 
 test "viewer fragment comparison panel pins the selected cell ahead of the ranked head" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.unchecked1110();
 
     const render = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, render);
@@ -314,11 +310,7 @@ test "viewer fragment comparison panel pins the selected cell ahead of the ranke
 
 test "viewer fragment comparison panel keeps the checked-in fragment pair inspectable" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.unchecked1110();
 
     const render = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, render);

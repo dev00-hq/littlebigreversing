@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const diagnostics = @import("../foundation/diagnostics.zig");
 const paths_mod = @import("../foundation/paths.zig");
 const catalog = @import("../assets/catalog.zig");
@@ -9,6 +10,7 @@ const scene_data = @import("../game_data/scene.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
 const room_state = @import("../runtime/room_state.zig");
+const room_fixtures = if (builtin.is_test) @import("../testing/room_fixtures.zig") else struct {};
 
 const Command = enum {
     inventory_assets,
@@ -702,7 +704,7 @@ fn inspectRoom(
     const room = try room_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
     defer room.deinit(allocator);
 
-    const payload = buildRoomInspectionPayload(room);
+    const payload = buildRoomInspectionPayload(&room);
     if (output_json) {
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
@@ -806,7 +808,7 @@ fn inspectRoom(
     try stderr.flush();
 }
 
-fn buildRoomInspectionPayload(room: room_state.RoomSnapshot) RoomInspectionPayload {
+fn buildRoomInspectionPayload(room: *const room_state.RoomSnapshot) RoomInspectionPayload {
     return .{
         .command = "inspect-room",
         .scene = .{
@@ -1613,12 +1615,7 @@ test "argument parsing rejects inspect-life-program duplicate selectors" {
 }
 
 test "inspect-room composes the guarded canonical interior pair metadata" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
     const payload = buildRoomInspectionPayload(room);
     try std.testing.expectEqualStrings("inspect-room", payload.command);
@@ -1666,11 +1663,7 @@ test "inspect-room composes the guarded canonical interior pair metadata" {
 
 test "inspect-room json keeps the guarded canonical interior pair stable" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
     const json = try stringifyJsonAlloc(allocator, buildRoomInspectionPayload(room));
     defer allocator.free(json);

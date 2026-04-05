@@ -160,7 +160,7 @@ pub fn initSession(room: *const RoomSnapshot) Session {
     return runtime_session.Session.init(state.heroStartWorldPoint(room));
 }
 
-pub fn buildRenderSnapshot(room: RoomSnapshot, current_session: Session) RenderSnapshot {
+pub fn buildRenderSnapshot(room: *const RoomSnapshot, current_session: Session) RenderSnapshot {
     return state.buildRenderSnapshotWithHeroPosition(room, current_session.heroWorldPosition());
 }
 
@@ -502,7 +502,7 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
 pub fn printStartupDiagnostics(
     writer: anytype,
     resolved: paths_mod.ResolvedPaths,
-    room: RoomSnapshot,
+    room: *const RoomSnapshot,
 ) !void {
     try diagnostics.printLine(writer, &.{
         .{ .key = "event", .value = "startup" },
@@ -595,7 +595,7 @@ pub fn printStartupDiagnostics(
     try printUsedBlockSummary(writer, room.background.used_block_ids);
 }
 
-pub fn formatWindowTitleZ(allocator: std.mem.Allocator, room: RoomSnapshot) ![:0]u8 {
+pub fn formatWindowTitleZ(allocator: std.mem.Allocator, room: *const RoomSnapshot) ![:0]u8 {
     const used_blocks = try formatUsedBlockSummaryAlloc(allocator, room.background.used_block_ids, 6);
     defer allocator.free(used_blocks);
 

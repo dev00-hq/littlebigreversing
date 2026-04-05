@@ -1,8 +1,8 @@
 const std = @import("std");
-const paths_mod = @import("../../foundation/paths.zig");
 const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
 const state = @import("../../runtime/room_state.zig");
+const room_fixtures = @import("../../testing/room_fixtures.zig");
 const viewer_shell = @import("../viewer_shell.zig");
 const viewer_state = @import("state.zig");
 const draw = @import("draw.zig");
@@ -152,7 +152,7 @@ fn renderZeroFragmentTrace(
     runtime_session: viewer_shell.Session,
     status: viewer_shell.ViewerLocomotionStatus,
 ) !sdl.CanvasTrace {
-    const snapshot = viewer_shell.buildRenderSnapshot(room.*, runtime_session);
+    const snapshot = viewer_shell.buildRenderSnapshot(room, runtime_session);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
@@ -168,11 +168,7 @@ fn renderZeroFragmentTrace(
 
 test "viewer render path draws the checked-in fragment comparison panel and focus highlight" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.unchecked1110();
 
     const snapshot = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
@@ -262,11 +258,7 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
 
 test "viewer render path exposes a deterministic owning-zone rect for the focused checked-in fragment cell on the unchecked evidence path" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.unchecked1110();
 
     const snapshot = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
@@ -303,11 +295,7 @@ test "viewer render path exposes a deterministic owning-zone rect for the focuse
 
 test "viewer render path keeps the selected cell pinned at the head of the comparison panel" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.unchecked1110();
 
     const snapshot = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
@@ -337,15 +325,11 @@ test "viewer render path keeps the selected cell pinned at the head of the compa
 
 test "viewer render path surfaces all viewer-local locomotion states on the zero-fragment guarded path" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const raw_runtime_session = viewer_shell.initSession(&room);
-    const raw_status = try viewer_shell.initLocomotionStatus(&room, raw_runtime_session);
-    var raw_trace = try renderZeroFragmentTrace(allocator, &room, raw_runtime_session, raw_status);
+    const raw_runtime_session = viewer_shell.initSession(room);
+    const raw_status = try viewer_shell.initLocomotionStatus(room, raw_runtime_session);
+    var raw_trace = try renderZeroFragmentTrace(allocator, room, raw_runtime_session, raw_status);
     defer raw_trace.deinit(allocator);
 
     try std.testing.expect(hasTraceText(raw_trace, "RAW START INVALID"));
@@ -355,32 +339,32 @@ test "viewer render path surfaces all viewer-local locomotion states on the zero
     try std.testing.expect(hasTraceText(raw_trace, "ARROWS MOVE HERO"));
     try std.testing.expect(hasTraceText(raw_trace, "RAW START STAYS"));
 
-    var seeded_runtime_session = viewer_shell.initSession(&room);
-    _ = try viewer_shell.seedSessionToLocomotionFixture(&room, &seeded_runtime_session);
-    const seeded_status = try viewer_shell.locomotionStatusAfterSeed(&room, seeded_runtime_session);
-    var seeded_trace = try renderZeroFragmentTrace(allocator, &room, seeded_runtime_session, seeded_status);
+    var seeded_runtime_session = viewer_shell.initSession(room);
+    _ = try viewer_shell.seedSessionToLocomotionFixture(room, &seeded_runtime_session);
+    const seeded_status = try viewer_shell.locomotionStatusAfterSeed(room, seeded_runtime_session);
+    var seeded_trace = try renderZeroFragmentTrace(allocator, room, seeded_runtime_session, seeded_status);
     defer seeded_trace.deinit(allocator);
 
     try std.testing.expect(hasTraceText(seeded_trace, "FIXTURE SEEDED VALID"));
     try std.testing.expect(hasTraceText(seeded_trace, "CELL 39/6 STATUS ALLOWED"));
     try std.testing.expect(hasTraceText(seeded_trace, "ARROWS MOVE FROM HERE"));
 
-    var moved_runtime_session = viewer_shell.initSession(&room);
-    _ = try viewer_shell.seedSessionToLocomotionFixture(&room, &moved_runtime_session);
-    const moved_attempt = viewer_shell.attemptLocomotionStep(&room, &moved_runtime_session, .south);
-    const moved_status = viewer_shell.locomotionStatusAfterAttempt(&room, moved_runtime_session, .south, moved_attempt);
-    var moved_trace = try renderZeroFragmentTrace(allocator, &room, moved_runtime_session, moved_status);
+    var moved_runtime_session = viewer_shell.initSession(room);
+    _ = try viewer_shell.seedSessionToLocomotionFixture(room, &moved_runtime_session);
+    const moved_attempt = viewer_shell.attemptLocomotionStep(room, &moved_runtime_session, .south);
+    const moved_status = viewer_shell.locomotionStatusAfterAttempt(room, moved_runtime_session, .south, moved_attempt);
+    var moved_trace = try renderZeroFragmentTrace(allocator, room, moved_runtime_session, moved_status);
     defer moved_trace.deinit(allocator);
 
     try std.testing.expect(hasTraceText(moved_trace, "MOVE SOUTH ACCEPTED"));
     try std.testing.expect(hasTraceText(moved_trace, "CELL 39/7 STATUS ALLOWED"));
     try std.testing.expect(hasTraceText(moved_trace, "HERO POSITION UPDATED"));
 
-    var rejected_runtime_session = viewer_shell.initSession(&room);
-    _ = try viewer_shell.seedSessionToLocomotionFixture(&room, &rejected_runtime_session);
-    const rejected_attempt = viewer_shell.attemptLocomotionStep(&room, &rejected_runtime_session, .west);
-    const rejected_status = viewer_shell.locomotionStatusAfterAttempt(&room, rejected_runtime_session, .west, rejected_attempt);
-    var rejected_trace = try renderZeroFragmentTrace(allocator, &room, rejected_runtime_session, rejected_status);
+    var rejected_runtime_session = viewer_shell.initSession(room);
+    _ = try viewer_shell.seedSessionToLocomotionFixture(room, &rejected_runtime_session);
+    const rejected_attempt = viewer_shell.attemptLocomotionStep(room, &rejected_runtime_session, .west);
+    const rejected_status = viewer_shell.locomotionStatusAfterAttempt(room, rejected_runtime_session, .west, rejected_attempt);
+    var rejected_trace = try renderZeroFragmentTrace(allocator, room, rejected_runtime_session, rejected_status);
     defer rejected_trace.deinit(allocator);
 
     try std.testing.expect(hasTraceText(rejected_trace, "MOVE WEST REJECTED"));
@@ -390,19 +374,15 @@ test "viewer render path surfaces all viewer-local locomotion states on the zero
 
 test "viewer render path keeps the zero-fragment room out of the comparison panel" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
     const snapshot = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
     const comparison_frame_if_present = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, true).comparison_frame.?;
-    const runtime_session = viewer_shell.initSession(&room);
-    const locomotion_status = try viewer_shell.initLocomotionStatus(&room, runtime_session);
+    const runtime_session = viewer_shell.initSession(room);
+    const locomotion_status = try viewer_shell.initLocomotionStatus(room, runtime_session);
     var status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
     const display = viewer_shell.formatLocomotionStatusDisplay(&status_buffer, locomotion_status);
 
@@ -424,11 +404,7 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
 
 test "viewer render path fails fast when a required brick preview is missing" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 11, 10);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.unchecked1110();
 
     const snapshot = state.buildRenderSnapshot(room);
     const missing_brick_index = findReferencedBrickIndex(snapshot);

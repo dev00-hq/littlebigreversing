@@ -18,7 +18,7 @@
 - `mbn_corpus`: `docs/mbn_reference/`, `tools/mbn_catalog_parser.py`, `tools/mbn_workbench.py`, `tools/mbn_workbench.md`, `reference/discourse-downloader/`, `reference/littlebigreversing/`
 - `phase0_baseline`: `docs/phase0/`, `tools/lba2_phase0.py`
 - `scene_decode`: `port/src/game_data/scene.zig`, `port/src/game_data/scene/model.zig`, `port/src/game_data/scene/parser.zig`, `port/src/game_data/scene/zones.zig`, `port/src/game_data/scene/track_program.zig`, `port/src/game_data/scene/tests.zig`, `port/src/game_data/scene/tests/asset_regressions.zig`, `port/src/game_data/scene/tests/parser_tests.zig`, `port/src/game_data/scene/tests/support.zig`, `port/src/game_data/scene/tests/track_program_tests.zig`, `port/src/game_data/scene/tests/zone_tests.zig`
-- `life_scripts`: `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md`, `port/src/game_data/scene/life_audit.zig`, `port/src/game_data/scene/life_program.zig`, `port/src/game_data/scene/tests/life_audit_tests.zig`, `port/src/game_data/scene/tests/life_program_tests.zig`
+- `life_scripts`: `docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md`, `port/src/game_data/scene/life_audit.zig`, `port/src/game_data/scene/life_program.zig`, `port/src/game_data/scene/tests/life_audit_fast_tests.zig`, `port/src/game_data/scene/tests/life_audit_all_scene_tests.zig`, `port/src/game_data/scene/tests/life_program_tests.zig`
 - `backgrounds`: `port/src/game_data/background.zig`, `port/src/game_data/background/`
 - `platform_windows`: `port/build.zig`, `scripts/check-env.ps1`, `scripts/dev-shell.ps1`
 - `platform_linux`: `docs/codex_memory/subsystems/platform_linux.md`

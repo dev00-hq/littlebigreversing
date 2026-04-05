@@ -1,5 +1,6 @@
 const std = @import("std");
-const paths_mod = @import("../foundation/paths.zig");
+const builtin = @import("builtin");
+const room_fixtures = if (builtin.is_test) @import("../testing/room_fixtures.zig") else struct {};
 const world_geometry = @import("world_geometry.zig");
 
 pub const HeroWorldDelta = struct {
@@ -58,15 +59,10 @@ test "runtime session initializes mutable hero state from an explicit world-posi
 }
 
 test "runtime session updates stay separate from immutable room snapshot ownership" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
     const room_state = @import("room_state.zig");
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    var runtime_session = Session.init(room_state.heroStartWorldPoint(&room));
+    var runtime_session = Session.init(room_state.heroStartWorldPoint(room));
     runtime_session.advanceFrame(.{
         .hero_world_delta = .{ .x = 32, .y = -16, .z = 64 },
     });
@@ -81,15 +77,10 @@ test "runtime session updates stay separate from immutable room snapshot ownersh
 }
 
 test "runtime render snapshots consume session state without duplicating guarded loading" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
     const room_state = @import("room_state.zig");
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    var runtime_session = Session.init(room_state.heroStartWorldPoint(&room));
+    var runtime_session = Session.init(room_state.heroStartWorldPoint(room));
     runtime_session.setHeroWorldPosition(.{
         .x = 2222,
         .y = 640,

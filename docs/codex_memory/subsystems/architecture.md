@@ -13,7 +13,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `sidequest/DECISION_PLAN.md` frames, `docs/LBA2_ZIG_PORT_PLAN.md` guides work, `port/` stays canonical, `runtime/world_geometry.zig` owns neutral geometry, `room_state.zig` owns the `19/19` seam and hero-start adaptation, `session.zig` seeds from world input, `world_query.zig` owns movement evaluation, and `main.zig` plus `app/viewer_shell.zig` own the zero-fragment locomotion harness.
+- `port/` stays canonical; `runtime/world_geometry.zig` owns neutral geometry, `room_state.zig` owns the guarded `19/19` seam and hero-start adaptation, `session.zig` seeds from world input, `world_query.zig` owns movement evaluation, and `main.zig` plus `app/viewer_shell.zig` own the zero-fragment locomotion harness.
 
 ## Known Traps
 
@@ -26,8 +26,8 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - `44/2` is only a guarded life-boundary negative. On the unchecked test path it becomes `ViewerSceneMustBeInterior`, so it is not an interior topology candidate.
 - The positive fragment evidence pair is `11/10`, not a same-index guess, and its `grm` projection needs max-coordinate boundary alignment.
 - `11/10` stays evidence-only on explicit test paths, and its guarded blocker is the first-hit object `12` `LM_DEFAULT` at byte offset `38`, not the later object `18` `LM_END_SWITCH` at offset `84`.
-- `docs/PORTING_REPORT.md` still carries older feasibility context; use it as evidence background, not as the execution owner.
-- Canonical Windows Zig checks should run from native PowerShell after `.\scripts\dev-shell.ps1`; reserve `bash -lc` for inspection work.
+- Canonical Windows Zig checks should run from native PowerShell after `.\scripts\dev-shell.ps1`.
+- `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` are the daily loop, not replacements for the canonical full gate.
 - `zig build test` is not a substitute for a prompt's explicit `zig build run` or `zig build tool` acceptance command.
 - Interrupted `zig build run` viewer launches can strand `lba2.exe` under `port/zig-out/bin/` and make the next install step fail with `AccessDenied`. If that happens, clear the stale `lba2` process before treating the runtime command as a code regression.
 - The checked-in v2 history can already be dirty. If `python tools/codex_memory.py validate` fails at task start, inspect flagged JSONL records for canonicalization drift such as stale `record_id` hashes, fractional-second timestamps, or overlong summaries before treating the CLI as the problem.

@@ -1,7 +1,7 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
-const paths_mod = @import("../../foundation/paths.zig");
 const state = @import("../../runtime/room_state.zig");
+const room_fixtures = @import("../../testing/room_fixtures.zig");
 const layout = @import("layout.zig");
 
 test "viewer fragment debug layout reserves a deterministic comparison panel" {
@@ -16,12 +16,7 @@ test "viewer fragment debug layout reserves a deterministic comparison panel" {
 }
 
 test "viewer projection keeps the canonical schematic fit stable" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
     const render = state.buildRenderSnapshot(room);
     const schematic_layout = layout.computeSchematicLayout(960, 540, render.grid_width, render.grid_depth);
@@ -42,12 +37,7 @@ test "viewer projection keeps the canonical schematic fit stable" {
 }
 
 test "viewer projection moves the hero marker down the schematic after southward seeded locomotion" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const room = try state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
     const seeded_render = state.buildRenderSnapshotWithHeroPosition(room, .{
         .x = 20224,

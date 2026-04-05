@@ -69,12 +69,36 @@ pub fn build(b: *std.Build) void {
     validate_cmd.addArg("validate-phase1");
     validate_step.dependOn(&validate_cmd.step);
 
-    const tests = b.addTest(.{
-        .root_module = root_mod,
+    const stage_viewer_step = b.step("stage-viewer", "Install staged viewer binaries for verification");
+    stage_viewer_step.dependOn(&install_app.step);
+    stage_viewer_step.dependOn(&install_tool.step);
+    stage_viewer_step.dependOn(&install_sdl2_dll.step);
+
+    const fast_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/test_fast.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
-    const run_tests = b.addRunArtifact(tests);
-    const test_step = b.step("test", "Run parser and asset regression tests");
-    test_step.dependOn(&run_tests.step);
+    const run_fast_tests = b.addRunArtifact(fast_tests);
+    const test_fast_step = b.step("test-fast", "Run the fast parser and runtime regression suite");
+    test_fast_step.dependOn(&run_fast_tests.step);
+
+    const life_audit_all_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/test_life_audit_all.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    const run_life_audit_all_tests = b.addRunArtifact(life_audit_all_tests);
+    const test_life_audit_all_step = b.step("test-life-audit-all", "Run the slow all-scene life-audit inventory tests");
+    test_life_audit_all_step.dependOn(&run_life_audit_all_tests.step);
+
+    const test_step = b.step("test", "Run the full parser and runtime regression suite");
+    test_step.dependOn(test_fast_step);
+    test_step.dependOn(test_life_audit_all_step);
 }
 
 fn requirePathExists(b: *std.Build, relative_path: []const u8) void {

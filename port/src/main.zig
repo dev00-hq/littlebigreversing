@@ -50,13 +50,13 @@ pub fn main() !void {
 
     var runtime_session = lba2.app.viewer_shell.initSession(&room);
     var locomotion_status = try lba2.app.viewer_shell.initLocomotionStatus(&room, runtime_session);
-    try lba2.app.viewer_shell.printStartupDiagnostics(stderr, resolved, room);
+    try lba2.app.viewer_shell.printStartupDiagnostics(stderr, resolved, &room);
     try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
-    var render = lba2.app.viewer_shell.buildRenderSnapshot(room, runtime_session);
+    var render = lba2.app.viewer_shell.buildRenderSnapshot(&room, runtime_session);
     var fragment_catalog = try lba2.app.viewer_shell.buildFragmentComparisonCatalog(allocator, render);
     defer fragment_catalog.deinit(allocator);
     var fragment_selection = lba2.app.viewer_shell.initialFragmentComparisonSelection(fragment_catalog);
-    const title = try lba2.app.viewer_shell.formatWindowTitleZ(allocator, room);
+    const title = try lba2.app.viewer_shell.formatWindowTitleZ(allocator, &room);
     defer allocator.free(title);
     try stderr.flush();
 
@@ -95,7 +95,7 @@ pub fn main() !void {
                 allocator,
                 &canvas,
                 stderr,
-                room,
+                &room,
                 runtime_session,
                 &render,
                 &fragment_catalog,
@@ -142,7 +142,7 @@ pub fn main() !void {
                     allocator,
                     &canvas,
                     stderr,
-                    room,
+                    &room,
                     runtime_session,
                     &render,
                     &fragment_catalog,
@@ -181,7 +181,7 @@ fn renderCurrentFrame(
     allocator: std.mem.Allocator,
     canvas: *lba2.platform.sdl.Canvas,
     stderr: anytype,
-    room: lba2.app.viewer_shell.RoomSnapshot,
+    room: *const lba2.app.viewer_shell.RoomSnapshot,
     runtime_session: lba2.app.viewer_shell.Session,
     render: *lba2.app.viewer_shell.RenderSnapshot,
     fragment_catalog: *lba2.app.viewer_shell.FragmentComparisonCatalog,

@@ -369,12 +369,12 @@ fn loadRoomSnapshotInternal(
     };
 }
 
-pub fn buildRenderSnapshot(room: RoomSnapshot) RenderSnapshot {
-    return buildRenderSnapshotWithHeroPosition(room, heroStartWorldPoint(&room));
+pub fn buildRenderSnapshot(room: *const RoomSnapshot) RenderSnapshot {
+    return buildRenderSnapshotWithHeroPosition(room, heroStartWorldPoint(room));
 }
 
 pub fn buildRenderSnapshotWithHeroPosition(
-    room: RoomSnapshot,
+    room: *const RoomSnapshot,
     hero_position: WorldPointSnapshot,
 ) RenderSnapshot {
     const world_bounds = WorldBounds{

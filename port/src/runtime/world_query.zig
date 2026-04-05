@@ -1,5 +1,7 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const paths_mod = @import("../foundation/paths.zig");
+const room_fixtures = if (builtin.is_test) @import("../testing/room_fixtures.zig") else struct {};
 const world_geometry = @import("world_geometry.zig");
 const room_state = @import("room_state.zig");
 const session = @import("session.zig");
@@ -1454,14 +1456,9 @@ fn moveTargetStatusForProbe(raw_cell: WorldPointCellProbe, hero_y: i32) MoveTarg
 }
 
 test "runtime world query consumes the guarded room snapshot for base topology queries" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
+    const query = init(room);
     const occupied_tile = room.background.composition.tiles[0];
     const surface = try query.cellTopSurface(occupied_tile.x, occupied_tile.z);
 
@@ -1493,14 +1490,9 @@ test "runtime world query consumes the guarded room snapshot for base topology q
 }
 
 test "runtime world query rejects empty and out-of-bounds cells explicitly" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
+    const query = init(room);
 
     try std.testing.expectEqual(false, try query.isOccupiedCell(0, 0));
     try std.testing.expectError(error.WorldCellEmpty, query.cellTopSurface(0, 0));
@@ -1509,14 +1501,9 @@ test "runtime world query rejects empty and out-of-bounds cells explicitly" {
 }
 
 test "runtime world query reports diagnostic local neighbor topology for an occupied 19/19 cell" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
+    const query = init(room);
     const origin_tile = room.background.composition.tiles[0];
     const topology = try query.probeLocalNeighborTopology(origin_tile.x, origin_tile.z);
 
@@ -1574,14 +1561,9 @@ test "runtime world query reports diagnostic local neighbor topology for an occu
 }
 
 test "runtime world query rejects invalid origin cells for local neighbor topology probes" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
+    const query = init(room);
 
     try std.testing.expectError(error.WorldCellEmpty, query.probeLocalNeighborTopology(0, 0));
     try std.testing.expectError(error.WorldCellOutOfBounds, query.probeLocalNeighborTopology(64, 0));
@@ -1589,13 +1571,9 @@ test "runtime world query rejects invalid origin cells for local neighbor topolo
 
 test "runtime world query summarizes observed local neighbor patterns on the guarded 19/19 baseline" {
     const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
+    const query = init(room);
     const summary = try query.summarizeObservedNeighborPatterns(allocator);
     defer summary.deinit(allocator);
 
@@ -1617,14 +1595,9 @@ test "runtime world query summarizes observed local neighbor patterns on the gua
 }
 
 test "runtime world query separates raw hero-start mapping evidence from heuristic candidates on the supported snapshot" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
+    const query = init(room);
     try std.testing.expectError(error.HeroStartCellEmpty, query.validateHeroStart());
 
     const hero_start = try query.probeHeroStart();
@@ -1665,15 +1638,10 @@ test "runtime world query separates raw hero-start mapping evidence from heurist
 }
 
 test "runtime world query keeps the baked 19/19 hero start invalid under move-target evaluation" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
-    const runtime_session = session.Session.init(room_state.heroStartWorldPoint(&room));
+    const query = init(room);
+    const runtime_session = session.Session.init(room_state.heroStartWorldPoint(room));
     const hero_start_move = query.evaluateHeroMoveTarget(runtime_session.heroWorldPosition());
 
     try std.testing.expectEqual(runtime_session.heroWorldPosition(), hero_start_move.target_world_position);
@@ -1685,14 +1653,9 @@ test "runtime world query keeps the baked 19/19 hero start invalid under move-ta
 }
 
 test "runtime world query evaluates bounded move targets from a seeded guarded 19/19 fixture" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
+    const query = init(room);
     const seeded_surface = try query.cellTopSurface(39, 6);
     const south_surface = try query.cellTopSurface(39, 7);
     try std.testing.expectEqual(Standability.standable, try query.standabilityAtCell(39, 6));
@@ -1710,7 +1673,7 @@ test "runtime world query evaluates bounded move targets from a seeded guarded 1
     };
     const height_mismatch_target = gridCellCenterWorldPosition(39, 7, south_surface.top_y - world_grid_span_y);
 
-    var runtime_session = session.Session.init(room_state.heroStartWorldPoint(&room));
+    var runtime_session = session.Session.init(room_state.heroStartWorldPoint(room));
     runtime_session.setHeroWorldPosition(seeded_start);
     try std.testing.expectEqual(seeded_start, runtime_session.heroWorldPosition());
     try std.testing.expect(runtime_session.heroWorldPosition().x != room.scene.hero_start.x);
@@ -1756,14 +1719,9 @@ test "runtime world query evaluates bounded move targets from a seeded guarded 1
 }
 
 test "runtime world query compares fixed mapping hypotheses without promoting diagnostic candidates" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
+    const query = init(room);
     const report = try query.evaluateHeroStartMappings();
     const canonical = report.evaluation(.canonical_axis_aligned_512);
     const swapped_512 = report.evaluation(.swapped_axes_512_control);
@@ -1822,7 +1780,7 @@ test "runtime world query compares fixed mapping hypotheses without promoting di
         try std.testing.expect(!(evaluation.cell_span_xz == 64 and evaluation.axis_interpretation == .aligned));
     }
 
-    const runtime_session = session.Session.init(room_state.heroStartWorldPoint(&room));
+    const runtime_session = session.Session.init(room_state.heroStartWorldPoint(room));
     const hero_position = runtime_session.heroWorldPosition();
     try std.testing.expectEqual(report.raw_world_position.x, hero_position.x);
     try std.testing.expectEqual(report.raw_world_position.y, hero_position.y);
@@ -1830,14 +1788,9 @@ test "runtime world query compares fixed mapping hypotheses without promoting di
 }
 
 test "runtime world query reports out-of-bounds mapping evidence without forcing a heuristic narrative" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
+    const query = init(room);
     const raw_cell = query.probeCellAtWorldPoint(-16, 3743);
     const coverage = query.occupiedCoverageForCell(raw_cell.cell);
 
@@ -1982,14 +1935,9 @@ test "runtime world query rejects scene-object anchors without floor-truth scori
 }
 
 test "runtime world query ranks zones ahead of scene objects for the bounded extra-anchor investigation" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
+    const room = try room_fixtures.guarded1919();
 
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer room.deinit(allocator);
-
-    const query = init(&room);
+    const query = init(room);
     const investigation = query.investigateAdditionalEvidenceAnchor();
 
     try std.testing.expectEqual(EvidenceAnchorKind.zone_world_point, investigation.ranked_candidates[0].anchor_kind);
@@ -2078,10 +2026,9 @@ test "runtime world query ranks checked-in unchecked evidence rooms and finds no
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    const baseline_room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
-    defer baseline_room.deinit(allocator);
+    const baseline_room = try room_fixtures.guarded1919();
 
-    const baseline_query = init(&baseline_room);
+    const baseline_query = init(baseline_room);
     const baseline_summary = try baseline_query.summarizeObservedNeighborPatterns(allocator);
     defer baseline_summary.deinit(allocator);
 

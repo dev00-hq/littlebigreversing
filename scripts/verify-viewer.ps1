@@ -1,4 +1,6 @@
-param()
+param(
+    [switch]$Fast
+)
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
@@ -50,6 +52,41 @@ function Invoke-ZigCommand {
     return $output
 }
 
+function Invoke-ExecutableCommand {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$WorkingDirectory,
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath,
+        [Parameter(Mandatory = $true)]
+        [string]$Label,
+        [Parameter(Mandatory = $true)]
+        [string[]]$Arguments
+    )
+
+    Write-Host ""
+    Write-Host ("=== {0} ===" -f $Label) -ForegroundColor Cyan
+
+    Push-Location $WorkingDirectory
+    try {
+        $output = (& $FilePath @Arguments 2>&1 | Out-String)
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        Pop-Location
+    }
+
+    $trimmed = $output.TrimEnd()
+    if ($trimmed.Length -gt 0) {
+        Write-Host $trimmed
+    }
+
+    return [pscustomobject]@{
+        Output   = $output
+        ExitCode = $exitCode
+    }
+}
+
 function Assert-Equal {
     param(
         [Parameter(Mandatory = $true)]
@@ -70,6 +107,8 @@ function Test-InspectRoomSuccess {
         [Parameter(Mandatory = $true)]
         [string]$PortRoot,
         [Parameter(Mandatory = $true)]
+        [string]$ToolPath,
+        [Parameter(Mandatory = $true)]
         [int]$Scene,
         [Parameter(Mandatory = $true)]
         [int]$Background,
@@ -79,17 +118,17 @@ function Test-InspectRoomSuccess {
         [int]$ExpectedGrmEntry
     )
 
-    $json = Invoke-ZigCommand -WorkingDirectory $PortRoot -Label ("zig build tool -- inspect-room {0} {1} --json" -f $Scene, $Background) -Arguments @(
-        "build",
-        "tool",
-        "--",
+    $result = Invoke-ExecutableCommand -WorkingDirectory $PortRoot -FilePath $ToolPath -Label ("lba2-tool inspect-room {0} {1} --json" -f $Scene, $Background) -Arguments @(
         "inspect-room",
         "$Scene",
         "$Background",
         "--json"
     )
+    if ($result.ExitCode -ne 0) {
+        throw ("inspect-room {0}/{1} failed with exit code {2}." -f $Scene, $Background, $result.ExitCode)
+    }
 
-    $payload = $json | ConvertFrom-Json
+    $payload = $result.Output | ConvertFrom-Json
 
     Assert-Equal -Label "inspect-room command" -Actual $payload.command -Expected "inspect-room"
     Assert-Equal -Label "scene entry index" -Actual $payload.scene.entry_index -Expected $Scene
@@ -111,6 +150,8 @@ function Test-InspectRoomFailure {
         [Parameter(Mandatory = $true)]
         [string]$PortRoot,
         [Parameter(Mandatory = $true)]
+        [string]$ToolPath,
+        [Parameter(Mandatory = $true)]
         [int]$Scene,
         [Parameter(Mandatory = $true)]
         [int]$Background,
@@ -118,28 +159,18 @@ function Test-InspectRoomFailure {
         [string]$ExpectedError
     )
 
-    Write-Host ""
-    Write-Host ("=== zig build tool -- inspect-room {0} {1} --json (expected failure) ===" -f $Scene, $Background) -ForegroundColor Cyan
+    $result = Invoke-ExecutableCommand -WorkingDirectory $PortRoot -FilePath $ToolPath -Label ("lba2-tool inspect-room {0} {1} --json (expected failure)" -f $Scene, $Background) -Arguments @(
+        "inspect-room",
+        "$Scene",
+        "$Background",
+        "--json"
+    )
 
-    Push-Location $PortRoot
-    try {
-        $output = (& zig build tool -- inspect-room "$Scene" "$Background" --json 2>&1 | Out-String)
-        $exitCode = $LASTEXITCODE
-    }
-    finally {
-        Pop-Location
-    }
-
-    $trimmed = $output.TrimEnd()
-    if ($trimmed.Length -gt 0) {
-        Write-Host $trimmed
-    }
-
-    if ($exitCode -eq 0) {
+    if ($result.ExitCode -eq 0) {
         throw ("inspect-room {0}/{1} unexpectedly succeeded." -f $Scene, $Background)
     }
-    if ($output -notmatch [regex]::Escape($ExpectedError)) {
-        throw ("inspect-room {0}/{1} failed, but did not mention {2}. Output:`n{3}" -f $Scene, $Background, $ExpectedError, $trimmed)
+    if ($result.Output -notmatch [regex]::Escape($ExpectedError)) {
+        throw ("inspect-room {0}/{1} failed, but did not mention {2}. Output:`n{3}" -f $Scene, $Background, $ExpectedError, $result.Output.TrimEnd())
     }
 
     return [pscustomobject]@{
@@ -154,6 +185,8 @@ function Test-ViewerLaunch {
         [Parameter(Mandatory = $true)]
         [string]$PortRoot,
         [Parameter(Mandatory = $true)]
+        [string]$ViewerPath,
+        [Parameter(Mandatory = $true)]
         [int]$Scene,
         [Parameter(Mandatory = $true)]
         [int]$Background,
@@ -163,7 +196,7 @@ function Test-ViewerLaunch {
     )
 
     Write-Host ""
-    Write-Host ("=== zig build run -- --scene-entry {0} --background-entry {1} ===" -f $Scene, $Background) -ForegroundColor Cyan
+    Write-Host ("=== lba2 --scene-entry {0} --background-entry {1} ===" -f $Scene, $Background) -ForegroundColor Cyan
 
     Stop-StaleViewerProcesses
 
@@ -172,10 +205,7 @@ function Test-ViewerLaunch {
     $proc = $null
 
     try {
-        $proc = Start-Process -FilePath "zig" -WorkingDirectory $PortRoot -ArgumentList @(
-            "build",
-            "run",
-            "--",
+        $proc = Start-Process -FilePath $ViewerPath -WorkingDirectory $PortRoot -ArgumentList @(
             "--scene-entry",
             "$Scene",
             "--background-entry",
@@ -248,14 +278,25 @@ $inspectSuccessResults = [System.Collections.Generic.List[object]]::new()
 $inspectFailureResults = [System.Collections.Generic.List[object]]::new()
 $launchResults = [System.Collections.Generic.List[object]]::new()
 
-Invoke-ZigCommand -WorkingDirectory $portRoot -Label "zig build test" -Arguments @("build", "test") | Out-Null
+$testStep = if ($Fast) { "test-fast" } else { "test" }
+Invoke-ZigCommand -WorkingDirectory $portRoot -Label ("zig build {0}" -f $testStep) -Arguments @("build", $testStep) | Out-Null
+Invoke-ZigCommand -WorkingDirectory $portRoot -Label "zig build stage-viewer" -Arguments @("build", "stage-viewer") | Out-Null
 
-$inspectSuccessResults.Add((Test-InspectRoomSuccess -PortRoot $portRoot -Scene 19 -Background 19 -ExpectedFragments 0 -ExpectedGrmEntry 151))
-$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -Scene 2 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife"))
-$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -Scene 44 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife"))
-$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -Scene 11 -Background 10 -ExpectedError "ViewerUnsupportedSceneLife"))
+$toolPath = Join-Path $portRoot "zig-out\bin\lba2-tool.exe"
+$viewerPath = Join-Path $portRoot "zig-out\bin\lba2.exe"
+if (-not (Test-Path $toolPath)) {
+    throw ("Missing staged tool binary: {0}" -f $toolPath)
+}
+if (-not (Test-Path $viewerPath)) {
+    throw ("Missing staged viewer binary: {0}" -f $viewerPath)
+}
 
-$launchResults.Add((Test-ViewerLaunch -PortRoot $portRoot -Scene 19 -Background 19 -ExpectedFragments 0))
+$inspectSuccessResults.Add((Test-InspectRoomSuccess -PortRoot $portRoot -ToolPath $toolPath -Scene 19 -Background 19 -ExpectedFragments 0 -ExpectedGrmEntry 151))
+$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 2 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife"))
+$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 44 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife"))
+$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 11 -Background 10 -ExpectedError "ViewerUnsupportedSceneLife"))
+
+$launchResults.Add((Test-ViewerLaunch -PortRoot $portRoot -ViewerPath $viewerPath -Scene 19 -Background 19 -ExpectedFragments 0))
 
 Write-Host ""
 Write-Host "Viewer verification summary" -ForegroundColor Green

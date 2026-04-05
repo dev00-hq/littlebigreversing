@@ -106,6 +106,10 @@ Acceptance:
 - `render.zig` does not become a locomotion-policy owner
 - from native PowerShell, after `.\scripts\dev-shell.ps1`, run:
   - `cd port`
+  - `zig build test-fast`
+  - `cd ..`
+  - `.\scripts\verify-viewer.ps1 -Fast`
+  - `cd port`
   - `zig build test`
   - `cd ..`
   - `.\scripts\verify-viewer.ps1`

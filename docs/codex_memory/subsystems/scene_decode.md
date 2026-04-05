@@ -20,6 +20,7 @@ Own the typed `SCENE.HQR` metadata model, parser, zone semantics, and track-prog
 
 - `SCENE.HQR[0]` is reserved loader state, so real scene numbering is offset.
 - Scene tests are asset-backed; `zig build test` is not a stripped-down unit-only pass.
+- `zig build test-fast` is the daily loop and omits only the isolated all-scene life-audit inventory shard; `zig build test` still owns the full scene decode gate.
 
 ## Canonical Entry Points
 
@@ -37,6 +38,7 @@ Own the typed `SCENE.HQR` metadata model, parser, zone semantics, and track-prog
 
 - `cd port && zig build tool -- inspect-scene 2 --json`
 - `cd port && zig build tool -- inspect-scene 44 --json`
+- `cd port && zig build test-fast`
 - `cd port && zig build test`
 
 ## Open Unknowns
