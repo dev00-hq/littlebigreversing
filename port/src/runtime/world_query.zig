@@ -74,6 +74,16 @@ pub const MoveTargetEvaluation = struct {
     }
 };
 
+pub const CardinalMoveOptionEvaluation = struct {
+    direction: CardinalDirection,
+    evaluation: MoveTargetEvaluation,
+};
+
+pub const CardinalMoveOptionSet = struct {
+    origin: MoveTargetEvaluation,
+    options: [cardinal_directions.len]CardinalMoveOptionEvaluation,
+};
+
 pub const CellNeighborProbe = struct {
     direction: CardinalDirection,
     cell: ?GridCell,
@@ -535,6 +545,29 @@ pub const WorldQuery = struct {
             .raw_cell = raw_cell,
             .occupied_coverage = self.occupiedCoverageForCell(raw_cell.cell),
             .status = moveTargetStatusForProbe(raw_cell, target_world_position.y),
+        };
+    }
+
+    pub fn evaluateCardinalMoveOptions(
+        self: WorldQuery,
+        origin_world_position: WorldPointSnapshot,
+    ) !CardinalMoveOptionSet {
+        const origin = self.evaluateHeroMoveTarget(origin_world_position);
+        if (!origin.isAllowed()) return error.MoveTargetOriginInvalid;
+
+        var options: [cardinal_directions.len]CardinalMoveOptionEvaluation = undefined;
+        inline for (cardinal_directions, 0..) |direction, index| {
+            options[index] = .{
+                .direction = direction,
+                .evaluation = self.evaluateHeroMoveTarget(
+                    worldPointSteppedInDirection(origin_world_position, direction),
+                ),
+            };
+        }
+
+        return .{
+            .origin = origin,
+            .options = options,
         };
     }
 
@@ -1455,6 +1488,34 @@ fn moveTargetStatusForProbe(raw_cell: WorldPointCellProbe, hero_y: i32) MoveTarg
     };
 }
 
+fn worldPointSteppedInDirection(
+    origin_world_position: WorldPointSnapshot,
+    direction: CardinalDirection,
+) WorldPointSnapshot {
+    return switch (direction) {
+        .north => .{
+            .x = origin_world_position.x,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z - world_grid_span_xz,
+        },
+        .east => .{
+            .x = origin_world_position.x + world_grid_span_xz,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z,
+        },
+        .south => .{
+            .x = origin_world_position.x,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z + world_grid_span_xz,
+        },
+        .west => .{
+            .x = origin_world_position.x - world_grid_span_xz,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z,
+        },
+    };
+}
+
 test "runtime world query consumes the guarded room snapshot for base topology queries" {
     const room = try room_fixtures.guarded1919();
 
@@ -1716,6 +1777,61 @@ test "runtime world query evaluates bounded move targets from a seeded guarded 1
         }
     }
     try std.testing.expectEqual(@as(?GridCell, null), first_blocked_cell);
+}
+
+test "runtime world query evaluates cardinal move options from an admitted guarded 19/19 position" {
+    const room = try room_fixtures.guarded1919();
+
+    const query = init(room);
+    const seeded_surface = try query.cellTopSurface(39, 6);
+    const seeded_start = gridCellCenterWorldPosition(39, 6, seeded_surface.top_y);
+
+    const option_set = try query.evaluateCardinalMoveOptions(seeded_start);
+
+    try std.testing.expectEqual(MoveTargetStatus.allowed, option_set.origin.status);
+    try std.testing.expectEqual(@as(?GridCell, .{ .x = 39, .z = 6 }), option_set.origin.raw_cell.cell);
+
+    const north_eval = query.evaluateHeroMoveTarget(WorldPointSnapshot{
+        .x = seeded_start.x,
+        .y = seeded_start.y,
+        .z = seeded_start.z - world_grid_span_xz,
+    });
+    const east_eval = query.evaluateHeroMoveTarget(WorldPointSnapshot{
+        .x = seeded_start.x + world_grid_span_xz,
+        .y = seeded_start.y,
+        .z = seeded_start.z,
+    });
+    const south_eval = query.evaluateHeroMoveTarget(WorldPointSnapshot{
+        .x = seeded_start.x,
+        .y = seeded_start.y,
+        .z = seeded_start.z + world_grid_span_xz,
+    });
+    const west_eval = query.evaluateHeroMoveTarget(WorldPointSnapshot{
+        .x = seeded_start.x - world_grid_span_xz,
+        .y = seeded_start.y,
+        .z = seeded_start.z,
+    });
+
+    try std.testing.expectEqual(CardinalDirection.north, option_set.options[0].direction);
+    try std.testing.expectEqual(CardinalDirection.east, option_set.options[1].direction);
+    try std.testing.expectEqual(CardinalDirection.south, option_set.options[2].direction);
+    try std.testing.expectEqual(CardinalDirection.west, option_set.options[3].direction);
+    try std.testing.expectEqual(north_eval, option_set.options[0].evaluation);
+    try std.testing.expectEqual(east_eval, option_set.options[1].evaluation);
+    try std.testing.expectEqual(south_eval, option_set.options[2].evaluation);
+    try std.testing.expectEqual(west_eval, option_set.options[3].evaluation);
+}
+
+test "runtime world query rejects cardinal move options from the invalid baked guarded 19/19 start" {
+    const room = try room_fixtures.guarded1919();
+
+    const query = init(room);
+    const runtime_session = session.Session.init(room_state.heroStartWorldPoint(room));
+
+    try std.testing.expectError(
+        error.MoveTargetOriginInvalid,
+        query.evaluateCardinalMoveOptions(runtime_session.heroWorldPosition()),
+    );
 }
 
 test "runtime world query compares fixed mapping hypotheses without promoting diagnostic candidates" {

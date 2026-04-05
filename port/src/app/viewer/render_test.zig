@@ -2,6 +2,7 @@ const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
 const state = @import("../../runtime/room_state.zig");
+const runtime_query = @import("../../runtime/world_query.zig");
 const room_fixtures = @import("../../testing/room_fixtures.zig");
 const viewer_shell = @import("../viewer_shell.zig");
 const viewer_state = @import("state.zig");
@@ -55,6 +56,49 @@ fn hasTraceText(trace: sdl.CanvasTrace, text: []const u8) bool {
         }
     }
     return false;
+}
+
+fn upperAscii(buffer: []u8, text: []const u8) []const u8 {
+    const len = @min(buffer.len, text.len);
+    for (text[0..len], 0..) |char, index| {
+        buffer[index] = if (char >= 'a' and char <= 'z') char - 32 else char;
+    }
+    return buffer[0..len];
+}
+
+fn expectTraceHasMoveOptionsForPosition(
+    trace: sdl.CanvasTrace,
+    room: *const viewer_shell.RoomSnapshot,
+    hero_position: viewer_shell.WorldPointSnapshot,
+) !void {
+    const query = runtime_query.init(room);
+    const move_options = try query.evaluateCardinalMoveOptions(hero_position);
+
+    var north_status_buffer: [40]u8 = undefined;
+    var east_status_buffer: [40]u8 = undefined;
+    var south_status_buffer: [40]u8 = undefined;
+    var west_status_buffer: [40]u8 = undefined;
+    var line_0_buffer: [64]u8 = undefined;
+    const line_0 = try std.fmt.bufPrint(
+        &line_0_buffer,
+        "N {s} E {s}",
+        .{
+            upperAscii(&north_status_buffer, @tagName(move_options.options[0].evaluation.status)),
+            upperAscii(&east_status_buffer, @tagName(move_options.options[1].evaluation.status)),
+        },
+    );
+    var line_1_buffer: [64]u8 = undefined;
+    const line_1 = try std.fmt.bufPrint(
+        &line_1_buffer,
+        "S {s} W {s}",
+        .{
+            upperAscii(&south_status_buffer, @tagName(move_options.options[2].evaluation.status)),
+            upperAscii(&west_status_buffer, @tagName(move_options.options[3].evaluation.status)),
+        },
+    );
+
+    try std.testing.expect(hasTraceText(trace, line_0));
+    try std.testing.expect(hasTraceText(trace, line_1));
 }
 
 fn findFocusedFragmentZone(
@@ -347,28 +391,31 @@ test "viewer render path surfaces all viewer-local locomotion states on the zero
 
     try std.testing.expect(hasTraceText(seeded_trace, "FIXTURE SEEDED VALID"));
     try std.testing.expect(hasTraceText(seeded_trace, "CELL 39/6 STATUS ALLOWED"));
+    try expectTraceHasMoveOptionsForPosition(seeded_trace, room, seeded_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(seeded_trace, "ARROWS MOVE FROM HERE"));
 
     var moved_runtime_session = viewer_shell.initSession(room);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &moved_runtime_session);
     const moved_attempt = viewer_shell.attemptLocomotionStep(room, &moved_runtime_session, .south);
-    const moved_status = viewer_shell.locomotionStatusAfterAttempt(room, moved_runtime_session, .south, moved_attempt);
+    const moved_status = try viewer_shell.locomotionStatusAfterAttempt(room, moved_runtime_session, .south, moved_attempt);
     var moved_trace = try renderZeroFragmentTrace(allocator, room, moved_runtime_session, moved_status);
     defer moved_trace.deinit(allocator);
 
     try std.testing.expect(hasTraceText(moved_trace, "MOVE SOUTH ACCEPTED"));
     try std.testing.expect(hasTraceText(moved_trace, "CELL 39/7 STATUS ALLOWED"));
+    try expectTraceHasMoveOptionsForPosition(moved_trace, room, moved_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(moved_trace, "HERO POSITION UPDATED"));
 
     var rejected_runtime_session = viewer_shell.initSession(room);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &rejected_runtime_session);
     const rejected_attempt = viewer_shell.attemptLocomotionStep(room, &rejected_runtime_session, .west);
-    const rejected_status = viewer_shell.locomotionStatusAfterAttempt(room, rejected_runtime_session, .west, rejected_attempt);
+    const rejected_status = try viewer_shell.locomotionStatusAfterAttempt(room, rejected_runtime_session, .west, rejected_attempt);
     var rejected_trace = try renderZeroFragmentTrace(allocator, room, rejected_runtime_session, rejected_status);
     defer rejected_trace.deinit(allocator);
 
     try std.testing.expect(hasTraceText(rejected_trace, "MOVE WEST REJECTED"));
     try std.testing.expect(hasTraceText(rejected_trace, "STAY CELL 39/6"));
+    try expectTraceHasMoveOptionsForPosition(rejected_trace, room, rejected_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(rejected_trace, "REASON TARGET_EMPTY"));
 }
 

@@ -72,6 +72,14 @@ pub const ViewerLocomotionRejectedStage = enum {
     origin_invalid,
     target_rejected,
 };
+pub const ViewerCardinalMoveOption = struct {
+    direction: CardinalDirection,
+    status: runtime_query.MoveTargetStatus,
+};
+pub const ViewerMoveOptions = struct {
+    current_cell: GridCell,
+    options: [4]ViewerCardinalMoveOption,
+};
 pub const ViewerRawInvalidStartStatus = struct {
     exact_status: runtime_query.HeroStartExactStatus,
     raw_cell: ?GridCell,
@@ -80,11 +88,13 @@ pub const ViewerRawInvalidStartStatus = struct {
 };
 pub const ViewerSeededValidStatus = struct {
     cell: GridCell,
+    move_options: ViewerMoveOptions,
     hero_position: WorldPointSnapshot,
 };
 pub const ViewerMoveAcceptedStatus = struct {
     direction: CardinalDirection,
     cell: GridCell,
+    move_options: ViewerMoveOptions,
     hero_position: WorldPointSnapshot,
 };
 pub const ViewerMoveRejectedStatus = struct {
@@ -93,6 +103,7 @@ pub const ViewerMoveRejectedStatus = struct {
     reason: runtime_query.MoveTargetStatus,
     current_cell: ?GridCell,
     target_cell: ?GridCell,
+    move_options: ?ViewerMoveOptions,
     hero_position: WorldPointSnapshot,
 };
 pub const ViewerLocomotionStatus = union(enum) {
@@ -225,6 +236,27 @@ pub fn attemptLocomotionStep(
     };
 }
 
+fn buildMoveOptions(
+    room: *const RoomSnapshot,
+    hero_position: WorldPointSnapshot,
+) !ViewerMoveOptions {
+    const query = runtime_query.init(room);
+    const option_set = try query.evaluateCardinalMoveOptions(hero_position);
+
+    var options: [option_set.options.len]ViewerCardinalMoveOption = undefined;
+    for (option_set.options, 0..) |option, index| {
+        options[index] = .{
+            .direction = option.direction,
+            .status = option.evaluation.status,
+        };
+    }
+
+    return .{
+        .current_cell = option_set.origin.raw_cell.cell orelse return error.ViewerLocomotionStatusMissingCell,
+        .options = options,
+    };
+}
+
 pub fn initLocomotionStatus(
     room: *const RoomSnapshot,
     current_session: Session,
@@ -247,10 +279,12 @@ pub fn initLocomotionStatus(
 
     const evaluation = query.evaluateHeroMoveTarget(hero_position);
     if (!evaluation.isAllowed()) return error.ViewerLocomotionStatusInvalidPosition;
+    const move_options = try buildMoveOptions(room, hero_position);
 
     return .{
         .seeded_valid = .{
-            .cell = evaluation.raw_cell.cell orelse return error.ViewerLocomotionStatusMissingCell,
+            .cell = move_options.current_cell,
+            .move_options = move_options,
             .hero_position = hero_position,
         },
     };
@@ -264,10 +298,12 @@ pub fn locomotionStatusAfterSeed(
     const hero_position = current_session.heroWorldPosition();
     const evaluation = query.evaluateHeroMoveTarget(hero_position);
     if (!evaluation.isAllowed()) return error.ViewerLocomotionSeedInvalid;
+    const move_options = try buildMoveOptions(room, hero_position);
 
     return .{
         .seeded_valid = .{
-            .cell = evaluation.raw_cell.cell orelse return error.ViewerLocomotionStatusMissingCell,
+            .cell = move_options.current_cell,
+            .move_options = move_options,
             .hero_position = hero_position,
         },
     };
@@ -278,16 +314,21 @@ pub fn locomotionStatusAfterAttempt(
     current_session: Session,
     direction: CardinalDirection,
     attempt: ViewerLocomotionStepAttempt,
-) ViewerLocomotionStatus {
+) !ViewerLocomotionStatus {
     const query = runtime_query.init(room);
     const current_position = current_session.heroWorldPosition();
     const current_evaluation = query.evaluateHeroMoveTarget(current_position);
+    const current_move_options = if (current_evaluation.isAllowed())
+        try buildMoveOptions(room, current_position)
+    else
+        null;
 
     return switch (attempt.status) {
         .moved => .{
             .last_move_accepted = .{
                 .direction = direction,
-                .cell = attempt.target.raw_cell.cell orelse current_evaluation.raw_cell.cell orelse unreachable,
+                .cell = (current_move_options orelse return error.ViewerLocomotionStatusInvalidPosition).current_cell,
+                .move_options = current_move_options orelse return error.ViewerLocomotionStatusInvalidPosition,
                 .hero_position = current_position,
             },
         },
@@ -298,6 +339,7 @@ pub fn locomotionStatusAfterAttempt(
                 .reason = attempt.origin.status,
                 .current_cell = current_evaluation.raw_cell.cell,
                 .target_cell = attempt.target.raw_cell.cell,
+                .move_options = null,
                 .hero_position = current_position,
             },
         },
@@ -308,6 +350,7 @@ pub fn locomotionStatusAfterAttempt(
                 .reason = attempt.target.status,
                 .current_cell = current_evaluation.raw_cell.cell,
                 .target_cell = attempt.target.raw_cell.cell,
+                .move_options = current_move_options,
                 .hero_position = current_position,
             },
         },
@@ -320,31 +363,52 @@ pub fn formatLocomotionStatusDisplay(
 ) ViewerLocomotionStatusDisplay {
     return switch (status) {
         .raw_invalid_start => |value| .{
+            .line_count = 3,
             .lines = .{
                 "RAW START INVALID",
                 formatRawStartLine(&buffer.line_0, value.raw_cell, value.exact_status),
                 formatCoverageLine(&buffer.line_1, value.occupied_coverage),
+                "",
+                "",
             },
         },
         .seeded_valid => |value| .{
+            .line_count = 5,
             .lines = .{
                 "FIXTURE SEEDED VALID",
                 formatAllowedCellLine(&buffer.line_0, value.cell),
+                formatMoveOptionPairLine(&buffer.line_1, value.move_options.options[0], value.move_options.options[1]),
+                formatMoveOptionPairLine(&buffer.line_2, value.move_options.options[2], value.move_options.options[3]),
                 "ARROWS MOVE FROM HERE",
             },
         },
         .last_move_accepted => |value| .{
+            .line_count = 5,
             .lines = .{
                 formatAcceptedMoveLine(&buffer.line_0, value.direction),
                 formatAllowedCellLine(&buffer.line_1, value.cell),
+                formatMoveOptionPairLine(&buffer.line_2, value.move_options.options[0], value.move_options.options[1]),
+                formatMoveOptionPairLine(&buffer.line_3, value.move_options.options[2], value.move_options.options[3]),
                 "HERO POSITION UPDATED",
             },
         },
-        .last_move_rejected => |value| .{
+        .last_move_rejected => |value| if (value.move_options) |move_options| .{
+            .line_count = 5,
+            .lines = .{
+                formatRejectedMoveLine(&buffer.line_0, value.direction),
+                formatCurrentCellLine(&buffer.line_1, value.current_cell),
+                formatMoveOptionPairLine(&buffer.line_2, move_options.options[0], move_options.options[1]),
+                formatMoveOptionPairLine(&buffer.line_3, move_options.options[2], move_options.options[3]),
+                formatRejectedReasonLine(&buffer.line_4, value.reason),
+            },
+        } else .{
+            .line_count = 3,
             .lines = .{
                 formatRejectedMoveLine(&buffer.line_0, value.direction),
                 formatCurrentCellLine(&buffer.line_1, value.current_cell),
                 formatRejectedReasonLine(&buffer.line_2, value.reason),
+                "",
+                "",
             },
         },
     };
@@ -443,7 +507,7 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         .raw_invalid_start => |value| {
             var raw_cell_buffer: [16]u8 = undefined;
             try writer.print(
-                "event=hero_status status=raw_invalid_start exact_status={s} raw_cell={s} occupied_coverage={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                "event=hero_status status=raw_invalid_start exact_status={s} raw_cell={s} occupied_coverage={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
                 .{
                     @tagName(value.exact_status),
                     formatOptionalCell(&raw_cell_buffer, value.raw_cell),
@@ -456,10 +520,12 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         },
         .seeded_valid => |value| {
             var cell_buffer: [16]u8 = undefined;
+            var move_options_buffer: [128]u8 = undefined;
             try writer.print(
-                "event=hero_seed status=seeded_valid cell={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                "event=hero_seed status=seeded_valid cell={s} move_options={s} hero_x={d} hero_y={d} hero_z={d}\n",
                 .{
                     formatRequiredCell(&cell_buffer, value.cell),
+                    formatMoveOptionsDiagnostic(&move_options_buffer, value.move_options),
                     value.hero_position.x,
                     value.hero_position.y,
                     value.hero_position.z,
@@ -468,11 +534,13 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         },
         .last_move_accepted => |value| {
             var cell_buffer: [16]u8 = undefined;
+            var move_options_buffer: [128]u8 = undefined;
             try writer.print(
-                "event=hero_move direction={s} status=accepted cell={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                "event=hero_move direction={s} status=accepted cell={s} move_options={s} hero_x={d} hero_y={d} hero_z={d}\n",
                 .{
                     directionLabel(value.direction),
                     formatRequiredCell(&cell_buffer, value.cell),
+                    formatMoveOptionsDiagnostic(&move_options_buffer, value.move_options),
                     value.hero_position.x,
                     value.hero_position.y,
                     value.hero_position.z,
@@ -482,14 +550,16 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         .last_move_rejected => |value| {
             var current_cell_buffer: [16]u8 = undefined;
             var target_cell_buffer: [16]u8 = undefined;
+            var move_options_buffer: [128]u8 = undefined;
             try writer.print(
-                "event=hero_move direction={s} status=rejected rejection_stage={s} reason={s} current_cell={s} target_cell={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                "event=hero_move direction={s} status=rejected rejection_stage={s} reason={s} current_cell={s} target_cell={s} move_options={s} hero_x={d} hero_y={d} hero_z={d}\n",
                 .{
                     directionLabel(value.direction),
                     @tagName(value.rejection_stage),
                     @tagName(value.reason),
                     formatOptionalCell(&current_cell_buffer, value.current_cell),
                     formatOptionalCell(&target_cell_buffer, value.target_cell),
+                    if (value.move_options) |move_options| formatMoveOptionsDiagnostic(&move_options_buffer, move_options) else "unavailable",
                     value.hero_position.x,
                     value.hero_position.y,
                     value.hero_position.z,
@@ -684,6 +754,15 @@ fn directionLabel(direction: CardinalDirection) []const u8 {
     };
 }
 
+fn shortDirectionLabel(direction: CardinalDirection) []const u8 {
+    return switch (direction) {
+        .north => "N",
+        .east => "E",
+        .south => "S",
+        .west => "W",
+    };
+}
+
 fn formatOptionalCell(buffer: []u8, cell: ?GridCell) []const u8 {
     if (cell) |resolved| {
         return std.fmt.bufPrint(buffer, "{d}/{d}", .{ resolved.x, resolved.z }) catch unreachable;
@@ -762,6 +841,38 @@ fn formatCurrentCellLine(buffer: []u8, cell: ?GridCell) []const u8 {
         buffer,
         "STAY CELL {s}",
         .{formatOptionalCell(&cell_buffer, cell)},
+    ) catch unreachable;
+}
+
+fn formatMoveOptionPairLine(
+    buffer: []u8,
+    first: ViewerCardinalMoveOption,
+    second: ViewerCardinalMoveOption,
+) []const u8 {
+    var first_status_buffer: [40]u8 = undefined;
+    var second_status_buffer: [40]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "{s} {s} {s} {s}",
+        .{
+            shortDirectionLabel(first.direction),
+            upperTag(&first_status_buffer, @tagName(first.status)),
+            shortDirectionLabel(second.direction),
+            upperTag(&second_status_buffer, @tagName(second.status)),
+        },
+    ) catch unreachable;
+}
+
+fn formatMoveOptionsDiagnostic(buffer: []u8, move_options: ViewerMoveOptions) []const u8 {
+    return std.fmt.bufPrint(
+        buffer,
+        "north:{s},east:{s},south:{s},west:{s}",
+        .{
+            @tagName(move_options.options[0].status),
+            @tagName(move_options.options[1].status),
+            @tagName(move_options.options[2].status),
+            @tagName(move_options.options[3].status),
+        },
     ) catch unreachable;
 }
 

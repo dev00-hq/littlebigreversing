@@ -18,6 +18,24 @@ function Stop-StaleViewerProcesses {
     }
 }
 
+function Read-OptionalRawText {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path $Path)) {
+        return ""
+    }
+
+    $content = Get-Content $Path -Raw
+    if ($null -eq $content) {
+        return ""
+    }
+
+    return [string]$content
+}
+
 function Invoke-ZigCommand {
     param(
         [Parameter(Mandatory = $true)]
@@ -211,34 +229,38 @@ function Test-ViewerLaunch {
             "--background-entry",
             "$Background"
         ) -PassThru -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
+        if (-not $proc) {
+            $proc = Get-Process lba2 -ErrorAction SilentlyContinue | Select-Object -First 1
+        }
 
         $confirmed = $false
         $deadline = (Get-Date).AddSeconds(120)
 
         while ((Get-Date) -lt $deadline) {
-            $stderr = if (Test-Path $stderrPath) { Get-Content $stderrPath -Raw } else { "" }
+            $stderr = Read-OptionalRawText -Path $stderrPath
             $startupSeen = $stderr -match "event=startup"
             $roomSnapshotSeen = $stderr -match "event=room_snapshot"
             $pairSeen = $stderr -match ("scene_entry_index={0} background_entry_index={1}" -f $Scene, $Background)
             $renderSnapshotSeen = $stderr -match "render_snapshot=objects:"
             $fragmentSummarySeen = $stderr -match ("fragments={0}\s" -f $ExpectedFragments)
             $brickPreviewSummarySeen = ($ExpectedBrickPreviews -lt 0) -or ($stderr -match ("brick_previews={0}" -f $ExpectedBrickPreviews))
+            $cleanShutdownSeen = $stderr -match ("status=ok event=shutdown scene_entry={0} background_entry={1}" -f $Scene, $Background)
             $viewerProcess = Get-Process lba2 -ErrorAction SilentlyContinue
 
-            if ($viewerProcess -and $startupSeen -and $roomSnapshotSeen -and $pairSeen -and $renderSnapshotSeen -and $fragmentSummarySeen -and $brickPreviewSummarySeen) {
+            if (($viewerProcess -or $cleanShutdownSeen) -and $startupSeen -and $roomSnapshotSeen -and $pairSeen -and $renderSnapshotSeen -and $fragmentSummarySeen -and $brickPreviewSummarySeen) {
                 $confirmed = $true
                 break
             }
 
-            if ($proc.HasExited) {
+            if ($proc -and $proc.HasExited) {
                 break
             }
 
             Start-Sleep -Milliseconds 500
         }
 
-        $stderr = if (Test-Path $stderrPath) { Get-Content $stderrPath -Raw } else { "" }
-        $stdout = if (Test-Path $stdoutPath) { Get-Content $stdoutPath -Raw } else { "" }
+        $stderr = Read-OptionalRawText -Path $stderrPath
+        $stdout = Read-OptionalRawText -Path $stdoutPath
 
         if (-not $confirmed) {
             throw ("viewer launch {0}/{1} did not reach confirmed startup.`nstderr:`n{2}`nstdout:`n{3}" -f $Scene, $Background, $stderr.TrimEnd(), $stdout.TrimEnd())
