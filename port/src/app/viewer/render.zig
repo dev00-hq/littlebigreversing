@@ -7,13 +7,16 @@ const draw = @import("draw.zig");
 const fragment_compare = @import("fragment_compare.zig");
 
 pub const LocomotionStatusDisplay = struct {
-    lines: [3][]const u8 = .{ "", "", "" },
+    line_count: usize = 0,
+    lines: [5][]const u8 = .{ "", "", "", "", "" },
 };
 
 pub const LocomotionStatusDisplayBuffer = struct {
-    line_0: [48]u8 = undefined,
-    line_1: [48]u8 = undefined,
-    line_2: [48]u8 = undefined,
+    line_0: [64]u8 = undefined,
+    line_1: [64]u8 = undefined,
+    line_2: [64]u8 = undefined,
+    line_3: [64]u8 = undefined,
+    line_4: [64]u8 = undefined,
 };
 
 pub fn renderDebugView(
@@ -392,7 +395,7 @@ fn drawHud(
             .{ .r = 112, .g = 196, .b = 255, .a = 255 },
             1,
             1,
-            locomotion_status.lines[0..],
+            locomotion_status.lines[0..locomotion_status.line_count],
         );
     }
 

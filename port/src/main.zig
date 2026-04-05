@@ -127,7 +127,7 @@ pub fn main() !void {
                                 else => unreachable,
                             };
                             const attempt = lba2.app.viewer_shell.attemptLocomotionStep(&room, &runtime_session, direction);
-                            locomotion_status = lba2.app.viewer_shell.locomotionStatusAfterAttempt(
+                            locomotion_status = try lba2.app.viewer_shell.locomotionStatusAfterAttempt(
                                 &room,
                                 runtime_session,
                                 direction,
