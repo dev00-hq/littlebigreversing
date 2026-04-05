@@ -6,11 +6,22 @@ const layout = @import("layout.zig");
 const draw = @import("draw.zig");
 const fragment_compare = @import("fragment_compare.zig");
 
+pub const LocomotionStatusDisplay = struct {
+    lines: [3][]const u8 = .{ "", "", "" },
+};
+
+pub const LocomotionStatusDisplayBuffer = struct {
+    line_0: [48]u8 = undefined,
+    line_1: [48]u8 = undefined,
+    line_2: [48]u8 = undefined,
+};
+
 pub fn renderDebugView(
     canvas: *sdl.Canvas,
     snapshot: state.RenderSnapshot,
     catalog: fragment_compare.FragmentComparisonCatalog,
     selection: fragment_compare.FragmentComparisonSelection,
+    locomotion_status: LocomotionStatusDisplay,
 ) !void {
     const fragment_panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
     const debug_layout = layout.computeDebugLayout(
@@ -75,7 +86,7 @@ pub fn renderDebugView(
     const hero = layout.projectWorldPoint(snapshot, debug_layout.schematic, snapshot.hero_position.x, snapshot.hero_position.z);
     try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
     try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
-    try drawHud(canvas, debug_layout, snapshot, catalog, selection);
+    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status);
     canvas.present();
 }
 
@@ -243,6 +254,7 @@ fn drawHud(
     snapshot: state.RenderSnapshot,
     catalog: fragment_compare.FragmentComparisonCatalog,
     selection: fragment_compare.FragmentComparisonSelection,
+    locomotion_status: LocomotionStatusDisplay,
 ) !void {
     const room_card = splitHudRow(debug_layout.header, 0, 3, 12);
     const fragment_card = splitHudRow(debug_layout.header, 1, 3, 12);
@@ -373,20 +385,14 @@ fn drawHud(
             &.{ focus_line_0, focus_line_1, focus_line_2, focus_line_3, focus_line_4, focus_line_5 },
         );
     } else {
-        var focus_line_1_buffer: [48]u8 = undefined;
-        const focus_line_1 = try std.fmt.bufPrint(
-            &focus_line_1_buffer,
-            "SCENE ZONES {d}",
-            .{snapshot.metadata.fragment_zone_count},
-        );
         try drawHudTextCardWithMetrics(
             canvas,
             focus_card,
             "FOCUS",
-            .{ .r = 176, .g = 186, .b = 198, .a = 255 },
+            .{ .r = 112, .g = 196, .b = 255, .a = 255 },
             1,
             1,
-            &.{ "ZERO FRAGMENT CONTROL", focus_line_1, "PANEL HIDDEN" },
+            locomotion_status.lines[0..],
         );
     }
 

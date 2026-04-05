@@ -3,6 +3,7 @@ const paths_mod = @import("../../foundation/paths.zig");
 const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
 const state = @import("../../runtime/room_state.zig");
+const viewer_shell = @import("../viewer_shell.zig");
 const viewer_state = @import("state.zig");
 const draw = @import("draw.zig");
 const layout = @import("layout.zig");
@@ -145,6 +146,26 @@ fn steppedPinnedSelection(catalog: fragment_compare.FragmentComparisonCatalog) f
     return selection;
 }
 
+fn renderZeroFragmentTrace(
+    allocator: std.mem.Allocator,
+    room: *const viewer_shell.RoomSnapshot,
+    runtime_session: viewer_shell.Session,
+    status: viewer_shell.ViewerLocomotionStatus,
+) !sdl.CanvasTrace {
+    const snapshot = viewer_shell.buildRenderSnapshot(room.*, runtime_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+    const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
+    var status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
+    const display = viewer_shell.formatLocomotionStatusDisplay(&status_buffer, status);
+
+    var trace: sdl.CanvasTrace = .{};
+    errdefer trace.deinit(allocator);
+    var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, display);
+    return trace;
+}
+
 test "viewer render path draws the checked-in fragment comparison panel and focus highlight" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
@@ -214,7 +235,7 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{});
 
     try std.testing.expect(panel.focus != null);
     try std.testing.expect(debug_layout.comparison != null);
@@ -270,7 +291,7 @@ test "viewer render path exposes a deterministic owning-zone rect for the focuse
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{});
 
     try std.testing.expect(zone_rect.x <= focus_rect.x);
     try std.testing.expect(zone_rect.y <= focus_rect.y);
@@ -304,7 +325,7 @@ test "viewer render path keeps the selected cell pinned at the head of the compa
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{});
 
     try std.testing.expect(selection.ranked_index.? >= fragment_compare.max_fragment_comparison_entries);
     try std.testing.expectEqual(focus.x, panel.entries[0].x);
@@ -314,7 +335,7 @@ test "viewer render path keeps the selected cell pinned at the head of the compa
     try std.testing.expect(hasTraceRectOp(trace, .draw_rect, first_row, focused_row_border));
 }
 
-test "viewer render path advertises locomotion controls on the zero-fragment guarded path" {
+test "viewer render path surfaces all viewer-local locomotion states on the zero-fragment guarded path" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -322,20 +343,49 @@ test "viewer render path advertises locomotion controls on the zero-fragment gua
     const room = try state.loadRoomSnapshot(allocator, resolved, 19, 19);
     defer room.deinit(allocator);
 
-    const snapshot = state.buildRenderSnapshot(room);
-    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
-    defer catalog.deinit(allocator);
-    const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
+    const raw_runtime_session = viewer_shell.initSession(&room);
+    const raw_status = try viewer_shell.initLocomotionStatus(&room, raw_runtime_session);
+    var raw_trace = try renderZeroFragmentTrace(allocator, &room, raw_runtime_session, raw_status);
+    defer raw_trace.deinit(allocator);
 
-    var trace: sdl.CanvasTrace = .{};
-    defer trace.deinit(allocator);
-    var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
+    try std.testing.expect(hasTraceText(raw_trace, "RAW START INVALID"));
+    try std.testing.expect(hasTraceText(raw_trace, "CELL 3/7 MAPPED_CELL_EMPTY"));
+    try std.testing.expect(hasTraceText(raw_trace, "BOUNDS OUTSIDE_OCCUPIED_BOUNDS"));
+    try std.testing.expect(hasTraceText(raw_trace, "ENTER SEED HERO"));
+    try std.testing.expect(hasTraceText(raw_trace, "ARROWS MOVE HERO"));
+    try std.testing.expect(hasTraceText(raw_trace, "RAW START STAYS"));
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection);
+    var seeded_runtime_session = viewer_shell.initSession(&room);
+    _ = try viewer_shell.seedSessionToLocomotionFixture(&room, &seeded_runtime_session);
+    const seeded_status = try viewer_shell.locomotionStatusAfterSeed(&room, seeded_runtime_session);
+    var seeded_trace = try renderZeroFragmentTrace(allocator, &room, seeded_runtime_session, seeded_status);
+    defer seeded_trace.deinit(allocator);
 
-    try std.testing.expect(hasTraceText(trace, "ENTER SEED HERO"));
-    try std.testing.expect(hasTraceText(trace, "ARROWS MOVE HERO"));
-    try std.testing.expect(hasTraceText(trace, "RAW START STAYS"));
+    try std.testing.expect(hasTraceText(seeded_trace, "FIXTURE SEEDED VALID"));
+    try std.testing.expect(hasTraceText(seeded_trace, "CELL 39/6 STATUS ALLOWED"));
+    try std.testing.expect(hasTraceText(seeded_trace, "ARROWS MOVE FROM HERE"));
+
+    var moved_runtime_session = viewer_shell.initSession(&room);
+    _ = try viewer_shell.seedSessionToLocomotionFixture(&room, &moved_runtime_session);
+    const moved_attempt = viewer_shell.attemptLocomotionStep(&room, &moved_runtime_session, .south);
+    const moved_status = viewer_shell.locomotionStatusAfterAttempt(&room, moved_runtime_session, .south, moved_attempt);
+    var moved_trace = try renderZeroFragmentTrace(allocator, &room, moved_runtime_session, moved_status);
+    defer moved_trace.deinit(allocator);
+
+    try std.testing.expect(hasTraceText(moved_trace, "MOVE SOUTH ACCEPTED"));
+    try std.testing.expect(hasTraceText(moved_trace, "CELL 39/7 STATUS ALLOWED"));
+    try std.testing.expect(hasTraceText(moved_trace, "HERO POSITION UPDATED"));
+
+    var rejected_runtime_session = viewer_shell.initSession(&room);
+    _ = try viewer_shell.seedSessionToLocomotionFixture(&room, &rejected_runtime_session);
+    const rejected_attempt = viewer_shell.attemptLocomotionStep(&room, &rejected_runtime_session, .west);
+    const rejected_status = viewer_shell.locomotionStatusAfterAttempt(&room, rejected_runtime_session, .west, rejected_attempt);
+    var rejected_trace = try renderZeroFragmentTrace(allocator, &room, rejected_runtime_session, rejected_status);
+    defer rejected_trace.deinit(allocator);
+
+    try std.testing.expect(hasTraceText(rejected_trace, "MOVE WEST REJECTED"));
+    try std.testing.expect(hasTraceText(rejected_trace, "STAY CELL 39/6"));
+    try std.testing.expect(hasTraceText(rejected_trace, "REASON TARGET_EMPTY"));
 }
 
 test "viewer render path keeps the zero-fragment room out of the comparison panel" {
@@ -351,20 +401,24 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     defer catalog.deinit(allocator);
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
     const comparison_frame_if_present = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, true).comparison_frame.?;
+    const runtime_session = viewer_shell.initSession(&room);
+    const locomotion_status = try viewer_shell.initLocomotionStatus(&room, runtime_session);
+    var status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
+    const display = viewer_shell.formatLocomotionStatusDisplay(&status_buffer, locomotion_status);
 
     var trace: sdl.CanvasTrace = .{};
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, display);
 
     try std.testing.expect(selection.focus == null);
     try std.testing.expectEqual(@as(?sdl.Rect, null), layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, false).comparison_frame);
     try std.testing.expect(!hasTraceRectOp(trace, .fill_rect, comparison_frame_if_present, .{ .r = 12, .g = 17, .b = 23, .a = 255 }));
     try std.testing.expect(!hasTraceRectOp(trace, .draw_rect, comparison_frame_if_present, .{ .r = 66, .g = 90, .b = 103, .a = 255 }));
     try std.testing.expect(!hasTraceRectColor(trace, .fill_rect, render.focusedFragmentZoneOverlayFillColor()));
-    try std.testing.expect(hasTraceText(trace, "ZERO FRAGMENT CONTROL"));
-    try std.testing.expect(hasTraceText(trace, "PANEL HIDDEN"));
+    try std.testing.expect(hasTraceText(trace, "RAW START INVALID"));
+    try std.testing.expect(hasTraceText(trace, "CELL 3/7 MAPPED_CELL_EMPTY"));
     try std.testing.expect(hasPresent(trace));
 }
 
@@ -392,5 +446,5 @@ test "viewer render path fails fast when a required brick preview is missing" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try std.testing.expectError(error.ViewerBrickPreviewMissing, render.renderDebugView(&canvas, missing_snapshot, catalog, selection));
+    try std.testing.expectError(error.ViewerBrickPreviewMissing, render.renderDebugView(&canvas, missing_snapshot, catalog, selection, .{}));
 }

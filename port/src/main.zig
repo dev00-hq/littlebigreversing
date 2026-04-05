@@ -49,7 +49,9 @@ pub fn main() !void {
     defer room.deinit(allocator);
 
     var runtime_session = lba2.app.viewer_shell.initSession(&room);
+    var locomotion_status = try lba2.app.viewer_shell.initLocomotionStatus(&room, runtime_session);
     try lba2.app.viewer_shell.printStartupDiagnostics(stderr, resolved, room);
+    try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
     var render = lba2.app.viewer_shell.buildRenderSnapshot(room, runtime_session);
     var fragment_catalog = try lba2.app.viewer_shell.buildFragmentComparisonCatalog(allocator, render);
     defer fragment_catalog.deinit(allocator);
@@ -69,7 +71,13 @@ pub fn main() !void {
     };
     defer canvas.deinit();
 
-    lba2.app.viewer_shell.renderDebugViewWithSelection(&canvas, render, fragment_catalog, fragment_selection) catch |err| {
+    lba2.app.viewer_shell.renderDebugViewWithSelection(
+        &canvas,
+        render,
+        fragment_catalog,
+        fragment_selection,
+        locomotion_status,
+    ) catch |err| {
         lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
         stderr.flush() catch {};
         return err;
@@ -83,12 +91,23 @@ pub fn main() !void {
         };
         switch (event) {
             .quit => break,
-            .redraw => try renderCurrentFrame(allocator, &canvas, stderr, room, runtime_session, &render, &fragment_catalog, fragment_selection),
+            .redraw => try renderCurrentFrame(
+                allocator,
+                &canvas,
+                stderr,
+                room,
+                runtime_session,
+                &render,
+                &fragment_catalog,
+                fragment_selection,
+                locomotion_status,
+            ),
             .key_down => |key| {
                 switch (key) {
                     .enter => {
-                        const seeded = try lba2.app.viewer_shell.seedSessionToLocomotionFixture(&room, &runtime_session);
-                        try lba2.app.viewer_shell.printLocomotionSeedDiagnostic(stderr, seeded);
+                        _ = try lba2.app.viewer_shell.seedSessionToLocomotionFixture(&room, &runtime_session);
+                        locomotion_status = try lba2.app.viewer_shell.locomotionStatusAfterSeed(&room, runtime_session);
+                        try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
                     },
                     .left, .right, .up, .down => {
                         if (fragment_selection.focus != null) {
@@ -108,12 +127,28 @@ pub fn main() !void {
                                 else => unreachable,
                             };
                             const attempt = lba2.app.viewer_shell.attemptLocomotionStep(&room, &runtime_session, direction);
-                            try lba2.app.viewer_shell.printLocomotionAttemptDiagnostic(stderr, direction, attempt);
+                            locomotion_status = lba2.app.viewer_shell.locomotionStatusAfterAttempt(
+                                &room,
+                                runtime_session,
+                                direction,
+                                attempt,
+                            );
+                            try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
                         }
                     },
                 }
                 try stderr.flush();
-                try renderCurrentFrame(allocator, &canvas, stderr, room, runtime_session, &render, &fragment_catalog, fragment_selection);
+                try renderCurrentFrame(
+                    allocator,
+                    &canvas,
+                    stderr,
+                    room,
+                    runtime_session,
+                    &render,
+                    &fragment_catalog,
+                    fragment_selection,
+                    locomotion_status,
+                );
             },
             .other => {},
         }
@@ -151,13 +186,20 @@ fn renderCurrentFrame(
     render: *lba2.app.viewer_shell.RenderSnapshot,
     fragment_catalog: *lba2.app.viewer_shell.FragmentComparisonCatalog,
     fragment_selection: lba2.app.viewer_shell.FragmentComparisonSelection,
+    locomotion_status: lba2.app.viewer_shell.ViewerLocomotionStatus,
 ) !void {
     const next_render = lba2.app.viewer_shell.buildRenderSnapshot(room, runtime_session);
     const next_catalog = try lba2.app.viewer_shell.buildFragmentComparisonCatalog(allocator, next_render);
     fragment_catalog.deinit(allocator);
     render.* = next_render;
     fragment_catalog.* = next_catalog;
-    lba2.app.viewer_shell.renderDebugViewWithSelection(canvas, render.*, fragment_catalog.*, fragment_selection) catch |err| {
+    lba2.app.viewer_shell.renderDebugViewWithSelection(
+        canvas,
+        render.*,
+        fragment_catalog.*,
+        fragment_selection,
+        locomotion_status,
+    ) catch |err| {
         lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
         stderr.flush() catch {};
         return err;

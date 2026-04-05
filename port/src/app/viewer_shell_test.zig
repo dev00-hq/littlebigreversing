@@ -55,8 +55,18 @@ test "viewer locomotion harness keeps raw invalid 19/19 starts non-mutating" {
 
     var runtime_session = viewer_shell.initSession(&room);
     const raw_start = runtime_session.heroWorldPosition();
+    const status = try viewer_shell.initLocomotionStatus(&room, runtime_session);
     const attempt = viewer_shell.attemptLocomotionStep(&room, &runtime_session, .south);
 
+    switch (status) {
+        .raw_invalid_start => |value| {
+            try std.testing.expectEqual(runtime_query.HeroStartExactStatus.mapped_cell_empty, value.exact_status);
+            try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 3, .z = 7 }), value.raw_cell);
+            try std.testing.expectEqual(runtime_query.OccupiedCoverageRelation.outside_occupied_bounds, value.occupied_coverage);
+            try std.testing.expectEqual(raw_start, value.hero_position);
+        },
+        else => return error.UnexpectedViewerLocomotionStatus,
+    }
     try std.testing.expectEqual(viewer_shell.ViewerLocomotionStepStatus.origin_invalid, attempt.status);
     try std.testing.expectEqual(raw_start, runtime_session.heroWorldPosition());
     try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_empty, attempt.origin.status);
@@ -75,12 +85,20 @@ test "viewer locomotion harness seeds the session to the checked-in 19/19 moveme
     const seeded = try viewer_shell.seedSessionToLocomotionFixture(&room, &runtime_session);
     const query = runtime_query.init(&room);
     const seeded_eval = query.evaluateHeroMoveTarget(seeded);
+    const status = try viewer_shell.locomotionStatusAfterSeed(&room, runtime_session);
 
     try std.testing.expectEqual(seeded, runtime_session.heroWorldPosition());
     try std.testing.expectEqual(runtime_query.MoveTargetStatus.allowed, seeded_eval.status);
     try std.testing.expectEqual(@as(?viewer_shell.GridCell, viewer_shell.locomotion_fixture_cell), seeded_eval.raw_cell.cell);
     try std.testing.expect(runtime_session.heroWorldPosition().x != room.scene.hero_start.x);
     try std.testing.expect(runtime_session.heroWorldPosition().z != room.scene.hero_start.z);
+    switch (status) {
+        .seeded_valid => |value| {
+            try std.testing.expectEqual(viewer_shell.locomotion_fixture_cell, value.cell);
+            try std.testing.expectEqual(seeded, value.hero_position);
+        },
+        else => return error.UnexpectedViewerLocomotionStatus,
+    }
 }
 
 test "viewer locomotion harness mutates only on allowed seeded steps" {
@@ -95,14 +113,35 @@ test "viewer locomotion harness mutates only on allowed seeded steps" {
     const seeded = try viewer_shell.seedSessionToLocomotionFixture(&room, &runtime_session);
 
     const moved = viewer_shell.attemptLocomotionStep(&room, &runtime_session, .south);
+    const moved_status = viewer_shell.locomotionStatusAfterAttempt(&room, runtime_session, .south, moved);
     try std.testing.expectEqual(viewer_shell.ViewerLocomotionStepStatus.moved, moved.status);
     try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 39, .z = 7 }), moved.target.raw_cell.cell);
     try std.testing.expect(runtime_session.heroWorldPosition().z > seeded.z);
+    switch (moved_status) {
+        .last_move_accepted => |value| {
+            try std.testing.expectEqual(viewer_shell.CardinalDirection.south, value.direction);
+            try std.testing.expectEqual(viewer_shell.GridCell{ .x = 39, .z = 7 }, value.cell);
+            try std.testing.expectEqual(runtime_session.heroWorldPosition(), value.hero_position);
+        },
+        else => return error.UnexpectedViewerLocomotionStatus,
+    }
 
     runtime_session.setHeroWorldPosition(seeded);
     const before_reject = runtime_session.heroWorldPosition();
     const rejected = viewer_shell.attemptLocomotionStep(&room, &runtime_session, .west);
+    const rejected_status = viewer_shell.locomotionStatusAfterAttempt(&room, runtime_session, .west, rejected);
     try std.testing.expectEqual(viewer_shell.ViewerLocomotionStepStatus.target_rejected, rejected.status);
     try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_empty, rejected.target.status);
     try std.testing.expectEqual(before_reject, runtime_session.heroWorldPosition());
+    switch (rejected_status) {
+        .last_move_rejected => |value| {
+            try std.testing.expectEqual(viewer_shell.CardinalDirection.west, value.direction);
+            try std.testing.expectEqual(viewer_shell.ViewerLocomotionRejectedStage.target_rejected, value.rejection_stage);
+            try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_empty, value.reason);
+            try std.testing.expectEqual(@as(?viewer_shell.GridCell, viewer_shell.locomotion_fixture_cell), value.current_cell);
+            try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 38, .z = 6 }), value.target_cell);
+            try std.testing.expectEqual(before_reject, value.hero_position);
+        },
+        else => return error.UnexpectedViewerLocomotionStatus,
+    }
 }

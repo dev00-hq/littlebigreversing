@@ -56,6 +56,8 @@ pub const FragmentComparisonPanel = fragment_compare.FragmentComparisonPanel;
 pub const FragmentComparisonSelection = fragment_compare.FragmentComparisonSelection;
 pub const SchematicLayout = layout.SchematicLayout;
 pub const ScreenPoint = layout.ScreenPoint;
+pub const ViewerLocomotionStatusDisplay = render.LocomotionStatusDisplay;
+pub const ViewerLocomotionStatusDisplayBuffer = render.LocomotionStatusDisplayBuffer;
 pub const ViewerLocomotionStepStatus = enum {
     moved,
     origin_invalid,
@@ -65,6 +67,39 @@ pub const ViewerLocomotionStepAttempt = struct {
     status: ViewerLocomotionStepStatus,
     origin: runtime_query.MoveTargetEvaluation,
     target: runtime_query.MoveTargetEvaluation,
+};
+pub const ViewerLocomotionRejectedStage = enum {
+    origin_invalid,
+    target_rejected,
+};
+pub const ViewerRawInvalidStartStatus = struct {
+    exact_status: runtime_query.HeroStartExactStatus,
+    raw_cell: ?GridCell,
+    occupied_coverage: runtime_query.OccupiedCoverageRelation,
+    hero_position: WorldPointSnapshot,
+};
+pub const ViewerSeededValidStatus = struct {
+    cell: GridCell,
+    hero_position: WorldPointSnapshot,
+};
+pub const ViewerMoveAcceptedStatus = struct {
+    direction: CardinalDirection,
+    cell: GridCell,
+    hero_position: WorldPointSnapshot,
+};
+pub const ViewerMoveRejectedStatus = struct {
+    direction: CardinalDirection,
+    rejection_stage: ViewerLocomotionRejectedStage,
+    reason: runtime_query.MoveTargetStatus,
+    current_cell: ?GridCell,
+    target_cell: ?GridCell,
+    hero_position: WorldPointSnapshot,
+};
+pub const ViewerLocomotionStatus = union(enum) {
+    raw_invalid_start: ViewerRawInvalidStartStatus,
+    seeded_valid: ViewerSeededValidStatus,
+    last_move_accepted: ViewerMoveAcceptedStatus,
+    last_move_rejected: ViewerMoveRejectedStatus,
 };
 
 pub const locomotion_fixture_scene_entry: usize = 19;
@@ -190,6 +225,131 @@ pub fn attemptLocomotionStep(
     };
 }
 
+pub fn initLocomotionStatus(
+    room: *const RoomSnapshot,
+    current_session: Session,
+) !ViewerLocomotionStatus {
+    const query = runtime_query.init(room);
+    const hero_position = current_session.heroWorldPosition();
+    if (std.meta.eql(hero_position, state.heroStartWorldPoint(room))) {
+        const probe = try query.probeHeroStart();
+        if (probe.exact_status != .valid) {
+            return .{
+                .raw_invalid_start = .{
+                    .exact_status = probe.exact_status,
+                    .raw_cell = probe.raw_cell.cell,
+                    .occupied_coverage = probe.occupied_coverage.relation,
+                    .hero_position = hero_position,
+                },
+            };
+        }
+    }
+
+    const evaluation = query.evaluateHeroMoveTarget(hero_position);
+    if (!evaluation.isAllowed()) return error.ViewerLocomotionStatusInvalidPosition;
+
+    return .{
+        .seeded_valid = .{
+            .cell = evaluation.raw_cell.cell orelse return error.ViewerLocomotionStatusMissingCell,
+            .hero_position = hero_position,
+        },
+    };
+}
+
+pub fn locomotionStatusAfterSeed(
+    room: *const RoomSnapshot,
+    current_session: Session,
+) !ViewerLocomotionStatus {
+    const query = runtime_query.init(room);
+    const hero_position = current_session.heroWorldPosition();
+    const evaluation = query.evaluateHeroMoveTarget(hero_position);
+    if (!evaluation.isAllowed()) return error.ViewerLocomotionSeedInvalid;
+
+    return .{
+        .seeded_valid = .{
+            .cell = evaluation.raw_cell.cell orelse return error.ViewerLocomotionStatusMissingCell,
+            .hero_position = hero_position,
+        },
+    };
+}
+
+pub fn locomotionStatusAfterAttempt(
+    room: *const RoomSnapshot,
+    current_session: Session,
+    direction: CardinalDirection,
+    attempt: ViewerLocomotionStepAttempt,
+) ViewerLocomotionStatus {
+    const query = runtime_query.init(room);
+    const current_position = current_session.heroWorldPosition();
+    const current_evaluation = query.evaluateHeroMoveTarget(current_position);
+
+    return switch (attempt.status) {
+        .moved => .{
+            .last_move_accepted = .{
+                .direction = direction,
+                .cell = attempt.target.raw_cell.cell orelse current_evaluation.raw_cell.cell orelse unreachable,
+                .hero_position = current_position,
+            },
+        },
+        .origin_invalid => .{
+            .last_move_rejected = .{
+                .direction = direction,
+                .rejection_stage = .origin_invalid,
+                .reason = attempt.origin.status,
+                .current_cell = current_evaluation.raw_cell.cell,
+                .target_cell = attempt.target.raw_cell.cell,
+                .hero_position = current_position,
+            },
+        },
+        .target_rejected => .{
+            .last_move_rejected = .{
+                .direction = direction,
+                .rejection_stage = .target_rejected,
+                .reason = attempt.target.status,
+                .current_cell = current_evaluation.raw_cell.cell,
+                .target_cell = attempt.target.raw_cell.cell,
+                .hero_position = current_position,
+            },
+        },
+    };
+}
+
+pub fn formatLocomotionStatusDisplay(
+    buffer: *ViewerLocomotionStatusDisplayBuffer,
+    status: ViewerLocomotionStatus,
+) ViewerLocomotionStatusDisplay {
+    return switch (status) {
+        .raw_invalid_start => |value| .{
+            .lines = .{
+                "RAW START INVALID",
+                formatRawStartLine(&buffer.line_0, value.raw_cell, value.exact_status),
+                formatCoverageLine(&buffer.line_1, value.occupied_coverage),
+            },
+        },
+        .seeded_valid => |value| .{
+            .lines = .{
+                "FIXTURE SEEDED VALID",
+                formatAllowedCellLine(&buffer.line_0, value.cell),
+                "ARROWS MOVE FROM HERE",
+            },
+        },
+        .last_move_accepted => |value| .{
+            .lines = .{
+                formatAcceptedMoveLine(&buffer.line_0, value.direction),
+                formatAllowedCellLine(&buffer.line_1, value.cell),
+                "HERO POSITION UPDATED",
+            },
+        },
+        .last_move_rejected => |value| .{
+            .lines = .{
+                formatRejectedMoveLine(&buffer.line_0, value.direction),
+                formatCurrentCellLine(&buffer.line_1, value.current_cell),
+                formatRejectedReasonLine(&buffer.line_2, value.reason),
+            },
+        },
+    };
+}
+
 pub fn computeSchematicLayout(
     canvas_width: i32,
     canvas_height: i32,
@@ -217,10 +377,21 @@ pub fn projectZoneBounds(snapshot: RenderSnapshot, schematic: sdl.Rect, zone: Zo
     return layout.projectZoneBounds(snapshot, schematic, zone);
 }
 
-pub fn renderDebugView(canvas: *sdl.Canvas, snapshot: RenderSnapshot) !void {
+pub fn renderDebugView(
+    canvas: *sdl.Canvas,
+    snapshot: RenderSnapshot,
+    locomotion_status: ViewerLocomotionStatus,
+) !void {
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(std.heap.page_allocator, snapshot);
     defer catalog.deinit(std.heap.page_allocator);
-    return render.renderDebugView(canvas, snapshot, catalog, fragment_compare.initialFragmentComparisonSelection(catalog));
+    var status_buffer: ViewerLocomotionStatusDisplayBuffer = .{};
+    return render.renderDebugView(
+        canvas,
+        snapshot,
+        catalog,
+        fragment_compare.initialFragmentComparisonSelection(catalog),
+        formatLocomotionStatusDisplay(&status_buffer, locomotion_status),
+    );
 }
 
 pub fn buildFragmentComparisonCatalog(
@@ -255,46 +426,77 @@ pub fn renderDebugViewWithSelection(
     snapshot: RenderSnapshot,
     catalog: FragmentComparisonCatalog,
     selection: FragmentComparisonSelection,
+    locomotion_status: ViewerLocomotionStatus,
 ) !void {
-    return render.renderDebugView(canvas, snapshot, catalog, selection);
-}
-
-pub fn printLocomotionSeedDiagnostic(writer: anytype, position: WorldPointSnapshot) !void {
-    try writer.print(
-        "event=hero_seed status=seeded fixture_cell={d}/{d} hero_x={d} hero_y={d} hero_z={d}\n",
-        .{
-            locomotion_fixture_cell.x,
-            locomotion_fixture_cell.z,
-            position.x,
-            position.y,
-            position.z,
-        },
+    var status_buffer: ViewerLocomotionStatusDisplayBuffer = .{};
+    return render.renderDebugView(
+        canvas,
+        snapshot,
+        catalog,
+        selection,
+        formatLocomotionStatusDisplay(&status_buffer, locomotion_status),
     );
 }
 
-pub fn printLocomotionAttemptDiagnostic(
-    writer: anytype,
-    direction: CardinalDirection,
-    attempt: ViewerLocomotionStepAttempt,
-) !void {
-    var origin_cell_buffer: [16]u8 = undefined;
-    const origin_cell = formatOptionalCell(&origin_cell_buffer, attempt.origin.raw_cell.cell);
-    var target_cell_buffer: [16]u8 = undefined;
-    const target_cell = formatOptionalCell(&target_cell_buffer, attempt.target.raw_cell.cell);
-    try writer.print(
-        "event=hero_move direction={s} status={s} origin_status={s} target_status={s} origin_cell={s} target_cell={s} hero_x={d} hero_y={d} hero_z={d}\n",
-        .{
-            directionLabel(direction),
-            locomotionAttemptStatusLabel(attempt.status),
-            @tagName(attempt.origin.status),
-            @tagName(attempt.target.status),
-            origin_cell,
-            target_cell,
-            attempt.target.target_world_position.x,
-            attempt.target.target_world_position.y,
-            attempt.target.target_world_position.z,
+pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotionStatus) !void {
+    switch (status) {
+        .raw_invalid_start => |value| {
+            var raw_cell_buffer: [16]u8 = undefined;
+            try writer.print(
+                "event=hero_status status=raw_invalid_start exact_status={s} raw_cell={s} occupied_coverage={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                .{
+                    @tagName(value.exact_status),
+                    formatOptionalCell(&raw_cell_buffer, value.raw_cell),
+                    @tagName(value.occupied_coverage),
+                    value.hero_position.x,
+                    value.hero_position.y,
+                    value.hero_position.z,
+                },
+            );
         },
-    );
+        .seeded_valid => |value| {
+            var cell_buffer: [16]u8 = undefined;
+            try writer.print(
+                "event=hero_seed status=seeded_valid cell={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                .{
+                    formatRequiredCell(&cell_buffer, value.cell),
+                    value.hero_position.x,
+                    value.hero_position.y,
+                    value.hero_position.z,
+                },
+            );
+        },
+        .last_move_accepted => |value| {
+            var cell_buffer: [16]u8 = undefined;
+            try writer.print(
+                "event=hero_move direction={s} status=accepted cell={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                .{
+                    directionLabel(value.direction),
+                    formatRequiredCell(&cell_buffer, value.cell),
+                    value.hero_position.x,
+                    value.hero_position.y,
+                    value.hero_position.z,
+                },
+            );
+        },
+        .last_move_rejected => |value| {
+            var current_cell_buffer: [16]u8 = undefined;
+            var target_cell_buffer: [16]u8 = undefined;
+            try writer.print(
+                "event=hero_move direction={s} status=rejected rejection_stage={s} reason={s} current_cell={s} target_cell={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                .{
+                    directionLabel(value.direction),
+                    @tagName(value.rejection_stage),
+                    @tagName(value.reason),
+                    formatOptionalCell(&current_cell_buffer, value.current_cell),
+                    formatOptionalCell(&target_cell_buffer, value.target_cell),
+                    value.hero_position.x,
+                    value.hero_position.y,
+                    value.hero_position.z,
+                },
+            );
+        },
+    }
 }
 
 pub fn printStartupDiagnostics(
@@ -482,17 +684,92 @@ fn directionLabel(direction: CardinalDirection) []const u8 {
     };
 }
 
-fn locomotionAttemptStatusLabel(status: ViewerLocomotionStepStatus) []const u8 {
-    return switch (status) {
-        .moved => "moved",
-        .origin_invalid => "origin_invalid",
-        .target_rejected => "target_rejected",
-    };
-}
-
 fn formatOptionalCell(buffer: []u8, cell: ?GridCell) []const u8 {
     if (cell) |resolved| {
         return std.fmt.bufPrint(buffer, "{d}/{d}", .{ resolved.x, resolved.z }) catch unreachable;
     }
     return "none";
+}
+
+fn formatRequiredCell(buffer: []u8, cell: GridCell) []const u8 {
+    return std.fmt.bufPrint(buffer, "{d}/{d}", .{ cell.x, cell.z }) catch unreachable;
+}
+
+fn upperTag(buffer: []u8, value: []const u8) []const u8 {
+    const len = @min(buffer.len, value.len);
+    for (value[0..len], 0..) |char, index| {
+        buffer[index] = if (char >= 'a' and char <= 'z') char - 32 else char;
+    }
+    return buffer[0..len];
+}
+
+fn formatRawStartLine(
+    buffer: []u8,
+    raw_cell: ?GridCell,
+    exact_status: runtime_query.HeroStartExactStatus,
+) []const u8 {
+    var cell_buffer: [16]u8 = undefined;
+    var status_buffer: [40]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "CELL {s} {s}",
+        .{
+            formatOptionalCell(&cell_buffer, raw_cell),
+            upperTag(&status_buffer, @tagName(exact_status)),
+        },
+    ) catch unreachable;
+}
+
+fn formatCoverageLine(buffer: []u8, coverage: runtime_query.OccupiedCoverageRelation) []const u8 {
+    var coverage_buffer: [40]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "BOUNDS {s}",
+        .{upperTag(&coverage_buffer, @tagName(coverage))},
+    ) catch unreachable;
+}
+
+fn formatAllowedCellLine(buffer: []u8, cell: GridCell) []const u8 {
+    var cell_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "CELL {s} STATUS ALLOWED",
+        .{formatRequiredCell(&cell_buffer, cell)},
+    ) catch unreachable;
+}
+
+fn formatAcceptedMoveLine(buffer: []u8, direction: CardinalDirection) []const u8 {
+    var direction_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "MOVE {s} ACCEPTED",
+        .{upperTag(&direction_buffer, directionLabel(direction))},
+    ) catch unreachable;
+}
+
+fn formatRejectedMoveLine(buffer: []u8, direction: CardinalDirection) []const u8 {
+    var direction_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "MOVE {s} REJECTED",
+        .{upperTag(&direction_buffer, directionLabel(direction))},
+    ) catch unreachable;
+}
+
+fn formatCurrentCellLine(buffer: []u8, cell: ?GridCell) []const u8 {
+    var cell_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "STAY CELL {s}",
+        .{formatOptionalCell(&cell_buffer, cell)},
+    ) catch unreachable;
+}
+
+fn formatRejectedReasonLine(buffer: []u8, reason: runtime_query.MoveTargetStatus) []const u8 {
+    var reason_buffer: [40]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "REASON {s}",
+        .{upperTag(&reason_buffer, @tagName(reason))},
+    ) catch unreachable;
 }
