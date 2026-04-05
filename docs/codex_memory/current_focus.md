@@ -8,12 +8,12 @@
 - Keep switch-family life outside the supported decoder/interpreter boundary.
 - Keep the runtime/load seam fail-fast on unsupported switch-family scene life.
 - Keep `runtime/session.zig` on explicit world-position seeds, not direct `RoomSnapshot` init.
-- Keep `runtime/world_query.zig` on bounded hero-motion evaluation and mapping falsification rather than broader gameplay widening.
+- Keep `runtime/world_query.zig` as the guarded pure query/evaluation owner while the next widening lands as a runtime-owned hero locomotion seam with bounded current-zone membership.
 - Keep fast Windows validation additive: `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` are for iteration, while bare commands remain canonical.
 
 ## Active Streams
 
-- Guarded `19/19` runtime/viewer maintenance and bounded widening on top of the landed `world_query` movement-evaluation path.
+- First Phase 5 Branch B gameplay slice: runtime-owned guarded `19/19` hero locomotion and bounded current-zone membership on top of the landed `world_query` movement-evaluation path.
 - Fast Windows validation through `zig build test-fast` and `scripts/verify-viewer.ps1 -Fast`, with bare commands still canonical.
 - Memory hygiene: keep canonical pickup on `docs/codex_memory/`, the roadmap, and the live `port/` tree instead of `sidequest/` or `LM_TASKS/`.
 
@@ -25,7 +25,7 @@
 
 ## Next Actions
 
-- Keep gameplay/runtime widening centered on `SCENE.HQR[19]` and `runtime/world_query.zig`; do not widen spawn or control policy past the current guarded boundary without a new slice.
+- Land the next guarded `SCENE.HQR[19]` slice as a runtime-owned hero step/result seam plus bounded current-zone membership, and keep viewer code on formatting/diagnostics instead of movement policy.
 - Use `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` during iteration, and keep bare `zig build test` plus `scripts/verify-viewer.ps1` as the before-close pass.
 - Keep future life work scoped to rejection diagnostics, fail-fast coverage for unsupported switch-family opcodes, or a reopened evidence pass only if new checked-in primary-source evidence appears.
 - Keep `2/2`, `44/2`, and `11/10` on their current guarded or evidence-only roles unless the runtime boundary widens explicitly.
