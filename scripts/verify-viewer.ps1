@@ -224,7 +224,8 @@ function Test-ViewerLaunch {
         [int]$Background,
         [Parameter(Mandatory = $true)]
         [int]$ExpectedFragments,
-        [int]$ExpectedBrickPreviews = -1
+        [int]$ExpectedBrickPreviews = -1,
+        [string[]]$ExpectedStderrFragments = @()
     )
 
     Write-Host ""
@@ -258,10 +259,17 @@ function Test-ViewerLaunch {
             $renderSnapshotSeen = $stderr -match "render_snapshot=objects:"
             $fragmentSummarySeen = $stderr -match ("fragments={0}\s" -f $ExpectedFragments)
             $brickPreviewSummarySeen = ($ExpectedBrickPreviews -lt 0) -or ($stderr -match ("brick_previews={0}" -f $ExpectedBrickPreviews))
+            $expectedStderrSeen = $true
+            foreach ($fragment in $ExpectedStderrFragments) {
+                if ($stderr -notmatch [regex]::Escape($fragment)) {
+                    $expectedStderrSeen = $false
+                    break
+                }
+            }
             $cleanShutdownSeen = $stderr -match ("status=ok event=shutdown scene_entry={0} background_entry={1}" -f $Scene, $Background)
             $viewerProcess = Get-Process lba2 -ErrorAction SilentlyContinue
 
-            if (($viewerProcess -or $cleanShutdownSeen) -and $startupSeen -and $roomSnapshotSeen -and $pairSeen -and $renderSnapshotSeen -and $fragmentSummarySeen -and $brickPreviewSummarySeen) {
+            if (($viewerProcess -or $cleanShutdownSeen) -and $startupSeen -and $roomSnapshotSeen -and $pairSeen -and $renderSnapshotSeen -and $fragmentSummarySeen -and $brickPreviewSummarySeen -and $expectedStderrSeen) {
                 $confirmed = $true
                 break
             }
@@ -421,7 +429,17 @@ $inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPat
 $inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 44 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_END_SWITCH" -ExpectedUnsupportedOpcodeId 118 -ExpectedUnsupportedOffset 713))
 $inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 11 -Background 10 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_DEFAULT" -ExpectedUnsupportedOpcodeId 116 -ExpectedUnsupportedOffset 38))
 
-$launchResults.Add((Test-ViewerLaunch -PortRoot $portRoot -ViewerPath $viewerPath -Scene 19 -Background 19 -ExpectedFragments 0))
+$launchResults.Add((Test-ViewerLaunch -PortRoot $portRoot -ViewerPath $viewerPath -Scene 19 -Background 19 -ExpectedFragments 0 -ExpectedStderrFragments @(
+    "event=neighbor_pattern_summary",
+    "origin_cell_count=1246",
+    "occupied_surface_count=4828",
+    "empty_count=107",
+    "out_of_bounds_count=49",
+    "missing_top_surface_count=0",
+    "standable_neighbor_count=4828",
+    "blocked_neighbor_count=0",
+    "top_y_delta_buckets=0:4828"
+)))
 $launchFailureResults.Add((Test-ViewerLaunchFailure -PortRoot $portRoot -ViewerPath $viewerPath -Scene 2 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_DEFAULT" -ExpectedUnsupportedOpcodeId 116 -ExpectedUnsupportedOffset 170))
 $launchFailureResults.Add((Test-ViewerLaunchFailure -PortRoot $portRoot -ViewerPath $viewerPath -Scene 44 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_END_SWITCH" -ExpectedUnsupportedOpcodeId 118 -ExpectedUnsupportedOffset 713))
 $launchFailureResults.Add((Test-ViewerLaunchFailure -PortRoot $portRoot -ViewerPath $viewerPath -Scene 11 -Background 10 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_DEFAULT" -ExpectedUnsupportedOpcodeId 116 -ExpectedUnsupportedOffset 38))

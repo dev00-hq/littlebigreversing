@@ -463,6 +463,7 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
 
 pub fn printStartupDiagnostics(
     writer: anytype,
+    allocator: std.mem.Allocator,
     resolved: paths_mod.ResolvedPaths,
     room: *const RoomSnapshot,
 ) !void {
@@ -554,6 +555,7 @@ pub fn printStartupDiagnostics(
             room.background.bricks.previews.len,
         },
     );
+    try printObservedNeighborPatternSummary(writer, allocator, room);
     try printUsedBlockSummary(writer, room.background.used_block_ids);
 }
 
@@ -592,6 +594,46 @@ pub fn formatWindowTitleZ(allocator: std.mem.Allocator, room: *const RoomSnapsho
     defer allocator.free(title);
 
     return allocator.dupeZ(u8, title);
+}
+
+fn printObservedNeighborPatternSummary(
+    writer: anytype,
+    allocator: std.mem.Allocator,
+    room: *const RoomSnapshot,
+) !void {
+    const query = runtime_query.init(room);
+    const summary = try query.summarizeObservedNeighborPatterns(allocator);
+    defer summary.deinit(allocator);
+
+    try writer.print(
+        "event=neighbor_pattern_summary origin_cell_count={d} occupied_surface_count={d} empty_count={d} out_of_bounds_count={d} missing_top_surface_count={d} standable_neighbor_count={d} blocked_neighbor_count={d} top_y_delta_buckets=",
+        .{
+            summary.origin_cell_count,
+            summary.occupied_surface_count,
+            summary.empty_count,
+            summary.out_of_bounds_count,
+            summary.missing_top_surface_count,
+            summary.standable_neighbor_count,
+            summary.blocked_neighbor_count,
+        },
+    );
+    try printObservedNeighborPatternBuckets(writer, summary.top_y_delta_buckets);
+    try writer.writeAll("\n");
+}
+
+fn printObservedNeighborPatternBuckets(
+    writer: anytype,
+    buckets: []const runtime_query.ObservedTopYDeltaBucket,
+) !void {
+    if (buckets.len == 0) {
+        try writer.writeAll("none");
+        return;
+    }
+
+    for (buckets, 0..) |bucket, index| {
+        if (index != 0) try writer.writeAll("|");
+        try writer.print("{d}:{d}", .{ bucket.delta, bucket.count });
+    }
 }
 
 fn printUsedBlockSummary(writer: anytype, used_block_ids: []const u8) !void {

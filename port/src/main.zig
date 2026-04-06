@@ -63,7 +63,7 @@ pub fn main() !void {
 
     var runtime_session = lba2.app.viewer_shell.initSession(&room);
     var locomotion_status = try lba2.runtime.locomotion.inspectCurrentStatus(&room, runtime_session);
-    try lba2.app.viewer_shell.printStartupDiagnostics(stderr, resolved, &room);
+    try lba2.app.viewer_shell.printStartupDiagnostics(stderr, allocator, resolved, &room);
     try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
     var render = lba2.app.viewer_shell.buildRenderSnapshot(&room, runtime_session);
     var fragment_catalog = try lba2.app.viewer_shell.buildFragmentComparisonCatalog(allocator, render);

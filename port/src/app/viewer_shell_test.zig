@@ -1,4 +1,5 @@
 const std = @import("std");
+const paths_mod = @import("../foundation/paths.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 const runtime_locomotion = @import("../runtime/locomotion.zig");
 const runtime_query = @import("../runtime/world_query.zig");
@@ -504,6 +505,27 @@ test "viewer window title carries the canonical room metadata" {
     try std.testing.expect(std.mem.indexOf(u8, title, "blocks=73[1|2|3|4|5|7|...]") != null);
     try std.testing.expect(std.mem.indexOf(u8, title, "columns=64x64") != null);
     try std.testing.expect(std.mem.indexOf(u8, title, "comp=1246") != null);
+}
+
+test "viewer startup diagnostics include the guarded 19/19 neighbor pattern summary" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const room = try room_fixtures.guarded1919();
+
+    var output: std.ArrayList(u8) = .empty;
+    defer output.deinit(allocator);
+    try viewer_shell.printStartupDiagnostics(output.writer(allocator), allocator, resolved, room);
+
+    const rendered = try output.toOwnedSlice(allocator);
+    defer allocator.free(rendered);
+
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        rendered,
+        "event=neighbor_pattern_summary origin_cell_count=1246 occupied_surface_count=4828 empty_count=107 out_of_bounds_count=49 missing_top_surface_count=0 standable_neighbor_count=4828 blocked_neighbor_count=0 top_y_delta_buckets=0:4828\n",
+    ) != null);
 }
 
 test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status without mutation" {
