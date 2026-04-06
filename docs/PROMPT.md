@@ -1,61 +1,63 @@
 # Next Prompt
 
-Relevant subsystem packs for this task: `architecture`, `backgrounds`, `scene_decode`, and `platform_windows`.
+Relevant subsystem packs for this task: `architecture`, `backgrounds`, `life_scripts`, `scene_decode`, and `platform_windows`.
 
 Current state:
 
 - `19/19` is still the only supported positive branch-B runtime/load baseline.
-- `rank-decoded-interior-candidates` is now the canonical offline report for fully-decoded interior branch-B candidates. It orders the `50` decoded interior scenes by `track_count`, `object_count`, `zone_count`, `blob_count`, then `scene_entry_index`.
-- The current ranking result is explicit: `SCENE.HQR[219]` is the top offline candidate with `blob_count=34`, `object_count=34`, `zone_count=16`, `track_count=17`, and `patch_count=42`; the guarded `SCENE.HQR[19]` baseline ranks `49/50`.
-- `inspect-scene 219 --json` confirms that the top-ranked candidate is structurally much richer than `19`, with real track data and a large scene/object payload.
-- The next blocker is not life decoding or candidate selection. It is room/load viability: `inspect-room 219 219 --json` currently fails with `InvalidFragmentZoneBounds` inside `runtime/room_state.zig` while fragment-zone snapshots are being projected.
-- Keep the claim calibrated: `219` is the best current offline candidate under the checked-in richness policy, not a newly admitted runtime scene.
-- The current supported `19/19` startup is still diagnostic-only rather than gameplay-ready: the guarded viewer launch lands on `raw_invalid_start`, and the current scene metadata reports `track_count=0`.
+- The guarded negative scene-life startup path is settled behavior: `2/2`, `44/2`, and `11/10` fail fast with `ViewerUnsupportedSceneLife`, and both `inspect-room` and viewer startup print the same first-hit `event=room_load_rejected ... unsupported_life_opcode_name=... unsupported_life_opcode_id=... unsupported_life_offset=...` line before the error.
+- The guarded positive startup path still lands on `raw_invalid_start`, and the current scene metadata for `19` still reports `track_count=0`.
+- `life_audit.zig` plus `rank-decoded-interior-candidates` now provide the canonical offline branch-B ranking surface for fully-decoded interior scenes.
+- The current checked-in ranking contract is explicit and tested: sort by descending `track_count`, `object_count`, `zone_count`, and `blob_count`, with ascending `scene_entry_index` as the stable tie-breaker.
+- On the current asset tree, `rank-decoded-interior-candidates` ranks `50` decoded interior scenes, with `SCENE.HQR[219]` first and `SCENE.HQR[19]` at `49/50`.
+- The top-ranked offline candidate is still not a valid guarded room/load pair: `zig build tool -- inspect-room 219 219 --json` currently fails with `InvalidFragmentZoneBounds`.
+- `scripts/verify-viewer.ps1` now clears stale `$LASTEXITCODE` after inspected executable calls, so expected-failure probes no longer leak a nonzero script exit after a successful summary.
 
 Next slice:
 
-- Stop revisiting candidate ranking for now. Make the new Phase 5 blocker concrete instead: explain exactly why the top-ranked `219/219` room/load attempt fails with `InvalidFragmentZoneBounds`.
-- Build one canonical checked-in diagnostic surface that turns that generic failure into a first-hit explanation with the offending zone or bounds details needed to reason about the blocker.
-- Keep this slice bounded to offline room/load diagnosis. Do not admit `219/219` as a supported positive pair yet, do not change viewer contracts, and do not widen runtime behavior beyond the diagnostic surface needed to explain the rejection.
-- Treat a negative answer as useful output. If `219/219` is blocked because current fragment-zone projection assumptions reject real asset bounds, make that explicit and use it to drive the next planning step instead of inventing a new supported scene.
+- Stop widening offline candidate ranking for now and make the new blocker concrete instead: explain why `219/219` fails with `InvalidFragmentZoneBounds`.
+- Build one canonical checked-in surface that turns the current raw `InvalidFragmentZoneBounds` failure into actionable evidence. The goal is to identify which fragment-zone bounds or room-state assumptions fail for `219/219`, not to admit the pair at runtime.
+- Keep the claim calibrated: this slice is diagnostic and offline only. It must not widen the guarded runtime/load boundary or imply that `219/219` is now supported.
+- Treat a negative answer as useful output. If the current checked-in evidence shows that `219/219` is structurally misaligned for reasons that are not safe to paper over, make that explicit and use it to sharpen the next Phase 5 plan instead of inventing progress.
 
 Hard-cut ownership:
 
-- `runtime/room_state.zig`: canonical owner for fragment-zone projection and the `InvalidFragmentZoneBounds` failure
-- `tools/cli.zig`: preferred owner for any explicit first-hit diagnostic surface surfaced through `inspect-room` or a closely related room probe
-- `scene.zig` plus scene parser/model/tests: canonical owner for raw scene-zone metadata that the diagnostic must report
-- `viewer_shell.zig`, `render.zig`, `main.zig`, and runtime admission policy: unchanged for this slice unless tiny plumbing is strictly required by tests
+- `runtime/room_state.zig`: canonical owner of fragment-zone validation and the `InvalidFragmentZoneBounds` failure
+- `background` composition/model code plus tests: canonical owner of fragment data and fragment-zone inputs
+- `scene` metadata/model code plus tests: canonical owner of scene-zone inputs
+- `tools/cli.zig`: preferred owner for any stable probe/report surface needed to explain the blocker
+- `viewer_shell.zig`, `render.zig`, `main.zig`, and locomotion/world-query contracts: unchanged for this slice unless tiny plumbing is strictly required by tests
 
 Scope:
 
-- Preserve the guarded `19/19` boundary and the current negative cases while you investigate the `219/219` room/load blocker offline.
-- Prefer checked-in inputs that already exist at the seam: scene-zone bounds, zone type/number, fragment metadata, grid span assumptions, background pairing, and the exact error site in `runtime/room_state.zig`.
-- No runtime widening, no new supported positive startup pair, no life execution, no scene transitions, no inventory/state systems, no combat, no track execution, no movement-policy changes, and no new unchecked public-runtime path.
-- Do not treat docs-only reasoning as enough. The answer must come from checked-in code, tests, or a canonical CLI surface.
-- Prefer a dedicated first-hit diagnostic or a precise `inspect-room` failure expansion over vague logging. If a new helper or payload is needed, keep it single-purpose and stable.
+- Preserve the guarded `19/19` boundary and the current negative guarded cases.
+- Preserve `rank-decoded-interior-candidates` as the canonical offline ranking surface; do not replace it with another ranking contract.
+- Focus on checked-in evidence already present in code and assets: fragment geometry, scene zones, room-state validation, and explicit failure sites.
+- No runtime widening, no new supported positive startup pair, no life execution, no movement-policy changes, no scene transitions, and no new unchecked public-runtime path.
+- Do not treat docs-only reasoning as enough. The blocker explanation must come from checked-in code, tests, or a canonical CLI/report surface.
 
 Useful work in scope:
 
-- Reuse `inspect-room 219 219`, `inspect-scene 219`, and the fragment-zone projection helpers to surface the first offending zone/bounds pair rather than just returning `InvalidFragmentZoneBounds`.
-- Pin the current ranking result only as context: `219` is the top offline candidate and `19` is not. The implementation work here is the room/load blocker explanation, not ranking changes.
-- Surface the blocker in one canonical place that future sessions can rerun without manual debugging.
-- If the root cause is a wrong background pairing or a too-strict room-state assumption, make that explicit. If the asset data itself is genuinely outside the current projection contract, make that explicit instead.
+- Add a stable probe or diagnostic surface that makes `219/219`'s fragment-zone failure concrete and rerunnable.
+- Pin the current winner facts (`219` first, `19` at `49/50`) while showing why the top-ranked candidate still cannot cross the guarded room/load seam.
+- If the failure reduces to one or two specific fragment-zone invariants, surface them explicitly.
+- If the failure instead proves the current `219/219` pairing is not the next safe slice, make that negative result explicit.
 
 Acceptance:
 
-- One canonical checked-in surface answers the question: why does the top-ranked `219/219` room/load attempt currently fail?
-- The answer is derived from existing room-state, background, and scene-metadata owners, not from ad hoc docs-only reasoning.
-- The repo makes it explicit whether the blocker is a fragment-zone alignment rule, a background-pairing issue, or another current room-state assumption.
-- The guarded runtime/viewer boundary and its current startup/load diagnostics remain unchanged.
+- One canonical checked-in surface answers the question: why does `inspect-room 219 219 --json` currently fail with `InvalidFragmentZoneBounds`?
+- The answer is derived from existing room-state, background, and scene owners, not from ad hoc docs-only reasoning.
+- The repo makes it explicit whether the blocker is a fragment-zone data issue, a room-state assumption issue, or another guarded invariant.
+- The guarded runtime/viewer boundary and the current startup/load diagnostics remain unchanged.
 
 Validation:
 
 - From native PowerShell, after `.\scripts\dev-shell.ps1`, run:
   - `cd port`
   - `zig build test-fast`
-  - `zig build tool -- rank-decoded-interior-candidates --json`
-  - `zig build tool -- inspect-scene 219 --json`
+  - `zig build tool -- rank-decoded-interior-candidates`
   - `zig build tool -- inspect-room 219 219 --json`
+  - `# plus the new blocker-explanation surface if this slice adds one`
   - `zig build test`
   - `cd ..`
   - `.\scripts\verify-viewer.ps1 -Fast`

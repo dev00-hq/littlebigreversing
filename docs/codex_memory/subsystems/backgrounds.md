@@ -18,6 +18,7 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 - `SCENE.HQR[19]` with `LBA_BKG.HQR[19]` is the only supported positive guarded runtime/load baseline for the background-backed viewer path.
 - `SCENE.HQR[2]` with `LBA_BKG.HQR[2]` remains the explicit zero-fragment control path for evidence and test surfaces, but the guarded `inspect-room` / viewer seam rejects it with `ViewerUnsupportedSceneLife`.
 - `SCENE.HQR[11]` with `LBA_BKG.HQR[10]` remains the checked-in fragment evidence pair, but only on explicit unchecked or test-local paths rather than the guarded runtime/load seam.
+- The top-ranked offline interior candidate is currently blocked at the room/load seam: `inspect-room 219 219 --json` fails with `InvalidFragmentZoneBounds` during fragment-zone projection.
 - The decoder loads `RESS.HQR[0]` plus referenced top-surface `BRK` entries and fails fast if an expected preview is missing.
 - Exterior `.ILE/.OBL`, full brick rasterization, and actor visual binding stay outside this pack.
 
@@ -27,6 +28,7 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 - Mixing zero-based classic indices with the older one-based helpers will shift you onto the wrong payload.
 - `gri_header.my_grm` is a forward cursor, not ownership proof. In the checked-in assets, backgrounds `0..10` all report `my_grm = 0`, but only the last grid owns fragment `149`; canonical background `2` owns none.
 - The positive pair `11/10` only projects cleanly if fragment-zone maxima are treated as boundary-aligned endpoints.
+- Winning the offline decoded-candidate ranking does not prove fragment-zone compatibility. `SCENE.HQR[219]` currently ranks first, but `inspect-room 219 219` still dies on `InvalidFragmentZoneBounds`.
 - `inspect-room --json` reports probe counts and `BRK` summaries, not the projected fragment cells behind the comparison panel; under the current guard it succeeds only for supported pairs such as `19/19`, so use viewer/tests for per-cell deltas and explicit unchecked evidence paths for `11/10`.
 - The landed `BRK` previews are evidence surfaces, not proof that the repo now has a full room-art renderer. Keep future work scoped to the current debug/comparison path unless checked-in evidence justifies more.
 

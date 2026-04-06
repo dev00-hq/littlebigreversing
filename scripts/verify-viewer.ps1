@@ -84,6 +84,7 @@ function Invoke-ExecutableCommand {
     try {
         $outputLines = (& $FilePath @Arguments 2>&1)
         $exitCode = $LASTEXITCODE
+        $global:LASTEXITCODE = 0
         $output = ($outputLines | Out-String)
     }
     finally {
