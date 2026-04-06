@@ -4,14 +4,14 @@ Relevant subsystem packs for this task: `architecture`, `scene_decode`, `backgro
 
 Current state:
 
-- `port/src/runtime/world_query.zig` owns exact containing-zone queries over copied checked-in scene-zone bounds.
+- `port/src/runtime/world_query.zig` owns exact containing-zone queries and exact move-target evaluation, including raw mapped target cells and `MoveTargetStatus`.
 - `port/src/runtime/locomotion.zig` owns step/result policy and already carries runtime-owned zone membership on `seeded_valid`, `last_move_accepted`, and admitted-position `last_move_rejected`.
 - `port/src/runtime/session.zig` owns mutable hero world position only.
 - `port/src/runtime/room_state.zig` owns the guarded room/load seam plus immutable room/render snapshots.
-- `port/src/app/viewer_shell.zig` owns formatting, stderr diagnostics, and explicit fixture seeding only.
+- `port/src/app/viewer_shell.zig` owns formatting, stderr diagnostics, and explicit fixture seeding only. It already formats the runtime-owned zone set as either `ZONES NONE` or a stable scene-order list, and it currently formats admitted-path move options from direction plus `MoveTargetStatus` only.
 - `port/src/app/viewer/render.zig` owns display only.
 - `port/src/main.zig` owns input routing only.
-- `port/src/app/viewer_shell_test.zig` and `port/src/app/viewer/render_test.zig` already pin the runtime-owned zero-fragment locomotion copy, but they do not yet require explicit zone-summary text.
+- `port/src/app/viewer_shell_test.zig`, `port/src/app/viewer/render_test.zig`, and `port/src/runtime/locomotion_test.zig` already pin the current zero-fragment contract, including explicit `ZONES NONE` / `zones=none` behavior and the separation between raw invalid-start copy and admitted-position movement semantics.
 
 Important facts:
 
@@ -21,25 +21,22 @@ Important facts:
 - The baked `19/19` hero start is still diagnostically invalid: `probeHeroStart()` reports `mapped_cell_empty`, raw mapped cell `3/7`, and outside occupied bounds.
 - The explicit `39/6` movement fixture is opt-in only.
 - On the guarded zero-fragment path, containing-zone membership for seeded `39/6`, accepted south to `39/7`, and rejected west preserving `39/6` is currently the empty set.
-- `port/src/runtime/locomotion_test.zig` already pins that empty-set runtime result. The gap is viewer copy and diagnostics, not missing runtime semantics.
+- The landed zone-summary contract is the baseline, not the next task.
+- The live runtime already computes the next useful evidence cue: exact raw target-cell mapping for each admitted-path cardinal option. The current locomotion seam drops that detail when it collapses move options down to direction plus status.
 
-The next slice is not new movement policy. The next slice is to make the runtime-owned containing-zone result visible and explicit in the existing viewer/HUD and stderr diagnostics, including the fact that the exact answer is currently `ZONES NONE`.
+The next slice is not new movement policy, not a new zone heuristic, and not a second presentation path. The next slice is to thread runtime-owned admitted-path target-cell evidence through the guarded `19/19` locomotion seam and make that evidence visible in existing viewer HUD and stderr diagnostics without reintroducing viewer-owned move evaluation.
 
 Implement a current-state slice that:
 
-- keeps `runtime/world_query.zig` as the only owner of exact containing-zone queries
-- keeps `runtime/locomotion.zig` as the only owner of step/result policy
-- keeps `viewer_shell.zig` as the only place that formats the runtime-owned zone membership for HUD copy and stderr diagnostics
-- surfaces runtime-owned containing-zone membership for:
-  - seeded/admitted status
-  - accepted movement
-  - rejected movement that preserves the current admitted position
-- makes the empty containing-zone set explicit as `ZONES NONE` instead of silently omitting it
-- keeps raw invalid-start copy separate; do not invent zone output for the baked invalid origin path
-- keeps `origin_invalid` rejection copy separate; do not pretend the baked invalid path has admitted-zone semantics
-- keeps HUD and stderr summaries derived from the same runtime-owned zone set and ordering, while letting stderr stay structured via an explicit `zones=...` field
+- keeps `runtime/world_query.zig` as the only owner of move-target evaluation, including exact raw target-cell mapping
+- keeps `runtime/locomotion.zig` as the only owner of step/result policy and admitted-path move-option packaging
+- expands the admitted-path move-option payload so seeded, accepted, and admitted-position rejected statuses carry exact runtime-owned target-cell mapping alongside the existing `MoveTargetStatus`
+- keeps `viewer_shell.zig` as formatting only: it may display the richer runtime-owned move-option evidence in HUD copy and stderr diagnostics, but it must not recompute move targets
+- keeps the current `ZONES NONE` / `zones=none` contract unchanged for the already-landed zero-fragment path
+- keeps raw invalid-start copy separate; do not invent admitted-path option details for the baked invalid origin path
+- keeps `origin_invalid` rejection copy separate; do not pretend the baked invalid path has admitted move-option semantics
+- keeps HUD and stderr derived from the same runtime-owned move-option and zone data, while letting stderr stay structured
 - keeps `main.zig` as input routing only
-- keeps any new formatting logic viewer-local; do not push presentation policy back into runtime
 
 Keep ownership hard-cut and explicit:
 
@@ -69,28 +66,25 @@ Keep the implementation honest about scope:
 
 Useful work in scope includes:
 
-- adding a compact viewer-local formatter for containing-zone membership that can print either:
-  - `ZONES NONE`
-  - or a stable exact list of scene-order zone indices derived directly from the runtime-owned containing-zone result
-- threading the same exact zone-membership semantics through HUD text and `printLocomotionStatusDiagnostic` without forcing the same presentation string
-- growing `ViewerLocomotionStatusDisplayBuffer` and the display line counts if needed
-- touching `main.zig` only if compile fallout forces it; this slice should not move formatting or policy there
-- keeping raw invalid start diagnostics separate; only seeded, accepted, and admitted-position rejected runtime statuses should carry the zone summary
-- pinning the exact seeded/accepted/rejected copy in viewer-shell tests and render tests
-- pinning stderr diagnostics in viewer-shell tests so the runtime-owned zone summary stays aligned with the HUD semantics and ordering
-- keeping the explicit empty-set result visible in tests so future slices do not "improve" it by inventing semantics
+- extending the admitted-path move-option structs so they preserve exact target-cell mapping from `world_query.zig`
+- adding compact viewer-local formatters for move-option evidence that can show direction, target cell, and status without recomputing anything in the viewer
+- updating HUD copy and `printLocomotionStatusDiagnostic` together so they expose the same runtime-owned admitted-path option details and still preserve the existing zone-summary contract
+- growing `ViewerLocomotionStatusDisplayBuffer` and the display line counts if the richer admitted-path copy needs it
+- keeping raw invalid start diagnostics separate; only seeded, accepted, and admitted-position rejected runtime statuses should carry the richer admitted-path option evidence
+- pinning runtime, viewer-shell, and render tests so future slices cannot silently drop target-cell detail back to status-only copy
 
 Acceptance:
 
-- viewer-shell tests prove the viewer consumes runtime-owned containing-zone results without reintroducing viewer-owned movement policy
-- viewer-shell tests pin the exact seeded/accepted/rejected HUD copy and stderr diagnostics, including explicit `ZONES NONE` in the HUD path and explicit `zones=...` in stderr
+- runtime locomotion tests prove seeded, accepted, and admitted-position rejected statuses now preserve exact runtime-owned target-cell mapping for each cardinal option on the guarded `19/19` fixture path
+- viewer-shell tests pin the exact seeded/accepted/rejected HUD copy and stderr diagnostics for the richer admitted-path move-option evidence, while keeping explicit `ZONES NONE` in the HUD path and explicit `zones=...` in stderr
+- viewer-shell tests continue to prove the viewer consumes runtime-owned locomotion results without reintroducing viewer-owned movement policy
 - render tests prove the zero-fragment guarded path surfaces:
-  - raw invalid start status
-  - seeded admitted status with explicit `ZONES NONE`
-  - accepted south step with explicit `ZONES NONE`
-  - rejected west step with explicit `ZONES NONE`
-- raw invalid start tests continue to prove the baked invalid-origin copy without any zone-summary line
-- stderr locomotion diagnostics expose the same exact containing-zone summary for seeded, accepted, and admitted-position rejected runtime statuses
+  - raw invalid start status without admitted-path option detail
+  - seeded admitted status with exact runtime-owned move-option target cells and explicit `ZONES NONE`
+  - accepted south step with exact runtime-owned move-option target cells and explicit `ZONES NONE`
+  - rejected west step that preserves `39/6`, still showing the admitted-position move-option target cells and explicit `ZONES NONE`
+- raw invalid start tests continue to prove the baked invalid-origin copy without any zone-summary line or admitted-path option detail
+- stderr locomotion diagnostics continue to expose the same exact containing-zone summary for seeded, accepted, and admitted-position rejected runtime statuses
 - `world_query.zig` remains the canonical pure move/query surface
 - `locomotion.zig` remains the canonical runtime step/result seam
 - from native PowerShell, after `.\scripts\dev-shell.ps1`, run:

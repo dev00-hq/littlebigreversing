@@ -15,16 +15,9 @@ fn expectMoveOptions(
     try std.testing.expectEqual(expected.origin.raw_cell.cell.?, move_options.current_cell);
     for (expected.options, 0..) |option, index| {
         try std.testing.expectEqual(option.direction, move_options.options[index].direction);
+        try std.testing.expectEqual(option.evaluation.raw_cell.cell, move_options.options[index].target_cell);
         try std.testing.expectEqual(option.evaluation.status, move_options.options[index].status);
     }
-}
-
-fn upperAscii(buffer: []u8, text: []const u8) []const u8 {
-    const len = @min(buffer.len, text.len);
-    for (text[0..len], 0..) |char, index| {
-        buffer[index] = if (char >= 'a' and char <= 'z') char - 32 else char;
-    }
-    return buffer[0..len];
 }
 
 fn expectDisplayMoveOptionLines(
@@ -32,26 +25,30 @@ fn expectDisplayMoveOptionLines(
     line_index: usize,
     move_options: viewer_shell.ViewerMoveOptions,
 ) !void {
-    var north_status_buffer: [40]u8 = undefined;
-    var east_status_buffer: [40]u8 = undefined;
-    var south_status_buffer: [40]u8 = undefined;
-    var west_status_buffer: [40]u8 = undefined;
-    var first_line_buffer: [64]u8 = undefined;
+    var north_cell_buffer: [16]u8 = undefined;
+    var east_cell_buffer: [16]u8 = undefined;
+    var south_cell_buffer: [16]u8 = undefined;
+    var west_cell_buffer: [16]u8 = undefined;
+    var first_line_buffer: [96]u8 = undefined;
     const first_line = try std.fmt.bufPrint(
         &first_line_buffer,
-        "N {s} E {s}",
+        "N {s} {s} E {s} {s}",
         .{
-            upperAscii(&north_status_buffer, @tagName(move_options.options[0].status)),
-            upperAscii(&east_status_buffer, @tagName(move_options.options[1].status)),
+            try formatDisplayTargetCellValue(&north_cell_buffer, move_options.options[0].target_cell),
+            moveOptionStatusHudLabel(move_options.options[0].status),
+            try formatDisplayTargetCellValue(&east_cell_buffer, move_options.options[1].target_cell),
+            moveOptionStatusHudLabel(move_options.options[1].status),
         },
     );
-    var second_line_buffer: [64]u8 = undefined;
+    var second_line_buffer: [96]u8 = undefined;
     const second_line = try std.fmt.bufPrint(
         &second_line_buffer,
-        "S {s} W {s}",
+        "S {s} {s} W {s} {s}",
         .{
-            upperAscii(&south_status_buffer, @tagName(move_options.options[2].status)),
-            upperAscii(&west_status_buffer, @tagName(move_options.options[3].status)),
+            try formatDisplayTargetCellValue(&south_cell_buffer, move_options.options[2].target_cell),
+            moveOptionStatusHudLabel(move_options.options[2].status),
+            try formatDisplayTargetCellValue(&west_cell_buffer, move_options.options[3].target_cell),
+            moveOptionStatusHudLabel(move_options.options[3].status),
         },
     );
 
@@ -78,20 +75,50 @@ fn formatRequiredCellValue(buffer: []u8, cell: viewer_shell.GridCell) ![]const u
     return std.fmt.bufPrint(buffer, "{d}/{d}", .{ cell.x, cell.z });
 }
 
+fn formatDisplayTargetCellValue(buffer: []u8, cell: ?viewer_shell.GridCell) ![]const u8 {
+    if (cell) |resolved| return std.fmt.bufPrint(buffer, "{d}/{d}", .{ resolved.x, resolved.z });
+    return "NONE";
+}
+
+fn directionLabel(direction: viewer_shell.CardinalDirection) []const u8 {
+    return switch (direction) {
+        .north => "north",
+        .east => "east",
+        .south => "south",
+        .west => "west",
+    };
+}
+
+fn moveOptionStatusHudLabel(status: runtime_query.MoveTargetStatus) []const u8 {
+    return switch (status) {
+        .allowed => "ALLOWED",
+        .target_out_of_bounds => "OOB",
+        .target_empty => "EMPTY",
+        .target_missing_top_surface => "NO_TOP",
+        .target_blocked => "BLOCKED",
+        .target_height_mismatch => "HEIGHT",
+    };
+}
+
 fn formatMoveOptionsDiagnosticValue(
     buffer: []u8,
     move_options: viewer_shell.ViewerMoveOptions,
 ) ![]const u8 {
-    return std.fmt.bufPrint(
-        buffer,
-        "north:{s},east:{s},south:{s},west:{s}",
-        .{
-            @tagName(move_options.options[0].status),
-            @tagName(move_options.options[1].status),
-            @tagName(move_options.options[2].status),
-            @tagName(move_options.options[3].status),
-        },
-    );
+    var cell_buffers: [4][16]u8 = undefined;
+    var stream = std.io.fixedBufferStream(buffer);
+    const writer = stream.writer();
+    for (move_options.options, 0..) |option, index| {
+        if (index != 0) try writer.writeAll(",");
+        try writer.print(
+            "{s}:{s}:{s}",
+            .{
+                directionLabel(option.direction),
+                try formatOptionalCellValue(&cell_buffers[index], option.target_cell),
+                @tagName(option.status),
+            },
+        );
+    }
+    return stream.getWritten();
 }
 
 fn formatZoneDiagnosticValue(
@@ -270,7 +297,7 @@ test "viewer locomotion harness consumes runtime-owned seeded 19/19 fixture stat
 
     const diagnostic = try formatDiagnostic(allocator, status);
     defer allocator.free(diagnostic);
-    var seeded_move_options_buffer: [128]u8 = undefined;
+    var seeded_move_options_buffer: [256]u8 = undefined;
     var seeded_cell_buffer: [16]u8 = undefined;
     var seeded_zone_buffer: [128]u8 = undefined;
     const expected_seeded_diagnostic = try std.fmt.allocPrint(
@@ -323,7 +350,7 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
 
     const moved_diagnostic = try formatDiagnostic(allocator, moved_status);
     defer allocator.free(moved_diagnostic);
-    var moved_move_options_buffer: [128]u8 = undefined;
+    var moved_move_options_buffer: [256]u8 = undefined;
     var moved_cell_buffer: [16]u8 = undefined;
     var moved_zone_buffer: [128]u8 = undefined;
     const expected_moved_diagnostic = try std.fmt.allocPrint(
@@ -376,7 +403,7 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     defer allocator.free(rejected_diagnostic);
     var rejected_current_cell_buffer: [16]u8 = undefined;
     var rejected_target_cell_buffer: [16]u8 = undefined;
-    var rejected_move_options_buffer: [128]u8 = undefined;
+    var rejected_move_options_buffer: [256]u8 = undefined;
     var rejected_zone_buffer: [128]u8 = undefined;
     const expected_rejected_diagnostic = try std.fmt.allocPrint(
         allocator,

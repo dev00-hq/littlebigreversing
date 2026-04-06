@@ -13,7 +13,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `port/` stays canonical; `runtime/world_geometry.zig` owns neutral geometry, `room_state.zig` owns the guarded `19/19` seam and hero-start adaptation, `session.zig` seeds from world input, `world_query.zig` owns pure movement evaluation plus exact containing-zone queries, `runtime/locomotion.zig` owns guarded hero step/result policy, and `main.zig` plus `app/viewer_shell.zig` consume runtime locomotion results for explicit fixture seeding, zero-fragment diagnostics, and viewer-local zone-summary formatting.
+- `port/` stays canonical; `runtime/world_geometry.zig` owns neutral geometry, `room_state.zig` owns the guarded `19/19` seam and hero-start adaptation, `session.zig` seeds from world input, `world_query.zig` owns pure movement evaluation plus exact containing-zone queries and raw target-cell mapping, `runtime/locomotion.zig` owns guarded hero step/result policy, and `main.zig` plus `app/viewer_shell.zig` consume runtime locomotion results for explicit fixture seeding, zero-fragment diagnostics, viewer-local zone-summary formatting, and admitted-path target-cell formatting.
 
 ## Known Traps
 
@@ -29,6 +29,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - Preserved legacy docs are evidence, not numeric ground truth. If a spec mixes index bases or disagrees with asset-backed regressions, trust the checked-in probe or test for exact values.
 - On the guarded `19/19` locomotion baseline, the exact containing-zone result for the admitted `39/6` fixture and the accepted south step is currently the empty set. Do not invent a current zone or alternate mapping scale to make that answer non-empty.
 - The guarded `19/19` zone-summary contract is intentional: HUD copy uses `ZONES NONE` / `ZONES <indices>`, while stderr uses structured `zones=none` / `zones=<indices>` fields. Keep both derived from the same runtime-owned zone order instead of inventing a second zone-presentation path.
+- The guarded `19/19` admitted move-option contract is also intentional: HUD uses compact direction/cell/status lines, while stderr keeps structured `direction:cell:status` fields. Keep both derived from runtime-owned move options instead of recomputing target cells in the viewer.
 
 ## Canonical Entry Points
 

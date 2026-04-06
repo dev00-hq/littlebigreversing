@@ -16,6 +16,7 @@ pub const LocomotionRejectedStage = enum {
 
 pub const CardinalMoveOption = struct {
     direction: CardinalDirection,
+    target_cell: ?GridCell,
     status: runtime_query.MoveTargetStatus,
 };
 
@@ -169,6 +170,7 @@ fn buildMoveOptions(
     for (option_set.options, 0..) |option, index| {
         options[index] = .{
             .direction = option.direction,
+            .target_cell = option.evaluation.raw_cell.cell,
             .status = option.evaluation.status,
         };
     }

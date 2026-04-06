@@ -59,14 +59,6 @@ fn hasTraceText(trace: sdl.CanvasTrace, text: []const u8) bool {
     return false;
 }
 
-fn upperAscii(buffer: []u8, text: []const u8) []const u8 {
-    const len = @min(buffer.len, text.len);
-    for (text[0..len], 0..) |char, index| {
-        buffer[index] = if (char >= 'a' and char <= 'z') char - 32 else char;
-    }
-    return buffer[0..len];
-}
-
 fn expectTraceHasMoveOptionsForPosition(
     trace: sdl.CanvasTrace,
     room: *const viewer_shell.RoomSnapshot,
@@ -75,31 +67,51 @@ fn expectTraceHasMoveOptionsForPosition(
     const query = runtime_query.init(room);
     const move_options = try query.evaluateCardinalMoveOptions(hero_position);
 
-    var north_status_buffer: [40]u8 = undefined;
-    var east_status_buffer: [40]u8 = undefined;
-    var south_status_buffer: [40]u8 = undefined;
-    var west_status_buffer: [40]u8 = undefined;
-    var line_0_buffer: [64]u8 = undefined;
+    var north_cell_buffer: [16]u8 = undefined;
+    var east_cell_buffer: [16]u8 = undefined;
+    var south_cell_buffer: [16]u8 = undefined;
+    var west_cell_buffer: [16]u8 = undefined;
+    var line_0_buffer: [96]u8 = undefined;
     const line_0 = try std.fmt.bufPrint(
         &line_0_buffer,
-        "N {s} E {s}",
+        "N {s} {s} E {s} {s}",
         .{
-            upperAscii(&north_status_buffer, @tagName(move_options.options[0].evaluation.status)),
-            upperAscii(&east_status_buffer, @tagName(move_options.options[1].evaluation.status)),
+            try formatDisplayTargetCellValue(&north_cell_buffer, move_options.options[0].evaluation.raw_cell.cell),
+            moveOptionStatusHudLabel(move_options.options[0].evaluation.status),
+            try formatDisplayTargetCellValue(&east_cell_buffer, move_options.options[1].evaluation.raw_cell.cell),
+            moveOptionStatusHudLabel(move_options.options[1].evaluation.status),
         },
     );
-    var line_1_buffer: [64]u8 = undefined;
+    var line_1_buffer: [96]u8 = undefined;
     const line_1 = try std.fmt.bufPrint(
         &line_1_buffer,
-        "S {s} W {s}",
+        "S {s} {s} W {s} {s}",
         .{
-            upperAscii(&south_status_buffer, @tagName(move_options.options[2].evaluation.status)),
-            upperAscii(&west_status_buffer, @tagName(move_options.options[3].evaluation.status)),
+            try formatDisplayTargetCellValue(&south_cell_buffer, move_options.options[2].evaluation.raw_cell.cell),
+            moveOptionStatusHudLabel(move_options.options[2].evaluation.status),
+            try formatDisplayTargetCellValue(&west_cell_buffer, move_options.options[3].evaluation.raw_cell.cell),
+            moveOptionStatusHudLabel(move_options.options[3].evaluation.status),
         },
     );
 
     try std.testing.expect(hasTraceText(trace, line_0));
     try std.testing.expect(hasTraceText(trace, line_1));
+}
+
+fn formatDisplayTargetCellValue(buffer: []u8, cell: ?viewer_shell.GridCell) ![]const u8 {
+    if (cell) |resolved| return std.fmt.bufPrint(buffer, "{d}/{d}", .{ resolved.x, resolved.z });
+    return "NONE";
+}
+
+fn moveOptionStatusHudLabel(status: runtime_query.MoveTargetStatus) []const u8 {
+    return switch (status) {
+        .allowed => "ALLOWED",
+        .target_out_of_bounds => "OOB",
+        .target_empty => "EMPTY",
+        .target_missing_top_surface => "NO_TOP",
+        .target_blocked => "BLOCKED",
+        .target_height_mismatch => "HEIGHT",
+    };
 }
 
 fn findFocusedFragmentZone(

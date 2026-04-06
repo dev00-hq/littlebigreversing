@@ -319,7 +319,7 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         },
         .seeded_valid => |value| {
             var cell_buffer: [16]u8 = undefined;
-            var move_options_buffer: [128]u8 = undefined;
+            var move_options_buffer: [256]u8 = undefined;
             var zones_buffer: [128]u8 = undefined;
             try writer.print(
                 "event=hero_seed status=seeded_valid cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
@@ -335,7 +335,7 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         },
         .last_move_accepted => |value| {
             var cell_buffer: [16]u8 = undefined;
-            var move_options_buffer: [128]u8 = undefined;
+            var move_options_buffer: [256]u8 = undefined;
             var zones_buffer: [128]u8 = undefined;
             try writer.print(
                 "event=hero_move direction={s} status=accepted cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
@@ -353,7 +353,7 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         .last_move_rejected => |value| {
             var current_cell_buffer: [16]u8 = undefined;
             var target_cell_buffer: [16]u8 = undefined;
-            var move_options_buffer: [128]u8 = undefined;
+            var move_options_buffer: [256]u8 = undefined;
             if (value.move_options) |move_options| {
                 var zones_buffer: [128]u8 = undefined;
                 try writer.print(
@@ -586,6 +586,13 @@ fn formatRequiredCell(buffer: []u8, cell: GridCell) []const u8 {
     return std.fmt.bufPrint(buffer, "{d}/{d}", .{ cell.x, cell.z }) catch unreachable;
 }
 
+fn formatMoveOptionTargetCell(buffer: []u8, cell: ?GridCell) []const u8 {
+    if (cell) |resolved| {
+        return std.fmt.bufPrint(buffer, "{d}/{d}", .{ resolved.x, resolved.z }) catch unreachable;
+    }
+    return "NONE";
+}
+
 fn upperTag(buffer: []u8, value: []const u8) []const u8 {
     const len = @min(buffer.len, value.len);
     for (value[0..len], 0..) |char, index| {
@@ -688,31 +695,38 @@ fn formatMoveOptionPairLine(
     first: ViewerCardinalMoveOption,
     second: ViewerCardinalMoveOption,
 ) []const u8 {
-    var first_status_buffer: [40]u8 = undefined;
-    var second_status_buffer: [40]u8 = undefined;
+    var first_cell_buffer: [16]u8 = undefined;
+    var second_cell_buffer: [16]u8 = undefined;
     return std.fmt.bufPrint(
         buffer,
-        "{s} {s} {s} {s}",
+        "{s} {s} {s} {s} {s} {s}",
         .{
             shortDirectionLabel(first.direction),
-            upperTag(&first_status_buffer, @tagName(first.status)),
+            formatMoveOptionTargetCell(&first_cell_buffer, first.target_cell),
+            moveOptionStatusHudLabel(first.status),
             shortDirectionLabel(second.direction),
-            upperTag(&second_status_buffer, @tagName(second.status)),
+            formatMoveOptionTargetCell(&second_cell_buffer, second.target_cell),
+            moveOptionStatusHudLabel(second.status),
         },
     ) catch unreachable;
 }
 
 fn formatMoveOptionsDiagnostic(buffer: []u8, move_options: ViewerMoveOptions) []const u8 {
-    return std.fmt.bufPrint(
-        buffer,
-        "north:{s},east:{s},south:{s},west:{s}",
-        .{
-            @tagName(move_options.options[0].status),
-            @tagName(move_options.options[1].status),
-            @tagName(move_options.options[2].status),
-            @tagName(move_options.options[3].status),
-        },
-    ) catch unreachable;
+    var cell_buffers: [4][16]u8 = undefined;
+    var stream = std.io.fixedBufferStream(buffer);
+    const writer = stream.writer();
+    for (move_options.options, 0..) |option, index| {
+        if (index != 0) writer.writeAll(",") catch unreachable;
+        writer.print(
+            "{s}:{s}:{s}",
+            .{
+                directionLabel(option.direction),
+                formatOptionalCell(&cell_buffers[index], option.target_cell),
+                @tagName(option.status),
+            },
+        ) catch unreachable;
+    }
+    return stream.getWritten();
 }
 
 fn formatRejectedReasonLine(buffer: []u8, reason: runtime_query.MoveTargetStatus) []const u8 {
@@ -722,4 +736,15 @@ fn formatRejectedReasonLine(buffer: []u8, reason: runtime_query.MoveTargetStatus
         "REASON {s}",
         .{upperTag(&reason_buffer, @tagName(reason))},
     ) catch unreachable;
+}
+
+fn moveOptionStatusHudLabel(status: runtime_query.MoveTargetStatus) []const u8 {
+    return switch (status) {
+        .allowed => "ALLOWED",
+        .target_out_of_bounds => "OOB",
+        .target_empty => "EMPTY",
+        .target_missing_top_surface => "NO_TOP",
+        .target_blocked => "BLOCKED",
+        .target_height_mismatch => "HEIGHT",
+    };
 }

@@ -33,6 +33,7 @@ fn expectMoveOptions(
     try std.testing.expectEqual(expected.origin.raw_cell.cell.?, move_options.current_cell);
     for (expected.options, 0..) |option, index| {
         try std.testing.expectEqual(option.direction, move_options.options[index].direction);
+        try std.testing.expectEqual(option.evaluation.raw_cell.cell, move_options.options[index].target_cell);
         try std.testing.expectEqual(option.evaluation.status, move_options.options[index].status);
     }
 }
