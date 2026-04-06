@@ -1,6 +1,7 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
+const runtime_locomotion = @import("../../runtime/locomotion.zig");
 const state = @import("../../runtime/room_state.zig");
 const runtime_query = @import("../../runtime/world_query.zig");
 const room_fixtures = @import("../../testing/room_fixtures.zig");
@@ -367,12 +368,12 @@ test "viewer render path keeps the selected cell pinned at the head of the compa
     try std.testing.expect(hasTraceRectOp(trace, .draw_rect, first_row, focused_row_border));
 }
 
-test "viewer render path surfaces all viewer-local locomotion states on the zero-fragment guarded path" {
+test "viewer render path surfaces runtime-owned locomotion states on the zero-fragment guarded path" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1919();
 
     const raw_runtime_session = viewer_shell.initSession(room);
-    const raw_status = try viewer_shell.initLocomotionStatus(room, raw_runtime_session);
+    const raw_status = try runtime_locomotion.inspectCurrentStatus(room, raw_runtime_session);
     var raw_trace = try renderZeroFragmentTrace(allocator, room, raw_runtime_session, raw_status);
     defer raw_trace.deinit(allocator);
 
@@ -385,7 +386,7 @@ test "viewer render path surfaces all viewer-local locomotion states on the zero
 
     var seeded_runtime_session = viewer_shell.initSession(room);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &seeded_runtime_session);
-    const seeded_status = try viewer_shell.locomotionStatusAfterSeed(room, seeded_runtime_session);
+    const seeded_status = try runtime_locomotion.inspectCurrentStatus(room, seeded_runtime_session);
     var seeded_trace = try renderZeroFragmentTrace(allocator, room, seeded_runtime_session, seeded_status);
     defer seeded_trace.deinit(allocator);
 
@@ -396,8 +397,7 @@ test "viewer render path surfaces all viewer-local locomotion states on the zero
 
     var moved_runtime_session = viewer_shell.initSession(room);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &moved_runtime_session);
-    const moved_attempt = viewer_shell.attemptLocomotionStep(room, &moved_runtime_session, .south);
-    const moved_status = try viewer_shell.locomotionStatusAfterAttempt(room, moved_runtime_session, .south, moved_attempt);
+    const moved_status = try runtime_locomotion.applyStep(room, &moved_runtime_session, .south);
     var moved_trace = try renderZeroFragmentTrace(allocator, room, moved_runtime_session, moved_status);
     defer moved_trace.deinit(allocator);
 
@@ -408,8 +408,7 @@ test "viewer render path surfaces all viewer-local locomotion states on the zero
 
     var rejected_runtime_session = viewer_shell.initSession(room);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &rejected_runtime_session);
-    const rejected_attempt = viewer_shell.attemptLocomotionStep(room, &rejected_runtime_session, .west);
-    const rejected_status = try viewer_shell.locomotionStatusAfterAttempt(room, rejected_runtime_session, .west, rejected_attempt);
+    const rejected_status = try runtime_locomotion.applyStep(room, &rejected_runtime_session, .west);
     var rejected_trace = try renderZeroFragmentTrace(allocator, room, rejected_runtime_session, rejected_status);
     defer rejected_trace.deinit(allocator);
 
@@ -429,7 +428,7 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
     const comparison_frame_if_present = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, true).comparison_frame.?;
     const runtime_session = viewer_shell.initSession(room);
-    const locomotion_status = try viewer_shell.initLocomotionStatus(room, runtime_session);
+    const locomotion_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
     var status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
     const display = viewer_shell.formatLocomotionStatusDisplay(&status_buffer, locomotion_status);
 

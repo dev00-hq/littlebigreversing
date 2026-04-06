@@ -84,6 +84,23 @@ pub const CardinalMoveOptionSet = struct {
     options: [cardinal_directions.len]CardinalMoveOptionEvaluation,
 };
 
+pub const max_containing_zones = 16;
+
+pub const ContainingZoneSet = struct {
+    count: usize = 0,
+    zones: [max_containing_zones]room_state.ZoneBoundsSnapshot = undefined,
+
+    pub fn append(self: *ContainingZoneSet, zone: room_state.ZoneBoundsSnapshot) !void {
+        if (self.count >= self.zones.len) return error.TooManyContainingZones;
+        self.zones[self.count] = zone;
+        self.count += 1;
+    }
+
+    pub fn slice(self: *const ContainingZoneSet) []const room_state.ZoneBoundsSnapshot {
+        return self.zones[0..self.count];
+    }
+};
+
 pub const CellNeighborProbe = struct {
     direction: CardinalDirection,
     cell: ?GridCell,
@@ -569,6 +586,18 @@ pub const WorldQuery = struct {
             .origin = origin,
             .options = options,
         };
+    }
+
+    pub fn containingZonesAtWorldPoint(
+        self: WorldQuery,
+        world_position: WorldPointSnapshot,
+    ) !ContainingZoneSet {
+        var containing: ContainingZoneSet = .{};
+        for (self.room.scene.zones) |zone| {
+            if (!zoneContainsWorldPoint(zone, world_position)) continue;
+            try containing.append(zone);
+        }
+        return containing;
     }
 
     pub fn probeLocalNeighborTopology(self: WorldQuery, x: usize, z: usize) !LocalNeighborTopologyProbe {
@@ -1486,6 +1515,15 @@ fn moveTargetStatusForProbe(raw_cell: WorldPointCellProbe, hero_y: i32) MoveTarg
         .mapped_cell_blocked => .target_blocked,
         .surface_height_mismatch => .target_height_mismatch,
     };
+}
+
+fn zoneContainsWorldPoint(zone: room_state.ZoneBoundsSnapshot, world_position: WorldPointSnapshot) bool {
+    return world_position.x >= zone.x_min and
+        world_position.x <= zone.x_max and
+        world_position.y >= zone.y_min and
+        world_position.y <= zone.y_max and
+        world_position.z >= zone.z_min and
+        world_position.z <= zone.z_max;
 }
 
 fn worldPointSteppedInDirection(

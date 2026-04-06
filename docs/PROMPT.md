@@ -1,107 +1,98 @@
 # Next Prompt
 
-Relevant subsystem packs for this task: `architecture`, `backgrounds`, `life_scripts`, and `platform_windows`.
+Relevant subsystem packs for this task: `architecture`, `scene_decode`, `backgrounds`, `life_scripts`, and `platform_windows`.
 
-The guarded `19/19` viewer/runtime movement-prep slices are already landed in the current worktree:
+Current repo state:
 
-- `port/src/runtime/world_query.zig` already owns:
-  - move-target evaluation over immutable guarded room data
-  - cardinal move-option evaluation for an admitted hero position
-  - bounded topology/query evidence on the guarded `19/19` baseline
-- `port/src/runtime/session.zig` already owns mutable hero position only.
-- `port/src/runtime/room_state.zig` already owns the guarded room/load seam and immutable room/render snapshots.
-- `port/src/app/viewer_shell.zig` already owns:
-  - explicit fixture seeding for guarded `19/19`
-  - viewer-local step attempts and status formatting
-  - zero-fragment locomotion diagnostics/copy on top of the current guarded runtime path
-- `port/src/main.zig` already routes:
-  - `Enter` to explicit fixture seeding only
-  - arrows to fragment navigation when a fragment panel is active
-  - arrows to hero movement when no fragment panel is active
-- Branch B remains active:
-  - `LM_DEFAULT` and `LM_END_SWITCH` stay outside the supported decoder/interpreter boundary
-  - `19/19` is the only positive guarded runtime/load pair
-  - `2/2`, `44/2`, and `11/10` stay guarded `ViewerUnsupportedSceneLife` negatives
+- `port/src/runtime/world_query.zig` already owns the guarded `19/19` pure move/query surface:
+  - baked `19/19` hero-start probing and diagnostics
+  - cardinal move-option evaluation for admitted hero positions
+  - exact containing-zone queries over copied checked-in scene-zone bounds
+- `port/src/runtime/locomotion.zig` already owns the guarded runtime locomotion seam:
+  - current-position status for the explicit admitted fixture path
+  - non-mutating invalid-origin rejection from the baked raw start
+  - one-cell accepted/rejected step results
+  - session mutation only on allowed movement
+- `port/src/runtime/session.zig` still owns mutable hero world position only.
+- `port/src/runtime/room_state.zig` still owns the guarded room/load seam plus immutable room/render snapshots.
+- `port/src/app/viewer_shell.zig` and `port/src/main.zig` now consume runtime-owned locomotion results instead of owning step policy.
 
-That viewer-facing movement-semantic slice is complete. The next slice must stop living in viewer glue and start Phase 5 Branch B gameplay work: land a runtime-owned guarded `19/19` hero step/update seam, with bounded current-zone membership on the same path.
+Important current-state facts:
 
-Implement a current-state slice that:
-
-- adds a runtime-owned hero locomotion module under `port/src/runtime/` for guarded Branch B movement application
-- moves one-cell cardinal step application out of `port/src/app/viewer_shell.zig` and into that runtime-owned seam
-- keeps `runtime/world_query.zig` as the only owner of move evaluation and adds only the minimum pure query helper needed to derive current scene-zone membership for a hero world position
-- lets the runtime-owned seam mutate `Session` only on allowed movement
-- returns structured runtime step results that distinguish:
-  - invalid-origin rejection from the baked raw start
-  - accepted seeded movement
-  - rejected seeded movement with the existing `MoveTargetStatus`
-- includes bounded current-zone membership in that structured runtime result:
-  - at the current admitted hero position after an accepted move
-  - unchanged current admitted position on a rejected move
-- keeps `viewer_shell.zig` as a consumer of runtime-owned movement results for formatting and diagnostics, not as a movement-policy owner
-
-Keep ownership hard-cut and explicit:
-
-- `world_query.zig`: pure guarded room query/evaluation owner, including any new pure zone-membership query helper
-- `session.zig`: mutable session state only
-- new runtime locomotion module: step application policy, session mutation, and structured runtime step result
-- `room_state.zig`: guarded load seam only
-- `viewer_shell.zig`: explicit fixture seeding plus formatting/diagnostics only; do not leave step policy here
-- `render.zig`: display only; do not add gameplay policy
-- `main.zig`: input routing only
-
-Keep the implementation honest about Branch B scope:
-
-- no life execution
-- no support for `LM_DEFAULT`
-- no support for `LM_END_SWITCH`
-- no scene transitions
-- no object AI
-- no inventory/state systems
-- no combat
-- no track execution yet
-- no continuous movement or new input-repeat system
-- no auto-seeding
-- no spawn normalization
-- no unchecked room path added to the public runtime seam
-- no new viewer panel or HUD-heavy refinement pass just to expose the runtime result
-- no zone-trigger semantics beyond current membership/containment on the guarded runtime path
-
-Important current-state facts that must stay true:
-
-- guarded `19/19` is still the only positive runtime/load pair
+- `19/19` is still the only positive guarded runtime/load pair.
+- `2/2`, `44/2`, and `11/10` remain guarded `ViewerUnsupportedSceneLife` negatives.
+- `LM_DEFAULT` and `LM_END_SWITCH` stay outside the supported decoder/interpreter boundary.
 - the baked `19/19` hero start remains diagnostically invalid:
   - `probeHeroStart()` reports `mapped_cell_empty`
   - raw mapped cell `3/7`
   - outside occupied bounds
-- the checked-in valid `39/6` fixture remains explicit opt-in only
-- `2/2`, `44/2`, and `11/10` remain guarded negative cases
-- Windows validation stays:
-  - `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` for iteration
-  - bare `zig build test` plus `scripts/verify-viewer.ps1` as the canonical full gate
+- the explicit `39/6` movement fixture is still opt-in only
+- the exact containing-zone result for:
+  - seeded `39/6`
+  - accepted seeded south step to `39/7`
+  - rejected seeded west step preserving `39/6`
+  is currently the empty set on the checked-in guarded runtime path
+
+The next slice is not more movement policy. The next slice is to make the runtime-owned containing-zone result visible and explicit in the existing diagnostics path, including the fact that the exact answer is currently “none”.
+
+Implement a current-state slice that:
+
+- keeps `runtime/world_query.zig` as the only owner of exact containing-zone queries
+- keeps `runtime/locomotion.zig` as the only owner of step/result policy
+- updates `viewer_shell.zig` formatting and diagnostics so runtime-owned containing-zone membership is surfaced for:
+  - seeded/admitted status
+  - accepted movement
+  - rejected movement that preserves the current admitted position
+- makes the empty containing-zone set explicit in viewer/HUD copy and stderr diagnostics instead of silently omitting it
+- keeps `main.zig` as input routing only
+- keeps any new formatting logic viewer-local; do not push presentation policy back into runtime
+
+Keep ownership hard-cut and explicit:
+
+- `world_query.zig`: pure guarded room query/evaluation owner
+- `locomotion.zig`: runtime step/result owner
+- `session.zig`: mutable state only
+- `room_state.zig`: guarded load seam only
+- `viewer_shell.zig`: formatting, diagnostics, and explicit fixture seeding only
+- `render.zig`: display only
+- `main.zig`: input routing only
+
+Keep the implementation honest about scope:
+
+- no new movement rules
+- no new current-zone heuristics
+- no fallback “best zone” selection
+- no coordinate remapping to force a non-empty zone answer
+- no life execution
+- no scene transitions
+- no object AI
+- no inventory/state systems
+- no combat
+- no track execution
+- no new input-repeat system
+- no auto-seeding
+- no unchecked room path added to the public runtime seam
 
 Useful work in scope includes:
 
-- introducing a dedicated runtime-owned step result type instead of reusing viewer-local display structs
-- adding a pure `world_query` helper that reports which checked-in scene zones contain a world point on the guarded runtime path
-- proving exact current-zone membership for the explicit seeded fixture and the accepted seeded south step in tests, instead of inventing zone semantics in prose
-- keeping the current zero-fragment viewer path working by consuming the new runtime result rather than duplicating movement logic in the viewer
+- adding a compact viewer-local formatter for containing-zone membership that can print either:
+  - `ZONES NONE`
+  - or a stable exact list derived directly from the runtime-owned containing-zone result
+- extending stderr locomotion diagnostics so they expose the same exact zone-membership summary the HUD surfaces
+- pinning the exact seeded/accepted/rejected copy in viewer tests and render tests
+- keeping the explicit empty-set result visible in tests so future slices do not “improve” it by inventing semantics
 
 Acceptance:
 
-- a new runtime test file proves the runtime-owned locomotion seam for guarded `19/19`:
-  - raw invalid start rejects and does not mutate session state
-  - explicit seed to `39/6`
-  - accepted seeded south step mutates session state
-  - rejected seeded west step does not mutate session state and reports `target_empty`
-- the same runtime tests pin the exact current-zone membership for:
-  - seeded `39/6`
-  - accepted seeded south step
-  - rejected seeded west step preserving the pre-rejection current-zone membership
-- `viewer_shell` tests or `main`-path tests prove the viewer/runtime wiring now consumes the runtime-owned movement result instead of owning step policy itself
-- `world_query.zig` remains the canonical move-evaluation/query surface
-- `session.zig` remains mutable-state-only
-- `room_state.zig` remains the guarded room/load seam only
+- viewer-shell tests prove the viewer consumes runtime-owned containing-zone results without reintroducing viewer-owned movement policy
+- render tests prove the zero-fragment guarded path surfaces:
+  - raw invalid start status
+  - seeded admitted status with explicit empty containing-zone copy
+  - accepted south step with explicit empty containing-zone copy
+  - rejected west step with explicit empty containing-zone copy
+- stderr locomotion diagnostics expose the exact containing-zone summary for seeded, accepted, and rejected runtime statuses
+- `world_query.zig` remains the canonical pure move/query surface
+- `locomotion.zig` remains the canonical runtime step/result seam
 - from native PowerShell, after `.\scripts\dev-shell.ps1`, run:
   - `cd port`
   - `zig build test-fast`

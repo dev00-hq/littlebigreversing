@@ -12,6 +12,7 @@ pub const app = struct {
 };
 
 pub const runtime = struct {
+    pub const locomotion = @import("runtime/locomotion.zig");
     pub const world_geometry = @import("runtime/world_geometry.zig");
     pub const room_state = @import("runtime/room_state.zig");
     pub const session = @import("runtime/session.zig");

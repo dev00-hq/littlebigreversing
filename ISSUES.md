@@ -22,6 +22,7 @@
 - `scripts/dev-shell.ps1` lives at the repo root, not under `port/`. If you are already inside `port/`, load the dev shell before `cd port` or call it as `..\\scripts\\dev-shell.ps1`.
 - `SCENE.HQR` giver `Info0` is a bonus-flag mask that `WhichBonus()` resolves later from runtime state, so a typed decoder should expose allowed kinds or preserve the raw mask instead of inventing one singular `bonus_kind`.
 - `SCENE.HQR[19]` zone bounds are trigger volumes, not admitted floor-truth mapping anchors. Do not invent runtime mapping policy from camera or zone geometry without new checked-in evidence.
+- On the guarded `19/19` locomotion seam, the exact containing-zone membership for the admitted `39/6` fixture and the accepted south step is the empty set. Treat that as the checked-in truth for now; do not invent a singular current zone or a different coordinate scale to force a non-empty answer.
 - The decoded scene object array is intentionally shorter than `object_count`. The classic header count includes the reserved hero slot, so use `scene.objects.len` for actual object iteration and render sizing.
 - `COMMON.H` is not sufficient proof for track or life opcode semantics. Let checked-in decoder behavior, asset-backed probes, and recovered source behavior beat header names or comments.
 - Preserved legacy specs such as LBArchitect are useful structure guides, not byte-perfect numeric or indexing oracles. Let current asset-backed probes and tests win for exact values.

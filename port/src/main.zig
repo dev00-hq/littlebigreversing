@@ -49,7 +49,7 @@ pub fn main() !void {
     defer room.deinit(allocator);
 
     var runtime_session = lba2.app.viewer_shell.initSession(&room);
-    var locomotion_status = try lba2.app.viewer_shell.initLocomotionStatus(&room, runtime_session);
+    var locomotion_status = try lba2.runtime.locomotion.inspectCurrentStatus(&room, runtime_session);
     try lba2.app.viewer_shell.printStartupDiagnostics(stderr, resolved, &room);
     try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
     var render = lba2.app.viewer_shell.buildRenderSnapshot(&room, runtime_session);
@@ -106,7 +106,7 @@ pub fn main() !void {
                 switch (key) {
                     .enter => {
                         _ = try lba2.app.viewer_shell.seedSessionToLocomotionFixture(&room, &runtime_session);
-                        locomotion_status = try lba2.app.viewer_shell.locomotionStatusAfterSeed(&room, runtime_session);
+                        locomotion_status = try lba2.runtime.locomotion.inspectCurrentStatus(&room, runtime_session);
                         try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
                     },
                     .left, .right, .up, .down => {
@@ -126,13 +126,7 @@ pub fn main() !void {
                                 .down => .south,
                                 else => unreachable,
                             };
-                            const attempt = lba2.app.viewer_shell.attemptLocomotionStep(&room, &runtime_session, direction);
-                            locomotion_status = try lba2.app.viewer_shell.locomotionStatusAfterAttempt(
-                                &room,
-                                runtime_session,
-                                direction,
-                                attempt,
-                            );
+                            locomotion_status = try lba2.runtime.locomotion.applyStep(&room, &runtime_session, direction);
                             try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
                         }
                     },

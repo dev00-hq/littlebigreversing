@@ -2,6 +2,7 @@ const std = @import("std");
 const diagnostics = @import("../foundation/diagnostics.zig");
 const paths_mod = @import("../foundation/paths.zig");
 const sdl = @import("../platform/sdl.zig");
+const runtime_locomotion = @import("../runtime/locomotion.zig");
 const runtime_session = @import("../runtime/session.zig");
 const runtime_query = @import("../runtime/world_query.zig");
 const world_geometry = @import("../runtime/world_geometry.zig");
@@ -48,7 +49,6 @@ pub const CardinalDirection = world_geometry.CardinalDirection;
 pub const RenderSnapshot = state.RenderSnapshot;
 pub const Session = runtime_session.Session;
 pub const FrameUpdate = runtime_session.FrameUpdate;
-pub const HeroWorldDelta = runtime_session.HeroWorldDelta;
 pub const DebugLayout = layout.DebugLayout;
 pub const FragmentComparisonCatalog = fragment_compare.FragmentComparisonCatalog;
 pub const FragmentComparisonEntry = fragment_compare.FragmentComparisonEntry;
@@ -58,60 +58,14 @@ pub const SchematicLayout = layout.SchematicLayout;
 pub const ScreenPoint = layout.ScreenPoint;
 pub const ViewerLocomotionStatusDisplay = render.LocomotionStatusDisplay;
 pub const ViewerLocomotionStatusDisplayBuffer = render.LocomotionStatusDisplayBuffer;
-pub const ViewerLocomotionStepStatus = enum {
-    moved,
-    origin_invalid,
-    target_rejected,
-};
-pub const ViewerLocomotionStepAttempt = struct {
-    status: ViewerLocomotionStepStatus,
-    origin: runtime_query.MoveTargetEvaluation,
-    target: runtime_query.MoveTargetEvaluation,
-};
-pub const ViewerLocomotionRejectedStage = enum {
-    origin_invalid,
-    target_rejected,
-};
-pub const ViewerCardinalMoveOption = struct {
-    direction: CardinalDirection,
-    status: runtime_query.MoveTargetStatus,
-};
-pub const ViewerMoveOptions = struct {
-    current_cell: GridCell,
-    options: [4]ViewerCardinalMoveOption,
-};
-pub const ViewerRawInvalidStartStatus = struct {
-    exact_status: runtime_query.HeroStartExactStatus,
-    raw_cell: ?GridCell,
-    occupied_coverage: runtime_query.OccupiedCoverageRelation,
-    hero_position: WorldPointSnapshot,
-};
-pub const ViewerSeededValidStatus = struct {
-    cell: GridCell,
-    move_options: ViewerMoveOptions,
-    hero_position: WorldPointSnapshot,
-};
-pub const ViewerMoveAcceptedStatus = struct {
-    direction: CardinalDirection,
-    cell: GridCell,
-    move_options: ViewerMoveOptions,
-    hero_position: WorldPointSnapshot,
-};
-pub const ViewerMoveRejectedStatus = struct {
-    direction: CardinalDirection,
-    rejection_stage: ViewerLocomotionRejectedStage,
-    reason: runtime_query.MoveTargetStatus,
-    current_cell: ?GridCell,
-    target_cell: ?GridCell,
-    move_options: ?ViewerMoveOptions,
-    hero_position: WorldPointSnapshot,
-};
-pub const ViewerLocomotionStatus = union(enum) {
-    raw_invalid_start: ViewerRawInvalidStartStatus,
-    seeded_valid: ViewerSeededValidStatus,
-    last_move_accepted: ViewerMoveAcceptedStatus,
-    last_move_rejected: ViewerMoveRejectedStatus,
-};
+pub const ViewerLocomotionRejectedStage = runtime_locomotion.LocomotionRejectedStage;
+pub const ViewerCardinalMoveOption = runtime_locomotion.CardinalMoveOption;
+pub const ViewerMoveOptions = runtime_locomotion.MoveOptions;
+pub const ViewerRawInvalidStartStatus = runtime_locomotion.RawInvalidStartStatus;
+pub const ViewerSeededValidStatus = runtime_locomotion.SeededValidStatus;
+pub const ViewerMoveAcceptedStatus = runtime_locomotion.MoveAcceptedStatus;
+pub const ViewerMoveRejectedStatus = runtime_locomotion.MoveRejectedStatus;
+pub const ViewerLocomotionStatus = runtime_locomotion.LocomotionStatus;
 
 pub const locomotion_fixture_scene_entry: usize = 19;
 pub const locomotion_fixture_background_entry: usize = 19;
@@ -195,166 +149,6 @@ pub fn seedSessionToLocomotionFixture(room: *const RoomSnapshot, current_session
     );
     current_session.setHeroWorldPosition(position);
     return position;
-}
-
-pub fn attemptLocomotionStep(
-    room: *const RoomSnapshot,
-    current_session: *Session,
-    direction: CardinalDirection,
-) ViewerLocomotionStepAttempt {
-    const query = runtime_query.init(room);
-    const origin_position = current_session.heroWorldPosition();
-    const origin = query.evaluateHeroMoveTarget(origin_position);
-    if (!origin.isAllowed()) {
-        return .{
-            .status = .origin_invalid,
-            .origin = origin,
-            .target = origin,
-        };
-    }
-
-    const delta = stepDeltaForDirection(direction);
-    const target_position = WorldPointSnapshot{
-        .x = origin_position.x + delta.x,
-        .y = origin_position.y + delta.y,
-        .z = origin_position.z + delta.z,
-    };
-    const target = query.evaluateHeroMoveTarget(target_position);
-    if (!target.isAllowed()) {
-        return .{
-            .status = .target_rejected,
-            .origin = origin,
-            .target = target,
-        };
-    }
-
-    current_session.setHeroWorldPosition(target_position);
-    return .{
-        .status = .moved,
-        .origin = origin,
-        .target = target,
-    };
-}
-
-fn buildMoveOptions(
-    room: *const RoomSnapshot,
-    hero_position: WorldPointSnapshot,
-) !ViewerMoveOptions {
-    const query = runtime_query.init(room);
-    const option_set = try query.evaluateCardinalMoveOptions(hero_position);
-
-    var options: [option_set.options.len]ViewerCardinalMoveOption = undefined;
-    for (option_set.options, 0..) |option, index| {
-        options[index] = .{
-            .direction = option.direction,
-            .status = option.evaluation.status,
-        };
-    }
-
-    return .{
-        .current_cell = option_set.origin.raw_cell.cell orelse return error.ViewerLocomotionStatusMissingCell,
-        .options = options,
-    };
-}
-
-pub fn initLocomotionStatus(
-    room: *const RoomSnapshot,
-    current_session: Session,
-) !ViewerLocomotionStatus {
-    const query = runtime_query.init(room);
-    const hero_position = current_session.heroWorldPosition();
-    if (std.meta.eql(hero_position, state.heroStartWorldPoint(room))) {
-        const probe = try query.probeHeroStart();
-        if (probe.exact_status != .valid) {
-            return .{
-                .raw_invalid_start = .{
-                    .exact_status = probe.exact_status,
-                    .raw_cell = probe.raw_cell.cell,
-                    .occupied_coverage = probe.occupied_coverage.relation,
-                    .hero_position = hero_position,
-                },
-            };
-        }
-    }
-
-    const evaluation = query.evaluateHeroMoveTarget(hero_position);
-    if (!evaluation.isAllowed()) return error.ViewerLocomotionStatusInvalidPosition;
-    const move_options = try buildMoveOptions(room, hero_position);
-
-    return .{
-        .seeded_valid = .{
-            .cell = move_options.current_cell,
-            .move_options = move_options,
-            .hero_position = hero_position,
-        },
-    };
-}
-
-pub fn locomotionStatusAfterSeed(
-    room: *const RoomSnapshot,
-    current_session: Session,
-) !ViewerLocomotionStatus {
-    const query = runtime_query.init(room);
-    const hero_position = current_session.heroWorldPosition();
-    const evaluation = query.evaluateHeroMoveTarget(hero_position);
-    if (!evaluation.isAllowed()) return error.ViewerLocomotionSeedInvalid;
-    const move_options = try buildMoveOptions(room, hero_position);
-
-    return .{
-        .seeded_valid = .{
-            .cell = move_options.current_cell,
-            .move_options = move_options,
-            .hero_position = hero_position,
-        },
-    };
-}
-
-pub fn locomotionStatusAfterAttempt(
-    room: *const RoomSnapshot,
-    current_session: Session,
-    direction: CardinalDirection,
-    attempt: ViewerLocomotionStepAttempt,
-) !ViewerLocomotionStatus {
-    const query = runtime_query.init(room);
-    const current_position = current_session.heroWorldPosition();
-    const current_evaluation = query.evaluateHeroMoveTarget(current_position);
-    const current_move_options = if (current_evaluation.isAllowed())
-        try buildMoveOptions(room, current_position)
-    else
-        null;
-
-    return switch (attempt.status) {
-        .moved => .{
-            .last_move_accepted = .{
-                .direction = direction,
-                .cell = (current_move_options orelse return error.ViewerLocomotionStatusInvalidPosition).current_cell,
-                .move_options = current_move_options orelse return error.ViewerLocomotionStatusInvalidPosition,
-                .hero_position = current_position,
-            },
-        },
-        .origin_invalid => .{
-            .last_move_rejected = .{
-                .direction = direction,
-                .rejection_stage = .origin_invalid,
-                .reason = attempt.origin.status,
-                .current_cell = current_evaluation.raw_cell.cell,
-                .target_cell = attempt.target.raw_cell.cell,
-                .move_options = null,
-                .hero_position = current_position,
-            },
-        },
-        .target_rejected => .{
-            .last_move_rejected = .{
-                .direction = direction,
-                .rejection_stage = .target_rejected,
-                .reason = attempt.target.status,
-                .current_cell = current_evaluation.raw_cell.cell,
-                .target_cell = attempt.target.raw_cell.cell,
-                .move_options = current_move_options,
-                .hero_position = current_position,
-            },
-        },
-    };
 }
 
 pub fn formatLocomotionStatusDisplay(
@@ -734,15 +528,6 @@ fn formatUsedBlockSummaryAlloc(
     try writer.writeAll("]");
 
     return output.toOwnedSlice(allocator);
-}
-
-fn stepDeltaForDirection(direction: CardinalDirection) HeroWorldDelta {
-    return switch (direction) {
-        .north => .{ .z = -runtime_query.world_grid_span_xz },
-        .east => .{ .x = runtime_query.world_grid_span_xz },
-        .south => .{ .z = runtime_query.world_grid_span_xz },
-        .west => .{ .x = -runtime_query.world_grid_span_xz },
-    };
 }
 
 fn directionLabel(direction: CardinalDirection) []const u8 {
