@@ -8,15 +8,15 @@
 - Keep switch-family life outside the supported boundary.
 - Keep the runtime/load seam fail-fast on unsupported switch-family life.
 - Keep `runtime/session.zig` on explicit world-position seeds.
-- Keep `runtime/world_query.zig` as the guarded query owner of exact containing-zone membership and raw target-cell evaluation.
-- Keep `runtime/locomotion.zig` as the guarded `19/19` step/result seam while future widening stays diagnostics-only.
-- Keep `app/viewer_shell.zig` as the viewer-local locomotion-summary owner: HUD uses direction/cell/status plus `ZONES ...`, stderr uses structured move-options plus `zones=...`, and both stay runtime-owned.
-- Keep `app/viewer/render.zig` as the display-only owner of admitted-path schematic cues.
+- Keep `runtime/world_query.zig` as the owner of exact containing-zone queries, raw target-cell evaluation, and raw hero-start diagnostics.
+- Keep `runtime/locomotion.zig` as the guarded `19/19` step/result seam, including raw-start packaging plus admitted-path local topology and attempt data.
+- Keep `app/viewer_shell.zig` as the owner of runtime-owned HUD/stderr copy for `ZONES ...`, admitted-path `TOPO ...`, and raw-start `DIAG` / `NEAR ...`.
+- Keep `app/viewer/render.zig` display-only for admitted-path schematic/attempt cues while raw invalid-start stays text-driven.
 - Keep fast Windows validation additive: use `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` for iteration; bare commands stay canonical.
 
 ## Active Streams
 
-- Guarded `19/19` viewer/runtime diagnostics: keep runtime-owned containing-zone membership and admitted-path target-cell evidence explicit in HUD, stderr, and schematic overlays on seeded, accepted, and admitted-position rejected statuses only.
+- Guarded `19/19` diagnostics: keep runtime-owned zone, admitted-path target/local-topology, and raw-start nearest-candidate evidence explicit in HUD/stderr while schematic and attempt cues stay admitted-path-only.
 - Fast Windows validation through `zig build test-fast` and `scripts/verify-viewer.ps1 -Fast`; bare commands stay canonical.
 - Memory hygiene: keep canonical pickup on `docs/codex_memory/`, the roadmap, and the live `port/` tree, not `sidequest/` or `LM_TASKS/`.
 
@@ -28,7 +28,7 @@
 
 ## Next Actions
 
-- Keep the next guarded `SCENE.HQR[19]` slice on other movement-semantic evidence beyond landed zone-summary, target-cell diagnostics, and schematic overlays, not new movement policy or invented zone heuristics.
+- Keep the next guarded `SCENE.HQR[19]` slice on evidence beyond landed zone, target-cell, local-topology, raw-start nearest-candidate, and schematic/attempt cues, not new movement policy or alternate mapping narratives.
 - Use `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` during iteration, and keep bare `zig build test` plus `scripts/verify-viewer.ps1` as the before-close pass.
 - Keep future life work scoped to rejection diagnostics, fail-fast coverage for unsupported switch-family opcodes, or a reopened evidence pass only if new checked-in primary-source evidence appears.
 - Keep `2/2`, `44/2`, and `11/10` on their current guarded or evidence-only roles unless the runtime boundary widens explicitly.

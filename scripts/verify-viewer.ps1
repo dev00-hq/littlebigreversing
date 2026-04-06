@@ -51,23 +51,18 @@ function Invoke-ZigCommand {
 
     Push-Location $WorkingDirectory
     try {
-        $output = (& zig @Arguments 2>&1 | Out-String)
+        & zig @Arguments
         $exitCode = $LASTEXITCODE
     }
     finally {
         Pop-Location
     }
 
-    $trimmed = $output.TrimEnd()
-    if ($trimmed.Length -gt 0) {
-        Write-Host $trimmed
-    }
-
     if ($exitCode -ne 0) {
         throw ("zig {0} failed with exit code {1}." -f ($Arguments -join " "), $exitCode)
     }
 
-    return $output
+    return $null
 }
 
 function Invoke-ExecutableCommand {
@@ -87,8 +82,9 @@ function Invoke-ExecutableCommand {
 
     Push-Location $WorkingDirectory
     try {
-        $output = (& $FilePath @Arguments 2>&1 | Out-String)
+        $outputLines = (& $FilePath @Arguments 2>&1)
         $exitCode = $LASTEXITCODE
+        $output = ($outputLines | Out-String)
     }
     finally {
         Pop-Location
