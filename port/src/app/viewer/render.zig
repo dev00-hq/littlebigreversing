@@ -1,14 +1,34 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const state = @import("../../runtime/room_state.zig");
+const runtime_query = @import("../../runtime/world_query.zig");
+const world_geometry = @import("../../runtime/world_geometry.zig");
 const viewer_state = @import("state.zig");
 const layout = @import("layout.zig");
 const draw = @import("draw.zig");
 const fragment_compare = @import("fragment_compare.zig");
 
+const GridCell = world_geometry.GridCell;
+const CardinalDirection = world_geometry.CardinalDirection;
+
+pub const LocomotionSchematicMoveOption = struct {
+    direction: CardinalDirection,
+    target_cell: ?GridCell,
+    status: runtime_query.MoveTargetStatus,
+};
+
+pub const LocomotionSchematicCue = union(enum) {
+    none,
+    admitted_path: struct {
+        current_cell: GridCell,
+        move_options: [4]LocomotionSchematicMoveOption,
+    },
+};
+
 pub const LocomotionStatusDisplay = struct {
     line_count: usize = 0,
     lines: [6][]const u8 = .{ "", "", "", "", "", "" },
+    schematic: LocomotionSchematicCue = .none,
 };
 
 pub const LocomotionStatusDisplayBuffer = struct {
@@ -86,6 +106,14 @@ pub fn renderDebugView(
         const point = layout.projectWorldPoint(snapshot, debug_layout.schematic, object.x, object.z);
         try draw.drawMarker(canvas, point, 6, .{ .r = 255, .g = 194, .b = 92, .a = 255 });
     }
+
+    try drawLocomotionSchematicCue(
+        canvas,
+        debug_layout.schematic,
+        snapshot.grid_width,
+        snapshot.grid_depth,
+        locomotion_status.schematic,
+    );
 
     const hero = layout.projectWorldPoint(snapshot, debug_layout.schematic, snapshot.hero_position.x, snapshot.hero_position.z);
     try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
@@ -176,6 +204,25 @@ pub fn focusedFragmentZoneOverlayBorderColor() sdl.Color {
     return .{ .r = 112, .g = 228, .b = 255, .a = 228 };
 }
 
+pub fn locomotionCurrentCellOverlayFillColor() sdl.Color {
+    return .{ .r = 52, .g = 138, .b = 196, .a = 92 };
+}
+
+pub fn locomotionCurrentCellOverlayBorderColor() sdl.Color {
+    return .{ .r = 132, .g = 228, .b = 255, .a = 236 };
+}
+
+pub fn locomotionTargetOverlayColor(status: runtime_query.MoveTargetStatus) sdl.Color {
+    return switch (status) {
+        .allowed => .{ .r = 132, .g = 224, .b = 140, .a = 232 },
+        .target_out_of_bounds => .{ .r = 255, .g = 198, .b = 92, .a = 232 },
+        .target_empty => .{ .r = 255, .g = 122, .b = 122, .a = 232 },
+        .target_missing_top_surface => .{ .r = 240, .g = 166, .b = 82, .a = 232 },
+        .target_blocked => .{ .r = 214, .g = 132, .b = 92, .a = 232 },
+        .target_height_mismatch => .{ .r = 116, .g = 212, .b = 228, .a = 232 },
+    };
+}
+
 fn drawFocusedFragmentZoneOverlay(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
@@ -198,6 +245,78 @@ fn drawFocusedFragmentZoneOverlay(
     if (inner_rect.w > 4 and inner_rect.h > 4) {
         try canvas.drawRect(inner_rect, focusedFragmentZoneOverlayBorderColor());
     }
+}
+
+fn drawLocomotionSchematicCue(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    grid_width: usize,
+    grid_depth: usize,
+    cue: LocomotionSchematicCue,
+) !void {
+    switch (cue) {
+        .none => {},
+        .admitted_path => |value| {
+            try drawCurrentLocomotionCellCue(canvas, rect, grid_width, grid_depth, value.current_cell);
+            for (value.move_options) |move_option| {
+                try drawLocomotionMoveOptionCue(canvas, rect, grid_width, grid_depth, move_option);
+            }
+        },
+    }
+}
+
+fn drawCurrentLocomotionCellCue(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    grid_width: usize,
+    grid_depth: usize,
+    cell: GridCell,
+) !void {
+    const cell_rect = layout.projectGridCellRect(rect, grid_width, grid_depth, cell.x, cell.z);
+    const fill_rect = insetRectSafe(cell_rect, 2);
+    const border_rect = insetRectSafe(cell_rect, 1);
+
+    try canvas.fillRect(fill_rect, locomotionCurrentCellOverlayFillColor());
+    try canvas.drawRect(border_rect, locomotionCurrentCellOverlayBorderColor());
+}
+
+fn drawLocomotionMoveOptionCue(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    grid_width: usize,
+    grid_depth: usize,
+    move_option: LocomotionSchematicMoveOption,
+) !void {
+    const target_cell = move_option.target_cell orelse return;
+    const cell_rect = layout.projectGridCellRect(rect, grid_width, grid_depth, target_cell.x, target_cell.z);
+    const border_rect = insetRectSafe(cell_rect, 1);
+    const border_color = locomotionTargetOverlayColor(move_option.status);
+    const label = shortDirectionLabel(move_option.direction);
+
+    try canvas.drawRect(border_rect, border_color);
+    _ = try draw.drawText(
+        canvas,
+        border_rect.x + 1,
+        border_rect.y + 1,
+        1,
+        border_color,
+        label,
+    );
+}
+
+fn insetRectSafe(rect: sdl.Rect, inset: i32) sdl.Rect {
+    const candidate = rect.inset(inset);
+    if (candidate.w > 0 and candidate.h > 0) return candidate;
+    return rect;
+}
+
+fn shortDirectionLabel(direction: CardinalDirection) []const u8 {
+    return switch (direction) {
+        .north => "N",
+        .east => "E",
+        .south => "S",
+        .west => "W",
+    };
 }
 
 fn findFocusedFragmentZone(

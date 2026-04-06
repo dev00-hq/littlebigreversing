@@ -59,6 +59,23 @@ fn hasTraceText(trace: sdl.CanvasTrace, text: []const u8) bool {
     return false;
 }
 
+fn hasTraceTextOp(trace: sdl.CanvasTrace, text: []const u8, rect: sdl.Rect, color: ?sdl.Color) bool {
+    for (trace.ops.items) |op| {
+        switch (op) {
+            .text => |entry| {
+                if (!std.mem.eql(u8, entry.text[0..entry.text_len], text)) continue;
+                if (!std.meta.eql(entry.rect, rect)) continue;
+                if (color) |expected| {
+                    if (!std.meta.eql(entry.color, expected)) continue;
+                }
+                return true;
+            },
+            else => {},
+        }
+    }
+    return false;
+}
+
 fn expectTraceHasMoveOptionsForPosition(
     trace: sdl.CanvasTrace,
     room: *const viewer_shell.RoomSnapshot,
@@ -112,6 +129,96 @@ fn moveOptionStatusHudLabel(status: runtime_query.MoveTargetStatus) []const u8 {
         .target_blocked => "BLOCKED",
         .target_height_mismatch => "HEIGHT",
     };
+}
+
+fn shortDirectionLabel(direction: viewer_shell.CardinalDirection) []const u8 {
+    return switch (direction) {
+        .north => "N",
+        .east => "E",
+        .south => "S",
+        .west => "W",
+    };
+}
+
+fn insetRectSafe(rect: sdl.Rect, inset: i32) sdl.Rect {
+    const candidate = rect.inset(inset);
+    if (candidate.w > 0 and candidate.h > 0) return candidate;
+    return rect;
+}
+
+fn expectNoLocomotionSchematicCue(trace: sdl.CanvasTrace) !void {
+    try std.testing.expect(!hasTraceRectColor(trace, .fill_rect, render.locomotionCurrentCellOverlayFillColor()));
+    try std.testing.expect(!hasTraceRectColor(trace, .draw_rect, render.locomotionCurrentCellOverlayBorderColor()));
+
+    const target_statuses = [_]runtime_query.MoveTargetStatus{
+        .allowed,
+        .target_out_of_bounds,
+        .target_empty,
+        .target_missing_top_surface,
+        .target_blocked,
+        .target_height_mismatch,
+    };
+    for (target_statuses) |status| {
+        try std.testing.expect(!hasTraceRectColor(trace, .draw_rect, render.locomotionTargetOverlayColor(status)));
+    }
+}
+
+fn expectTraceHasLocomotionSchematicCue(
+    trace: sdl.CanvasTrace,
+    room: *const viewer_shell.RoomSnapshot,
+    runtime_session: viewer_shell.Session,
+    display: viewer_shell.ViewerLocomotionStatusDisplay,
+) !void {
+    const snapshot = viewer_shell.buildRenderSnapshot(room, runtime_session);
+    const schematic = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, false).schematic;
+
+    switch (display.schematic) {
+        .admitted_path => |value| {
+            const current_cell_rect = layout.projectGridCellRect(
+                schematic,
+                snapshot.grid_width,
+                snapshot.grid_depth,
+                value.current_cell.x,
+                value.current_cell.z,
+            );
+            try std.testing.expect(hasTraceRectOp(
+                trace,
+                .fill_rect,
+                insetRectSafe(current_cell_rect, 2),
+                render.locomotionCurrentCellOverlayFillColor(),
+            ));
+            try std.testing.expect(hasTraceRectOp(
+                trace,
+                .draw_rect,
+                insetRectSafe(current_cell_rect, 1),
+                render.locomotionCurrentCellOverlayBorderColor(),
+            ));
+
+            for (value.move_options) |move_option| {
+                const target_cell = move_option.target_cell orelse continue;
+                const target_cell_rect = layout.projectGridCellRect(
+                    schematic,
+                    snapshot.grid_width,
+                    snapshot.grid_depth,
+                    target_cell.x,
+                    target_cell.z,
+                );
+                const border_rect = insetRectSafe(target_cell_rect, 1);
+                const label = shortDirectionLabel(move_option.direction);
+                const label_rect = sdl.Rect{
+                    .x = border_rect.x + 1,
+                    .y = border_rect.y + 1,
+                    .w = draw.textWidth(label, 1),
+                    .h = draw.textLineHeight(1),
+                };
+                const cue_color = render.locomotionTargetOverlayColor(move_option.status);
+
+                try std.testing.expect(hasTraceRectOp(trace, .draw_rect, border_rect, cue_color));
+                try std.testing.expect(hasTraceTextOp(trace, label, label_rect, cue_color));
+            }
+        },
+        .none => return error.MissingRenderLocomotionSchematicCue,
+    }
 }
 
 fn findFocusedFragmentZone(
@@ -386,6 +493,8 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
 
     const raw_runtime_session = viewer_shell.initSession(room);
     const raw_status = try runtime_locomotion.inspectCurrentStatus(room, raw_runtime_session);
+    var raw_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
+    const raw_display = viewer_shell.formatLocomotionStatusDisplay(&raw_status_buffer, raw_status);
     var raw_trace = try renderZeroFragmentTrace(allocator, room, raw_runtime_session, raw_status);
     defer raw_trace.deinit(allocator);
 
@@ -396,10 +505,33 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try std.testing.expect(hasTraceText(raw_trace, "ENTER SEED HERO"));
     try std.testing.expect(hasTraceText(raw_trace, "ARROWS MOVE HERO"));
     try std.testing.expect(hasTraceText(raw_trace, "RAW START STAYS"));
+    try expectNoLocomotionSchematicCue(raw_trace);
+
+    var origin_invalid_runtime_session = viewer_shell.initSession(room);
+    const origin_invalid_status = try runtime_locomotion.applyStep(room, &origin_invalid_runtime_session, .south);
+    var origin_invalid_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
+    const origin_invalid_display = viewer_shell.formatLocomotionStatusDisplay(&origin_invalid_status_buffer, origin_invalid_status);
+    var origin_invalid_trace = try renderZeroFragmentTrace(allocator, room, origin_invalid_runtime_session, origin_invalid_status);
+    defer origin_invalid_trace.deinit(allocator);
+
+    try std.testing.expect(hasTraceText(origin_invalid_trace, "MOVE SOUTH REJECTED"));
+    try std.testing.expect(hasTraceText(origin_invalid_trace, "STAY CELL 3/7"));
+    try std.testing.expect(hasTraceText(origin_invalid_trace, "REASON TARGET_EMPTY"));
+    switch (raw_display.schematic) {
+        .none => {},
+        else => return error.UnexpectedRenderLocomotionSchematicCue,
+    }
+    switch (origin_invalid_display.schematic) {
+        .none => {},
+        else => return error.UnexpectedRenderLocomotionSchematicCue,
+    }
+    try expectNoLocomotionSchematicCue(origin_invalid_trace);
 
     var seeded_runtime_session = viewer_shell.initSession(room);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &seeded_runtime_session);
     const seeded_status = try runtime_locomotion.inspectCurrentStatus(room, seeded_runtime_session);
+    var seeded_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
+    const seeded_display = viewer_shell.formatLocomotionStatusDisplay(&seeded_status_buffer, seeded_status);
     var seeded_trace = try renderZeroFragmentTrace(allocator, room, seeded_runtime_session, seeded_status);
     defer seeded_trace.deinit(allocator);
 
@@ -408,10 +540,13 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try expectTraceHasMoveOptionsForPosition(seeded_trace, room, seeded_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(seeded_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(seeded_trace, "ARROWS MOVE FROM HERE"));
+    try expectTraceHasLocomotionSchematicCue(seeded_trace, room, seeded_runtime_session, seeded_display);
 
     var moved_runtime_session = viewer_shell.initSession(room);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &moved_runtime_session);
     const moved_status = try runtime_locomotion.applyStep(room, &moved_runtime_session, .south);
+    var moved_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
+    const moved_display = viewer_shell.formatLocomotionStatusDisplay(&moved_status_buffer, moved_status);
     var moved_trace = try renderZeroFragmentTrace(allocator, room, moved_runtime_session, moved_status);
     defer moved_trace.deinit(allocator);
 
@@ -420,10 +555,13 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try expectTraceHasMoveOptionsForPosition(moved_trace, room, moved_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(moved_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(moved_trace, "HERO POSITION UPDATED"));
+    try expectTraceHasLocomotionSchematicCue(moved_trace, room, moved_runtime_session, moved_display);
 
     var rejected_runtime_session = viewer_shell.initSession(room);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &rejected_runtime_session);
     const rejected_status = try runtime_locomotion.applyStep(room, &rejected_runtime_session, .west);
+    var rejected_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
+    const rejected_display = viewer_shell.formatLocomotionStatusDisplay(&rejected_status_buffer, rejected_status);
     var rejected_trace = try renderZeroFragmentTrace(allocator, room, rejected_runtime_session, rejected_status);
     defer rejected_trace.deinit(allocator);
 
@@ -432,6 +570,7 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try expectTraceHasMoveOptionsForPosition(rejected_trace, room, rejected_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(rejected_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(rejected_trace, "REASON TARGET_EMPTY"));
+    try expectTraceHasLocomotionSchematicCue(rejected_trace, room, rejected_runtime_session, rejected_display);
 }
 
 test "viewer render path keeps the zero-fragment room out of the comparison panel" {

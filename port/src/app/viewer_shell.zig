@@ -58,6 +58,8 @@ pub const SchematicLayout = layout.SchematicLayout;
 pub const ScreenPoint = layout.ScreenPoint;
 pub const ViewerLocomotionStatusDisplay = render.LocomotionStatusDisplay;
 pub const ViewerLocomotionStatusDisplayBuffer = render.LocomotionStatusDisplayBuffer;
+pub const ViewerLocomotionSchematicCue = render.LocomotionSchematicCue;
+pub const ViewerLocomotionSchematicMoveOption = render.LocomotionSchematicMoveOption;
 pub const ViewerLocomotionRejectedStage = runtime_locomotion.LocomotionRejectedStage;
 pub const ViewerCardinalMoveOption = runtime_locomotion.CardinalMoveOption;
 pub const ViewerMoveOptions = runtime_locomotion.MoveOptions;
@@ -177,6 +179,7 @@ pub fn formatLocomotionStatusDisplay(
                 formatZoneSummary(&buffer.line_3, value.zone_membership),
                 "ARROWS MOVE FROM HERE",
             },
+            .schematic = locomotionSchematicCue(value.move_options),
         },
         .last_move_accepted => |value| .{
             .line_count = 6,
@@ -188,6 +191,7 @@ pub fn formatLocomotionStatusDisplay(
                 formatZoneSummary(&buffer.line_4, value.zone_membership),
                 "HERO POSITION UPDATED",
             },
+            .schematic = locomotionSchematicCue(value.move_options),
         },
         .last_move_rejected => |value| if (value.move_options) |move_options| .{
             .line_count = 6,
@@ -199,6 +203,7 @@ pub fn formatLocomotionStatusDisplay(
                 formatZoneSummary(&buffer.line_4, value.zone_membership),
                 formatRejectedReasonLine(&buffer.line_5, value.reason),
             },
+            .schematic = locomotionSchematicCue(move_options),
         } else .{
             .line_count = 3,
             .lines = .{
@@ -209,6 +214,24 @@ pub fn formatLocomotionStatusDisplay(
                 "",
                 "",
             },
+        },
+    };
+}
+
+fn locomotionSchematicCue(move_options: ViewerMoveOptions) ViewerLocomotionSchematicCue {
+    var rendered_options: [move_options.options.len]ViewerLocomotionSchematicMoveOption = undefined;
+    for (move_options.options, 0..) |move_option, index| {
+        rendered_options[index] = .{
+            .direction = move_option.direction,
+            .target_cell = move_option.target_cell,
+            .status = move_option.status,
+        };
+    }
+
+    return .{
+        .admitted_path = .{
+            .current_cell = move_options.current_cell,
+            .move_options = rendered_options,
         },
     };
 }

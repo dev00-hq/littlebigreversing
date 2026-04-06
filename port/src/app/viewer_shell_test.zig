@@ -56,6 +56,30 @@ fn expectDisplayMoveOptionLines(
     try std.testing.expectEqualStrings(second_line, display.lines[line_index + 1]);
 }
 
+fn expectNoSchematicCue(display: viewer_shell.ViewerLocomotionStatusDisplay) !void {
+    switch (display.schematic) {
+        .none => {},
+        else => return error.UnexpectedViewerLocomotionSchematicCue,
+    }
+}
+
+fn expectAdmittedPathSchematicCue(
+    display: viewer_shell.ViewerLocomotionStatusDisplay,
+    move_options: viewer_shell.ViewerMoveOptions,
+) !void {
+    switch (display.schematic) {
+        .admitted_path => |value| {
+            try std.testing.expectEqual(move_options.current_cell, value.current_cell);
+            for (move_options.options, 0..) |move_option, index| {
+                try std.testing.expectEqual(move_option.direction, value.move_options[index].direction);
+                try std.testing.expectEqual(move_option.target_cell, value.move_options[index].target_cell);
+                try std.testing.expectEqual(move_option.status, value.move_options[index].status);
+            }
+        },
+        .none => return error.MissingViewerLocomotionSchematicCue,
+    }
+}
+
 fn formatDiagnostic(
     allocator: std.mem.Allocator,
     status: viewer_shell.ViewerLocomotionStatus,
@@ -204,6 +228,7 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
     try std.testing.expectEqualStrings("RAW START INVALID", display.lines[0]);
     try std.testing.expectEqualStrings("CELL 3/7 MAPPED_CELL_EMPTY", display.lines[1]);
     try std.testing.expectEqualStrings("BOUNDS OUTSIDE_OCCUPIED_BOUNDS", display.lines[2]);
+    try expectNoSchematicCue(display);
 
     const raw_diagnostic = try formatDiagnostic(allocator, status);
     defer allocator.free(raw_diagnostic);
@@ -254,6 +279,7 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
     );
     defer allocator.free(expected_origin_rejected_diagnostic);
     try std.testing.expectEqualStrings(expected_origin_rejected_diagnostic, rejected_diagnostic);
+    try expectNoSchematicCue(viewer_shell.formatLocomotionStatusDisplay(&status_buffer, rejected_status));
 
     try std.testing.expectEqual(raw_start, runtime_session.heroWorldPosition());
 }
@@ -294,6 +320,7 @@ test "viewer locomotion harness consumes runtime-owned seeded 19/19 fixture stat
     try expectDisplayMoveOptionLines(display, 2, seeded_value.move_options);
     try std.testing.expectEqualStrings("ZONES NONE", display.lines[4]);
     try std.testing.expectEqualStrings("ARROWS MOVE FROM HERE", display.lines[5]);
+    try expectAdmittedPathSchematicCue(display, seeded_value.move_options);
 
     const diagnostic = try formatDiagnostic(allocator, status);
     defer allocator.free(diagnostic);
@@ -347,6 +374,7 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     try expectDisplayMoveOptionLines(moved_display, 2, moved_value.move_options);
     try std.testing.expectEqualStrings("ZONES NONE", moved_display.lines[4]);
     try std.testing.expectEqualStrings("HERO POSITION UPDATED", moved_display.lines[5]);
+    try expectAdmittedPathSchematicCue(moved_display, moved_value.move_options);
 
     const moved_diagnostic = try formatDiagnostic(allocator, moved_status);
     defer allocator.free(moved_diagnostic);
@@ -398,6 +426,7 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     try expectDisplayMoveOptionLines(rejected_display, 2, rejected_value.move_options.?);
     try std.testing.expectEqualStrings("ZONES NONE", rejected_display.lines[4]);
     try std.testing.expectEqualStrings("REASON TARGET_EMPTY", rejected_display.lines[5]);
+    try expectAdmittedPathSchematicCue(rejected_display, rejected_value.move_options.?);
 
     const rejected_diagnostic = try formatDiagnostic(allocator, rejected_status);
     defer allocator.free(rejected_diagnostic);
