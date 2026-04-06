@@ -264,6 +264,58 @@ fn formatRawInvalidStartCandidateDiagnosticValue(
     );
 }
 
+fn coverageHudRelationLabel(relation: runtime_query.OccupiedCoverageRelation) []const u8 {
+    return switch (relation) {
+        .unmapped_world_point => "UNMAPPED",
+        .no_occupied_bounds => "NO_OCC",
+        .within_occupied_bounds => "WITHIN",
+        .outside_occupied_bounds => "OUTSIDE",
+    };
+}
+
+fn formatCoverageHudLine(
+    buffer: []u8,
+    coverage: runtime_query.OccupiedCoverageProbe,
+) ![]const u8 {
+    if (coverage.occupied_bounds) |bounds| {
+        return std.fmt.bufPrint(
+            buffer,
+            "BOUNDS X{d}..{d} Z{d}..{d} DX{d} DZ{d} {s}",
+            .{
+                bounds.min_x,
+                bounds.max_x,
+                bounds.min_z,
+                bounds.max_z,
+                coverage.x_cells_from_bounds,
+                coverage.z_cells_from_bounds,
+                coverageHudRelationLabel(coverage.relation),
+            },
+        );
+    }
+
+    return std.fmt.bufPrint(
+        buffer,
+        "BOUNDS NONE DX{d} DZ{d} {s}",
+        .{
+            coverage.x_cells_from_bounds,
+            coverage.z_cells_from_bounds,
+            coverageHudRelationLabel(coverage.relation),
+        },
+    );
+}
+
+fn formatOccupiedBoundsDiagnosticValue(
+    buffer: []u8,
+    coverage: runtime_query.OccupiedCoverageProbe,
+) ![]const u8 {
+    const bounds = coverage.occupied_bounds orelse return "none";
+    return std.fmt.bufPrint(
+        buffer,
+        "{d}..{d}:{d}..{d}",
+        .{ bounds.min_x, bounds.max_x, bounds.min_z, bounds.max_z },
+    );
+}
+
 fn formatLocalTopologyHudLine(
     buffer: []u8,
     local_topology: viewer_shell.ViewerLocalNeighborTopology,
@@ -308,6 +360,52 @@ fn formatLocalTopologyDiagnosticValue(
         );
     }
     return stream.getWritten();
+}
+
+fn formatCurrentFootingHudLine(
+    buffer: []u8,
+    local_topology: viewer_shell.ViewerLocalNeighborTopology,
+) ![]const u8 {
+    var standability_buffer: [24]u8 = undefined;
+    var shape_buffer: [32]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "SURF {s} Y {d} H {d} D {d} F {d} {s}",
+        .{
+            upperTag(&standability_buffer, @tagName(local_topology.origin_standability)),
+            local_topology.origin_surface.top_y,
+            local_topology.origin_surface.total_height,
+            local_topology.origin_surface.stack_depth,
+            local_topology.origin_surface.top_floor_type,
+            upperTag(&shape_buffer, @tagName(local_topology.origin_surface.top_shape_class)),
+        },
+    );
+}
+
+fn formatCurrentFootingDiagnosticValue(
+    buffer: []u8,
+    local_topology: viewer_shell.ViewerLocalNeighborTopology,
+) ![]const u8 {
+    return std.fmt.bufPrint(
+        buffer,
+        "{s}:{d}:{d}:{d}:{d}:{s}",
+        .{
+            @tagName(local_topology.origin_standability),
+            local_topology.origin_surface.top_y,
+            local_topology.origin_surface.total_height,
+            local_topology.origin_surface.stack_depth,
+            local_topology.origin_surface.top_floor_type,
+            @tagName(local_topology.origin_surface.top_shape_class),
+        },
+    );
+}
+
+fn upperTag(buffer: []u8, value: []const u8) []const u8 {
+    const len = @min(buffer.len, value.len);
+    for (value[0..len], 0..) |char, index| {
+        buffer[index] = if (char >= 'a' and char <= 'z') char - 32 else char;
+    }
+    return buffer[0..len];
 }
 
 fn localTopologyHudToken(buffer: []u8, neighbor: runtime_query.CellNeighborProbe) ![]const u8 {
@@ -390,7 +488,9 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
             try std.testing.expectEqual(runtime_query.HeroStartExactStatus.mapped_cell_empty, value.exact_status);
             try std.testing.expectEqual(runtime_query.HeroStartDiagnosticStatus.exact_invalid_mapping_mismatch, value.diagnostic_status);
             try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 3, .z = 7 }), value.raw_cell);
-            try std.testing.expectEqual(runtime_query.OccupiedCoverageRelation.outside_occupied_bounds, value.occupied_coverage);
+            try std.testing.expectEqual(runtime_query.OccupiedCoverageRelation.outside_occupied_bounds, value.occupied_coverage.relation);
+            try std.testing.expectEqual(@as(usize, 36), value.occupied_coverage.x_cells_from_bounds);
+            try std.testing.expectEqual(@as(usize, 0), value.occupied_coverage.z_cells_from_bounds);
             try std.testing.expect(value.nearest_occupied != null);
             try std.testing.expect(value.nearest_standable != null);
             try std.testing.expectEqual(raw_start, value.hero_position);
@@ -408,7 +508,11 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
     try std.testing.expectEqualStrings("RAW START INVALID", display.lines[0]);
     try std.testing.expectEqualStrings("CELL 3/7 MAPPED_CELL_EMPTY", display.lines[1]);
     try std.testing.expectEqualStrings("DIAG EXACT_INVALID_MAPPING_MISMATCH", display.lines[2]);
-    try std.testing.expectEqualStrings("BOUNDS OUTSIDE_OCCUPIED_BOUNDS", display.lines[3]);
+    var coverage_line_buffer: [80]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        try formatCoverageHudLine(&coverage_line_buffer, raw_value.occupied_coverage),
+        display.lines[3],
+    );
     var nearest_occupied_line_buffer: [64]u8 = undefined;
     try std.testing.expectEqualStrings(
         try formatRawInvalidStartCandidateHudLine(&nearest_occupied_line_buffer, "NEAR OCC", raw_value.nearest_occupied),
@@ -424,15 +528,19 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
 
     const raw_diagnostic = try formatDiagnostic(allocator, status);
     defer allocator.free(raw_diagnostic);
+    var occupied_bounds_buffer: [48]u8 = undefined;
     var nearest_occupied_buffer: [48]u8 = undefined;
     var nearest_standable_buffer: [48]u8 = undefined;
     const expected_raw_diagnostic = try std.fmt.allocPrint(
         allocator,
-        "event=hero_status status=raw_invalid_start exact_status={s} diagnostic_status={s} raw_cell=3/7 occupied_coverage={s} nearest_occupied={s} nearest_standable={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
+        "event=hero_status status=raw_invalid_start exact_status={s} diagnostic_status={s} raw_cell=3/7 occupied_coverage={s} occupied_bounds={s} occupied_bounds_dx={d} occupied_bounds_dz={d} nearest_occupied={s} nearest_standable={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
         .{
             @tagName(raw_value.exact_status),
             @tagName(raw_value.diagnostic_status),
-            @tagName(raw_value.occupied_coverage),
+            @tagName(raw_value.occupied_coverage.relation),
+            try formatOccupiedBoundsDiagnosticValue(&occupied_bounds_buffer, raw_value.occupied_coverage),
+            raw_value.occupied_coverage.x_cells_from_bounds,
+            raw_value.occupied_coverage.z_cells_from_bounds,
             try formatRawInvalidStartCandidateDiagnosticValue(&nearest_occupied_buffer, raw_value.nearest_occupied),
             try formatRawInvalidStartCandidateDiagnosticValue(&nearest_standable_buffer, raw_value.nearest_standable),
             raw_value.hero_position.x,
@@ -525,7 +633,11 @@ test "viewer locomotion harness consumes runtime-owned seeded 19/19 fixture stat
         try formatLocalTopologyHudLine(&seeded_topology_line_buffer, seeded_value.local_topology),
         display.lines[5],
     );
-    try std.testing.expectEqualStrings("ARROWS MOVE FROM HERE", display.lines[6]);
+    var seeded_footing_line_buffer: [128]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        try formatCurrentFootingHudLine(&seeded_footing_line_buffer, seeded_value.local_topology),
+        display.lines[6],
+    );
     try expectAdmittedPathSchematicCue(display, seeded_value.move_options);
     try expectNoAttemptCue(display);
 
@@ -533,15 +645,17 @@ test "viewer locomotion harness consumes runtime-owned seeded 19/19 fixture stat
     defer allocator.free(diagnostic);
     var seeded_move_options_buffer: [256]u8 = undefined;
     var seeded_topology_buffer: [384]u8 = undefined;
+    var seeded_footing_buffer: [128]u8 = undefined;
     var seeded_cell_buffer: [16]u8 = undefined;
     var seeded_zone_buffer: [128]u8 = undefined;
     const expected_seeded_diagnostic = try std.fmt.allocPrint(
         allocator,
-        "event=hero_seed status=seeded_valid cell={s} move_options={s} local_topology={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+        "event=hero_seed status=seeded_valid cell={s} move_options={s} local_topology={s} current_footing={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
         .{
             try formatRequiredCellValue(&seeded_cell_buffer, seeded_value.cell),
             try formatMoveOptionsDiagnosticValue(&seeded_move_options_buffer, seeded_value.move_options),
             try formatLocalTopologyDiagnosticValue(&seeded_topology_buffer, seeded_value.local_topology),
+            try formatCurrentFootingDiagnosticValue(&seeded_footing_buffer, seeded_value.local_topology),
             formatZoneDiagnosticValue(&seeded_zone_buffer, seeded_value.zone_membership),
             seeded_value.hero_position.x,
             seeded_value.hero_position.y,
@@ -589,7 +703,11 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
         try formatLocalTopologyHudLine(&moved_topology_line_buffer, moved_value.local_topology),
         moved_display.lines[5],
     );
-    try std.testing.expectEqualStrings("HERO POSITION UPDATED", moved_display.lines[6]);
+    var moved_footing_line_buffer: [128]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        try formatCurrentFootingHudLine(&moved_footing_line_buffer, moved_value.local_topology),
+        moved_display.lines[6],
+    );
     try expectAdmittedPathSchematicCue(moved_display, moved_value.move_options);
     try expectAcceptedAttemptCue(
         moved_display,
@@ -602,15 +720,17 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     defer allocator.free(moved_diagnostic);
     var moved_move_options_buffer: [256]u8 = undefined;
     var moved_topology_buffer: [384]u8 = undefined;
+    var moved_footing_buffer: [128]u8 = undefined;
     var moved_cell_buffer: [16]u8 = undefined;
     var moved_zone_buffer: [128]u8 = undefined;
     const expected_moved_diagnostic = try std.fmt.allocPrint(
         allocator,
-        "event=hero_move direction=south status=accepted cell={s} move_options={s} local_topology={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+        "event=hero_move direction=south status=accepted cell={s} move_options={s} local_topology={s} current_footing={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
         .{
             try formatRequiredCellValue(&moved_cell_buffer, moved_value.cell),
             try formatMoveOptionsDiagnosticValue(&moved_move_options_buffer, moved_value.move_options),
             try formatLocalTopologyDiagnosticValue(&moved_topology_buffer, moved_value.local_topology),
+            try formatCurrentFootingDiagnosticValue(&moved_footing_buffer, moved_value.local_topology),
             formatZoneDiagnosticValue(&moved_zone_buffer, moved_value.zone_membership),
             moved_value.hero_position.x,
             moved_value.hero_position.y,
@@ -648,7 +768,7 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     const rejected_display = viewer_shell.formatLocomotionStatusDisplay(&rejected_buffer, rejected_status);
     try std.testing.expectEqual(@as(usize, 7), rejected_display.line_count);
     try std.testing.expectEqualStrings("MOVE WEST REJECTED", rejected_display.lines[0]);
-    try std.testing.expectEqualStrings("STAY CELL 39/6", rejected_display.lines[1]);
+    try std.testing.expectEqualStrings("STAY 39/6 TARGET_EMPTY", rejected_display.lines[1]);
     try expectDisplayMoveOptionLines(rejected_display, 2, rejected_value.move_options.?);
     try std.testing.expectEqualStrings("ZONES NONE", rejected_display.lines[4]);
     var rejected_topology_line_buffer: [128]u8 = undefined;
@@ -656,7 +776,11 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
         try formatLocalTopologyHudLine(&rejected_topology_line_buffer, rejected_value.local_topology.?),
         rejected_display.lines[5],
     );
-    try std.testing.expectEqualStrings("REASON TARGET_EMPTY", rejected_display.lines[6]);
+    var rejected_footing_line_buffer: [128]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        try formatCurrentFootingHudLine(&rejected_footing_line_buffer, rejected_value.local_topology.?),
+        rejected_display.lines[6],
+    );
     try expectAdmittedPathSchematicCue(rejected_display, rejected_value.move_options.?);
     try expectRejectedAttemptCue(
         rejected_display,
@@ -671,15 +795,17 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     var rejected_target_cell_buffer: [16]u8 = undefined;
     var rejected_move_options_buffer: [256]u8 = undefined;
     var rejected_topology_buffer: [384]u8 = undefined;
+    var rejected_footing_buffer: [128]u8 = undefined;
     var rejected_zone_buffer: [128]u8 = undefined;
     const expected_rejected_diagnostic = try std.fmt.allocPrint(
         allocator,
-        "event=hero_move direction=west status=rejected rejection_stage=target_rejected reason=target_empty current_cell={s} target_cell={s} move_options={s} local_topology={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+        "event=hero_move direction=west status=rejected rejection_stage=target_rejected reason=target_empty current_cell={s} target_cell={s} move_options={s} local_topology={s} current_footing={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
         .{
             try formatOptionalCellValue(&rejected_current_cell_buffer, rejected_value.current_cell),
             try formatOptionalCellValue(&rejected_target_cell_buffer, rejected_value.target_cell),
             try formatMoveOptionsDiagnosticValue(&rejected_move_options_buffer, rejected_value.move_options.?),
             try formatLocalTopologyDiagnosticValue(&rejected_topology_buffer, rejected_value.local_topology.?),
+            try formatCurrentFootingDiagnosticValue(&rejected_footing_buffer, rejected_value.local_topology.?),
             formatZoneDiagnosticValue(&rejected_zone_buffer, rejected_value.zone_membership),
             rejected_value.hero_position.x,
             rejected_value.hero_position.y,

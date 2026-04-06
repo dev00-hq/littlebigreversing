@@ -597,7 +597,7 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try std.testing.expect(hasTraceText(raw_trace, "RAW START INVALID"));
     try std.testing.expect(hasTraceText(raw_trace, "CELL 3/7 MAPPED_CELL_EMPTY"));
     try std.testing.expect(hasTraceText(raw_trace, raw_display.lines[2]));
-    try std.testing.expect(hasTraceText(raw_trace, "BOUNDS OUTSIDE_OCCUPIED_BOUNDS"));
+    try std.testing.expect(hasTraceText(raw_trace, raw_display.lines[3]));
     try std.testing.expect(hasTraceText(raw_trace, raw_display.lines[4]));
     try std.testing.expect(hasTraceText(raw_trace, raw_display.lines[5]));
     try std.testing.expect(!hasTraceText(raw_trace, "ZONES NONE"));
@@ -643,6 +643,7 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try expectTraceHasMoveOptionsForPosition(seeded_trace, room, seeded_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(seeded_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(seeded_trace, seeded_display.lines[5]));
+    try std.testing.expect(hasTraceText(seeded_trace, seeded_display.lines[6]));
     try expectTraceHasLocomotionSchematicCue(seeded_trace, room, seeded_runtime_session, seeded_display);
     try expectNoLocomotionAttemptCue(seeded_trace);
 
@@ -659,6 +660,7 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try expectTraceHasMoveOptionsForPosition(moved_trace, room, moved_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(moved_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(moved_trace, moved_display.lines[5]));
+    try std.testing.expect(hasTraceText(moved_trace, moved_display.lines[6]));
     try expectTraceHasLocomotionSchematicCue(moved_trace, room, moved_runtime_session, moved_display);
     try expectTraceHasLocomotionAttemptCue(moved_trace, room, moved_runtime_session, moved_display);
 
@@ -671,10 +673,11 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     defer rejected_trace.deinit(allocator);
 
     try std.testing.expect(hasTraceText(rejected_trace, "MOVE WEST REJECTED"));
-    try std.testing.expect(hasTraceText(rejected_trace, "STAY CELL 39/6"));
+    try std.testing.expect(hasTraceText(rejected_trace, rejected_display.lines[1]));
     try expectTraceHasMoveOptionsForPosition(rejected_trace, room, rejected_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(rejected_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(rejected_trace, rejected_display.lines[5]));
+    try std.testing.expect(hasTraceText(rejected_trace, rejected_display.lines[6]));
     try expectTraceHasLocomotionSchematicCue(rejected_trace, room, rejected_runtime_session, rejected_display);
     try expectTraceHasLocomotionAttemptCue(rejected_trace, room, rejected_runtime_session, rejected_display);
 }

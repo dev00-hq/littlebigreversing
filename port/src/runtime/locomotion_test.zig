@@ -95,7 +95,7 @@ test "runtime locomotion reports the baked guarded 19/19 raw start as an invalid
             try std.testing.expectEqual(runtime_query.HeroStartExactStatus.mapped_cell_empty, value.exact_status);
             try std.testing.expectEqual(hero_start_probe.diagnostic_status, value.diagnostic_status);
             try std.testing.expectEqual(@as(?locomotion.GridCell, .{ .x = 3, .z = 7 }), value.raw_cell);
-            try std.testing.expectEqual(runtime_query.OccupiedCoverageRelation.outside_occupied_bounds, value.occupied_coverage);
+            try std.testing.expectEqual(hero_start_probe.occupied_coverage, value.occupied_coverage);
             try expectRawInvalidStartCandidate(value.nearest_occupied, hero_start_probe.nearest_occupied);
             try expectRawInvalidStartCandidate(value.nearest_standable, hero_start_probe.nearest_standable);
             try std.testing.expectEqual(room_state.heroStartWorldPoint(room), value.hero_position);

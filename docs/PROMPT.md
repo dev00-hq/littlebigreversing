@@ -7,31 +7,31 @@ Current state:
 - `19/19` is the only supported positive branch-B runtime/load baseline.
 - `2/2`, `44/2`, and `11/10` remain guarded `ViewerUnsupportedSceneLife` negatives.
 - `LM_DEFAULT` and `LM_END_SWITCH` stay outside the supported decoder/interpreter boundary.
-- `runtime/world_query.zig` owns exact containing-zone queries, exact move-target evaluation, the raw hero-start probe, nearest occupied/standable diagnostic candidates, and the discovery-only hero-start mapping comparison helpers.
-- `runtime/locomotion.zig` owns step/result policy and the guarded `19/19` seam. It already threads runtime-owned zone membership, target-cell evidence, and local admitted-cell topology through `seeded_valid`, `last_move_accepted`, and admitted-position `last_move_rejected`, but its `raw_invalid_start` payload still drops `diagnostic_status` plus nearest-candidate evidence from the raw hero-start probe.
+- `runtime/world_query.zig` owns exact containing-zone queries, exact move-target evaluation, the raw hero-start probe, and diagnostic-only local neighbor topology over immutable guarded room data.
+- `runtime/locomotion.zig` owns the guarded `19/19` step/result seam. It already packages raw-start occupied-coverage plus nearest-candidate evidence, and admitted-path target-cell, zone, local-topology, and attempt data.
 - `runtime/session.zig` owns mutable hero world position only.
 - `runtime/room_state.zig` owns the guarded room/load seam plus immutable room/render snapshots.
-- `app/viewer_shell.zig` owns formatting, stderr diagnostics, and explicit fixture seeding only. It already surfaces admitted-path move-option and zone-summary evidence, but its raw invalid-start copy still stops at mapped cell plus occupied-coverage summary.
-- `app/viewer/render.zig` already owns the landed admitted-path schematic cue on the zero-fragment guarded path, including accepted/rejected attempt segments where present. Treat those cues as baseline, not next work.
+- `app/viewer_shell.zig` owns formatting, stderr diagnostics, and explicit fixture seeding only. It already surfaces raw-start `DIAG ...` / `BOUNDS ...` / `NEAR ...`, plus admitted-path `ZONES ...` and `TOPO ...`, but it still hides admitted-path current footing inside the topology payload instead of surfacing it explicitly.
+- `app/viewer/render.zig` already owns the landed admitted-path schematic and attempt cues on the zero-fragment guarded path. Treat those cues as baseline, not next work.
 - `main.zig` owns input routing only.
 - Raw invalid start and `origin_invalid` rejection still stay separate from the admitted-path movement surface.
 
 Next slice:
 
-- Surface the next diagnostics-only movement-semantic evidence on the existing guarded `19/19` raw invalid-start path.
-- Use only the already-landed runtime-owned raw hero-start probe evidence: `diagnostic_status`, `nearest_occupied`, `nearest_standable`, and their existing cell/distance facts.
-- Keep this slice text-first: extend raw invalid-start HUD copy and structured stderr diagnostics to expose that evidence clearly without changing the admitted-path schematic cue.
-- Keep `origin_invalid` rejected-step output separate and lean. Do not imply the runtime admitted the baked invalid path or evaluated alternate movement semantics there.
+- Surface the next diagnostics-only admitted-path evidence on the existing guarded `19/19` path by making current footing explicit from the already-owned `local_topology.origin_surface` plus `origin_standability`.
+- Keep this slice viewer-local and text-first: extend admitted-path HUD copy and structured stderr diagnostics with stable `SURF ...` / `current_footing=...` data for `seeded_valid`, `last_move_accepted`, and admitted-position `last_move_rejected`, without changing the admitted-path schematic cue.
+- Keep raw invalid start and `origin_invalid` rejected-step output separate and lean. Do not imply the runtime admitted the baked invalid path or evaluated alternate movement semantics there.
 - Keep `evaluateHeroStartMappings()` and `investigateAdditionalEvidenceAnchor()` discovery-only. Do not promote mapping-hypothesis narratives, alternate coordinate policies, or extra-anchor scoring into the runtime/viewer contract on this slice.
+- The admitted-path HUD line budget is bounded on this slice. It is acceptable to repurpose the final admitted-path status line for current-footing, and for admitted-position rejected only to fold the rejection reason into the stay-cell line, as long as move-option, zone, topology, schematic, and attempt cues remain intact.
 
 Hard-cut ownership:
 
-- `world_query.zig`: pure guarded room query/evaluation owner, including raw hero-start probe and nearest-candidate discovery
-- `locomotion.zig`: runtime step/result owner and raw-start evidence packaging only; it must not invent heuristic reinterpretation or viewer-facing copy
+- `world_query.zig`: pure guarded room query/evaluation owner, including raw hero-start diagnostics and admitted-path local-topology discovery
+- `locomotion.zig`: runtime step/result owner and raw-start/admitted-path evidence packaging only; it must not invent heuristic reinterpretation or viewer-facing copy
 - `session.zig`: mutable state only
 - `room_state.zig`: guarded load seam only
 - `viewer_shell.zig`: formatting, diagnostics, explicit fixture seeding, and packaging render-facing display data from already-owned runtime results only; it must not recompute probes or invent mapping policy
-- `render.zig`: display only; keep the admitted-path schematic cue exactly as landed and keep raw-start evidence text-driven on this slice
+- `render.zig`: display only; keep the admitted-path schematic cue exactly as landed and keep raw-start text-driven on this slice
 - `main.zig`: input routing only
 
 Scope:
@@ -43,21 +43,20 @@ Scope:
 
 Useful work in scope:
 
-- Extend `runtime/locomotion.RawInvalidStartStatus` or an equivalent runtime-owned payload so raw invalid-start status preserves `diagnostic_status` plus the minimal nearest-candidate facts the viewer needs.
-- If a helper snapshot type is needed, keep it runtime-owned and minimal: candidate kind, cell, and distance facts only.
-- Have `viewer_shell.zig` format stable raw invalid-start HUD lines for `diagnostic_status`, nearest occupied candidate, and nearest standable candidate, using only runtime-owned data.
-- Extend raw invalid-start stderr diagnostics with explicit fields derived from the same runtime-owned evidence.
-- Keep seeded, accepted, and admitted-position rejected status surfaces unchanged except for tiny consistency edits if tests prove they are necessary. Their admitted-path topology and attempt cues are baseline, not next work.
+- Reuse the existing `local_topology.origin_surface` and `origin_standability` payload already carried on admitted-path statuses; do not add a second footing probe or a new runtime query seam for this slice.
+- Have `viewer_shell.zig` format stable admitted-path `SURF ...` HUD copy using only runtime-owned local-topology data.
+- Extend admitted-path stderr diagnostics with a structured `current_footing=...` field derived from the same runtime-owned evidence.
+- Keep raw invalid-start and `origin_invalid` surfaces unchanged except for tiny consistency edits if tests prove they are necessary.
+- Keep admitted-path move-option, zone, topology, schematic, and attempt cues intact; any text-line rebalance must preserve those contracts rather than replace them with viewer-local heuristics.
 - Keep render code unchanged unless a test-only adjustment is required to preserve the landed raw-start/no-schematic contract.
-- Pin viewer-shell and render tests so the raw invalid-start surface cannot drift away from the runtime-owned probe data and so `origin_invalid` stays schematic-free.
+- Pin viewer-shell and render tests so the richer admitted-path footing surface cannot drift away from the runtime-owned local-topology data and so raw-start / `origin_invalid` stay on their existing contracts.
 
 Acceptance:
 
-- Runtime world-query tests stay green and continue proving the raw hero-start probe separates exact invalid mapping evidence from nearest candidate evidence on the guarded `19/19` snapshot.
-- Runtime locomotion tests prove raw invalid-start status preserves packaged `diagnostic_status` plus nearest-candidate evidence without mutating session state.
-- Viewer-shell tests prove the raw invalid-start HUD and stderr diagnostics surface the extra runtime-owned evidence, while seeded, accepted, and admitted-position rejected displays keep the landed move-option and zone-summary contract.
-- Viewer-shell tests also prove `origin_invalid` rejection stays separate from the richer raw invalid-start text path and remains schematic-free.
-- Render tests prove the zero-fragment guarded path still shows no admitted-path schematic cue on raw invalid start and `origin_invalid` rejection, while the seeded, accepted, and admitted-position rejected admitted-path schematic cues stay exactly as landed.
+- Runtime locomotion tests stay green and keep current-footing sourced from existing admitted-path local-topology data, with no new runtime seam and no session-mutation regression.
+- Viewer-shell tests prove seeded, accepted, and admitted-position rejected HUD and stderr diagnostics surface the extra runtime-owned current-footing evidence, while raw-start and `origin_invalid` keep their landed text/diagnostic contracts.
+- Viewer-shell tests also prove admitted-position rejected output may rebalance text lines for footing without losing move-option, zone, topology, or attempt cues.
+- Render tests prove the zero-fragment guarded path shows the extra admitted-path footing line on seeded, accepted, and admitted-position rejected traces, while raw-start and `origin_invalid` stay schematic-free and keep their existing text-first contract.
 - `world_query.zig` remains the canonical pure move/query surface.
 - `locomotion.zig` remains the canonical runtime step/result seam.
 
