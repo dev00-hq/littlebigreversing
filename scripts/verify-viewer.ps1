@@ -303,6 +303,94 @@ function Test-ViewerLaunch {
     }
 }
 
+function Test-ViewerLaunchFailure {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PortRoot,
+        [Parameter(Mandatory = $true)]
+        [string]$ViewerPath,
+        [Parameter(Mandatory = $true)]
+        [int]$Scene,
+        [Parameter(Mandatory = $true)]
+        [int]$Background,
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedError,
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedUnsupportedOpcodeName,
+        [Parameter(Mandatory = $true)]
+        [int]$ExpectedUnsupportedOpcodeId,
+        [Parameter(Mandatory = $true)]
+        [int]$ExpectedUnsupportedOffset
+    )
+
+    Write-Host ""
+    Write-Host ("=== lba2 --scene-entry {0} --background-entry {1} (expected failure) ===" -f $Scene, $Background) -ForegroundColor Cyan
+
+    Stop-StaleViewerProcesses
+
+    $stdoutPath = [System.IO.Path]::GetTempFileName()
+    $stderrPath = [System.IO.Path]::GetTempFileName()
+    $proc = $null
+
+    try {
+        $proc = Start-Process -FilePath $ViewerPath -WorkingDirectory $PortRoot -ArgumentList @(
+            "--scene-entry",
+            "$Scene",
+            "--background-entry",
+            "$Background"
+        ) -PassThru -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
+
+        if (-not $proc.WaitForExit(30000)) {
+            throw ("viewer launch {0}/{1} did not fail within the timeout." -f $Scene, $Background)
+        }
+
+        $stderr = Read-OptionalRawText -Path $stderrPath
+        $stdout = Read-OptionalRawText -Path $stdoutPath
+
+        if ($proc.ExitCode -eq 0) {
+            throw ("viewer launch {0}/{1} unexpectedly succeeded.`nstderr:`n{2}`nstdout:`n{3}" -f $Scene, $Background, $stderr.TrimEnd(), $stdout.TrimEnd())
+        }
+        if ($stderr -notmatch "event=room_load_rejected") {
+            throw ("viewer launch {0}/{1} failed, but did not emit room_load_rejected.`nstderr:`n{2}`nstdout:`n{3}" -f $Scene, $Background, $stderr.TrimEnd(), $stdout.TrimEnd())
+        }
+        if ($stderr -notmatch ("scene_entry_index={0} background_entry_index={1}" -f $Scene, $Background)) {
+            throw ("viewer launch {0}/{1} failed, but did not echo the scene/background pair.`nstderr:`n{2}`nstdout:`n{3}" -f $Scene, $Background, $stderr.TrimEnd(), $stdout.TrimEnd())
+        }
+        if ($stderr -notmatch [regex]::Escape($ExpectedError)) {
+            throw ("viewer launch {0}/{1} failed, but did not mention {2}.`nstderr:`n{3}`nstdout:`n{4}" -f $Scene, $Background, $ExpectedError, $stderr.TrimEnd(), $stdout.TrimEnd())
+        }
+        if ($stderr -notmatch ("unsupported_life_opcode_name={0}" -f [regex]::Escape($ExpectedUnsupportedOpcodeName))) {
+            throw ("viewer launch {0}/{1} failed, but did not mention unsupported_life_opcode_name={2}.`nstderr:`n{3}`nstdout:`n{4}" -f $Scene, $Background, $ExpectedUnsupportedOpcodeName, $stderr.TrimEnd(), $stdout.TrimEnd())
+        }
+        if ($stderr -notmatch ("unsupported_life_opcode_id={0}" -f $ExpectedUnsupportedOpcodeId)) {
+            throw ("viewer launch {0}/{1} failed, but did not mention unsupported_life_opcode_id={2}.`nstderr:`n{3}`nstdout:`n{4}" -f $Scene, $Background, $ExpectedUnsupportedOpcodeId, $stderr.TrimEnd(), $stdout.TrimEnd())
+        }
+        if ($stderr -notmatch ("unsupported_life_offset={0}" -f $ExpectedUnsupportedOffset)) {
+            throw ("viewer launch {0}/{1} failed, but did not mention unsupported_life_offset={2}.`nstderr:`n{3}`nstdout:`n{4}" -f $Scene, $Background, $ExpectedUnsupportedOffset, $stderr.TrimEnd(), $stdout.TrimEnd())
+        }
+
+        Write-Host $stderr.TrimEnd()
+
+        return [pscustomobject]@{
+            Pair   = "{0}/{1}" -f $Scene, $Background
+            Status = "rejected"
+            Error  = $ExpectedError
+        }
+    }
+    finally {
+        Stop-StaleViewerProcesses
+
+        if ($proc -and -not $proc.HasExited) {
+            $proc.WaitForExit(15000) | Out-Null
+        }
+        if ($proc -and -not $proc.HasExited) {
+            Stop-Process -Id $proc.Id -Force
+        }
+
+        Remove-Item $stdoutPath, $stderrPath -ErrorAction SilentlyContinue
+    }
+}
+
 $repoRoot = Get-RepoRoot
 $portRoot = Join-Path $repoRoot "port"
 $devShell = Join-Path $repoRoot "scripts\dev-shell.ps1"
@@ -313,6 +401,7 @@ Write-Host "Configuring native PowerShell dev shell." -ForegroundColor Cyan
 $inspectSuccessResults = [System.Collections.Generic.List[object]]::new()
 $inspectFailureResults = [System.Collections.Generic.List[object]]::new()
 $launchResults = [System.Collections.Generic.List[object]]::new()
+$launchFailureResults = [System.Collections.Generic.List[object]]::new()
 
 $testStep = if ($Fast) { "test-fast" } else { "test" }
 Invoke-ZigCommand -WorkingDirectory $portRoot -Label ("zig build {0}" -f $testStep) -Arguments @("build", $testStep) | Out-Null
@@ -333,12 +422,16 @@ $inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPat
 $inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 11 -Background 10 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_DEFAULT" -ExpectedUnsupportedOpcodeId 116 -ExpectedUnsupportedOffset 38))
 
 $launchResults.Add((Test-ViewerLaunch -PortRoot $portRoot -ViewerPath $viewerPath -Scene 19 -Background 19 -ExpectedFragments 0))
+$launchFailureResults.Add((Test-ViewerLaunchFailure -PortRoot $portRoot -ViewerPath $viewerPath -Scene 2 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_DEFAULT" -ExpectedUnsupportedOpcodeId 116 -ExpectedUnsupportedOffset 170))
+$launchFailureResults.Add((Test-ViewerLaunchFailure -PortRoot $portRoot -ViewerPath $viewerPath -Scene 44 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_END_SWITCH" -ExpectedUnsupportedOpcodeId 118 -ExpectedUnsupportedOffset 713))
+$launchFailureResults.Add((Test-ViewerLaunchFailure -PortRoot $portRoot -ViewerPath $viewerPath -Scene 11 -Background 10 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_DEFAULT" -ExpectedUnsupportedOpcodeId 116 -ExpectedUnsupportedOffset 38))
 
 Write-Host ""
 Write-Host "Viewer verification summary" -ForegroundColor Green
 $inspectSuccessResults | Format-Table Pair, Fragments, BrickPreviews, GrmEntry -AutoSize
 $inspectFailureResults | Format-Table Pair, Status, Error -AutoSize
 $launchResults | Format-Table Pair, Startup, Fragments, BrickPreviews -AutoSize
+$launchFailureResults | Format-Table Pair, Status, Error -AutoSize
 
 Write-Host ""
 Write-Host "status=ok" -ForegroundColor Green

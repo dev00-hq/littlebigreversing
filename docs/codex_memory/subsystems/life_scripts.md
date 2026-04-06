@@ -14,12 +14,12 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 
 - `life_program.zig` is an unwired structural decoder.
 - `life_audit.zig` plus `audit-life-programs` is the canonical blocker report and scene-level validation surface.
-- `tools/life_trace/` plus `scripts/trace-life.ps1` provide the bounded original-runtime probe for `DoLife` owner and `PtrPrg` attribution without manual register inspection.
+- `tools/life_trace/` plus `scripts/trace-life.ps1` provide the bounded original-runtime probe for `DoLife` owner and `PtrPrg` attribution.
 - `scripts/trace-life.ps1 -Mode TavernTrace` is the canonical scene-5 probe: it gates on the hero-life fingerprint, hooks the `LM_SWITCH` / `LM_CASE` / `LM_OR_CASE` / `LM_BREAK` paths in the original runtime, captures bounded Tavern screenshots by host-minted event id, and emits a single terminal verdict.
-- The current canonical Tavern live-save proof is: fingerprint match at `PtrLife + 40` -> `0x76 @ 4883` -> bounded `loop_reentry` at `4884`; byte-window capture is restored, and `LM_BREAK` remains supporting evidence instead of a required proof gate.
+- The current Tavern live-save proof is: fingerprint match at `PtrLife + 40` -> `0x76 @ 4883` -> bounded `loop_reentry` at `4884`; byte-window capture is restored, and `LM_BREAK` remains supporting evidence instead of a required proof gate.
 - `listDecodedInteriorSceneCandidates` currently proves there are `50` fully-decoded interior candidates; the earliest canonical runtime candidate is `SCENE.HQR[19]` (`classic_loader_scene_number = 17`, `blob_count = 3`).
 - Only `LM_DEFAULT` and `LM_END_SWITCH` are active unsupported real-asset blockers in the current archive.
-- The guarded runtime/load seam rejects unsupported scene life before later interior/exterior widening; `2/2`, `44/2`, and `11/10` stay negative guarded loads, with `11/10` test-only, and `inspect-room` now reports the first blocking opcode/id/offset before rethrowing `ViewerUnsupportedSceneLife`.
+- The guarded runtime/load seam rejects unsupported scene life before later interior/exterior widening; `2/2`, `44/2`, and `11/10` stay negative guarded loads, with `11/10` test-only, and both `inspect-room` and viewer startup now report the first blocking opcode/id/offset before rethrowing `ViewerUnsupportedSceneLife`.
 
 ## Known Traps
 

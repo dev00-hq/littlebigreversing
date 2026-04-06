@@ -42,6 +42,19 @@ pub fn main() !void {
         parsed.scene_entry,
         parsed.background_entry,
     ) catch |err| {
+        if (err == error.ViewerUnsupportedSceneLife) {
+            const hit = try lba2.runtime.room_state.inspectUnsupportedSceneLifeHit(
+                allocator,
+                resolved,
+                parsed.scene_entry,
+            );
+            try printUnsupportedSceneLifeDiagnostic(
+                stderr,
+                parsed.scene_entry,
+                parsed.background_entry,
+                hit,
+            );
+        }
         lba2.foundation.diagnostics.printError(stderr, @errorName(err));
         stderr.flush() catch {};
         return err;
@@ -169,6 +182,49 @@ fn sdlErrorMessage(err: anyerror) []const u8 {
         lba2.platform.sdl.lastError()
     else
         @errorName(err);
+}
+
+fn printUnsupportedSceneLifeDiagnostic(
+    writer: anytype,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    hit: lba2.runtime.room_state.UnsupportedSceneLifeHit,
+) !void {
+    var classic_loader_scene_number_buffer: [16]u8 = undefined;
+    var object_index_buffer: [16]u8 = undefined;
+    try writer.print(
+        "event=room_load_rejected scene_entry_index={d} background_entry_index={d} reason=unsupported_life_blob classic_loader_scene_number={s} scene_kind={s} unsupported_life_owner_kind={s} unsupported_life_object_index={s} unsupported_life_opcode_name={s} unsupported_life_opcode_id={d} unsupported_life_offset={d}\n",
+        .{
+            scene_entry_index,
+            background_entry_index,
+            formatOptionalUsize(&classic_loader_scene_number_buffer, hit.classic_loader_scene_number),
+            hit.scene_kind,
+            lifeOwnerKind(hit.owner),
+            formatOptionalUsize(&object_index_buffer, lifeOwnerObjectIndex(hit.owner)),
+            hit.unsupported_opcode_mnemonic,
+            hit.unsupported_opcode_id,
+            hit.byte_offset,
+        },
+    );
+}
+
+fn formatOptionalUsize(buffer: []u8, value: ?usize) []const u8 {
+    const resolved = value orelse return "none";
+    return std.fmt.bufPrint(buffer, "{d}", .{resolved}) catch unreachable;
+}
+
+fn lifeOwnerKind(owner: anytype) []const u8 {
+    return switch (owner) {
+        .hero => "hero",
+        .object => "object",
+    };
+}
+
+fn lifeOwnerObjectIndex(owner: anytype) ?usize {
+    return switch (owner) {
+        .hero => null,
+        .object => |object_index| object_index,
+    };
 }
 
 fn renderCurrentFrame(

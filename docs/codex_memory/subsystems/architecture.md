@@ -13,7 +13,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `port/` stays canonical; `world_geometry.zig` owns geometry, `room_state.zig` guarded loads plus negative-load life diagnostics, `session.zig` world-position seeds, `world_query.zig` query/coverage diagnostics, `locomotion.zig` step results, `viewer_shell.zig` diagnostics/schematic payloads, and `render.zig` display-only cues.
+- `port/` stays canonical; `world_geometry.zig` owns geometry, `room_state.zig` guarded loads plus negative-load life diagnostics, `session.zig` world-position seeds, `world_query.zig` query/coverage diagnostics, `locomotion.zig` step results, `viewer_shell.zig` diagnostics/schematic payloads, `main.zig` input routing plus guarded negative startup formatting, and `render.zig` display-only cues.
 
 ## Known Traps
 
@@ -30,7 +30,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - On guarded `19/19`, the exact containing-zone result for admitted `39/6` and the accepted south step is the empty set.
 - The `19/19` zone-summary contract is intentional: HUD uses `ZONES NONE` / `ZONES <indices>`, stderr uses `zones=none` / `zones=<indices>`, and both come from the same zone order.
 - The `19/19` move-option contract is intentional: HUD uses direction/cell/status lines, stderr keeps `direction:cell:status:coverage_relation:coverage_dx:coverage_dz`, and the schematic uses current-cell plus colored `N/E/S/W` target cues.
-- Guarded negative `inspect-room` loads keep `ViewerUnsupportedSceneLife` public while preceding it with `event=room_load_rejected ... unsupported_life_opcode_name=... unsupported_life_opcode_id=... unsupported_life_offset=...` for the first blocking blob only.
+- Guarded negative `inspect-room` and viewer-startup loads keep `ViewerUnsupportedSceneLife` public while preceding it with `event=room_load_rejected ... unsupported_life_opcode_name=... unsupported_life_opcode_id=... unsupported_life_offset=...` for the first blocking blob only.
 - The raw-invalid-start contract is intentional: HUD uses `DIAG ...` / `BOUNDS ...` / `NEAR ...`; stderr uses `diagnostic_status=...`, `occupied_coverage=...`, bounds, and `nearest_*=...`.
 - `19/19` admitted footing is intentional: HUD uses `SURF ...`, stderr uses `current_footing=...`, and both come from `local_topology`.
 - `19/19` rejected-target coverage is intentional: stderr uses explicit `target_occupied_*` fields for admitted-position `target_rejected` only.
