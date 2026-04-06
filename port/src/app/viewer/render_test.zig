@@ -380,6 +380,7 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try std.testing.expect(hasTraceText(raw_trace, "RAW START INVALID"));
     try std.testing.expect(hasTraceText(raw_trace, "CELL 3/7 MAPPED_CELL_EMPTY"));
     try std.testing.expect(hasTraceText(raw_trace, "BOUNDS OUTSIDE_OCCUPIED_BOUNDS"));
+    try std.testing.expect(!hasTraceText(raw_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(raw_trace, "ENTER SEED HERO"));
     try std.testing.expect(hasTraceText(raw_trace, "ARROWS MOVE HERO"));
     try std.testing.expect(hasTraceText(raw_trace, "RAW START STAYS"));
@@ -393,6 +394,7 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try std.testing.expect(hasTraceText(seeded_trace, "FIXTURE SEEDED VALID"));
     try std.testing.expect(hasTraceText(seeded_trace, "CELL 39/6 STATUS ALLOWED"));
     try expectTraceHasMoveOptionsForPosition(seeded_trace, room, seeded_runtime_session.heroWorldPosition());
+    try std.testing.expect(hasTraceText(seeded_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(seeded_trace, "ARROWS MOVE FROM HERE"));
 
     var moved_runtime_session = viewer_shell.initSession(room);
@@ -404,6 +406,7 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try std.testing.expect(hasTraceText(moved_trace, "MOVE SOUTH ACCEPTED"));
     try std.testing.expect(hasTraceText(moved_trace, "CELL 39/7 STATUS ALLOWED"));
     try expectTraceHasMoveOptionsForPosition(moved_trace, room, moved_runtime_session.heroWorldPosition());
+    try std.testing.expect(hasTraceText(moved_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(moved_trace, "HERO POSITION UPDATED"));
 
     var rejected_runtime_session = viewer_shell.initSession(room);
@@ -415,6 +418,7 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try std.testing.expect(hasTraceText(rejected_trace, "MOVE WEST REJECTED"));
     try std.testing.expect(hasTraceText(rejected_trace, "STAY CELL 39/6"));
     try expectTraceHasMoveOptionsForPosition(rejected_trace, room, rejected_runtime_session.heroWorldPosition());
+    try std.testing.expect(hasTraceText(rejected_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(rejected_trace, "REASON TARGET_EMPTY"));
 }
 

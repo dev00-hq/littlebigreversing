@@ -8,15 +8,16 @@ const fragment_compare = @import("fragment_compare.zig");
 
 pub const LocomotionStatusDisplay = struct {
     line_count: usize = 0,
-    lines: [5][]const u8 = .{ "", "", "", "", "" },
+    lines: [6][]const u8 = .{ "", "", "", "", "", "" },
 };
 
 pub const LocomotionStatusDisplayBuffer = struct {
-    line_0: [64]u8 = undefined,
-    line_1: [64]u8 = undefined,
-    line_2: [64]u8 = undefined,
-    line_3: [64]u8 = undefined,
-    line_4: [64]u8 = undefined,
+    line_0: [128]u8 = undefined,
+    line_1: [128]u8 = undefined,
+    line_2: [128]u8 = undefined,
+    line_3: [128]u8 = undefined,
+    line_4: [128]u8 = undefined,
+    line_5: [128]u8 = undefined,
 };
 
 pub fn renderDebugView(

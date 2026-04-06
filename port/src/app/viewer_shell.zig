@@ -164,36 +164,40 @@ pub fn formatLocomotionStatusDisplay(
                 formatCoverageLine(&buffer.line_1, value.occupied_coverage),
                 "",
                 "",
+                "",
             },
         },
         .seeded_valid => |value| .{
-            .line_count = 5,
+            .line_count = 6,
             .lines = .{
                 "FIXTURE SEEDED VALID",
                 formatAllowedCellLine(&buffer.line_0, value.cell),
                 formatMoveOptionPairLine(&buffer.line_1, value.move_options.options[0], value.move_options.options[1]),
                 formatMoveOptionPairLine(&buffer.line_2, value.move_options.options[2], value.move_options.options[3]),
+                formatZoneSummary(&buffer.line_3, value.zone_membership),
                 "ARROWS MOVE FROM HERE",
             },
         },
         .last_move_accepted => |value| .{
-            .line_count = 5,
+            .line_count = 6,
             .lines = .{
                 formatAcceptedMoveLine(&buffer.line_0, value.direction),
                 formatAllowedCellLine(&buffer.line_1, value.cell),
                 formatMoveOptionPairLine(&buffer.line_2, value.move_options.options[0], value.move_options.options[1]),
                 formatMoveOptionPairLine(&buffer.line_3, value.move_options.options[2], value.move_options.options[3]),
+                formatZoneSummary(&buffer.line_4, value.zone_membership),
                 "HERO POSITION UPDATED",
             },
         },
         .last_move_rejected => |value| if (value.move_options) |move_options| .{
-            .line_count = 5,
+            .line_count = 6,
             .lines = .{
                 formatRejectedMoveLine(&buffer.line_0, value.direction),
                 formatCurrentCellLine(&buffer.line_1, value.current_cell),
                 formatMoveOptionPairLine(&buffer.line_2, move_options.options[0], move_options.options[1]),
                 formatMoveOptionPairLine(&buffer.line_3, move_options.options[2], move_options.options[3]),
-                formatRejectedReasonLine(&buffer.line_4, value.reason),
+                formatZoneSummary(&buffer.line_4, value.zone_membership),
+                formatRejectedReasonLine(&buffer.line_5, value.reason),
             },
         } else .{
             .line_count = 3,
@@ -201,6 +205,7 @@ pub fn formatLocomotionStatusDisplay(
                 formatRejectedMoveLine(&buffer.line_0, value.direction),
                 formatCurrentCellLine(&buffer.line_1, value.current_cell),
                 formatRejectedReasonLine(&buffer.line_2, value.reason),
+                "",
                 "",
                 "",
             },
@@ -315,11 +320,13 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         .seeded_valid => |value| {
             var cell_buffer: [16]u8 = undefined;
             var move_options_buffer: [128]u8 = undefined;
+            var zones_buffer: [128]u8 = undefined;
             try writer.print(
-                "event=hero_seed status=seeded_valid cell={s} move_options={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                "event=hero_seed status=seeded_valid cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
                 .{
                     formatRequiredCell(&cell_buffer, value.cell),
                     formatMoveOptionsDiagnostic(&move_options_buffer, value.move_options),
+                    formatZoneDiagnosticValue(&zones_buffer, value.zone_membership),
                     value.hero_position.x,
                     value.hero_position.y,
                     value.hero_position.z,
@@ -329,12 +336,14 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         .last_move_accepted => |value| {
             var cell_buffer: [16]u8 = undefined;
             var move_options_buffer: [128]u8 = undefined;
+            var zones_buffer: [128]u8 = undefined;
             try writer.print(
-                "event=hero_move direction={s} status=accepted cell={s} move_options={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                "event=hero_move direction={s} status=accepted cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
                 .{
                     directionLabel(value.direction),
                     formatRequiredCell(&cell_buffer, value.cell),
                     formatMoveOptionsDiagnostic(&move_options_buffer, value.move_options),
+                    formatZoneDiagnosticValue(&zones_buffer, value.zone_membership),
                     value.hero_position.x,
                     value.hero_position.y,
                     value.hero_position.z,
@@ -345,20 +354,38 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
             var current_cell_buffer: [16]u8 = undefined;
             var target_cell_buffer: [16]u8 = undefined;
             var move_options_buffer: [128]u8 = undefined;
-            try writer.print(
-                "event=hero_move direction={s} status=rejected rejection_stage={s} reason={s} current_cell={s} target_cell={s} move_options={s} hero_x={d} hero_y={d} hero_z={d}\n",
-                .{
-                    directionLabel(value.direction),
-                    @tagName(value.rejection_stage),
-                    @tagName(value.reason),
-                    formatOptionalCell(&current_cell_buffer, value.current_cell),
-                    formatOptionalCell(&target_cell_buffer, value.target_cell),
-                    if (value.move_options) |move_options| formatMoveOptionsDiagnostic(&move_options_buffer, move_options) else "unavailable",
-                    value.hero_position.x,
-                    value.hero_position.y,
-                    value.hero_position.z,
-                },
-            );
+            if (value.move_options) |move_options| {
+                var zones_buffer: [128]u8 = undefined;
+                try writer.print(
+                    "event=hero_move direction={s} status=rejected rejection_stage={s} reason={s} current_cell={s} target_cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                    .{
+                        directionLabel(value.direction),
+                        @tagName(value.rejection_stage),
+                        @tagName(value.reason),
+                        formatOptionalCell(&current_cell_buffer, value.current_cell),
+                        formatOptionalCell(&target_cell_buffer, value.target_cell),
+                        formatMoveOptionsDiagnostic(&move_options_buffer, move_options),
+                        formatZoneDiagnosticValue(&zones_buffer, value.zone_membership),
+                        value.hero_position.x,
+                        value.hero_position.y,
+                        value.hero_position.z,
+                    },
+                );
+            } else {
+                try writer.print(
+                    "event=hero_move direction={s} status=rejected rejection_stage={s} reason={s} current_cell={s} target_cell={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
+                    .{
+                        directionLabel(value.direction),
+                        @tagName(value.rejection_stage),
+                        @tagName(value.reason),
+                        formatOptionalCell(&current_cell_buffer, value.current_cell),
+                        formatOptionalCell(&target_cell_buffer, value.target_cell),
+                        value.hero_position.x,
+                        value.hero_position.y,
+                        value.hero_position.z,
+                    },
+                );
+            }
         },
     }
 }
@@ -627,6 +654,33 @@ fn formatCurrentCellLine(buffer: []u8, cell: ?GridCell) []const u8 {
         "STAY CELL {s}",
         .{formatOptionalCell(&cell_buffer, cell)},
     ) catch unreachable;
+}
+
+fn formatZoneSummary(buffer: []u8, zone_membership: runtime_locomotion.ZoneMembership) []const u8 {
+    const zones = zone_membership.slice();
+    if (zones.len == 0) return "ZONES NONE";
+
+    var stream = std.io.fixedBufferStream(buffer);
+    const writer = stream.writer();
+    writer.writeAll("ZONES ") catch unreachable;
+    for (zones, 0..) |zone, index| {
+        if (index != 0) writer.writeAll("|") catch unreachable;
+        writer.print("{d}", .{zone.index}) catch unreachable;
+    }
+    return stream.getWritten();
+}
+
+fn formatZoneDiagnosticValue(buffer: []u8, zone_membership: runtime_locomotion.ZoneMembership) []const u8 {
+    const zones = zone_membership.slice();
+    if (zones.len == 0) return "none";
+
+    var stream = std.io.fixedBufferStream(buffer);
+    const writer = stream.writer();
+    for (zones, 0..) |zone, index| {
+        if (index != 0) writer.writeAll("|") catch unreachable;
+        writer.print("{d}", .{zone.index}) catch unreachable;
+    }
+    return stream.getWritten();
 }
 
 fn formatMoveOptionPairLine(
