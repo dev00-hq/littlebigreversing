@@ -63,6 +63,7 @@ fn expectMoveOptions(
         try std.testing.expectEqual(option.direction, move_options.options[index].direction);
         try std.testing.expectEqual(option.evaluation.raw_cell.cell, move_options.options[index].target_cell);
         try std.testing.expectEqual(option.evaluation.status, move_options.options[index].status);
+        try std.testing.expectEqual(option.evaluation.occupied_coverage, move_options.options[index].occupied_coverage);
     }
 }
 

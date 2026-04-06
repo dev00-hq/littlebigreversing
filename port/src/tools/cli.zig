@@ -701,7 +701,18 @@ fn inspectRoom(
     background_entry_index: usize,
     output_json: bool,
 ) !void {
-    const room = try room_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
+    var stderr_buffer: [4096]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    const stderr = &stderr_writer.interface;
+
+    const room = room_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index) catch |err| {
+        if (err == error.ViewerUnsupportedSceneLife) {
+            const hit = try room_state.inspectUnsupportedSceneLifeHit(allocator, resolved, scene_entry_index);
+            try printUnsupportedSceneLifeDiagnostic(stderr, scene_entry_index, background_entry_index, hit);
+            try stderr.flush();
+        }
+        return err;
+    };
     defer room.deinit(allocator);
 
     const payload = buildRoomInspectionPayload(&room);
@@ -712,10 +723,6 @@ fn inspectRoom(
         try std.fs.File.stdout().writeAll("\n");
         return;
     }
-
-    var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
-    const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "command", .value = "inspect-room" },
         .{ .key = "scene_asset_path", .value = "SCENE.HQR" },
@@ -1003,6 +1010,30 @@ fn auditLifePrograms(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
         }
     }
     try stderr.flush();
+}
+
+fn printUnsupportedSceneLifeDiagnostic(
+    writer: anytype,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    hit: room_state.UnsupportedSceneLifeHit,
+) !void {
+    var classic_loader_scene_number_buffer: [16]u8 = undefined;
+    var object_index_buffer: [16]u8 = undefined;
+    try writer.print(
+        "event=room_load_rejected scene_entry_index={d} background_entry_index={d} reason=unsupported_life_blob classic_loader_scene_number={s} scene_kind={s} unsupported_life_owner_kind={s} unsupported_life_object_index={s} unsupported_life_opcode_name={s} unsupported_life_opcode_id={d} unsupported_life_offset={d}\n",
+        .{
+            scene_entry_index,
+            background_entry_index,
+            formatOptionalUsize(&classic_loader_scene_number_buffer, hit.classic_loader_scene_number),
+            hit.scene_kind,
+            lifeOwnerKind(hit.owner),
+            formatOptionalUsize(&object_index_buffer, lifeOwnerObjectIndex(hit.owner)),
+            hit.unsupported_opcode_mnemonic,
+            hit.unsupported_opcode_id,
+            hit.byte_offset,
+        },
+    );
 }
 
 fn inspectLifeProgram(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, parsed: ParsedArgs) !void {
@@ -1493,6 +1524,11 @@ fn lifeOwnerObjectIndex(owner: life_audit.LifeBlobOwner) ?usize {
     };
 }
 
+fn formatOptionalUsize(buffer: []u8, value: ?usize) []const u8 {
+    if (value) |resolved| return std.fmt.bufPrint(buffer, "{d}", .{resolved}) catch unreachable;
+    return "none";
+}
+
 fn lifeAuditStatusName(status: life_program.LifeProgramAuditStatus) []const u8 {
     return switch (status) {
         .decoded => "decoded",
@@ -1690,6 +1726,22 @@ test "inspect-room rejects unsupported scene life outside the guarded runtime bo
     try std.testing.expectError(error.ViewerUnsupportedSceneLife, inspectRoom(allocator, resolved, 2, 2, true));
     try std.testing.expectError(error.ViewerUnsupportedSceneLife, inspectRoom(allocator, resolved, 44, 2, true));
     try std.testing.expectError(error.ViewerUnsupportedSceneLife, inspectRoom(allocator, resolved, 11, 10, true));
+}
+
+test "inspect-room formats unsupported-life diagnostics with first-hit blocker details" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const hit = try room_state.inspectUnsupportedSceneLifeHit(allocator, resolved, 11);
+    var buffer: [512]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&buffer);
+    try printUnsupportedSceneLifeDiagnostic(stream.writer(), 11, 10, hit);
+
+    try std.testing.expectEqualStrings(
+        "event=room_load_rejected scene_entry_index=11 background_entry_index=10 reason=unsupported_life_blob classic_loader_scene_number=9 scene_kind=interior unsupported_life_owner_kind=object unsupported_life_object_index=12 unsupported_life_opcode_name=LM_DEFAULT unsupported_life_opcode_id=116 unsupported_life_offset=38\n",
+        stream.getWritten(),
+    );
 }
 
 test "inspect-room rejects exterior scene entries" {

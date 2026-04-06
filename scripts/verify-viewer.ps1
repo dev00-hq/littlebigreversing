@@ -170,7 +170,10 @@ function Test-InspectRoomFailure {
         [Parameter(Mandatory = $true)]
         [int]$Background,
         [Parameter(Mandatory = $true)]
-        [string]$ExpectedError
+        [string]$ExpectedError,
+        [string]$ExpectedUnsupportedOpcodeName = "",
+        [int]$ExpectedUnsupportedOpcodeId = -1,
+        [int]$ExpectedUnsupportedOffset = -1
     )
 
     $result = Invoke-ExecutableCommand -WorkingDirectory $PortRoot -FilePath $ToolPath -Label ("lba2-tool inspect-room {0} {1} --json (expected failure)" -f $Scene, $Background) -Arguments @(
@@ -185,6 +188,21 @@ function Test-InspectRoomFailure {
     }
     if ($result.Output -notmatch [regex]::Escape($ExpectedError)) {
         throw ("inspect-room {0}/{1} failed, but did not mention {2}. Output:`n{3}" -f $Scene, $Background, $ExpectedError, $result.Output.TrimEnd())
+    }
+    if ($ExpectedUnsupportedOpcodeName.Length -gt 0) {
+        if ($result.Output -notmatch ("unsupported_life_opcode_name={0}" -f [regex]::Escape($ExpectedUnsupportedOpcodeName))) {
+            throw ("inspect-room {0}/{1} failed, but did not mention unsupported_life_opcode_name={2}. Output:`n{3}" -f $Scene, $Background, $ExpectedUnsupportedOpcodeName, $result.Output.TrimEnd())
+        }
+    }
+    if ($ExpectedUnsupportedOpcodeId -ge 0) {
+        if ($result.Output -notmatch ("unsupported_life_opcode_id={0}" -f $ExpectedUnsupportedOpcodeId)) {
+            throw ("inspect-room {0}/{1} failed, but did not mention unsupported_life_opcode_id={2}. Output:`n{3}" -f $Scene, $Background, $ExpectedUnsupportedOpcodeId, $result.Output.TrimEnd())
+        }
+    }
+    if ($ExpectedUnsupportedOffset -ge 0) {
+        if ($result.Output -notmatch ("unsupported_life_offset={0}" -f $ExpectedUnsupportedOffset)) {
+            throw ("inspect-room {0}/{1} failed, but did not mention unsupported_life_offset={2}. Output:`n{3}" -f $Scene, $Background, $ExpectedUnsupportedOffset, $result.Output.TrimEnd())
+        }
     }
 
     return [pscustomobject]@{
@@ -310,9 +328,9 @@ if (-not (Test-Path $viewerPath)) {
 }
 
 $inspectSuccessResults.Add((Test-InspectRoomSuccess -PortRoot $portRoot -ToolPath $toolPath -Scene 19 -Background 19 -ExpectedFragments 0 -ExpectedGrmEntry 151))
-$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 2 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife"))
-$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 44 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife"))
-$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 11 -Background 10 -ExpectedError "ViewerUnsupportedSceneLife"))
+$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 2 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_DEFAULT" -ExpectedUnsupportedOpcodeId 116 -ExpectedUnsupportedOffset 170))
+$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 44 -Background 2 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_END_SWITCH" -ExpectedUnsupportedOpcodeId 118 -ExpectedUnsupportedOffset 713))
+$inspectFailureResults.Add((Test-InspectRoomFailure -PortRoot $portRoot -ToolPath $toolPath -Scene 11 -Background 10 -ExpectedError "ViewerUnsupportedSceneLife" -ExpectedUnsupportedOpcodeName "LM_DEFAULT" -ExpectedUnsupportedOpcodeId 116 -ExpectedUnsupportedOffset 38))
 
 $launchResults.Add((Test-ViewerLaunch -PortRoot $portRoot -ViewerPath $viewerPath -Scene 19 -Background 19 -ExpectedFragments 0))
 

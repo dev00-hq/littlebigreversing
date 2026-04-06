@@ -17,6 +17,7 @@ fn expectMoveOptions(
         try std.testing.expectEqual(option.direction, move_options.options[index].direction);
         try std.testing.expectEqual(option.evaluation.raw_cell.cell, move_options.options[index].target_cell);
         try std.testing.expectEqual(option.evaluation.status, move_options.options[index].status);
+        try std.testing.expectEqual(option.evaluation.occupied_coverage, move_options.options[index].occupied_coverage);
     }
 }
 
@@ -225,11 +226,14 @@ fn formatMoveOptionsDiagnosticValue(
     for (move_options.options, 0..) |option, index| {
         if (index != 0) try writer.writeAll(",");
         try writer.print(
-            "{s}:{s}:{s}",
+            "{s}:{s}:{s}:{s}:{d}:{d}",
             .{
                 directionLabel(option.direction),
                 try formatOptionalCellValue(&cell_buffers[index], option.target_cell),
                 @tagName(option.status),
+                @tagName(option.occupied_coverage.relation),
+                option.occupied_coverage.x_cells_from_bounds,
+                option.occupied_coverage.z_cells_from_bounds,
             },
         );
     }

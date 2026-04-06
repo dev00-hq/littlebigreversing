@@ -19,7 +19,7 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 - The current canonical Tavern live-save proof is: fingerprint match at `PtrLife + 40` -> `0x76 @ 4883` -> bounded `loop_reentry` at `4884`; byte-window capture is restored, and `LM_BREAK` remains supporting evidence instead of a required proof gate.
 - `listDecodedInteriorSceneCandidates` currently proves there are `50` fully-decoded interior candidates; the earliest canonical runtime candidate is `SCENE.HQR[19]` (`classic_loader_scene_number = 17`, `blob_count = 3`).
 - Only `LM_DEFAULT` and `LM_END_SWITCH` are active unsupported real-asset blockers in the current archive.
-- The guarded runtime/load seam rejects unsupported scene life before later interior/exterior widening; `2/2`, `44/2`, and `11/10` are negative guarded load cases, with `11/10` preserved only on explicit test-only evidence paths.
+- The guarded runtime/load seam rejects unsupported scene life before later interior/exterior widening; `2/2`, `44/2`, and `11/10` stay negative guarded loads, with `11/10` test-only, and `inspect-room` now reports the first blocking opcode/id/offset before rethrowing `ViewerUnsupportedSceneLife`.
 
 ## Known Traps
 
@@ -27,6 +27,7 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 - The switch-family source pass is complete for the current checked-in evidence; repeating it without new evidence is churn.
 - Real asset `LM_BREAK` targets can land on the first byte after `LM_END_SWITCH`, so the classic `saute au END_SWITCH` comment is only a rough control-flow hint, not byte-level structural proof for `LM_END_SWITCH`.
 - A useful viewer evidence pair is not automatically a guarded runtime-safe scene; `11/10` still crosses unsupported scene life and now requires the test-only unchecked loader path for fragment evidence coverage.
+- Guarded negative-load diagnostics report the first blocking life blob only. For `11/10`, that is object `12` `LM_DEFAULT @ 38`, not the later object `18` `LM_END_SWITCH @ 84`.
 - TavernTrace screenshot capture is part of the acceptance artifact, not optional decoration. A missing required screenshot is a terminal tracer failure, not a warning.
 
 ## Canonical Entry Points

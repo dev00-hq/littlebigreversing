@@ -19,6 +19,7 @@ pub const CardinalMoveOption = struct {
     direction: CardinalDirection,
     target_cell: ?GridCell,
     status: runtime_query.MoveTargetStatus,
+    occupied_coverage: runtime_query.OccupiedCoverageProbe,
 };
 
 pub const MoveOptions = struct {
@@ -200,6 +201,7 @@ fn buildMoveOptions(
             .direction = option.direction,
             .target_cell = option.evaluation.raw_cell.cell,
             .status = option.evaluation.status,
+            .occupied_coverage = option.evaluation.occupied_coverage,
         };
     }
 

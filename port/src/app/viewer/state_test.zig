@@ -1,6 +1,7 @@
 const std = @import("std");
 const paths_mod = @import("../../foundation/paths.zig");
 const background_data = @import("../../game_data/background.zig");
+const life_audit = @import("../../game_data/scene/life_audit.zig");
 const scene_data = @import("../../game_data/scene.zig");
 const state = @import("../../runtime/room_state.zig");
 const room_fixtures = @import("../../testing/room_fixtures.zig");
@@ -16,6 +17,32 @@ fn findFirstNonEmptyFragmentCell(cells: []const state.FragmentZoneCellSnapshot) 
         if (cell.has_non_empty) return cell;
     }
     return null;
+}
+
+fn expectUnsupportedSceneLifeHit(
+    actual: state.UnsupportedSceneLifeHit,
+    scene_entry_index: usize,
+    classic_loader_scene_number: ?usize,
+    scene_kind: []const u8,
+    owner: life_audit.LifeBlobOwner,
+    opcode_name: []const u8,
+    opcode_id: u8,
+    byte_offset: usize,
+) !void {
+    try std.testing.expectEqual(scene_entry_index, actual.scene_entry_index);
+    try std.testing.expectEqual(classic_loader_scene_number, actual.classic_loader_scene_number);
+    try std.testing.expectEqualStrings(scene_kind, actual.scene_kind);
+    try std.testing.expectEqualStrings(opcode_name, actual.unsupported_opcode_mnemonic);
+    try std.testing.expectEqual(opcode_id, actual.unsupported_opcode_id);
+    try std.testing.expectEqual(byte_offset, actual.byte_offset);
+
+    switch (owner) {
+        .hero => try std.testing.expect(actual.owner == .hero),
+        .object => |expected_object_index| switch (actual.owner) {
+            .object => |actual_object_index| try std.testing.expectEqual(expected_object_index, actual_object_index),
+            else => return error.UnexpectedUnsupportedLifeOwner,
+        },
+    }
 }
 
 test "viewer shape classifier stays aligned with the checked-in layout docs" {
@@ -277,6 +304,44 @@ test "viewer room snapshot keeps 44/2 life rejection ahead of unchecked exterior
 
     try std.testing.expectError(error.ViewerUnsupportedSceneLife, state.loadRoomSnapshot(allocator, resolved, 44, 2));
     try std.testing.expectError(error.ViewerSceneMustBeInterior, state.loadRoomSnapshotUncheckedForTests(allocator, resolved, 44, 2));
+}
+
+test "viewer room snapshot exposes first-hit unsupported-life diagnostics for the guarded negative set" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    try expectUnsupportedSceneLifeHit(
+        try state.inspectUnsupportedSceneLifeHit(allocator, resolved, 2),
+        2,
+        0,
+        "interior",
+        .{ .hero = {} },
+        "LM_DEFAULT",
+        116,
+        170,
+    );
+    try expectUnsupportedSceneLifeHit(
+        try state.inspectUnsupportedSceneLifeHit(allocator, resolved, 44),
+        44,
+        42,
+        "exterior",
+        .{ .hero = {} },
+        "LM_END_SWITCH",
+        118,
+        713,
+    );
+    try expectUnsupportedSceneLifeHit(
+        try state.inspectUnsupportedSceneLifeHit(allocator, resolved, 11),
+        11,
+        9,
+        "interior",
+        .{ .object = 12 },
+        "LM_DEFAULT",
+        116,
+        38,
+    );
+    try std.testing.expectError(error.UnsupportedSceneLifeHitUnavailable, state.inspectUnsupportedSceneLifeHit(allocator, resolved, 19));
 }
 
 test "viewer room snapshot still rejects decoded exterior scene entries" {

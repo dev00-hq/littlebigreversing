@@ -13,26 +13,28 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `port/` stays canonical; `world_geometry.zig` owns geometry, `room_state.zig` the guarded `19/19` room/load seam, `session.zig` world-position seeds, `world_query.zig` zone/target/raw-start/topology/coverage diagnostics, `locomotion.zig` step/result packaging, `viewer_shell.zig` diagnostics/schematic payloads, and `render.zig` display-only cues.
+- `port/` stays canonical; `world_geometry.zig` owns geometry, `room_state.zig` guarded loads plus negative-load life diagnostics, `session.zig` world-position seeds, `world_query.zig` query/coverage diagnostics, `locomotion.zig` step results, `viewer_shell.zig` diagnostics/schematic payloads, and `render.zig` display-only cues.
 
 ## Known Traps
 
-- `docs/PROMPT.md` can lag; cross-check packs and history before following it literally.
+- `docs/PROMPT.md` can lag; cross-check packs and history.
 - `sidequest/` and `LM_TASKS/` are independent workstreams, not part of canonical memory pickup unless a prompt explicitly widens scope.
-- `docs/PORTING_REPORT.md` and older migration notes are historical context, not the current contract.
-- The checked-in memory docs can lag the live worktree; verify code and worktree before treating them as a statement about dirtiness or local experiments.
+- `docs/PORTING_REPORT.md` and old migration notes are historical context.
+- The checked-in memory docs can lag the worktree; verify code and `git status`.
 - Canonical Windows Zig checks should run from native PowerShell after `.\scripts\dev-shell.ps1`.
-- `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` are the daily loop, not replacements for the canonical full gate.
-- `zig build test` is not a substitute for a prompt's explicit `zig build run` or `zig build tool` acceptance command.
-- Interrupted `zig build run` viewer launches can strand `lba2.exe` under `port/zig-out/bin/` and make the next install step fail with `AccessDenied`. If that happens, clear the stale `lba2` process before treating the runtime command as a code regression.
-- The checked-in v2 history can already be dirty. If `python tools/codex_memory.py validate` fails, inspect flagged JSONL records before blaming the CLI.
-- Preserved legacy docs are evidence, not numeric ground truth. If a spec mixes index bases or disagrees with asset-backed regressions, trust the checked-in probe or test for exact values.
-- On the guarded `19/19` locomotion baseline, the exact containing-zone result for the admitted `39/6` fixture and the accepted south step is currently the empty set. Do not invent a current zone or alternate mapping scale to make that answer non-empty.
+- `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` are the daily loop, not the full gate.
+- `zig build test` is not a substitute for explicit `zig build run` or `zig build tool` acceptance.
+- Interrupted `zig build run` launches can strand `port/zig-out/bin/lba2.exe`; clear the stale process before blaming the code.
+- If `python tools/codex_memory.py validate` fails, inspect the flagged JSONL records before blaming the CLI.
+- Preserved legacy docs are evidence, not numeric ground truth; trust checked-in probes for exact values.
+- On guarded `19/19`, the exact containing-zone result for admitted `39/6` and the accepted south step is the empty set.
 - The `19/19` zone-summary contract is intentional: HUD uses `ZONES NONE` / `ZONES <indices>`, stderr uses `zones=none` / `zones=<indices>`, and both come from the same zone order.
-- The `19/19` admitted move-option contract is intentional: HUD uses direction/cell/status lines, stderr keeps `direction:cell:status`, and the schematic uses current-cell plus colored `N/E/S/W` target cues.
-- The raw-invalid-start contract is intentional: HUD uses `DIAG ...` / `BOUNDS ...` / `NEAR ...`; stderr uses `diagnostic_status=...`, `occupied_coverage=...`, `occupied_bounds=...`, `occupied_bounds_dx=...`, `occupied_bounds_dz=...`, and `nearest_*=...`.
-- `19/19` admitted footing is intentional: HUD uses `SURF ...`, stderr uses `current_footing=...`, and both come from `local_topology.origin_surface` plus `origin_standability`.
-- `19/19` rejected-target coverage is intentional: stderr uses `target_occupied_coverage=...`, `target_occupied_bounds=...`, `target_occupied_bounds_dx=...`, and `target_occupied_bounds_dz=...` for admitted-position `target_rejected` only.
+- The `19/19` move-option contract is intentional: HUD uses direction/cell/status lines, stderr keeps `direction:cell:status:coverage_relation:coverage_dx:coverage_dz`, and the schematic uses current-cell plus colored `N/E/S/W` target cues.
+- Guarded negative `inspect-room` loads keep `ViewerUnsupportedSceneLife` public while preceding it with `event=room_load_rejected ... unsupported_life_opcode_name=... unsupported_life_opcode_id=... unsupported_life_offset=...` for the first blocking blob only.
+- The raw-invalid-start contract is intentional: HUD uses `DIAG ...` / `BOUNDS ...` / `NEAR ...`; stderr uses `diagnostic_status=...`, `occupied_coverage=...`, bounds, and `nearest_*=...`.
+- `19/19` admitted footing is intentional: HUD uses `SURF ...`, stderr uses `current_footing=...`, and both come from `local_topology`.
+- `19/19` rejected-target coverage is intentional: stderr uses explicit `target_occupied_*` fields for admitted-position `target_rejected` only.
+- On admitted-position `target_rejected`, widened per-option `move_options=` coverage is contextual only; keep explicit `target_occupied_*` as the chosen-attempt surface.
 
 ## Canonical Entry Points
 
@@ -45,14 +47,12 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 - `AGENTS.md`
 - `ISSUES.md`
-- `docs/codex_memory/README.md`
 - `tools/codex_memory.py`
 
 ## Test / Probe Commands
 
 - `python3 tools/codex_memory.py validate`
-- `python3 tools/codex_memory.py context`
 
 ## Open Unknowns
 
-- Which future runtime seams deserve their own subsystem packs once work moves past viewer/runtime slices.
+- Which future runtime seams need their own subsystem packs.

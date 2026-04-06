@@ -6,6 +6,8 @@ const scene_data = @import("../game_data/scene.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
 const world_geometry = @import("world_geometry.zig");
 
+pub const UnsupportedSceneLifeHit = life_audit.UnsupportedSceneLifeHit;
+
 pub const HeroStartSnapshot = struct {
     x: i16,
     y: i16,
@@ -272,6 +274,20 @@ pub fn loadRoomSnapshotUncheckedForTests(
 ) !RoomSnapshot {
     if (!builtin.is_test) @compileError("loadRoomSnapshotUncheckedForTests is only available in test builds");
     return loadRoomSnapshotInternal(allocator, resolved, scene_entry_index, background_entry_index, .skip);
+}
+
+pub fn inspectUnsupportedSceneLifeHit(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+) !UnsupportedSceneLifeHit {
+    const scene_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
+    defer allocator.free(scene_path);
+
+    return switch (try life_audit.validateSceneLifeBoundaryForEntry(allocator, scene_path, scene_entry_index)) {
+        .unsupported_life_blob => |hit| hit,
+        .decoded => error.UnsupportedSceneLifeHitUnavailable,
+    };
 }
 
 fn loadRoomSnapshotInternal(

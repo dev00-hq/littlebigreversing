@@ -988,11 +988,14 @@ fn formatMoveOptionsDiagnostic(buffer: []u8, move_options: ViewerMoveOptions) []
     for (move_options.options, 0..) |option, index| {
         if (index != 0) writer.writeAll(",") catch unreachable;
         writer.print(
-            "{s}:{s}:{s}",
+            "{s}:{s}:{s}:{s}:{d}:{d}",
             .{
                 directionLabel(option.direction),
                 formatOptionalCell(&cell_buffers[index], option.target_cell),
                 @tagName(option.status),
+                @tagName(option.occupied_coverage.relation),
+                option.occupied_coverage.x_cells_from_bounds,
+                option.occupied_coverage.z_cells_from_bounds,
             },
         ) catch unreachable;
     }
