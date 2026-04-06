@@ -20,6 +20,7 @@ const Command = enum {
     inspect_scene,
     inspect_room,
     audit_life_programs,
+    rank_decoded_interior_candidates,
     inspect_life_program,
     generate_fixtures,
     validate_phase1,
@@ -137,6 +138,31 @@ const RoomInspectionPayload = struct {
     background: RoomBackgroundSummary,
 };
 
+const RankedDecodedInteriorCandidateSummary = struct {
+    rank: usize,
+    scene_entry_index: usize,
+    classic_loader_scene_number: ?usize,
+    scene_kind: []const u8,
+    blob_count: usize,
+    object_count: usize,
+    zone_count: usize,
+    track_count: usize,
+    patch_count: usize,
+    is_current_supported_baseline: bool,
+};
+
+const RankedDecodedInteriorCandidatesPayload = struct {
+    command: []const u8,
+    ranking_basis: []const []const u8,
+    candidate_count: usize,
+    current_supported_baseline_scene_entry_index: usize,
+    current_supported_baseline_rank: usize,
+    current_supported_baseline_is_top_candidate: bool,
+    top_candidate: RankedDecodedInteriorCandidateSummary,
+    current_supported_baseline: RankedDecodedInteriorCandidateSummary,
+    candidates: []const RankedDecodedInteriorCandidateSummary,
+};
+
 pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     const parsed = try parseArgs(allocator, args);
     defer parsed.deinit(allocator);
@@ -152,6 +178,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         .inspect_scene => try inspectScene(allocator, resolved, parsed.entry_index.?, parsed.output_json),
         .inspect_room => try inspectRoom(allocator, resolved, parsed.entry_index.?, parsed.background_entry_index.?, parsed.output_json),
         .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed),
+        .rank_decoded_interior_candidates => try rankDecodedInteriorCandidates(allocator, resolved, parsed.output_json),
         .inspect_life_program => try inspectLifeProgram(allocator, resolved, parsed),
         .generate_fixtures => try generateFixtures(allocator, resolved),
         .validate_phase1 => try validatePhase1(allocator, resolved),
@@ -316,6 +343,27 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .background_entry_index = null,
             .audit_scene_entry_indices = if (audit_all_scene_entries or scene_entry_indices.items.len == 0) null else try scene_entry_indices.toOwnedSlice(allocator),
             .audit_all_scene_entries = audit_all_scene_entries,
+            .life_program_owner = null,
+            .output_json = output_json,
+        };
+    }
+    if (std.mem.eql(u8, command_name, "rank-decoded-interior-candidates")) {
+        var output_json = false;
+        for (args[(command_index + 1)..]) |arg| {
+            if (std.mem.eql(u8, arg, "--json")) {
+                output_json = true;
+            } else {
+                return error.UnknownOption;
+            }
+        }
+        return .{
+            .command = .rank_decoded_interior_candidates,
+            .asset_root_override = asset_root_override,
+            .relative_path = null,
+            .entry_index = null,
+            .background_entry_index = null,
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
             .life_program_owner = null,
             .output_json = output_json,
         };
@@ -1012,6 +1060,54 @@ fn auditLifePrograms(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
     try stderr.flush();
 }
 
+fn rankDecodedInteriorCandidates(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    output_json: bool,
+) !void {
+    const absolute_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
+    defer allocator.free(absolute_path);
+
+    const ranked = try life_audit.rankDecodedInteriorSceneCandidates(allocator, absolute_path);
+    defer allocator.free(ranked);
+    if (ranked.len == 0) return error.NoDecodedInteriorSceneCandidates;
+
+    const payload = try buildRankedDecodedInteriorCandidatesPayload(allocator, ranked);
+    defer allocator.free(payload.candidates);
+
+    if (output_json) {
+        const json = try stringifyJsonAlloc(allocator, payload);
+        defer allocator.free(json);
+        try std.fs.File.stdout().writeAll(json);
+        try std.fs.File.stdout().writeAll("\n");
+        return;
+    }
+
+    var stderr_buffer: [4096]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try diagnostics.printLine(stderr, &.{
+        .{ .key = "command", .value = "rank-decoded-interior-candidates" },
+        .{ .key = "asset_path", .value = "SCENE.HQR" },
+    });
+    try stderr.print(
+        "ranking_basis={s} candidate_count={d} current_supported_baseline_scene_entry_index={d} current_supported_baseline_rank={d} current_supported_baseline_is_top_candidate={}\n",
+        .{
+            formatRankingBasis(),
+            payload.candidate_count,
+            payload.current_supported_baseline_scene_entry_index,
+            payload.current_supported_baseline_rank,
+            payload.current_supported_baseline_is_top_candidate,
+        },
+    );
+    try printRankedDecodedInteriorCandidate(stderr, "top_candidate", payload.top_candidate);
+    try printRankedDecodedInteriorCandidate(stderr, "current_supported_baseline", payload.current_supported_baseline);
+    for (payload.candidates) |candidate| {
+        try printRankedDecodedInteriorCandidate(stderr, "candidate", candidate);
+    }
+    try stderr.flush();
+}
+
 fn printUnsupportedSceneLifeDiagnostic(
     writer: anytype,
     scene_entry_index: usize,
@@ -1034,6 +1130,29 @@ fn printUnsupportedSceneLifeDiagnostic(
             hit.byte_offset,
         },
     );
+}
+
+fn buildRankedDecodedInteriorCandidatesPayload(
+    allocator: std.mem.Allocator,
+    ranked: []const life_audit.RankedDecodedInteriorSceneCandidate,
+) !RankedDecodedInteriorCandidatesPayload {
+    const current_supported_baseline_scene_entry_index: usize = 19;
+    const candidates = try buildRankedDecodedInteriorCandidateSummaries(allocator, ranked, current_supported_baseline_scene_entry_index);
+    errdefer allocator.free(candidates);
+
+    const baseline_index = life_audit.findRankedDecodedInteriorSceneCandidateIndex(ranked, current_supported_baseline_scene_entry_index) orelse return error.MissingCurrentSupportedBaselineCandidate;
+
+    return .{
+        .command = "rank-decoded-interior-candidates",
+        .ranking_basis = &life_audit.ranked_decoded_interior_scene_candidate_basis,
+        .candidate_count = candidates.len,
+        .current_supported_baseline_scene_entry_index = current_supported_baseline_scene_entry_index,
+        .current_supported_baseline_rank = baseline_index + 1,
+        .current_supported_baseline_is_top_candidate = baseline_index == 0,
+        .top_candidate = candidates[0],
+        .current_supported_baseline = candidates[baseline_index],
+        .candidates = candidates,
+    };
 }
 
 fn inspectLifeProgram(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, parsed: ParsedArgs) !void {
@@ -1120,6 +1239,59 @@ fn formatSceneEntryIndicesAlloc(allocator: std.mem.Allocator, scene_entry_indice
     }
 
     return output.toOwnedSlice(allocator);
+}
+
+fn buildRankedDecodedInteriorCandidateSummaries(
+    allocator: std.mem.Allocator,
+    ranked: []const life_audit.RankedDecodedInteriorSceneCandidate,
+    current_supported_baseline_scene_entry_index: usize,
+) ![]RankedDecodedInteriorCandidateSummary {
+    var summaries: std.ArrayList(RankedDecodedInteriorCandidateSummary) = .empty;
+    errdefer summaries.deinit(allocator);
+
+    for (ranked, 0..) |candidate, index| {
+        try summaries.append(allocator, .{
+            .rank = index + 1,
+            .scene_entry_index = candidate.scene_entry_index,
+            .classic_loader_scene_number = candidate.classic_loader_scene_number,
+            .scene_kind = candidate.scene_kind,
+            .blob_count = candidate.blob_count,
+            .object_count = candidate.object_count,
+            .zone_count = candidate.zone_count,
+            .track_count = candidate.track_count,
+            .patch_count = candidate.patch_count,
+            .is_current_supported_baseline = candidate.scene_entry_index == current_supported_baseline_scene_entry_index,
+        });
+    }
+
+    return summaries.toOwnedSlice(allocator);
+}
+
+fn printRankedDecodedInteriorCandidate(
+    writer: anytype,
+    label: []const u8,
+    candidate: RankedDecodedInteriorCandidateSummary,
+) !void {
+    try writer.print(
+        "{s} rank={d} scene_entry_index={d} classic_loader_scene_number={any} scene_kind={s} blob_count={d} object_count={d} zone_count={d} track_count={d} patch_count={d} current_supported_baseline={}\n",
+        .{
+            label,
+            candidate.rank,
+            candidate.scene_entry_index,
+            candidate.classic_loader_scene_number,
+            candidate.scene_kind,
+            candidate.blob_count,
+            candidate.object_count,
+            candidate.zone_count,
+            candidate.track_count,
+            candidate.patch_count,
+            candidate.is_current_supported_baseline,
+        },
+    );
+}
+
+fn formatRankingBasis() []const u8 {
+    return "track_count_desc|object_count_desc|zone_count_desc|blob_count_desc|scene_entry_index_asc";
 }
 
 fn printTrackInstructionSummary(stderr: anytype, label: []const u8, instructions: []const scene_data.TrackInstruction) !void {
@@ -1587,6 +1759,14 @@ test "argument parsing supports audit-life-programs json output" {
     try std.testing.expect(parsed.output_json);
 }
 
+test "argument parsing supports rank-decoded-interior-candidates json output" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "rank-decoded-interior-candidates", "--json" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.rank_decoded_interior_candidates, parsed.command);
+    try std.testing.expect(parsed.output_json);
+}
+
 test "argument parsing supports inspect-life-program hero selection by default" {
     const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-life-program", "--scene-entry", "2", "--json" });
     defer parsed.deinit(std.testing.allocator);
@@ -1648,6 +1828,46 @@ test "argument parsing rejects inspect-life-program duplicate selectors" {
         error.DuplicateObjectIndexSelector,
         parseArgs(std.testing.allocator, &.{ "inspect-life-program", "--scene-entry", "2", "--object-index", "2", "--object-index", "3" }),
     );
+}
+
+test "ranked decoded interior candidate payload makes the scene 19 comparison explicit" {
+    const allocator = std.testing.allocator;
+    const payload = try buildRankedDecodedInteriorCandidatesPayload(allocator, &.{
+        .{
+            .scene_entry_index = 88,
+            .classic_loader_scene_number = 86,
+            .scene_kind = "interior",
+            .blob_count = 4,
+            .object_count = 9,
+            .zone_count = 6,
+            .track_count = 31,
+            .patch_count = 2,
+        },
+        .{
+            .scene_entry_index = 19,
+            .classic_loader_scene_number = 17,
+            .scene_kind = "interior",
+            .blob_count = 3,
+            .object_count = 3,
+            .zone_count = 4,
+            .track_count = 0,
+            .patch_count = 5,
+        },
+    });
+    defer allocator.free(payload.candidates);
+
+    try std.testing.expectEqualStrings("rank-decoded-interior-candidates", payload.command);
+    try std.testing.expectEqual(@as(usize, 5), payload.ranking_basis.len);
+    try std.testing.expectEqualStrings("track_count_desc", payload.ranking_basis[0]);
+    try std.testing.expectEqual(@as(usize, 2), payload.candidate_count);
+    try std.testing.expectEqual(@as(usize, 19), payload.current_supported_baseline_scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 2), payload.current_supported_baseline_rank);
+    try std.testing.expectEqual(false, payload.current_supported_baseline_is_top_candidate);
+    try std.testing.expectEqual(@as(usize, 88), payload.top_candidate.scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 2), payload.top_candidate.patch_count);
+    try std.testing.expectEqual(@as(usize, 19), payload.current_supported_baseline.scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 5), payload.current_supported_baseline.patch_count);
+    try std.testing.expectEqual(true, payload.current_supported_baseline.is_current_supported_baseline);
 }
 
 test "inspect-room composes the guarded canonical interior pair metadata" {

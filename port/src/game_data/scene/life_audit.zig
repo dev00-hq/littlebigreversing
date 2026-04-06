@@ -48,6 +48,25 @@ pub const DecodedInteriorSceneCandidate = struct {
     blob_count: usize,
 };
 
+pub const RankedDecodedInteriorSceneCandidate = struct {
+    scene_entry_index: usize,
+    classic_loader_scene_number: ?usize,
+    scene_kind: []const u8,
+    blob_count: usize,
+    object_count: usize,
+    zone_count: usize,
+    track_count: usize,
+    patch_count: usize,
+};
+
+pub const ranked_decoded_interior_scene_candidate_basis = [_][]const u8{
+    "track_count_desc",
+    "object_count_desc",
+    "zone_count_desc",
+    "blob_count_desc",
+    "scene_entry_index_asc",
+};
+
 pub fn inspectSceneLifeProgram(
     allocator: std.mem.Allocator,
     scene_archive_path: []const u8,
@@ -142,6 +161,47 @@ pub fn listDecodedInteriorSceneCandidates(
     return candidates.toOwnedSlice(allocator);
 }
 
+pub fn rankDecodedInteriorSceneCandidates(
+    allocator: std.mem.Allocator,
+    scene_archive_path: []const u8,
+) ![]RankedDecodedInteriorSceneCandidate {
+    const candidates = try listDecodedInteriorSceneCandidates(allocator, scene_archive_path);
+    defer allocator.free(candidates);
+
+    var ranked = try allocator.alloc(RankedDecodedInteriorSceneCandidate, candidates.len);
+    errdefer allocator.free(ranked);
+
+    for (candidates, 0..) |candidate, index| {
+        const scene = try parser.loadSceneMetadata(allocator, scene_archive_path, candidate.scene_entry_index);
+        defer scene.deinit(allocator);
+
+        ranked[index] = .{
+            .scene_entry_index = candidate.scene_entry_index,
+            .classic_loader_scene_number = candidate.classic_loader_scene_number,
+            .scene_kind = scene.sceneKind(),
+            .blob_count = candidate.blob_count,
+            .object_count = scene.object_count,
+            .zone_count = scene.zone_count,
+            .track_count = scene.track_count,
+            .patch_count = scene.patch_count,
+        };
+    }
+
+    std.mem.sort(RankedDecodedInteriorSceneCandidate, ranked, {}, lessThanRankedDecodedInteriorSceneCandidate);
+
+    return ranked;
+}
+
+pub fn findRankedDecodedInteriorSceneCandidateIndex(
+    ranked: []const RankedDecodedInteriorSceneCandidate,
+    scene_entry_index: usize,
+) ?usize {
+    for (ranked, 0..) |candidate, index| {
+        if (candidate.scene_entry_index == scene_entry_index) return index;
+    }
+    return null;
+}
+
 pub fn resolveSceneEntryIndicesAlloc(
     allocator: std.mem.Allocator,
     scene_archive_path: []const u8,
@@ -231,6 +291,18 @@ fn appendSceneLifeProgramAudits(
     }
 }
 
+fn lessThanRankedDecodedInteriorSceneCandidate(
+    _: void,
+    lhs: RankedDecodedInteriorSceneCandidate,
+    rhs: RankedDecodedInteriorSceneCandidate,
+) bool {
+    if (lhs.track_count != rhs.track_count) return lhs.track_count > rhs.track_count;
+    if (lhs.object_count != rhs.object_count) return lhs.object_count > rhs.object_count;
+    if (lhs.zone_count != rhs.zone_count) return lhs.zone_count > rhs.zone_count;
+    if (lhs.blob_count != rhs.blob_count) return lhs.blob_count > rhs.blob_count;
+    return lhs.scene_entry_index < rhs.scene_entry_index;
+}
+
 fn buildSceneLifeProgramAudit(
     scene: anytype,
     owner: LifeBlobOwner,
@@ -252,6 +324,58 @@ fn buildSceneLifeProgramAudit(
         owner,
         bytes,
     );
+}
+
+test "ranked decoded interior scene candidates use the stable richness ordering" {
+    var ranked = [_]RankedDecodedInteriorSceneCandidate{
+        .{
+            .scene_entry_index = 44,
+            .classic_loader_scene_number = 42,
+            .scene_kind = "interior",
+            .blob_count = 2,
+            .object_count = 5,
+            .zone_count = 4,
+            .track_count = 0,
+            .patch_count = 1,
+        },
+        .{
+            .scene_entry_index = 19,
+            .classic_loader_scene_number = 17,
+            .scene_kind = "interior",
+            .blob_count = 3,
+            .object_count = 3,
+            .zone_count = 4,
+            .track_count = 0,
+            .patch_count = 5,
+        },
+        .{
+            .scene_entry_index = 88,
+            .classic_loader_scene_number = 86,
+            .scene_kind = "interior",
+            .blob_count = 1,
+            .object_count = 2,
+            .zone_count = 2,
+            .track_count = 7,
+            .patch_count = 0,
+        },
+        .{
+            .scene_entry_index = 30,
+            .classic_loader_scene_number = 28,
+            .scene_kind = "interior",
+            .blob_count = 3,
+            .object_count = 3,
+            .zone_count = 4,
+            .track_count = 0,
+            .patch_count = 9,
+        },
+    };
+
+    std.mem.sort(RankedDecodedInteriorSceneCandidate, &ranked, {}, lessThanRankedDecodedInteriorSceneCandidate);
+
+    try std.testing.expectEqual(@as(usize, 88), ranked[0].scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 44), ranked[1].scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 19), ranked[2].scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 30), ranked[3].scene_entry_index);
 }
 
 fn buildLifeProgramAudit(

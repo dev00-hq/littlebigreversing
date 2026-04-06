@@ -19,6 +19,38 @@ test "scene-level life validation pins the canonical decoded interior candidate 
     try std.testing.expect(validation == .decoded);
 }
 
+test "decoded interior candidate ranking pins the current scene 19 comparison" {
+    const allocator = std.testing.allocator;
+    const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
+    defer allocator.free(archive_path);
+
+    const ranked = try life_audit.rankDecodedInteriorSceneCandidates(allocator, archive_path);
+    defer allocator.free(ranked);
+
+    try std.testing.expectEqual(@as(usize, 50), ranked.len);
+    try std.testing.expectEqualStrings("track_count_desc", life_audit.ranked_decoded_interior_scene_candidate_basis[0]);
+    try std.testing.expectEqualStrings("scene_entry_index_asc", life_audit.ranked_decoded_interior_scene_candidate_basis[4]);
+
+    try std.testing.expectEqual(@as(usize, 219), ranked[0].scene_entry_index);
+    try std.testing.expectEqual(@as(?usize, 217), ranked[0].classic_loader_scene_number);
+    try std.testing.expectEqualStrings("interior", ranked[0].scene_kind);
+    try std.testing.expectEqual(@as(usize, 34), ranked[0].blob_count);
+    try std.testing.expectEqual(@as(usize, 34), ranked[0].object_count);
+    try std.testing.expectEqual(@as(usize, 16), ranked[0].zone_count);
+    try std.testing.expectEqual(@as(usize, 17), ranked[0].track_count);
+    try std.testing.expectEqual(@as(usize, 42), ranked[0].patch_count);
+
+    const baseline_index = life_audit.findRankedDecodedInteriorSceneCandidateIndex(ranked, 19) orelse return error.MissingScene19RankedCandidate;
+    try std.testing.expectEqual(@as(usize, 48), baseline_index);
+    try std.testing.expectEqual(@as(usize, 19), ranked[baseline_index].scene_entry_index);
+    try std.testing.expectEqual(@as(?usize, 17), ranked[baseline_index].classic_loader_scene_number);
+    try std.testing.expectEqual(@as(usize, 3), ranked[baseline_index].blob_count);
+    try std.testing.expectEqual(@as(usize, 3), ranked[baseline_index].object_count);
+    try std.testing.expectEqual(@as(usize, 4), ranked[baseline_index].zone_count);
+    try std.testing.expectEqual(@as(usize, 0), ranked[baseline_index].track_count);
+    try std.testing.expectEqual(@as(usize, 5), ranked[baseline_index].patch_count);
+}
+
 test "all-scene life audit selection skips the reserved header entry" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");

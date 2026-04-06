@@ -1,49 +1,51 @@
 # Next Prompt
 
-Relevant subsystem packs for this task: `architecture`, `life_scripts`, `scene_decode`, and `platform_windows`.
+Relevant subsystem packs for this task: `architecture`, `backgrounds`, `scene_decode`, and `platform_windows`.
 
 Current state:
 
 - `19/19` is still the only supported positive branch-B runtime/load baseline.
-- The guarded negative scene-life startup path is now settled behavior: `2/2`, `44/2`, and `11/10` fail fast with `ViewerUnsupportedSceneLife`, and both `inspect-room` and viewer startup print the same first-hit `event=room_load_rejected ... unsupported_life_opcode_name=... unsupported_life_opcode_id=... unsupported_life_offset=...` line before the error.
-- The guarded positive startup path now also prints a runtime-owned `event=neighbor_pattern_summary ...` line backed by `runtime/world_query.zig.summarizeObservedNeighborPatterns()`, and both `viewer_shell` unit coverage and `scripts/verify-viewer.ps1` pin the current baseline counts: `origin_cell_count=1246`, `occupied_surface_count=4828`, `empty_count=107`, `out_of_bounds_count=49`, `missing_top_surface_count=0`, `standable_neighbor_count=4828`, `blocked_neighbor_count=0`, `top_y_delta_buckets=0:4828`.
-- `life_audit.zig.listDecodedInteriorSceneCandidates()` already proves there are `50` fully-decoded interior scenes under the current archive, with `SCENE.HQR[19]` as the earliest candidate by entry index.
+- `rank-decoded-interior-candidates` is now the canonical offline report for fully-decoded interior branch-B candidates. It orders the `50` decoded interior scenes by `track_count`, `object_count`, `zone_count`, `blob_count`, then `scene_entry_index`.
+- The current ranking result is explicit: `SCENE.HQR[219]` is the top offline candidate with `blob_count=34`, `object_count=34`, `zone_count=16`, `track_count=17`, and `patch_count=42`; the guarded `SCENE.HQR[19]` baseline ranks `49/50`.
+- `inspect-scene 219 --json` confirms that the top-ranked candidate is structurally much richer than `19`, with real track data and a large scene/object payload.
+- The next blocker is not life decoding or candidate selection. It is room/load viability: `inspect-room 219 219 --json` currently fails with `InvalidFragmentZoneBounds` inside `runtime/room_state.zig` while fragment-zone snapshots are being projected.
+- Keep the claim calibrated: `219` is the best current offline candidate under the checked-in richness policy, not a newly admitted runtime scene.
 - The current supported `19/19` startup is still diagnostic-only rather than gameplay-ready: the guarded viewer launch lands on `raw_invalid_start`, and the current scene metadata reports `track_count=0`.
-- `inspect-scene --json` is the canonical scene-metadata surface for object, zone, and track counts; `audit-life-programs --json --all-scene-entries` is the canonical branch-B candidate inventory surface.
 
 Next slice:
 
-- Stop deepening `19/19` stderr-only diagnostics for now and make the Phase 5 blocker concrete instead: identify whether any fully-decoded interior branch-B scene is a better gameplay candidate than `19`.
-- Build one canonical checked-in ranking/report surface from existing `life_audit` candidate data plus scene metadata. The result must answer whether `19` is still the best current branch-B candidate only because it is earliest, or whether another decoded interior scene is richer on scene-surface signals such as `object_count`, `zone_count`, and `track_count`.
-- Keep this slice offline and discovery-only: do not widen the runtime/load boundary, do not admit a new positive runtime scene yet, and do not change viewer/runtime contracts.
-- Treat a negative answer as useful output. If no decoded interior candidate is clearly richer or safer than `19`, make that explicit and use it to sharpen the next Phase 5 plan instead of inventing progress.
+- Stop revisiting candidate ranking for now. Make the new Phase 5 blocker concrete instead: explain exactly why the top-ranked `219/219` room/load attempt fails with `InvalidFragmentZoneBounds`.
+- Build one canonical checked-in diagnostic surface that turns that generic failure into a first-hit explanation with the offending zone or bounds details needed to reason about the blocker.
+- Keep this slice bounded to offline room/load diagnosis. Do not admit `219/219` as a supported positive pair yet, do not change viewer contracts, and do not widen runtime behavior beyond the diagnostic surface needed to explain the rejection.
+- Treat a negative answer as useful output. If `219/219` is blocked because current fragment-zone projection assumptions reject real asset bounds, make that explicit and use it to drive the next planning step instead of inventing a new supported scene.
 
 Hard-cut ownership:
 
-- `life_audit.zig`: canonical decoded-candidate discovery and branch-B candidate inventory owner
-- `scene.zig` plus scene parser/model/tests: canonical owner for object/zone/track metadata used to compare candidates
-- `tools/cli.zig`: acceptable place for a stable JSON or human-readable ranking/report surface if one is needed
-- `runtime/*`, `viewer_shell.zig`, `render.zig`, `main.zig`, and `room_state.zig`: unchanged for this slice unless a tiny plumbing edit is strictly required by tests
+- `runtime/room_state.zig`: canonical owner for fragment-zone projection and the `InvalidFragmentZoneBounds` failure
+- `tools/cli.zig`: preferred owner for any explicit first-hit diagnostic surface surfaced through `inspect-room` or a closely related room probe
+- `scene.zig` plus scene parser/model/tests: canonical owner for raw scene-zone metadata that the diagnostic must report
+- `viewer_shell.zig`, `render.zig`, `main.zig`, and runtime admission policy: unchanged for this slice unless tiny plumbing is strictly required by tests
 
 Scope:
 
-- Preserve the guarded `19/19` boundary and the current negative cases while you investigate richer decoded interior candidates offline.
-- Prefer ranking inputs that already exist in checked-in code and tests: decoded blob count, `object_count`, `zone_count`, `track_count`, classic loader scene number, and scene kind.
+- Preserve the guarded `19/19` boundary and the current negative cases while you investigate the `219/219` room/load blocker offline.
+- Prefer checked-in inputs that already exist at the seam: scene-zone bounds, zone type/number, fragment metadata, grid span assumptions, background pairing, and the exact error site in `runtime/room_state.zig`.
 - No runtime widening, no new supported positive startup pair, no life execution, no scene transitions, no inventory/state systems, no combat, no track execution, no movement-policy changes, and no new unchecked public-runtime path.
-- Do not treat docs-only reasoning as enough. The ranking/report must come from checked-in code, tests, or a canonical CLI surface.
+- Do not treat docs-only reasoning as enough. The answer must come from checked-in code, tests, or a canonical CLI surface.
+- Prefer a dedicated first-hit diagnostic or a precise `inspect-room` failure expansion over vague logging. If a new helper or payload is needed, keep it single-purpose and stable.
 
 Useful work in scope:
 
-- Reuse `listDecodedInteriorSceneCandidates()` and scene metadata to build a stable ranking/report of fully-decoded interior candidates.
-- Pin the existing candidate-count facts (`50` decoded interior candidates, earliest entry `19`) while adding at least one stable comparison that shows whether any candidate beats `19` on scene-surface richness such as non-zero `track_count`.
-- Surface the result in one canonical place: a CLI report, a tested helper, or a checked-in evidence test that future sessions can rerun without manual interpretation.
-- If one candidate emerges as the best next Phase 5 target, surface its stable identifying fields. If none does, make that negative result explicit.
+- Reuse `inspect-room 219 219`, `inspect-scene 219`, and the fragment-zone projection helpers to surface the first offending zone/bounds pair rather than just returning `InvalidFragmentZoneBounds`.
+- Pin the current ranking result only as context: `219` is the top offline candidate and `19` is not. The implementation work here is the room/load blocker explanation, not ranking changes.
+- Surface the blocker in one canonical place that future sessions can rerun without manual debugging.
+- If the root cause is a wrong background pairing or a too-strict room-state assumption, make that explicit. If the asset data itself is genuinely outside the current projection contract, make that explicit instead.
 
 Acceptance:
 
-- One canonical checked-in surface answers the question: what is the best current branch-B gameplay candidate among fully-decoded interior scenes?
-- The answer is derived from existing life-audit and scene-metadata owners, not from ad hoc docs-only ranking.
-- The repo makes it explicit whether `19` remains the best current candidate or whether another decoded interior scene is richer for the next Phase 5 slice.
+- One canonical checked-in surface answers the question: why does the top-ranked `219/219` room/load attempt currently fail?
+- The answer is derived from existing room-state, background, and scene-metadata owners, not from ad hoc docs-only reasoning.
+- The repo makes it explicit whether the blocker is a fragment-zone alignment rule, a background-pairing issue, or another current room-state assumption.
 - The guarded runtime/viewer boundary and its current startup/load diagnostics remain unchanged.
 
 Validation:
@@ -51,9 +53,9 @@ Validation:
 - From native PowerShell, after `.\scripts\dev-shell.ps1`, run:
   - `cd port`
   - `zig build test-fast`
-  - `zig build tool -- audit-life-programs --json --all-scene-entries`
-  - `zig build tool -- inspect-scene 19 --json`
-  - `# plus the new candidate-ranking surface if this slice adds one`
+  - `zig build tool -- rank-decoded-interior-candidates --json`
+  - `zig build tool -- inspect-scene 219 --json`
+  - `zig build tool -- inspect-room 219 219 --json`
   - `zig build test`
   - `cd ..`
   - `.\scripts\verify-viewer.ps1 -Fast`
