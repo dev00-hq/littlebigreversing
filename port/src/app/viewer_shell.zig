@@ -418,15 +418,21 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
             if (value.move_options) |move_options| {
                 var topology_buffer: [384]u8 = undefined;
                 var footing_buffer: [128]u8 = undefined;
+                var target_occupied_bounds_buffer: [32]u8 = undefined;
                 var zones_buffer: [128]u8 = undefined;
+                const target_occupied_coverage = value.target_occupied_coverage orelse unreachable;
                 try writer.print(
-                    "event=hero_move direction={s} status=rejected rejection_stage={s} reason={s} current_cell={s} target_cell={s} move_options={s} local_topology={s} current_footing={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                    "event=hero_move direction={s} status=rejected rejection_stage={s} reason={s} current_cell={s} target_cell={s} target_occupied_coverage={s} target_occupied_bounds={s} target_occupied_bounds_dx={d} target_occupied_bounds_dz={d} move_options={s} local_topology={s} current_footing={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
                     .{
                         directionLabel(value.direction),
                         @tagName(value.rejection_stage),
                         @tagName(value.reason),
                         formatOptionalCell(&current_cell_buffer, value.current_cell),
                         formatOptionalCell(&target_cell_buffer, value.target_cell),
+                        @tagName(target_occupied_coverage.relation),
+                        formatOccupiedBoundsDiagnostic(&target_occupied_bounds_buffer, target_occupied_coverage),
+                        target_occupied_coverage.x_cells_from_bounds,
+                        target_occupied_coverage.z_cells_from_bounds,
                         formatMoveOptionsDiagnostic(&move_options_buffer, move_options),
                         formatLocalTopologyDiagnosticValue(&topology_buffer, value.local_topology orelse unreachable),
                         formatCurrentFootingDiagnosticValue(&footing_buffer, value.local_topology orelse unreachable),

@@ -22,6 +22,34 @@ fn seedSessionToFixture(
     return seeded_position;
 }
 
+fn steppedWorldPoint(
+    origin_world_position: locomotion.WorldPointSnapshot,
+    direction: locomotion.CardinalDirection,
+) locomotion.WorldPointSnapshot {
+    return switch (direction) {
+        .north => .{
+            .x = origin_world_position.x,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z - runtime_query.world_grid_span_xz,
+        },
+        .east => .{
+            .x = origin_world_position.x + runtime_query.world_grid_span_xz,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z,
+        },
+        .south => .{
+            .x = origin_world_position.x,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z + runtime_query.world_grid_span_xz,
+        },
+        .west => .{
+            .x = origin_world_position.x - runtime_query.world_grid_span_xz,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z,
+        },
+    };
+}
+
 fn expectMoveOptions(
     room: *const room_state.RoomSnapshot,
     hero_position: locomotion.WorldPointSnapshot,
@@ -110,6 +138,7 @@ test "runtime locomotion reports the baked guarded 19/19 raw start as an invalid
             try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_empty, value.reason);
             try std.testing.expectEqual(@as(?locomotion.GridCell, .{ .x = 3, .z = 7 }), value.current_cell);
             try std.testing.expectEqual(@as(?locomotion.GridCell, .{ .x = 3, .z = 7 }), value.target_cell);
+            try std.testing.expectEqual(@as(?runtime_query.OccupiedCoverageProbe, null), value.target_occupied_coverage);
             try std.testing.expectEqual(@as(?locomotion.MoveOptions, null), value.move_options);
             try std.testing.expectEqual(@as(?locomotion.LocalNeighborTopology, null), value.local_topology);
             try std.testing.expectEqual(room_state.heroStartWorldPoint(room), value.hero_position);
@@ -164,6 +193,8 @@ test "runtime locomotion mutates only on allowed seeded steps and preserves zone
     _ = try seedSessionToFixture(room, &current_session);
     const before_reject = current_session.heroWorldPosition();
     const rejected_status = try locomotion.applyStep(room, &current_session, .west);
+    const query = runtime_query.init(room);
+    const expected_target = query.evaluateHeroMoveTarget(steppedWorldPoint(before_reject, .west));
 
     switch (rejected_status) {
         .last_move_rejected => |value| {
@@ -172,6 +203,7 @@ test "runtime locomotion mutates only on allowed seeded steps and preserves zone
             try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_empty, value.reason);
             try std.testing.expectEqual(@as(?locomotion.GridCell, fixture_cell), value.current_cell);
             try std.testing.expectEqual(@as(?locomotion.GridCell, .{ .x = 38, .z = 6 }), value.target_cell);
+            try std.testing.expectEqual(expected_target.occupied_coverage, value.target_occupied_coverage orelse return error.MissingTargetOccupiedCoverage);
             try std.testing.expect(value.move_options != null);
             try std.testing.expect(value.local_topology != null);
             try std.testing.expectEqual(before_reject, current_session.heroWorldPosition());

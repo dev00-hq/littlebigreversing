@@ -158,6 +158,34 @@ fn formatDisplayTargetCellValue(buffer: []u8, cell: ?viewer_shell.GridCell) ![]c
     return "NONE";
 }
 
+fn steppedWorldPoint(
+    origin_world_position: viewer_shell.WorldPointSnapshot,
+    direction: viewer_shell.CardinalDirection,
+) viewer_shell.WorldPointSnapshot {
+    return switch (direction) {
+        .north => .{
+            .x = origin_world_position.x,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z - runtime_query.world_grid_span_xz,
+        },
+        .east => .{
+            .x = origin_world_position.x + runtime_query.world_grid_span_xz,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z,
+        },
+        .south => .{
+            .x = origin_world_position.x,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z + runtime_query.world_grid_span_xz,
+        },
+        .west => .{
+            .x = origin_world_position.x - runtime_query.world_grid_span_xz,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z,
+        },
+    };
+}
+
 fn directionLabel(direction: viewer_shell.CardinalDirection) []const u8 {
     return switch (direction) {
         .north => "north",
@@ -558,6 +586,7 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
             try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_empty, value.reason);
             try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 3, .z = 7 }), value.current_cell);
             try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 3, .z = 7 }), value.target_cell);
+            try std.testing.expectEqual(@as(?runtime_query.OccupiedCoverageProbe, null), value.target_occupied_coverage);
             try std.testing.expectEqual(@as(?viewer_shell.ViewerMoveOptions, null), value.move_options);
             try std.testing.expectEqual(@as(?viewer_shell.ViewerLocalNeighborTopology, null), value.local_topology);
             try std.testing.expectEqual(raw_start, value.hero_position);
@@ -743,6 +772,8 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     runtime_session.setHeroWorldPosition(seeded);
     const before_reject = runtime_session.heroWorldPosition();
     const rejected_status = try runtime_locomotion.applyStep(room, &runtime_session, .west);
+    const query = runtime_query.init(room);
+    const expected_target = query.evaluateHeroMoveTarget(steppedWorldPoint(before_reject, .west));
     try std.testing.expectEqual(before_reject, runtime_session.heroWorldPosition());
     switch (rejected_status) {
         .last_move_rejected => |value| {
@@ -751,6 +782,7 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
             try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_empty, value.reason);
             try std.testing.expectEqual(@as(?viewer_shell.GridCell, viewer_shell.locomotion_fixture_cell), value.current_cell);
             try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 38, .z = 6 }), value.target_cell);
+            try std.testing.expectEqual(expected_target.occupied_coverage, value.target_occupied_coverage orelse return error.MissingTargetOccupiedCoverage);
             try std.testing.expect(value.move_options != null);
             try std.testing.expect(value.local_topology != null);
             try expectMoveOptions(room, before_reject, value.move_options.?);
@@ -793,16 +825,21 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     defer allocator.free(rejected_diagnostic);
     var rejected_current_cell_buffer: [16]u8 = undefined;
     var rejected_target_cell_buffer: [16]u8 = undefined;
+    var rejected_target_occupied_bounds_buffer: [32]u8 = undefined;
     var rejected_move_options_buffer: [256]u8 = undefined;
     var rejected_topology_buffer: [384]u8 = undefined;
     var rejected_footing_buffer: [128]u8 = undefined;
     var rejected_zone_buffer: [128]u8 = undefined;
     const expected_rejected_diagnostic = try std.fmt.allocPrint(
         allocator,
-        "event=hero_move direction=west status=rejected rejection_stage=target_rejected reason=target_empty current_cell={s} target_cell={s} move_options={s} local_topology={s} current_footing={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+        "event=hero_move direction=west status=rejected rejection_stage=target_rejected reason=target_empty current_cell={s} target_cell={s} target_occupied_coverage={s} target_occupied_bounds={s} target_occupied_bounds_dx={d} target_occupied_bounds_dz={d} move_options={s} local_topology={s} current_footing={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
         .{
             try formatOptionalCellValue(&rejected_current_cell_buffer, rejected_value.current_cell),
             try formatOptionalCellValue(&rejected_target_cell_buffer, rejected_value.target_cell),
+            @tagName(rejected_value.target_occupied_coverage.?.relation),
+            try formatOccupiedBoundsDiagnosticValue(&rejected_target_occupied_bounds_buffer, rejected_value.target_occupied_coverage.?),
+            rejected_value.target_occupied_coverage.?.x_cells_from_bounds,
+            rejected_value.target_occupied_coverage.?.z_cells_from_bounds,
             try formatMoveOptionsDiagnosticValue(&rejected_move_options_buffer, rejected_value.move_options.?),
             try formatLocalTopologyDiagnosticValue(&rejected_topology_buffer, rejected_value.local_topology.?),
             try formatCurrentFootingDiagnosticValue(&rejected_footing_buffer, rejected_value.local_topology.?),
