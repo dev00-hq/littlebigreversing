@@ -63,6 +63,8 @@ pub const ViewerLocomotionSchematicMoveOption = render.LocomotionSchematicMoveOp
 pub const ViewerLocomotionRejectedStage = runtime_locomotion.LocomotionRejectedStage;
 pub const ViewerCardinalMoveOption = runtime_locomotion.CardinalMoveOption;
 pub const ViewerMoveOptions = runtime_locomotion.MoveOptions;
+pub const ViewerLocalNeighborTopology = runtime_locomotion.LocalNeighborTopology;
+pub const ViewerRawInvalidStartCandidate = runtime_locomotion.RawInvalidStartCandidate;
 pub const ViewerRawInvalidStartStatus = runtime_locomotion.RawInvalidStartStatus;
 pub const ViewerSeededValidStatus = runtime_locomotion.SeededValidStatus;
 pub const ViewerMoveAcceptedStatus = runtime_locomotion.MoveAcceptedStatus;
@@ -159,57 +161,76 @@ pub fn formatLocomotionStatusDisplay(
 ) ViewerLocomotionStatusDisplay {
     return switch (status) {
         .raw_invalid_start => |value| .{
-            .line_count = 3,
+            .line_count = 6,
             .lines = .{
                 "RAW START INVALID",
                 formatRawStartLine(&buffer.line_0, value.raw_cell, value.exact_status),
-                formatCoverageLine(&buffer.line_1, value.occupied_coverage),
-                "",
-                "",
+                formatDiagnosticStatusLine(&buffer.line_1, value.diagnostic_status),
+                formatCoverageLine(&buffer.line_2, value.occupied_coverage),
+                formatRawInvalidStartCandidateLine(&buffer.line_3, "NEAR OCC", value.nearest_occupied),
+                formatRawInvalidStartCandidateLine(&buffer.line_4, "NEAR STAND", value.nearest_standable),
                 "",
             },
         },
         .seeded_valid => |value| .{
-            .line_count = 6,
+            .line_count = 7,
             .lines = .{
                 "FIXTURE SEEDED VALID",
                 formatAllowedCellLine(&buffer.line_0, value.cell),
                 formatMoveOptionPairLine(&buffer.line_1, value.move_options.options[0], value.move_options.options[1]),
                 formatMoveOptionPairLine(&buffer.line_2, value.move_options.options[2], value.move_options.options[3]),
                 formatZoneSummary(&buffer.line_3, value.zone_membership),
+                formatLocalTopologyHudLine(&buffer.line_4, value.local_topology),
                 "ARROWS MOVE FROM HERE",
             },
             .schematic = locomotionSchematicCue(value.move_options),
         },
         .last_move_accepted => |value| .{
-            .line_count = 6,
+            .line_count = 7,
             .lines = .{
                 formatAcceptedMoveLine(&buffer.line_0, value.direction),
                 formatAllowedCellLine(&buffer.line_1, value.cell),
                 formatMoveOptionPairLine(&buffer.line_2, value.move_options.options[0], value.move_options.options[1]),
                 formatMoveOptionPairLine(&buffer.line_3, value.move_options.options[2], value.move_options.options[3]),
                 formatZoneSummary(&buffer.line_4, value.zone_membership),
+                formatLocalTopologyHudLine(&buffer.line_5, value.local_topology),
                 "HERO POSITION UPDATED",
             },
             .schematic = locomotionSchematicCue(value.move_options),
+            .attempt = .{
+                .accepted = .{
+                    .direction = value.direction,
+                    .origin_cell = value.origin_cell,
+                    .destination_cell = value.cell,
+                },
+            },
         },
         .last_move_rejected => |value| if (value.move_options) |move_options| .{
-            .line_count = 6,
+            .line_count = 7,
             .lines = .{
                 formatRejectedMoveLine(&buffer.line_0, value.direction),
                 formatCurrentCellLine(&buffer.line_1, value.current_cell),
                 formatMoveOptionPairLine(&buffer.line_2, move_options.options[0], move_options.options[1]),
                 formatMoveOptionPairLine(&buffer.line_3, move_options.options[2], move_options.options[3]),
                 formatZoneSummary(&buffer.line_4, value.zone_membership),
-                formatRejectedReasonLine(&buffer.line_5, value.reason),
+                formatLocalTopologyHudLine(&buffer.line_5, value.local_topology orelse unreachable),
+                formatRejectedReasonLine(&buffer.line_6, value.reason),
             },
             .schematic = locomotionSchematicCue(move_options),
+            .attempt = .{
+                .rejected = .{
+                    .direction = value.direction,
+                    .current_cell = value.current_cell orelse unreachable,
+                    .target_cell = value.target_cell orelse unreachable,
+                },
+            },
         } else .{
             .line_count = 3,
             .lines = .{
                 formatRejectedMoveLine(&buffer.line_0, value.direction),
                 formatCurrentCellLine(&buffer.line_1, value.current_cell),
                 formatRejectedReasonLine(&buffer.line_2, value.reason),
+                "",
                 "",
                 "",
                 "",
@@ -328,12 +349,17 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
     switch (status) {
         .raw_invalid_start => |value| {
             var raw_cell_buffer: [16]u8 = undefined;
+            var nearest_occupied_buffer: [48]u8 = undefined;
+            var nearest_standable_buffer: [48]u8 = undefined;
             try writer.print(
-                "event=hero_status status=raw_invalid_start exact_status={s} raw_cell={s} occupied_coverage={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
+                "event=hero_status status=raw_invalid_start exact_status={s} diagnostic_status={s} raw_cell={s} occupied_coverage={s} nearest_occupied={s} nearest_standable={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
                 .{
                     @tagName(value.exact_status),
+                    @tagName(value.diagnostic_status),
                     formatOptionalCell(&raw_cell_buffer, value.raw_cell),
                     @tagName(value.occupied_coverage),
+                    formatRawInvalidStartCandidateDiagnostic(&nearest_occupied_buffer, value.nearest_occupied),
+                    formatRawInvalidStartCandidateDiagnostic(&nearest_standable_buffer, value.nearest_standable),
                     value.hero_position.x,
                     value.hero_position.y,
                     value.hero_position.z,
@@ -343,12 +369,14 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         .seeded_valid => |value| {
             var cell_buffer: [16]u8 = undefined;
             var move_options_buffer: [256]u8 = undefined;
+            var topology_buffer: [384]u8 = undefined;
             var zones_buffer: [128]u8 = undefined;
             try writer.print(
-                "event=hero_seed status=seeded_valid cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                "event=hero_seed status=seeded_valid cell={s} move_options={s} local_topology={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
                 .{
                     formatRequiredCell(&cell_buffer, value.cell),
                     formatMoveOptionsDiagnostic(&move_options_buffer, value.move_options),
+                    formatLocalTopologyDiagnosticValue(&topology_buffer, value.local_topology),
                     formatZoneDiagnosticValue(&zones_buffer, value.zone_membership),
                     value.hero_position.x,
                     value.hero_position.y,
@@ -359,13 +387,15 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
         .last_move_accepted => |value| {
             var cell_buffer: [16]u8 = undefined;
             var move_options_buffer: [256]u8 = undefined;
+            var topology_buffer: [384]u8 = undefined;
             var zones_buffer: [128]u8 = undefined;
             try writer.print(
-                "event=hero_move direction={s} status=accepted cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                "event=hero_move direction={s} status=accepted cell={s} move_options={s} local_topology={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
                 .{
                     directionLabel(value.direction),
                     formatRequiredCell(&cell_buffer, value.cell),
                     formatMoveOptionsDiagnostic(&move_options_buffer, value.move_options),
+                    formatLocalTopologyDiagnosticValue(&topology_buffer, value.local_topology),
                     formatZoneDiagnosticValue(&zones_buffer, value.zone_membership),
                     value.hero_position.x,
                     value.hero_position.y,
@@ -378,9 +408,10 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
             var target_cell_buffer: [16]u8 = undefined;
             var move_options_buffer: [256]u8 = undefined;
             if (value.move_options) |move_options| {
+                var topology_buffer: [384]u8 = undefined;
                 var zones_buffer: [128]u8 = undefined;
                 try writer.print(
-                    "event=hero_move direction={s} status=rejected rejection_stage={s} reason={s} current_cell={s} target_cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                    "event=hero_move direction={s} status=rejected rejection_stage={s} reason={s} current_cell={s} target_cell={s} move_options={s} local_topology={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
                     .{
                         directionLabel(value.direction),
                         @tagName(value.rejection_stage),
@@ -388,6 +419,7 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
                         formatOptionalCell(&current_cell_buffer, value.current_cell),
                         formatOptionalCell(&target_cell_buffer, value.target_cell),
                         formatMoveOptionsDiagnostic(&move_options_buffer, move_options),
+                        formatLocalTopologyDiagnosticValue(&topology_buffer, value.local_topology orelse unreachable),
                         formatZoneDiagnosticValue(&zones_buffer, value.zone_membership),
                         value.hero_position.x,
                         value.hero_position.y,
@@ -650,6 +682,58 @@ fn formatCoverageLine(buffer: []u8, coverage: runtime_query.OccupiedCoverageRela
     ) catch unreachable;
 }
 
+fn formatDiagnosticStatusLine(
+    buffer: []u8,
+    diagnostic_status: runtime_query.HeroStartDiagnosticStatus,
+) []const u8 {
+    var diagnostic_buffer: [48]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "DIAG {s}",
+        .{upperTag(&diagnostic_buffer, @tagName(diagnostic_status))},
+    ) catch unreachable;
+}
+
+fn formatRawInvalidStartCandidateLine(
+    buffer: []u8,
+    label: []const u8,
+    candidate: ?ViewerRawInvalidStartCandidate,
+) []const u8 {
+    const resolved = candidate orelse return std.fmt.bufPrint(buffer, "{s} NONE", .{label}) catch unreachable;
+
+    var cell_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "{s} {s} DX {d} DZ {d} D2 {d}",
+        .{
+            label,
+            formatRequiredCell(&cell_buffer, resolved.cell),
+            resolved.x_distance,
+            resolved.z_distance,
+            resolved.distance_sq,
+        },
+    ) catch unreachable;
+}
+
+fn formatRawInvalidStartCandidateDiagnostic(
+    buffer: []u8,
+    candidate: ?ViewerRawInvalidStartCandidate,
+) []const u8 {
+    const resolved = candidate orelse return "none";
+
+    var cell_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "{s}:{d}:{d}:{d}",
+        .{
+            formatRequiredCell(&cell_buffer, resolved.cell),
+            resolved.x_distance,
+            resolved.z_distance,
+            resolved.distance_sq,
+        },
+    ) catch unreachable;
+}
+
 fn formatAllowedCellLine(buffer: []u8, cell: GridCell) []const u8 {
     var cell_buffer: [16]u8 = undefined;
     return std.fmt.bufPrint(
@@ -713,6 +797,52 @@ fn formatZoneDiagnosticValue(buffer: []u8, zone_membership: runtime_locomotion.Z
     return stream.getWritten();
 }
 
+fn formatLocalTopologyHudLine(
+    buffer: []u8,
+    local_topology: ViewerLocalNeighborTopology,
+) []const u8 {
+    var token_buffers: [4][16]u8 = undefined;
+    var stream = std.io.fixedBufferStream(buffer);
+    const writer = stream.writer();
+    writer.writeAll("TOPO ") catch unreachable;
+    for (local_topology.neighbors, 0..) |neighbor, index| {
+        if (index != 0) writer.writeAll(" ") catch unreachable;
+        writer.print(
+            "{s}:{s}",
+            .{
+                shortDirectionLabel(neighbor.direction),
+                localTopologyHudToken(&token_buffers[index], neighbor),
+            },
+        ) catch unreachable;
+    }
+    return stream.getWritten();
+}
+
+fn formatLocalTopologyDiagnosticValue(
+    buffer: []u8,
+    local_topology: ViewerLocalNeighborTopology,
+) []const u8 {
+    var cell_buffers: [4][16]u8 = undefined;
+    var standability_buffers: [4][16]u8 = undefined;
+    var delta_buffers: [4][16]u8 = undefined;
+    var stream = std.io.fixedBufferStream(buffer);
+    const writer = stream.writer();
+    for (local_topology.neighbors, 0..) |neighbor, index| {
+        if (index != 0) writer.writeAll(",") catch unreachable;
+        writer.print(
+            "{s}:{s}:{s}:{s}:{s}",
+            .{
+                directionLabel(neighbor.direction),
+                formatOptionalCell(&cell_buffers[index], neighbor.cell),
+                @tagName(neighbor.status),
+                formatOptionalStandability(&standability_buffers[index], neighbor.standability),
+                formatOptionalSignedDelta(&delta_buffers[index], neighbor.top_y_delta),
+            },
+        ) catch unreachable;
+    }
+    return stream.getWritten();
+}
+
 fn formatMoveOptionPairLine(
     buffer: []u8,
     first: ViewerCardinalMoveOption,
@@ -770,4 +900,34 @@ fn moveOptionStatusHudLabel(status: runtime_query.MoveTargetStatus) []const u8 {
         .target_blocked => "BLOCKED",
         .target_height_mismatch => "HEIGHT",
     };
+}
+
+fn localTopologyHudToken(buffer: []u8, neighbor: runtime_query.CellNeighborProbe) []const u8 {
+    if (neighbor.top_y_delta) |delta| return formatSignedDelta(buffer, delta);
+
+    return switch (neighbor.status) {
+        .out_of_bounds => "OOB",
+        .empty => "EMPTY",
+        .missing_top_surface => "NO_TOP",
+        .occupied_surface => "OCC",
+    };
+}
+
+fn formatOptionalStandability(buffer: []u8, standability: ?runtime_query.Standability) []const u8 {
+    if (standability) |resolved| {
+        return std.fmt.bufPrint(buffer, "{s}", .{@tagName(resolved)}) catch unreachable;
+    }
+    return "none";
+}
+
+fn formatOptionalSignedDelta(buffer: []u8, delta: ?i32) []const u8 {
+    if (delta) |resolved| return formatSignedDelta(buffer, resolved);
+    return "none";
+}
+
+fn formatSignedDelta(buffer: []u8, delta: i32) []const u8 {
+    return if (delta >= 0)
+        std.fmt.bufPrint(buffer, "+{d}", .{delta}) catch unreachable
+    else
+        std.fmt.bufPrint(buffer, "{d}", .{delta}) catch unreachable;
 }

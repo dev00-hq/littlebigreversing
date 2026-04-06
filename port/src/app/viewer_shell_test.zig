@@ -20,6 +20,21 @@ fn expectMoveOptions(
     }
 }
 
+fn expectLocalTopology(
+    room: *const viewer_shell.RoomSnapshot,
+    current_cell: viewer_shell.GridCell,
+    local_topology: viewer_shell.ViewerLocalNeighborTopology,
+) !void {
+    const query = runtime_query.init(room);
+    const expected = try query.probeLocalNeighborTopology(current_cell.x, current_cell.z);
+
+    try std.testing.expectEqual(expected.origin_surface, local_topology.origin_surface);
+    try std.testing.expectEqual(expected.origin_standability, local_topology.origin_standability);
+    for (expected.neighbors, 0..) |neighbor, index| {
+        try std.testing.expectEqual(neighbor, local_topology.neighbors[index]);
+    }
+}
+
 fn expectDisplayMoveOptionLines(
     display: viewer_shell.ViewerLocomotionStatusDisplay,
     line_index: usize,
@@ -80,6 +95,45 @@ fn expectAdmittedPathSchematicCue(
     }
 }
 
+fn expectNoAttemptCue(display: viewer_shell.ViewerLocomotionStatusDisplay) !void {
+    switch (display.attempt) {
+        .none => {},
+        else => return error.UnexpectedViewerLocomotionAttemptCue,
+    }
+}
+
+fn expectAcceptedAttemptCue(
+    display: viewer_shell.ViewerLocomotionStatusDisplay,
+    direction: viewer_shell.CardinalDirection,
+    origin_cell: viewer_shell.GridCell,
+    destination_cell: viewer_shell.GridCell,
+) !void {
+    switch (display.attempt) {
+        .accepted => |value| {
+            try std.testing.expectEqual(direction, value.direction);
+            try std.testing.expectEqual(origin_cell, value.origin_cell);
+            try std.testing.expectEqual(destination_cell, value.destination_cell);
+        },
+        else => return error.MissingViewerLocomotionAttemptCue,
+    }
+}
+
+fn expectRejectedAttemptCue(
+    display: viewer_shell.ViewerLocomotionStatusDisplay,
+    direction: viewer_shell.CardinalDirection,
+    current_cell: viewer_shell.GridCell,
+    target_cell: viewer_shell.GridCell,
+) !void {
+    switch (display.attempt) {
+        .rejected => |value| {
+            try std.testing.expectEqual(direction, value.direction);
+            try std.testing.expectEqual(current_cell, value.current_cell);
+            try std.testing.expectEqual(target_cell, value.target_cell);
+        },
+        else => return error.MissingViewerLocomotionAttemptCue,
+    }
+}
+
 fn formatDiagnostic(
     allocator: std.mem.Allocator,
     status: viewer_shell.ViewerLocomotionStatus,
@@ -110,6 +164,15 @@ fn directionLabel(direction: viewer_shell.CardinalDirection) []const u8 {
         .east => "east",
         .south => "south",
         .west => "west",
+    };
+}
+
+fn shortDirectionLabel(direction: viewer_shell.CardinalDirection) []const u8 {
+    return switch (direction) {
+        .north => "N",
+        .east => "E",
+        .south => "S",
+        .west => "W",
     };
 }
 
@@ -159,6 +222,120 @@ fn formatZoneDiagnosticValue(
         writer.print("{d}", .{zone.index}) catch unreachable;
     }
     return stream.getWritten();
+}
+
+fn formatRawInvalidStartCandidateHudLine(
+    buffer: []u8,
+    label: []const u8,
+    candidate: ?viewer_shell.ViewerRawInvalidStartCandidate,
+) ![]const u8 {
+    const resolved = candidate orelse return std.fmt.bufPrint(buffer, "{s} NONE", .{label});
+
+    var cell_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "{s} {s} DX {d} DZ {d} D2 {d}",
+        .{
+            label,
+            try formatRequiredCellValue(&cell_buffer, resolved.cell),
+            resolved.x_distance,
+            resolved.z_distance,
+            resolved.distance_sq,
+        },
+    );
+}
+
+fn formatRawInvalidStartCandidateDiagnosticValue(
+    buffer: []u8,
+    candidate: ?viewer_shell.ViewerRawInvalidStartCandidate,
+) ![]const u8 {
+    const resolved = candidate orelse return "none";
+
+    var cell_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "{s}:{d}:{d}:{d}",
+        .{
+            try formatRequiredCellValue(&cell_buffer, resolved.cell),
+            resolved.x_distance,
+            resolved.z_distance,
+            resolved.distance_sq,
+        },
+    );
+}
+
+fn formatLocalTopologyHudLine(
+    buffer: []u8,
+    local_topology: viewer_shell.ViewerLocalNeighborTopology,
+) ![]const u8 {
+    var token_buffers: [4][16]u8 = undefined;
+    var stream = std.io.fixedBufferStream(buffer);
+    const writer = stream.writer();
+    try writer.writeAll("TOPO ");
+    for (local_topology.neighbors, 0..) |neighbor, index| {
+        if (index != 0) try writer.writeAll(" ");
+        try writer.print(
+            "{s}:{s}",
+            .{
+                shortDirectionLabel(neighbor.direction),
+                try localTopologyHudToken(&token_buffers[index], neighbor),
+            },
+        );
+    }
+    return stream.getWritten();
+}
+
+fn formatLocalTopologyDiagnosticValue(
+    buffer: []u8,
+    local_topology: viewer_shell.ViewerLocalNeighborTopology,
+) ![]const u8 {
+    var cell_buffers: [4][16]u8 = undefined;
+    var standability_buffers: [4][16]u8 = undefined;
+    var delta_buffers: [4][16]u8 = undefined;
+    var stream = std.io.fixedBufferStream(buffer);
+    const writer = stream.writer();
+    for (local_topology.neighbors, 0..) |neighbor, index| {
+        if (index != 0) try writer.writeAll(",");
+        try writer.print(
+            "{s}:{s}:{s}:{s}:{s}",
+            .{
+                directionLabel(neighbor.direction),
+                try formatOptionalCellValue(&cell_buffers[index], neighbor.cell),
+                @tagName(neighbor.status),
+                formatOptionalStandability(&standability_buffers[index], neighbor.standability),
+                try formatOptionalSignedDelta(&delta_buffers[index], neighbor.top_y_delta),
+            },
+        );
+    }
+    return stream.getWritten();
+}
+
+fn localTopologyHudToken(buffer: []u8, neighbor: runtime_query.CellNeighborProbe) ![]const u8 {
+    if (neighbor.top_y_delta) |delta| return formatSignedDelta(buffer, delta);
+
+    return switch (neighbor.status) {
+        .out_of_bounds => "OOB",
+        .empty => "EMPTY",
+        .missing_top_surface => "NO_TOP",
+        .occupied_surface => "OCC",
+    };
+}
+
+fn formatOptionalStandability(buffer: []u8, standability: ?runtime_query.Standability) []const u8 {
+    if (standability) |resolved| return std.fmt.bufPrint(buffer, "{s}", .{@tagName(resolved)}) catch unreachable;
+    return "none";
+}
+
+fn formatOptionalSignedDelta(buffer: []u8, delta: ?i32) ![]const u8 {
+    if (delta) |resolved| return formatSignedDelta(buffer, resolved);
+    return "none";
+}
+
+fn formatSignedDelta(buffer: []u8, delta: i32) ![]const u8 {
+    return if (delta >= 0)
+        std.fmt.bufPrint(buffer, "+{d}", .{delta})
+    else
+        std.fmt.bufPrint(buffer, "{d}", .{delta});
 }
 
 test "viewer argument parsing requires explicit scene and background entries" {
@@ -211,8 +388,11 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
     switch (status) {
         .raw_invalid_start => |value| {
             try std.testing.expectEqual(runtime_query.HeroStartExactStatus.mapped_cell_empty, value.exact_status);
+            try std.testing.expectEqual(runtime_query.HeroStartDiagnosticStatus.exact_invalid_mapping_mismatch, value.diagnostic_status);
             try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 3, .z = 7 }), value.raw_cell);
             try std.testing.expectEqual(runtime_query.OccupiedCoverageRelation.outside_occupied_bounds, value.occupied_coverage);
+            try std.testing.expect(value.nearest_occupied != null);
+            try std.testing.expect(value.nearest_standable != null);
             try std.testing.expectEqual(raw_start, value.hero_position);
         },
         else => return error.UnexpectedViewerLocomotionStatus,
@@ -224,20 +404,37 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
 
     var status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
     const display = viewer_shell.formatLocomotionStatusDisplay(&status_buffer, status);
-    try std.testing.expectEqual(@as(usize, 3), display.line_count);
+    try std.testing.expectEqual(@as(usize, 6), display.line_count);
     try std.testing.expectEqualStrings("RAW START INVALID", display.lines[0]);
     try std.testing.expectEqualStrings("CELL 3/7 MAPPED_CELL_EMPTY", display.lines[1]);
-    try std.testing.expectEqualStrings("BOUNDS OUTSIDE_OCCUPIED_BOUNDS", display.lines[2]);
+    try std.testing.expectEqualStrings("DIAG EXACT_INVALID_MAPPING_MISMATCH", display.lines[2]);
+    try std.testing.expectEqualStrings("BOUNDS OUTSIDE_OCCUPIED_BOUNDS", display.lines[3]);
+    var nearest_occupied_line_buffer: [64]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        try formatRawInvalidStartCandidateHudLine(&nearest_occupied_line_buffer, "NEAR OCC", raw_value.nearest_occupied),
+        display.lines[4],
+    );
+    var nearest_standable_line_buffer: [64]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        try formatRawInvalidStartCandidateHudLine(&nearest_standable_line_buffer, "NEAR STAND", raw_value.nearest_standable),
+        display.lines[5],
+    );
     try expectNoSchematicCue(display);
+    try expectNoAttemptCue(display);
 
     const raw_diagnostic = try formatDiagnostic(allocator, status);
     defer allocator.free(raw_diagnostic);
+    var nearest_occupied_buffer: [48]u8 = undefined;
+    var nearest_standable_buffer: [48]u8 = undefined;
     const expected_raw_diagnostic = try std.fmt.allocPrint(
         allocator,
-        "event=hero_status status=raw_invalid_start exact_status={s} raw_cell=3/7 occupied_coverage={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
+        "event=hero_status status=raw_invalid_start exact_status={s} diagnostic_status={s} raw_cell=3/7 occupied_coverage={s} nearest_occupied={s} nearest_standable={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
         .{
             @tagName(raw_value.exact_status),
+            @tagName(raw_value.diagnostic_status),
             @tagName(raw_value.occupied_coverage),
+            try formatRawInvalidStartCandidateDiagnosticValue(&nearest_occupied_buffer, raw_value.nearest_occupied),
+            try formatRawInvalidStartCandidateDiagnosticValue(&nearest_standable_buffer, raw_value.nearest_standable),
             raw_value.hero_position.x,
             raw_value.hero_position.y,
             raw_value.hero_position.z,
@@ -254,6 +451,7 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
             try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 3, .z = 7 }), value.current_cell);
             try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 3, .z = 7 }), value.target_cell);
             try std.testing.expectEqual(@as(?viewer_shell.ViewerMoveOptions, null), value.move_options);
+            try std.testing.expectEqual(@as(?viewer_shell.ViewerLocalNeighborTopology, null), value.local_topology);
             try std.testing.expectEqual(raw_start, value.hero_position);
         },
         else => return error.UnexpectedViewerLocomotionStatus,
@@ -279,7 +477,9 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
     );
     defer allocator.free(expected_origin_rejected_diagnostic);
     try std.testing.expectEqualStrings(expected_origin_rejected_diagnostic, rejected_diagnostic);
-    try expectNoSchematicCue(viewer_shell.formatLocomotionStatusDisplay(&status_buffer, rejected_status));
+    const rejected_display = viewer_shell.formatLocomotionStatusDisplay(&status_buffer, rejected_status);
+    try expectNoSchematicCue(rejected_display);
+    try expectNoAttemptCue(rejected_display);
 
     try std.testing.expectEqual(raw_start, runtime_session.heroWorldPosition());
 }
@@ -303,6 +503,7 @@ test "viewer locomotion harness consumes runtime-owned seeded 19/19 fixture stat
         .seeded_valid => |value| {
             try std.testing.expectEqual(viewer_shell.locomotion_fixture_cell, value.cell);
             try expectMoveOptions(room, seeded, value.move_options);
+            try expectLocalTopology(room, viewer_shell.locomotion_fixture_cell, value.local_topology);
             try std.testing.expectEqual(seeded, value.hero_position);
         },
         else => return error.UnexpectedViewerLocomotionStatus,
@@ -314,25 +515,33 @@ test "viewer locomotion harness consumes runtime-owned seeded 19/19 fixture stat
 
     var status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
     const display = viewer_shell.formatLocomotionStatusDisplay(&status_buffer, status);
-    try std.testing.expectEqual(@as(usize, 6), display.line_count);
+    try std.testing.expectEqual(@as(usize, 7), display.line_count);
     try std.testing.expectEqualStrings("FIXTURE SEEDED VALID", display.lines[0]);
     try std.testing.expectEqualStrings("CELL 39/6 STATUS ALLOWED", display.lines[1]);
     try expectDisplayMoveOptionLines(display, 2, seeded_value.move_options);
     try std.testing.expectEqualStrings("ZONES NONE", display.lines[4]);
-    try std.testing.expectEqualStrings("ARROWS MOVE FROM HERE", display.lines[5]);
+    var seeded_topology_line_buffer: [128]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        try formatLocalTopologyHudLine(&seeded_topology_line_buffer, seeded_value.local_topology),
+        display.lines[5],
+    );
+    try std.testing.expectEqualStrings("ARROWS MOVE FROM HERE", display.lines[6]);
     try expectAdmittedPathSchematicCue(display, seeded_value.move_options);
+    try expectNoAttemptCue(display);
 
     const diagnostic = try formatDiagnostic(allocator, status);
     defer allocator.free(diagnostic);
     var seeded_move_options_buffer: [256]u8 = undefined;
+    var seeded_topology_buffer: [384]u8 = undefined;
     var seeded_cell_buffer: [16]u8 = undefined;
     var seeded_zone_buffer: [128]u8 = undefined;
     const expected_seeded_diagnostic = try std.fmt.allocPrint(
         allocator,
-        "event=hero_seed status=seeded_valid cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+        "event=hero_seed status=seeded_valid cell={s} move_options={s} local_topology={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
         .{
             try formatRequiredCellValue(&seeded_cell_buffer, seeded_value.cell),
             try formatMoveOptionsDiagnosticValue(&seeded_move_options_buffer, seeded_value.move_options),
+            try formatLocalTopologyDiagnosticValue(&seeded_topology_buffer, seeded_value.local_topology),
             formatZoneDiagnosticValue(&seeded_zone_buffer, seeded_value.zone_membership),
             seeded_value.hero_position.x,
             seeded_value.hero_position.y,
@@ -355,8 +564,10 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     switch (moved_status) {
         .last_move_accepted => |value| {
             try std.testing.expectEqual(viewer_shell.CardinalDirection.south, value.direction);
+            try std.testing.expectEqual(viewer_shell.locomotion_fixture_cell, value.origin_cell);
             try std.testing.expectEqual(viewer_shell.GridCell{ .x = 39, .z = 7 }, value.cell);
             try expectMoveOptions(room, runtime_session.heroWorldPosition(), value.move_options);
+            try expectLocalTopology(room, value.cell, value.local_topology);
             try std.testing.expectEqual(runtime_session.heroWorldPosition(), value.hero_position);
         },
         else => return error.UnexpectedViewerLocomotionStatus,
@@ -368,25 +579,38 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
 
     var moved_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
     const moved_display = viewer_shell.formatLocomotionStatusDisplay(&moved_buffer, moved_status);
-    try std.testing.expectEqual(@as(usize, 6), moved_display.line_count);
+    try std.testing.expectEqual(@as(usize, 7), moved_display.line_count);
     try std.testing.expectEqualStrings("MOVE SOUTH ACCEPTED", moved_display.lines[0]);
     try std.testing.expectEqualStrings("CELL 39/7 STATUS ALLOWED", moved_display.lines[1]);
     try expectDisplayMoveOptionLines(moved_display, 2, moved_value.move_options);
     try std.testing.expectEqualStrings("ZONES NONE", moved_display.lines[4]);
-    try std.testing.expectEqualStrings("HERO POSITION UPDATED", moved_display.lines[5]);
+    var moved_topology_line_buffer: [128]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        try formatLocalTopologyHudLine(&moved_topology_line_buffer, moved_value.local_topology),
+        moved_display.lines[5],
+    );
+    try std.testing.expectEqualStrings("HERO POSITION UPDATED", moved_display.lines[6]);
     try expectAdmittedPathSchematicCue(moved_display, moved_value.move_options);
+    try expectAcceptedAttemptCue(
+        moved_display,
+        viewer_shell.CardinalDirection.south,
+        viewer_shell.locomotion_fixture_cell,
+        viewer_shell.GridCell{ .x = 39, .z = 7 },
+    );
 
     const moved_diagnostic = try formatDiagnostic(allocator, moved_status);
     defer allocator.free(moved_diagnostic);
     var moved_move_options_buffer: [256]u8 = undefined;
+    var moved_topology_buffer: [384]u8 = undefined;
     var moved_cell_buffer: [16]u8 = undefined;
     var moved_zone_buffer: [128]u8 = undefined;
     const expected_moved_diagnostic = try std.fmt.allocPrint(
         allocator,
-        "event=hero_move direction=south status=accepted cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+        "event=hero_move direction=south status=accepted cell={s} move_options={s} local_topology={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
         .{
             try formatRequiredCellValue(&moved_cell_buffer, moved_value.cell),
             try formatMoveOptionsDiagnosticValue(&moved_move_options_buffer, moved_value.move_options),
+            try formatLocalTopologyDiagnosticValue(&moved_topology_buffer, moved_value.local_topology),
             formatZoneDiagnosticValue(&moved_zone_buffer, moved_value.zone_membership),
             moved_value.hero_position.x,
             moved_value.hero_position.y,
@@ -408,7 +632,9 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
             try std.testing.expectEqual(@as(?viewer_shell.GridCell, viewer_shell.locomotion_fixture_cell), value.current_cell);
             try std.testing.expectEqual(@as(?viewer_shell.GridCell, .{ .x = 38, .z = 6 }), value.target_cell);
             try std.testing.expect(value.move_options != null);
+            try std.testing.expect(value.local_topology != null);
             try expectMoveOptions(room, before_reject, value.move_options.?);
+            try expectLocalTopology(room, viewer_shell.locomotion_fixture_cell, value.local_topology.?);
             try std.testing.expectEqual(before_reject, value.hero_position);
         },
         else => return error.UnexpectedViewerLocomotionStatus,
@@ -420,27 +646,40 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
 
     var rejected_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
     const rejected_display = viewer_shell.formatLocomotionStatusDisplay(&rejected_buffer, rejected_status);
-    try std.testing.expectEqual(@as(usize, 6), rejected_display.line_count);
+    try std.testing.expectEqual(@as(usize, 7), rejected_display.line_count);
     try std.testing.expectEqualStrings("MOVE WEST REJECTED", rejected_display.lines[0]);
     try std.testing.expectEqualStrings("STAY CELL 39/6", rejected_display.lines[1]);
     try expectDisplayMoveOptionLines(rejected_display, 2, rejected_value.move_options.?);
     try std.testing.expectEqualStrings("ZONES NONE", rejected_display.lines[4]);
-    try std.testing.expectEqualStrings("REASON TARGET_EMPTY", rejected_display.lines[5]);
+    var rejected_topology_line_buffer: [128]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        try formatLocalTopologyHudLine(&rejected_topology_line_buffer, rejected_value.local_topology.?),
+        rejected_display.lines[5],
+    );
+    try std.testing.expectEqualStrings("REASON TARGET_EMPTY", rejected_display.lines[6]);
     try expectAdmittedPathSchematicCue(rejected_display, rejected_value.move_options.?);
+    try expectRejectedAttemptCue(
+        rejected_display,
+        viewer_shell.CardinalDirection.west,
+        viewer_shell.locomotion_fixture_cell,
+        viewer_shell.GridCell{ .x = 38, .z = 6 },
+    );
 
     const rejected_diagnostic = try formatDiagnostic(allocator, rejected_status);
     defer allocator.free(rejected_diagnostic);
     var rejected_current_cell_buffer: [16]u8 = undefined;
     var rejected_target_cell_buffer: [16]u8 = undefined;
     var rejected_move_options_buffer: [256]u8 = undefined;
+    var rejected_topology_buffer: [384]u8 = undefined;
     var rejected_zone_buffer: [128]u8 = undefined;
     const expected_rejected_diagnostic = try std.fmt.allocPrint(
         allocator,
-        "event=hero_move direction=west status=rejected rejection_stage=target_rejected reason=target_empty current_cell={s} target_cell={s} move_options={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+        "event=hero_move direction=west status=rejected rejection_stage=target_rejected reason=target_empty current_cell={s} target_cell={s} move_options={s} local_topology={s} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
         .{
             try formatOptionalCellValue(&rejected_current_cell_buffer, rejected_value.current_cell),
             try formatOptionalCellValue(&rejected_target_cell_buffer, rejected_value.target_cell),
             try formatMoveOptionsDiagnosticValue(&rejected_move_options_buffer, rejected_value.move_options.?),
+            try formatLocalTopologyDiagnosticValue(&rejected_topology_buffer, rejected_value.local_topology.?),
             formatZoneDiagnosticValue(&rejected_zone_buffer, rejected_value.zone_membership),
             rejected_value.hero_position.x,
             rejected_value.hero_position.y,

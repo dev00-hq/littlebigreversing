@@ -8,6 +8,7 @@ pub const CardinalDirection = world_geometry.CardinalDirection;
 pub const GridCell = world_geometry.GridCell;
 pub const WorldPointSnapshot = world_geometry.WorldPointSnapshot;
 pub const ZoneMembership = runtime_query.ContainingZoneSet;
+pub const LocalNeighborTopology = runtime_query.LocalNeighborTopologyProbe;
 
 pub const LocomotionRejectedStage = enum {
     origin_invalid,
@@ -25,24 +26,38 @@ pub const MoveOptions = struct {
     options: [4]CardinalMoveOption,
 };
 
+pub const RawInvalidStartCandidate = struct {
+    kind: runtime_query.DiagnosticCandidateKind,
+    cell: GridCell,
+    x_distance: i32,
+    z_distance: i32,
+    distance_sq: i64,
+};
+
 pub const RawInvalidStartStatus = struct {
     exact_status: runtime_query.HeroStartExactStatus,
+    diagnostic_status: runtime_query.HeroStartDiagnosticStatus,
     raw_cell: ?GridCell,
     occupied_coverage: runtime_query.OccupiedCoverageRelation,
+    nearest_occupied: ?RawInvalidStartCandidate,
+    nearest_standable: ?RawInvalidStartCandidate,
     hero_position: WorldPointSnapshot,
 };
 
 pub const SeededValidStatus = struct {
     cell: GridCell,
     move_options: MoveOptions,
+    local_topology: LocalNeighborTopology,
     hero_position: WorldPointSnapshot,
     zone_membership: ZoneMembership,
 };
 
 pub const MoveAcceptedStatus = struct {
     direction: CardinalDirection,
+    origin_cell: GridCell,
     cell: GridCell,
     move_options: MoveOptions,
+    local_topology: LocalNeighborTopology,
     hero_position: WorldPointSnapshot,
     zone_membership: ZoneMembership,
 };
@@ -54,6 +69,7 @@ pub const MoveRejectedStatus = struct {
     current_cell: ?GridCell,
     target_cell: ?GridCell,
     move_options: ?MoveOptions,
+    local_topology: ?LocalNeighborTopology,
     hero_position: WorldPointSnapshot,
     zone_membership: ZoneMembership,
 };
@@ -77,8 +93,11 @@ pub fn inspectCurrentStatus(
             return .{
                 .raw_invalid_start = .{
                     .exact_status = probe.exact_status,
+                    .diagnostic_status = probe.diagnostic_status,
                     .raw_cell = probe.raw_cell.cell,
                     .occupied_coverage = probe.occupied_coverage.relation,
+                    .nearest_occupied = buildRawInvalidStartCandidate(probe.nearest_occupied),
+                    .nearest_standable = buildRawInvalidStartCandidate(probe.nearest_standable),
                     .hero_position = hero_position,
                 },
             };
@@ -105,11 +124,13 @@ pub fn applyStep(
                 .current_cell = origin.raw_cell.cell,
                 .target_cell = origin.raw_cell.cell,
                 .move_options = null,
+                .local_topology = null,
                 .hero_position = origin_position,
                 .zone_membership = .{},
             },
         };
     }
+    const origin_cell = origin.raw_cell.cell orelse return error.LocomotionStatusMissingCell;
 
     const target_position = steppedWorldPoint(origin_position, direction);
     const target = query.evaluateHeroMoveTarget(target_position);
@@ -122,6 +143,7 @@ pub fn applyStep(
                 .current_cell = origin.raw_cell.cell,
                 .target_cell = target.raw_cell.cell,
                 .move_options = try buildMoveOptions(query, origin_position),
+                .local_topology = try buildLocalTopology(query, origin_cell),
                 .hero_position = origin_position,
                 .zone_membership = try query.containingZonesAtWorldPoint(origin_position),
             },
@@ -134,8 +156,10 @@ pub fn applyStep(
     return .{
         .last_move_accepted = .{
             .direction = direction,
+            .origin_cell = origin_cell,
             .cell = move_options.current_cell,
             .move_options = move_options,
+            .local_topology = try buildLocalTopology(query, move_options.current_cell),
             .hero_position = updated_position,
             .zone_membership = try query.containingZonesAtWorldPoint(updated_position),
         },
@@ -154,6 +178,7 @@ fn seededValidStatus(
         .seeded_valid = .{
             .cell = move_options.current_cell,
             .move_options = move_options,
+            .local_topology = try buildLocalTopology(query, move_options.current_cell),
             .hero_position = hero_position,
             .zone_membership = try query.containingZonesAtWorldPoint(hero_position),
         },
@@ -179,6 +204,26 @@ fn buildMoveOptions(
         .current_cell = option_set.origin.raw_cell.cell orelse return error.LocomotionStatusMissingCell,
         .options = options,
     };
+}
+
+fn buildRawInvalidStartCandidate(
+    candidate: ?runtime_query.DiagnosticCandidate,
+) ?RawInvalidStartCandidate {
+    const resolved = candidate orelse return null;
+    return .{
+        .kind = resolved.kind,
+        .cell = resolved.cell,
+        .x_distance = resolved.x_distance,
+        .z_distance = resolved.z_distance,
+        .distance_sq = resolved.distance_sq,
+    };
+}
+
+fn buildLocalTopology(
+    query: runtime_query.WorldQuery,
+    current_cell: GridCell,
+) !LocalNeighborTopology {
+    return query.probeLocalNeighborTopology(current_cell.x, current_cell.z);
 }
 
 fn steppedWorldPoint(

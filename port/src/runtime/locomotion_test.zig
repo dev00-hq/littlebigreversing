@@ -38,6 +38,21 @@ fn expectMoveOptions(
     }
 }
 
+fn expectLocalTopology(
+    room: *const room_state.RoomSnapshot,
+    current_cell: locomotion.GridCell,
+    local_topology: locomotion.LocalNeighborTopology,
+) !void {
+    const query = runtime_query.init(room);
+    const expected = try query.probeLocalNeighborTopology(current_cell.x, current_cell.z);
+
+    try std.testing.expectEqual(expected.origin_surface, local_topology.origin_surface);
+    try std.testing.expectEqual(expected.origin_standability, local_topology.origin_standability);
+    for (expected.neighbors, 0..) |neighbor, index| {
+        try std.testing.expectEqual(neighbor, local_topology.neighbors[index]);
+    }
+}
+
 fn expectZoneIndices(
     membership: runtime_query.ContainingZoneSet,
     expected_indices: []const usize,
@@ -49,8 +64,27 @@ fn expectZoneIndices(
     }
 }
 
+fn expectRawInvalidStartCandidate(
+    actual: ?locomotion.RawInvalidStartCandidate,
+    expected: ?runtime_query.DiagnosticCandidate,
+) !void {
+    if (expected) |resolved_expected| {
+        const resolved_actual = actual orelse return error.MissingRawInvalidStartCandidate;
+        try std.testing.expectEqual(resolved_expected.kind, resolved_actual.kind);
+        try std.testing.expectEqual(resolved_expected.cell, resolved_actual.cell);
+        try std.testing.expectEqual(resolved_expected.x_distance, resolved_actual.x_distance);
+        try std.testing.expectEqual(resolved_expected.z_distance, resolved_actual.z_distance);
+        try std.testing.expectEqual(resolved_expected.distance_sq, resolved_actual.distance_sq);
+        return;
+    }
+
+    try std.testing.expectEqual(@as(?locomotion.RawInvalidStartCandidate, null), actual);
+}
+
 test "runtime locomotion reports the baked guarded 19/19 raw start as an invalid non-mutating origin" {
     const room = try room_fixtures.guarded1919();
+    const query = runtime_query.init(room);
+    const hero_start_probe = try query.probeHeroStart();
 
     var current_session = runtime_session.Session.init(room_state.heroStartWorldPoint(room));
     const initial_status = try locomotion.inspectCurrentStatus(room, current_session);
@@ -59,8 +93,11 @@ test "runtime locomotion reports the baked guarded 19/19 raw start as an invalid
     switch (initial_status) {
         .raw_invalid_start => |value| {
             try std.testing.expectEqual(runtime_query.HeroStartExactStatus.mapped_cell_empty, value.exact_status);
+            try std.testing.expectEqual(hero_start_probe.diagnostic_status, value.diagnostic_status);
             try std.testing.expectEqual(@as(?locomotion.GridCell, .{ .x = 3, .z = 7 }), value.raw_cell);
             try std.testing.expectEqual(runtime_query.OccupiedCoverageRelation.outside_occupied_bounds, value.occupied_coverage);
+            try expectRawInvalidStartCandidate(value.nearest_occupied, hero_start_probe.nearest_occupied);
+            try expectRawInvalidStartCandidate(value.nearest_standable, hero_start_probe.nearest_standable);
             try std.testing.expectEqual(room_state.heroStartWorldPoint(room), value.hero_position);
         },
         else => return error.UnexpectedLocomotionStatus,
@@ -74,6 +111,7 @@ test "runtime locomotion reports the baked guarded 19/19 raw start as an invalid
             try std.testing.expectEqual(@as(?locomotion.GridCell, .{ .x = 3, .z = 7 }), value.current_cell);
             try std.testing.expectEqual(@as(?locomotion.GridCell, .{ .x = 3, .z = 7 }), value.target_cell);
             try std.testing.expectEqual(@as(?locomotion.MoveOptions, null), value.move_options);
+            try std.testing.expectEqual(@as(?locomotion.LocalNeighborTopology, null), value.local_topology);
             try std.testing.expectEqual(room_state.heroStartWorldPoint(room), value.hero_position);
             try expectZoneIndices(value.zone_membership, &.{});
         },
@@ -95,6 +133,7 @@ test "runtime locomotion reports the explicit guarded 19/19 fixture as the admit
             try std.testing.expectEqual(fixture_cell, value.cell);
             try std.testing.expectEqual(seeded_position, value.hero_position);
             try expectMoveOptions(room, seeded_position, value.move_options);
+            try expectLocalTopology(room, fixture_cell, value.local_topology);
             try expectZoneIndices(value.zone_membership, &.{});
         },
         else => return error.UnexpectedLocomotionStatus,
@@ -111,10 +150,12 @@ test "runtime locomotion mutates only on allowed seeded steps and preserves zone
     switch (moved_status) {
         .last_move_accepted => |value| {
             try std.testing.expectEqual(locomotion.CardinalDirection.south, value.direction);
+            try std.testing.expectEqual(fixture_cell, value.origin_cell);
             try std.testing.expectEqual(locomotion.GridCell{ .x = 39, .z = 7 }, value.cell);
             try std.testing.expect(current_session.heroWorldPosition().z > seeded_position.z);
             try std.testing.expectEqual(current_session.heroWorldPosition(), value.hero_position);
             try expectMoveOptions(room, current_session.heroWorldPosition(), value.move_options);
+            try expectLocalTopology(room, value.cell, value.local_topology);
             try expectZoneIndices(value.zone_membership, &.{});
         },
         else => return error.UnexpectedLocomotionStatus,
@@ -132,9 +173,11 @@ test "runtime locomotion mutates only on allowed seeded steps and preserves zone
             try std.testing.expectEqual(@as(?locomotion.GridCell, fixture_cell), value.current_cell);
             try std.testing.expectEqual(@as(?locomotion.GridCell, .{ .x = 38, .z = 6 }), value.target_cell);
             try std.testing.expect(value.move_options != null);
+            try std.testing.expect(value.local_topology != null);
             try std.testing.expectEqual(before_reject, current_session.heroWorldPosition());
             try std.testing.expectEqual(before_reject, value.hero_position);
             try expectMoveOptions(room, before_reject, value.move_options.?);
+            try expectLocalTopology(room, fixture_cell, value.local_topology.?);
             try expectZoneIndices(value.zone_membership, &.{});
         },
         else => return error.UnexpectedLocomotionStatus,

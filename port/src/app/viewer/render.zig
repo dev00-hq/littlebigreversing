@@ -25,10 +25,25 @@ pub const LocomotionSchematicCue = union(enum) {
     },
 };
 
+pub const LocomotionAttemptCue = union(enum) {
+    none,
+    accepted: struct {
+        direction: CardinalDirection,
+        origin_cell: GridCell,
+        destination_cell: GridCell,
+    },
+    rejected: struct {
+        direction: CardinalDirection,
+        current_cell: GridCell,
+        target_cell: GridCell,
+    },
+};
+
 pub const LocomotionStatusDisplay = struct {
     line_count: usize = 0,
-    lines: [6][]const u8 = .{ "", "", "", "", "", "" },
+    lines: [7][]const u8 = .{ "", "", "", "", "", "", "" },
     schematic: LocomotionSchematicCue = .none,
+    attempt: LocomotionAttemptCue = .none,
 };
 
 pub const LocomotionStatusDisplayBuffer = struct {
@@ -38,6 +53,7 @@ pub const LocomotionStatusDisplayBuffer = struct {
     line_3: [128]u8 = undefined,
     line_4: [128]u8 = undefined,
     line_5: [128]u8 = undefined,
+    line_6: [128]u8 = undefined,
 };
 
 pub fn renderDebugView(
@@ -113,6 +129,13 @@ pub fn renderDebugView(
         snapshot.grid_width,
         snapshot.grid_depth,
         locomotion_status.schematic,
+    );
+    try drawLocomotionAttemptCue(
+        canvas,
+        debug_layout.schematic,
+        snapshot.grid_width,
+        snapshot.grid_depth,
+        locomotion_status.attempt,
     );
 
     const hero = layout.projectWorldPoint(snapshot, debug_layout.schematic, snapshot.hero_position.x, snapshot.hero_position.z);
@@ -223,6 +246,14 @@ pub fn locomotionTargetOverlayColor(status: runtime_query.MoveTargetStatus) sdl.
     };
 }
 
+pub fn locomotionAttemptAcceptedColor() sdl.Color {
+    return .{ .r = 96, .g = 240, .b = 132, .a = 240 };
+}
+
+pub fn locomotionAttemptRejectedColor() sdl.Color {
+    return .{ .r = 255, .g = 108, .b = 108, .a = 240 };
+}
+
 fn drawFocusedFragmentZoneOverlay(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
@@ -263,6 +294,50 @@ fn drawLocomotionSchematicCue(
             }
         },
     }
+}
+
+fn drawLocomotionAttemptCue(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    grid_width: usize,
+    grid_depth: usize,
+    cue: LocomotionAttemptCue,
+) !void {
+    switch (cue) {
+        .none => {},
+        .accepted => |value| try drawLocomotionAttemptSegment(
+            canvas,
+            rect,
+            grid_width,
+            grid_depth,
+            value.origin_cell,
+            value.destination_cell,
+            locomotionAttemptAcceptedColor(),
+        ),
+        .rejected => |value| try drawLocomotionAttemptSegment(
+            canvas,
+            rect,
+            grid_width,
+            grid_depth,
+            value.current_cell,
+            value.target_cell,
+            locomotionAttemptRejectedColor(),
+        ),
+    }
+}
+
+fn drawLocomotionAttemptSegment(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    grid_width: usize,
+    grid_depth: usize,
+    start_cell: GridCell,
+    end_cell: GridCell,
+    color: sdl.Color,
+) !void {
+    const start = projectGridCellCenter(rect, grid_width, grid_depth, start_cell);
+    const finish = projectGridCellCenter(rect, grid_width, grid_depth, end_cell);
+    try canvas.drawLine(start.x, start.y, finish.x, finish.y, color);
 }
 
 fn drawCurrentLocomotionCellCue(
@@ -308,6 +383,19 @@ fn insetRectSafe(rect: sdl.Rect, inset: i32) sdl.Rect {
     const candidate = rect.inset(inset);
     if (candidate.w > 0 and candidate.h > 0) return candidate;
     return rect;
+}
+
+fn projectGridCellCenter(
+    rect: sdl.Rect,
+    grid_width: usize,
+    grid_depth: usize,
+    cell: GridCell,
+) layout.ScreenPoint {
+    const cell_rect = layout.projectGridCellRect(rect, grid_width, grid_depth, cell.x, cell.z);
+    return .{
+        .x = cell_rect.x + @divTrunc(cell_rect.w, 2),
+        .y = cell_rect.y + @divTrunc(cell_rect.h, 2),
+    };
 }
 
 fn shortDirectionLabel(direction: CardinalDirection) []const u8 {
@@ -514,7 +602,7 @@ fn drawHud(
             "FOCUS",
             .{ .r = 112, .g = 196, .b = 255, .a = 255 },
             1,
-            1,
+            -1,
             locomotion_status.lines[0..locomotion_status.line_count],
         );
     }
@@ -523,8 +611,10 @@ fn drawHud(
     try drawComparisonLegendCard(canvas, compare_card);
     const nav_lines: []const []const u8 = if (selection.focus != null)
         &.{ "LEFT RIGHT RANK", "UP DOWN CELL", "PINNED ROW FOCUS" }
-    else
-        &.{ "ENTER SEED HERO", "ARROWS MOVE HERO", "RAW START STAYS" };
+    else switch (locomotion_status.schematic) {
+        .admitted_path => &.{ "ENTER SEED HERO", "ARROWS MOVE HERO", "ARROWS MOVE FROM HERE" },
+        .none => &.{ "ENTER SEED HERO", "ARROWS MOVE HERO", "RAW START STAYS" },
+    };
     try drawHudTextCard(
         canvas,
         nav_card,
