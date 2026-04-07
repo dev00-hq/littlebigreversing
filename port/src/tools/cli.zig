@@ -22,6 +22,7 @@ const Command = enum {
     inspect_room_fragment_zones,
     audit_life_programs,
     rank_decoded_interior_candidates,
+    triage_same_index_decoded_interior_candidates,
     inspect_life_program,
     generate_fixtures,
     validate_phase1,
@@ -191,6 +192,56 @@ const RankedDecodedInteriorCandidatesPayload = struct {
     candidates: []const RankedDecodedInteriorCandidateSummary,
 };
 
+const SameIndexDecodedInteriorCandidateTriageSummary = struct {
+    rank: usize,
+    scene_entry_index: usize,
+    classic_loader_scene_number: ?usize,
+    scene_kind: []const u8,
+    blob_count: usize,
+    object_count: usize,
+    zone_count: usize,
+    track_count: usize,
+    patch_count: usize,
+    is_current_supported_baseline: bool,
+    fragment_count: usize,
+    grm_zone_count: usize,
+    compatible_zone_count: usize,
+    invalid_zone_count: usize,
+    first_invalid_zone_index: ?usize,
+    first_invalid_issue: ?[]const u8,
+    first_invalid_axis: ?[]const u8,
+    first_invalid_failure_reason: ?[]const u8,
+    first_invalid_zone_num: ?i16,
+    first_invalid_grm_index: ?i32,
+    first_invalid_fragment_entry_index: ?usize,
+    compatible: bool,
+};
+
+const SameIndexDecodedInteriorCandidateTriagePayload = struct {
+    command: []const u8,
+    ranking_basis: []const []const u8,
+    candidate_count: usize,
+    compatible_candidate_count: usize,
+    compatible_candidate_count_above_baseline: usize,
+    current_supported_baseline_scene_entry_index: usize,
+    current_supported_baseline_rank: usize,
+    current_supported_baseline: SameIndexDecodedInteriorCandidateTriageSummary,
+    highest_ranked_compatible_candidate: ?SameIndexDecodedInteriorCandidateTriageSummary,
+    highest_ranked_compatible_candidate_outranks_current_supported_baseline: bool,
+    highest_ranked_compatible_candidate_above_baseline: ?SameIndexDecodedInteriorCandidateTriageSummary,
+    candidates: []const SameIndexDecodedInteriorCandidateTriageSummary,
+};
+
+const FirstInvalidFragmentZoneSummary = struct {
+    zone_index: usize,
+    zone_num: i16,
+    grm_index: i32,
+    fragment_entry_index: ?usize,
+    issue: []const u8,
+    axis: []const u8,
+    failure_reason: []const u8,
+};
+
 pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     const parsed = try parseArgs(allocator, args);
     defer parsed.deinit(allocator);
@@ -208,6 +259,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         .inspect_room_fragment_zones => try inspectRoomFragmentZones(allocator, resolved, parsed.entry_index.?, parsed.background_entry_index.?, parsed.output_json),
         .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed),
         .rank_decoded_interior_candidates => try rankDecodedInteriorCandidates(allocator, resolved, parsed.output_json),
+        .triage_same_index_decoded_interior_candidates => try triageSameIndexDecodedInteriorCandidates(allocator, resolved, parsed.output_json),
         .inspect_life_program => try inspectLifeProgram(allocator, resolved, parsed),
         .generate_fixtures => try generateFixtures(allocator, resolved),
         .validate_phase1 => try validatePhase1(allocator, resolved),
@@ -410,6 +462,27 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
         }
         return .{
             .command = .rank_decoded_interior_candidates,
+            .asset_root_override = asset_root_override,
+            .relative_path = null,
+            .entry_index = null,
+            .background_entry_index = null,
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
+            .life_program_owner = null,
+            .output_json = output_json,
+        };
+    }
+    if (std.mem.eql(u8, command_name, "triage-same-index-decoded-interior-candidates")) {
+        var output_json = false;
+        for (args[(command_index + 1)..]) |arg| {
+            if (std.mem.eql(u8, arg, "--json")) {
+                output_json = true;
+            } else {
+                return error.UnknownOption;
+            }
+        }
+        return .{
+            .command = .triage_same_index_decoded_interior_candidates,
             .asset_root_override = asset_root_override,
             .relative_path = null,
             .entry_index = null,
@@ -1284,6 +1357,68 @@ fn rankDecodedInteriorCandidates(
     try stderr.flush();
 }
 
+fn triageSameIndexDecodedInteriorCandidates(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    output_json: bool,
+) !void {
+    const absolute_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
+    defer allocator.free(absolute_path);
+
+    const ranked = try life_audit.rankDecodedInteriorSceneCandidates(allocator, absolute_path);
+    defer allocator.free(ranked);
+    if (ranked.len == 0) return error.NoDecodedInteriorSceneCandidates;
+
+    const payload = try buildSameIndexDecodedInteriorCandidateTriagePayload(allocator, resolved, ranked);
+    defer allocator.free(payload.candidates);
+
+    if (output_json) {
+        const json = try stringifyJsonAlloc(allocator, payload);
+        defer allocator.free(json);
+        try std.fs.File.stdout().writeAll(json);
+        try std.fs.File.stdout().writeAll("\n");
+        return;
+    }
+
+    var stderr_buffer: [4096]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try diagnostics.printLine(stderr, &.{
+        .{ .key = "command", .value = "triage-same-index-decoded-interior-candidates" },
+        .{ .key = "asset_path", .value = "SCENE.HQR" },
+    });
+    try stderr.print(
+        "ranking_basis={s} candidate_count={d} compatible_candidate_count={d} compatible_candidate_count_above_baseline={d} current_supported_baseline_scene_entry_index={d} current_supported_baseline_rank={d}\n",
+        .{
+            formatRankingBasis(),
+            payload.candidate_count,
+            payload.compatible_candidate_count,
+            payload.compatible_candidate_count_above_baseline,
+            payload.current_supported_baseline_scene_entry_index,
+            payload.current_supported_baseline_rank,
+        },
+    );
+    try printSameIndexDecodedInteriorCandidateTriage(stderr, "current_supported_baseline", payload.current_supported_baseline);
+    if (payload.highest_ranked_compatible_candidate) |candidate| {
+        try printSameIndexDecodedInteriorCandidateTriage(stderr, "highest_ranked_compatible_candidate", candidate);
+    } else {
+        try stderr.writeAll("highest_ranked_compatible_candidate=none\n");
+    }
+    if (payload.highest_ranked_compatible_candidate_above_baseline) |candidate| {
+        try printSameIndexDecodedInteriorCandidateTriage(stderr, "highest_ranked_compatible_candidate_above_baseline", candidate);
+    } else {
+        try stderr.writeAll("highest_ranked_compatible_candidate_above_baseline=none\n");
+    }
+    try stderr.print(
+        "highest_ranked_compatible_candidate_outranks_current_supported_baseline={}\n",
+        .{payload.highest_ranked_compatible_candidate_outranks_current_supported_baseline},
+    );
+    for (payload.candidates) |candidate| {
+        try printSameIndexDecodedInteriorCandidateTriage(stderr, "candidate", candidate);
+    }
+    try stderr.flush();
+}
+
 fn printUnsupportedSceneLifeDiagnostic(
     writer: anytype,
     scene_entry_index: usize,
@@ -1431,6 +1566,137 @@ fn buildRankedDecodedInteriorCandidatesPayload(
     };
 }
 
+fn buildSameIndexDecodedInteriorCandidateTriagePayload(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    ranked: []const life_audit.RankedDecodedInteriorSceneCandidate,
+) !SameIndexDecodedInteriorCandidateTriagePayload {
+    const current_supported_baseline_scene_entry_index: usize = 19;
+    const baseline_index = life_audit.findRankedDecodedInteriorSceneCandidateIndex(ranked, current_supported_baseline_scene_entry_index) orelse return error.MissingCurrentSupportedBaselineCandidate;
+
+    var candidates: std.ArrayList(SameIndexDecodedInteriorCandidateTriageSummary) = .empty;
+    errdefer candidates.deinit(allocator);
+
+    var compatible_candidate_count: usize = 0;
+    var compatible_candidate_count_above_baseline: usize = 0;
+    var highest_ranked_compatible_candidate: ?SameIndexDecodedInteriorCandidateTriageSummary = null;
+    var highest_ranked_compatible_candidate_above_baseline: ?SameIndexDecodedInteriorCandidateTriageSummary = null;
+
+    for (ranked, 0..) |candidate, index| {
+        const diagnostics_snapshot = try room_state.inspectRoomFragmentZoneDiagnostics(
+            allocator,
+            resolved,
+            candidate.scene_entry_index,
+            candidate.scene_entry_index,
+        );
+        defer diagnostics_snapshot.deinit(allocator);
+
+        const summary = buildSameIndexDecodedInteriorCandidateTriageSummary(
+            index + 1,
+            candidate,
+            diagnostics_snapshot,
+            current_supported_baseline_scene_entry_index,
+        );
+
+        if (summary.compatible) {
+            compatible_candidate_count += 1;
+            if (highest_ranked_compatible_candidate == null) highest_ranked_compatible_candidate = summary;
+            if (summary.rank < baseline_index + 1) {
+                compatible_candidate_count_above_baseline += 1;
+                if (highest_ranked_compatible_candidate_above_baseline == null) {
+                    highest_ranked_compatible_candidate_above_baseline = summary;
+                }
+            }
+        }
+
+        try candidates.append(allocator, summary);
+    }
+
+    const owned_candidates = try candidates.toOwnedSlice(allocator);
+    errdefer allocator.free(owned_candidates);
+
+    return .{
+        .command = "triage-same-index-decoded-interior-candidates",
+        .ranking_basis = &life_audit.ranked_decoded_interior_scene_candidate_basis,
+        .candidate_count = owned_candidates.len,
+        .compatible_candidate_count = compatible_candidate_count,
+        .compatible_candidate_count_above_baseline = compatible_candidate_count_above_baseline,
+        .current_supported_baseline_scene_entry_index = current_supported_baseline_scene_entry_index,
+        .current_supported_baseline_rank = baseline_index + 1,
+        .current_supported_baseline = owned_candidates[baseline_index],
+        .highest_ranked_compatible_candidate = highest_ranked_compatible_candidate,
+        .highest_ranked_compatible_candidate_outranks_current_supported_baseline = if (highest_ranked_compatible_candidate) |candidate| candidate.rank < baseline_index + 1 else false,
+        .highest_ranked_compatible_candidate_above_baseline = highest_ranked_compatible_candidate_above_baseline,
+        .candidates = owned_candidates,
+    };
+}
+
+fn buildSameIndexDecodedInteriorCandidateTriageSummary(
+    rank: usize,
+    candidate: life_audit.RankedDecodedInteriorSceneCandidate,
+    diagnostics_snapshot: room_state.RoomFragmentZoneDiagnostics,
+    current_supported_baseline_scene_entry_index: usize,
+) SameIndexDecodedInteriorCandidateTriageSummary {
+    const first_invalid = firstInvalidFragmentZoneSummary(diagnostics_snapshot.zones);
+
+    return .{
+        .rank = rank,
+        .scene_entry_index = candidate.scene_entry_index,
+        .classic_loader_scene_number = candidate.classic_loader_scene_number,
+        .scene_kind = candidate.scene_kind,
+        .blob_count = candidate.blob_count,
+        .object_count = candidate.object_count,
+        .zone_count = candidate.zone_count,
+        .track_count = candidate.track_count,
+        .patch_count = candidate.patch_count,
+        .is_current_supported_baseline = candidate.scene_entry_index == current_supported_baseline_scene_entry_index,
+        .fragment_count = diagnostics_snapshot.fragment_count,
+        .grm_zone_count = diagnostics_snapshot.grm_zone_count,
+        .compatible_zone_count = diagnostics_snapshot.compatible_zone_count,
+        .invalid_zone_count = diagnostics_snapshot.invalid_zone_count,
+        .first_invalid_zone_index = diagnostics_snapshot.first_invalid_zone_index,
+        .first_invalid_issue = if (first_invalid) |entry| entry.issue else null,
+        .first_invalid_axis = if (first_invalid) |entry| entry.axis else null,
+        .first_invalid_failure_reason = if (first_invalid) |entry| entry.failure_reason else null,
+        .first_invalid_zone_num = if (first_invalid) |entry| entry.zone_num else null,
+        .first_invalid_grm_index = if (first_invalid) |entry| entry.grm_index else null,
+        .first_invalid_fragment_entry_index = if (first_invalid) |entry| entry.fragment_entry_index else null,
+        .compatible = diagnostics_snapshot.invalid_zone_count == 0,
+    };
+}
+
+fn firstInvalidFragmentZoneSummary(
+    zones: []const room_state.FragmentZoneCompatibilityDiagnostic,
+) ?FirstInvalidFragmentZoneSummary {
+    for (zones) |zone| {
+        if (zone.issue == .compatible) continue;
+
+        if (fragmentZoneAxisDiagnostic(zone)) |axis| {
+            return .{
+                .zone_index = zone.zone_index,
+                .zone_num = zone.zone_num,
+                .grm_index = zone.grm_index,
+                .fragment_entry_index = zone.fragment_entry_index,
+                .issue = @tagName(zone.issue),
+                .axis = fragmentZoneIssueAxisName(zone.issue),
+                .failure_reason = fragmentZoneFailureReasonName(zone.issue, axis),
+            };
+        }
+
+        return .{
+            .zone_index = zone.zone_index,
+            .zone_num = zone.zone_num,
+            .grm_index = zone.grm_index,
+            .fragment_entry_index = zone.fragment_entry_index,
+            .issue = @tagName(zone.issue),
+            .axis = "none",
+            .failure_reason = fragmentZoneNonAxisFailureReasonName(zone.issue),
+        };
+    }
+
+    return null;
+}
+
 fn inspectLifeProgram(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, parsed: ParsedArgs) !void {
     const absolute_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
     defer allocator.free(absolute_path);
@@ -1562,6 +1828,48 @@ fn printRankedDecodedInteriorCandidate(
             candidate.track_count,
             candidate.patch_count,
             candidate.is_current_supported_baseline,
+        },
+    );
+}
+
+fn printSameIndexDecodedInteriorCandidateTriage(
+    writer: anytype,
+    label: []const u8,
+    candidate: SameIndexDecodedInteriorCandidateTriageSummary,
+) !void {
+    var first_invalid_zone_index_buffer: [16]u8 = undefined;
+    var first_invalid_issue_buffer: [32]u8 = undefined;
+    var first_invalid_axis_buffer: [16]u8 = undefined;
+    var first_invalid_failure_reason_buffer: [32]u8 = undefined;
+    var first_invalid_zone_num_buffer: [16]u8 = undefined;
+    var first_invalid_grm_index_buffer: [16]u8 = undefined;
+    var first_invalid_fragment_entry_index_buffer: [16]u8 = undefined;
+    try writer.print(
+        "{s} rank={d} scene_entry_index={d} classic_loader_scene_number={any} scene_kind={s} blob_count={d} object_count={d} zone_count={d} track_count={d} patch_count={d} current_supported_baseline={} compatible={} fragment_count={d} grm_zone_count={d} compatible_zone_count={d} invalid_zone_count={d} first_invalid_zone_index={s} first_invalid_issue={s} first_invalid_axis={s} first_invalid_failure_reason={s} first_invalid_zone_num={s} first_invalid_grm_index={s} first_invalid_fragment_entry_index={s}\n",
+        .{
+            label,
+            candidate.rank,
+            candidate.scene_entry_index,
+            candidate.classic_loader_scene_number,
+            candidate.scene_kind,
+            candidate.blob_count,
+            candidate.object_count,
+            candidate.zone_count,
+            candidate.track_count,
+            candidate.patch_count,
+            candidate.is_current_supported_baseline,
+            candidate.compatible,
+            candidate.fragment_count,
+            candidate.grm_zone_count,
+            candidate.compatible_zone_count,
+            candidate.invalid_zone_count,
+            formatOptionalUsize(&first_invalid_zone_index_buffer, candidate.first_invalid_zone_index),
+            formatOptionalString(&first_invalid_issue_buffer, candidate.first_invalid_issue),
+            formatOptionalString(&first_invalid_axis_buffer, candidate.first_invalid_axis),
+            formatOptionalString(&first_invalid_failure_reason_buffer, candidate.first_invalid_failure_reason),
+            formatOptionalI16(&first_invalid_zone_num_buffer, candidate.first_invalid_zone_num),
+            formatOptionalI32(&first_invalid_grm_index_buffer, candidate.first_invalid_grm_index),
+            formatOptionalUsize(&first_invalid_fragment_entry_index_buffer, candidate.first_invalid_fragment_entry_index),
         },
     );
 }
@@ -1977,6 +2285,21 @@ fn formatOptionalUsize(buffer: []u8, value: ?usize) []const u8 {
     return "none";
 }
 
+fn formatOptionalI32(buffer: []u8, value: ?i32) []const u8 {
+    if (value) |resolved| return std.fmt.bufPrint(buffer, "{d}", .{resolved}) catch unreachable;
+    return "none";
+}
+
+fn formatOptionalI16(buffer: []u8, value: ?i16) []const u8 {
+    if (value) |resolved| return std.fmt.bufPrint(buffer, "{d}", .{resolved}) catch unreachable;
+    return "none";
+}
+
+fn formatOptionalString(buffer: []u8, value: ?[]const u8) []const u8 {
+    _ = buffer;
+    return value orelse "none";
+}
+
 fn formatOptionalFragmentDimensions(
     buffer: []u8,
     value: ?room_state.FragmentDimensionsSnapshot,
@@ -2064,6 +2387,14 @@ test "argument parsing supports rank-decoded-interior-candidates json output" {
     defer parsed.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(Command.rank_decoded_interior_candidates, parsed.command);
+    try std.testing.expect(parsed.output_json);
+}
+
+test "argument parsing supports triage-same-index-decoded-interior-candidates json output" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "triage-same-index-decoded-interior-candidates", "--json" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.triage_same_index_decoded_interior_candidates, parsed.command);
     try std.testing.expect(parsed.output_json);
 }
 
@@ -2168,6 +2499,68 @@ test "ranked decoded interior candidate payload makes the scene 19 comparison ex
     try std.testing.expectEqual(@as(usize, 19), payload.current_supported_baseline.scene_entry_index);
     try std.testing.expectEqual(@as(usize, 5), payload.current_supported_baseline.patch_count);
     try std.testing.expectEqual(true, payload.current_supported_baseline.is_current_supported_baseline);
+}
+
+test "same-index decoded interior triage payload pins the current baseline comparison" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const scene_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
+    defer allocator.free(scene_path);
+
+    const ranked = try life_audit.rankDecodedInteriorSceneCandidates(allocator, scene_path);
+    defer allocator.free(ranked);
+
+    const payload = try buildSameIndexDecodedInteriorCandidateTriagePayload(allocator, resolved, ranked);
+    defer allocator.free(payload.candidates);
+
+    try std.testing.expectEqualStrings("triage-same-index-decoded-interior-candidates", payload.command);
+    try std.testing.expectEqual(@as(usize, 5), payload.ranking_basis.len);
+    try std.testing.expectEqualStrings("track_count_desc", payload.ranking_basis[0]);
+    try std.testing.expectEqual(@as(usize, 50), payload.candidate_count);
+    try std.testing.expectEqual(@as(usize, 47), payload.compatible_candidate_count);
+    try std.testing.expectEqual(@as(usize, 45), payload.compatible_candidate_count_above_baseline);
+    try std.testing.expectEqual(@as(usize, 19), payload.current_supported_baseline_scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 49), payload.current_supported_baseline_rank);
+    try std.testing.expectEqual(@as(usize, 19), payload.current_supported_baseline.scene_entry_index);
+    try std.testing.expectEqual(true, payload.current_supported_baseline.compatible);
+    try std.testing.expectEqual(@as(usize, 0), payload.current_supported_baseline.fragment_count);
+    try std.testing.expectEqual(@as(usize, 0), payload.current_supported_baseline.grm_zone_count);
+
+    const highest = payload.highest_ranked_compatible_candidate orelse return error.MissingHighestCompatibleCandidate;
+    try std.testing.expectEqual(@as(usize, 2), highest.rank);
+    try std.testing.expectEqual(@as(usize, 86), highest.scene_entry_index);
+    try std.testing.expectEqual(@as(?usize, 84), highest.classic_loader_scene_number);
+    try std.testing.expectEqual(true, highest.compatible);
+    try std.testing.expectEqual(@as(usize, 0), highest.fragment_count);
+    try std.testing.expectEqual(@as(usize, 0), highest.grm_zone_count);
+
+    const highest_above_baseline = payload.highest_ranked_compatible_candidate_above_baseline orelse return error.MissingHighestCompatibleCandidateAboveBaseline;
+    try std.testing.expectEqual(@as(usize, 2), highest_above_baseline.rank);
+    try std.testing.expectEqual(@as(usize, 86), highest_above_baseline.scene_entry_index);
+    try std.testing.expectEqual(true, payload.highest_ranked_compatible_candidate_outranks_current_supported_baseline);
+
+    const blocked_top = payload.candidates[0];
+    try std.testing.expectEqual(@as(usize, 219), blocked_top.scene_entry_index);
+    try std.testing.expectEqual(false, blocked_top.compatible);
+    try std.testing.expectEqual(@as(usize, 3), blocked_top.fragment_count);
+    try std.testing.expectEqual(@as(usize, 6), blocked_top.grm_zone_count);
+    try std.testing.expectEqual(@as(usize, 6), blocked_top.invalid_zone_count);
+    try std.testing.expectEqual(@as(?usize, 1), blocked_top.first_invalid_zone_index);
+    try std.testing.expectEqualStrings("invalid_z_axis_origin", blocked_top.first_invalid_issue.?);
+    try std.testing.expectEqualStrings("z", blocked_top.first_invalid_axis.?);
+    try std.testing.expectEqualStrings("misaligned_min", blocked_top.first_invalid_failure_reason.?);
+    try std.testing.expectEqual(@as(?i16, 0), blocked_top.first_invalid_zone_num);
+    try std.testing.expectEqual(@as(?i32, 0), blocked_top.first_invalid_grm_index);
+    try std.testing.expectEqual(@as(?usize, 159), blocked_top.first_invalid_fragment_entry_index);
+
+    const first_fragment_bearing_compatible = payload.candidates[15];
+    try std.testing.expectEqual(@as(usize, 187), first_fragment_bearing_compatible.scene_entry_index);
+    try std.testing.expectEqual(true, first_fragment_bearing_compatible.compatible);
+    try std.testing.expectEqual(@as(usize, 2), first_fragment_bearing_compatible.fragment_count);
+    try std.testing.expectEqual(@as(usize, 2), first_fragment_bearing_compatible.grm_zone_count);
+    try std.testing.expectEqual(@as(usize, 2), first_fragment_bearing_compatible.compatible_zone_count);
 }
 
 test "inspect-room composes the guarded canonical interior pair metadata" {

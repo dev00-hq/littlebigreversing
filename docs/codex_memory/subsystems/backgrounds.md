@@ -16,10 +16,8 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 - `inspect-background` and `inspect-room` report explicit fragment ownership/counts instead of only the base `GRM` cursor.
 - The viewer-local background evidence path renders composition tops, fragment cells, comparison cards, decoded `BRK` previews, and concise provenance cues on top of those decoded interior structures.
 - `SCENE.HQR[19]` with `LBA_BKG.HQR[19]` is the only supported positive guarded runtime/load baseline for the background-backed viewer path.
-- `SCENE.HQR[2]` with `LBA_BKG.HQR[2]` remains the explicit zero-fragment control path for evidence and test surfaces, but the guarded `inspect-room` / viewer seam rejects it with `ViewerUnsupportedSceneLife`.
-- `SCENE.HQR[11]` with `LBA_BKG.HQR[10]` remains the checked-in fragment evidence pair, but only on explicit unchecked or test-local paths rather than the guarded runtime/load seam.
 - The top-ranked offline interior candidate is currently blocked at the room/load seam: `inspect-room 219 219 --json` now emits `reason=invalid_fragment_zone_bounds` plus six per-zone issue lines before rethrowing `InvalidFragmentZoneBounds`.
-- The decoder loads `RESS.HQR[0]` plus referenced top-surface `BRK` entries and fails fast if an expected preview is missing.
+- `triage-same-index-decoded-interior-candidates` is now the canonical offline report for ranked same-index fragment-zone compatibility: `86/86` is the highest-ranked compatible pair overall, and `187/187` is the first compatible pair with both fragments and GRM zones present.
 - Exterior `.ILE/.OBL`, full brick rasterization, and actor visual binding stay outside this pack.
 
 ## Known Traps
@@ -29,8 +27,8 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 - `gri_header.my_grm` is a forward cursor, not ownership proof. In the checked-in assets, backgrounds `0..10` all report `my_grm = 0`, but only the last grid owns fragment `149`; canonical background `2` owns none.
 - The positive pair `11/10` only projects cleanly if fragment-zone maxima are treated as boundary-aligned endpoints.
 - Winning the offline decoded-candidate ranking does not prove fragment-zone compatibility. `SCENE.HQR[219]` currently ranks first, but `inspect-room 219 219` still dies on `InvalidFragmentZoneBounds`; the current same-index report shows six `misaligned_min` issues, starting at zone `1` on the `z` axis (`4208..5744`) and zone `11` on the `x` axis (`20048..20560`).
+- A same-index compatibility win can still be trivial. `86/86` currently outranks `19/19` and clears the checked-in fragment-zone rules, but only because it has `fragment_count=0` and `grm_zone_count=0`; `187/187` is the first compatible same-index pair that actually has fragment-zone data (`fragment_count=2`, `grm_zone_count=2`, `compatible_zone_count=2`).
 - `inspect-room --json` reports probe counts and `BRK` summaries, not the projected fragment cells behind the comparison panel; under the current guard it succeeds only for supported pairs such as `19/19`, so use viewer/tests for per-cell deltas and explicit unchecked evidence paths for `11/10`.
-- The landed `BRK` previews are evidence surfaces, not proof that the repo now has a full room-art renderer. Keep future work scoped to the current debug/comparison path unless checked-in evidence justifies more.
 
 ## Canonical Entry Points
 
@@ -49,6 +47,7 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 - `cd port && zig build tool -- inspect-background 2 --json`
 - `cd port && zig build tool -- inspect-room 19 19 --json`
 - `cd port && zig build tool -- inspect-room-fragment-zones 219 219 --json`
+- `cd port && zig build tool -- triage-same-index-decoded-interior-candidates --json`
 - `pwsh -File .\scripts\verify-viewer.ps1`
 - `cd port && zig build test`
 

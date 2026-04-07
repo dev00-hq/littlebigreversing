@@ -14,8 +14,9 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 ## Current Parity Status
 
 - `port/` stays canonical; runtime/viewer ownership remains split across `world_geometry`, `room_state`, `session`, `world_query`, `locomotion`, `viewer_shell`, `main`, and `render`.
-- `life_audit.zig` owns offline ranking of decoded interior candidates, and `tools/cli.zig` exposes `rank-decoded-interior-candidates`.
+- `life_audit.zig` owns offline ranking of decoded interior candidates, and `tools/cli.zig` exposes `rank-decoded-interior-candidates` plus `triage-same-index-decoded-interior-candidates`.
 - `inspect-room` failures now distinguish unsupported life from fragment-zone bounds; `219/219` prints per-zone `invalid_fragment_zone_bounds` diagnostics before the raw error.
+- Same-index triage is now explicit: `86/86` is the highest-ranked compatible same-index pair above the guarded baseline, but it clears trivially with `fragment_count=0` and `grm_zone_count=0`; `187/187` is the first fragment-bearing compatible pair.
 
 ## Known Traps
 
@@ -32,13 +33,8 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - Do not confuse the guarded `19/19` diagnostic baseline with a playable-path candidate; it still lands on `raw_invalid_start` with `track_count=0`.
 - Do not confuse the offline ranking winner with runtime admission. `219` ranks first and `19` ranks `49/50`, but `inspect-room 219 219` still fails `InvalidFragmentZoneBounds`.
 - Reuse the `219/219` blocker surfaces instead of inventing another blocker-only CLI.
-- The `19/19` zone-summary contract is intentional: HUD uses `ZONES NONE` / `ZONES <indices>`, stderr uses `zones=none` / `zones=<indices>`.
-- The positive `19/19` startup contract is intentional: stderr includes runtime-owned `event=neighbor_pattern_summary ...`; do not recompute it in viewer code.
-- The `19/19` move-option contract is intentional: HUD uses direction/cell/status lines, stderr keeps `direction:cell:status:coverage_relation:coverage_dx:coverage_dz`.
+- Do not confuse the highest-ranked compatible same-index pair with fragment-bearing evidence. `86/86` outranks the baseline under the checked-in fragment-zone rules, but it does so with zero fragments and zero GRM zones; `187/187` is the first compatible pair that actually exercises fragment-zone matching.
 - Guarded negative `inspect-room` and viewer-startup loads keep `ViewerUnsupportedSceneLife` public, but precede it with the first blocking `event=room_load_rejected ... unsupported_life_*` line only.
-- The raw-invalid-start contract is intentional: HUD uses `DIAG` / `BOUNDS` / `NEAR`; stderr uses `diagnostic_status`, `occupied_coverage`, bounds, and `nearest_*`.
-- `19/19` admitted footing is intentional: HUD uses `SURF ...`, stderr uses `current_footing=...`.
-- `19/19` rejected-target coverage is intentional: stderr uses explicit `target_occupied_*` fields for admitted-position `target_rejected` only.
 
 ## Canonical Entry Points
 

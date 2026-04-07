@@ -14,12 +14,11 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 
 - `life_program.zig` is an unwired structural decoder.
 - `life_audit.zig` plus `audit-life-programs` is the canonical blocker report and scene-level validation surface.
-- `tools/life_trace/` plus `scripts/trace-life.ps1` provide the bounded original-runtime probe for `DoLife` owner attribution.
-- `scripts/trace-life.ps1 -Mode TavernTrace` is the canonical scene-5 probe for bounded `LM_SWITCH` / `LM_CASE` / `LM_OR_CASE` / `LM_BREAK` evidence.
 - `listDecodedInteriorSceneCandidates` proves there are `50` fully decoded interior candidates; the earliest canonical runtime candidate is `SCENE.HQR[19]` (`classic_loader_scene_number = 17`, `blob_count = 3`).
 - `rankDecodedInteriorSceneCandidates` plus `rank-decoded-interior-candidates` rank those `50` candidates by `track_count`, `object_count`, `zone_count`, `blob_count`, and `scene_entry_index`; `219` is first and `19` is `49/50`.
+- `triage-same-index-decoded-interior-candidates` reuses that ranking with `room_state`: `86/86` is the highest-ranked compatible pair above baseline; `187/187` is the first fragment-bearing compatible pair.
 - Only `LM_DEFAULT` and `LM_END_SWITCH` are active unsupported real-asset blockers in the current archive.
-- The guarded runtime/load seam rejects unsupported scene life before later interior/exterior widening; `2/2`, `44/2`, and `11/10` stay negative guarded loads, with `11/10` test-only, and both `inspect-room` and viewer startup now report the first blocking opcode/id/offset before rethrowing `ViewerUnsupportedSceneLife`.
+- The guarded runtime/load seam still rejects `2/2`, `44/2`, and `11/10`, and both `inspect-room` and viewer startup report the first blocking opcode/id/offset before `ViewerUnsupportedSceneLife`.
 
 ## Known Traps
 
@@ -28,8 +27,8 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 - Real asset `LM_BREAK` targets can land on the first byte after `LM_END_SWITCH`, so the classic `saute au END_SWITCH` comment is only a rough control-flow hint, not byte-level structural proof for `LM_END_SWITCH`.
 - A useful viewer evidence pair is not automatically a guarded runtime-safe scene; `11/10` still crosses unsupported scene life and needs the test-only unchecked loader path for fragment evidence.
 - A top-ranked decoded interior candidate is not automatically a guarded room/load candidate; `219/219` still fails `inspect-room` with `InvalidFragmentZoneBounds`, now with explicit per-zone diagnostics before the error.
+- A compatible same-index candidate is not automatically fragment evidence; `86/86` clears only because it has zero fragments and zero GRM zones, so keep it distinct from fragment-bearing pairs such as `187/187`.
 - Guarded negative-load diagnostics report the first blocking life blob only. For `11/10`, that is object `12` `LM_DEFAULT @ 38`, not the later object `18` `LM_END_SWITCH @ 84`.
-- TavernTrace screenshot capture is part of the acceptance artifact, not optional decoration. A missing required screenshot is a terminal tracer failure, not a warning.
 
 ## Canonical Entry Points
 
@@ -51,6 +50,7 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 
 - `cd port && zig build tool -- audit-life-programs --json`
 - `cd port && zig build tool -- audit-life-programs --json --all-scene-entries`
+- `cd port && zig build tool -- triage-same-index-decoded-interior-candidates --json`
 - `cd port && zig build test-fast`
 - `cd port && zig build test-life-audit-all`
 - `cd port && zig build test`
