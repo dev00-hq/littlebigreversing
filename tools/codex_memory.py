@@ -6,6 +6,7 @@ import hashlib
 import json
 import re
 import sys
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -82,13 +83,48 @@ PREFIXES = {
     "task_events": "task",
 }
 FIELD_RULES = {
-    "policies": {"required": ("status", "topic", "statement", "rationale", "supersedes"), "short": ("topic", "statement"), "long": ("rationale",), "list": ("supersedes",)},
-    "subsystem_facts": {"required": ("subsystem", "status", "fact", "rationale", "supersedes"), "short": ("fact",), "long": ("rationale",), "list": ("supersedes",)},
-    "investigations": {"required": ("subsystem", "status", "question", "current_best_answer", "confidence", "next_probe"), "short": ("question", "next_probe"), "long": ("current_best_answer",), "list": ()},
-    "compat_events": {"required": ("subsystem", "status", "title", "summary"), "short": ("title", "summary"), "long": (), "list": ()},
-    "task_events": {"required": ("stream", "status", "summary", "next_actions"), "short": ("stream", "summary"), "long": (), "list": ("next_actions",)},
+    "policies": {
+        "required": ("status", "topic", "statement", "rationale", "supersedes"),
+        "short": ("topic", "statement"),
+        "long": ("rationale",),
+        "list": ("supersedes",),
+    },
+    "subsystem_facts": {
+        "required": ("subsystem", "status", "fact", "rationale", "supersedes"),
+        "short": ("fact",),
+        "long": ("rationale",),
+        "list": ("supersedes",),
+    },
+    "investigations": {
+        "required": ("subsystem", "status", "question", "current_best_answer", "confidence", "next_probe"),
+        "short": ("question", "next_probe"),
+        "long": ("current_best_answer",),
+        "list": (),
+    },
+    "compat_events": {
+        "required": ("subsystem", "status", "title", "summary"),
+        "short": ("title", "summary"),
+        "long": (),
+        "list": (),
+    },
+    "task_events": {
+        "required": ("stream", "status", "summary", "next_actions"),
+        "short": ("stream", "summary"),
+        "long": (),
+        "list": ("next_actions",),
+    },
 }
 COMMON_FIELDS = ("schema_version", "record_id", "timestamp_utc", "author", "affected_paths", "evidence_refs")
+HISTORY_MODES = ("recent", "relevant")
+ARCHITECTURE_DOC_CHURN_PATHS = frozenset(
+    {
+        "docs/PROMPT.md",
+        "docs/codex_memory/current_focus.md",
+        "docs/codex_memory/subsystems/architecture.md",
+        "ISSUES.md",
+    }
+)
+TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 
 
 @dataclass(frozen=True)
@@ -122,6 +158,51 @@ class Rule:
         return repo_path.startswith(self.path) if self.is_prefix() else repo_path == self.path
 
 
+@dataclass(frozen=True)
+class ValidatedMemoryData:
+    paths: MemoryPaths
+    doc_texts: dict[str, str]
+    subsystem_texts: dict[str, str]
+    pack_names: tuple[str, ...]
+    rules: tuple[Rule, ...]
+    focus_subsystems: tuple[str, ...]
+    history_rows: dict[str, tuple[tuple[int, dict], ...]]
+
+
+@dataclass(frozen=True)
+class HistoryEntry:
+    kind: str
+    record: dict
+    timestamp_utc: str
+    rendered_line: str
+    record_text: str
+    subsystem: str | None
+    affected_paths: tuple[str, ...]
+    evidence_refs: tuple[str, ...]
+    mapped_subsystems: frozenset[str]
+    text_tokens: frozenset[str]
+    path_tokens: frozenset[str]
+    excluded_by_default: bool
+
+
+@dataclass(frozen=True)
+class MemorySnapshot:
+    paths: MemoryPaths
+    pack_names: tuple[str, ...]
+    rules: tuple[Rule, ...]
+    focus_subsystems: tuple[str, ...]
+    project_brief: str
+    current_focus: str
+    subsystem_docs: dict[str, str]
+    history_entries: tuple[HistoryEntry, ...]
+    exact_affected_path_index: dict[str, tuple[int, ...]]
+    exact_evidence_ref_index: dict[str, tuple[int, ...]]
+    path_prefix_index: dict[str, tuple[int, ...]]
+    evidence_prefix_index: dict[str, tuple[int, ...]]
+    subsystem_index: dict[str, tuple[int, ...]]
+    inferred_subsystem_index: dict[str, tuple[int, ...]]
+
+
 def parse_timestamp(value: str) -> str:
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
@@ -148,6 +229,12 @@ def make_id(kind: str, timestamp_utc: str, stable_fields: dict[str, str]) -> str
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def read_optional_text(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    return read_text(path)
 
 
 def normalize_text(value: str, field_name: str, max_len: int = 240) -> str:
@@ -196,10 +283,9 @@ def sections(content: str) -> dict[str, str]:
     return {name: "\n".join(lines).strip() for name, lines in result.items()}
 
 
-def validate_markdown(path: Path, required: tuple[str, ...], budget: int | None) -> list[str]:
-    if not path.exists():
+def validate_markdown_content(path: Path, content: str | None, required: tuple[str, ...], budget: int | None) -> list[str]:
+    if content is None:
         return [f"missing file: {path}"]
-    content = read_text(path)
     errors = [] if content.startswith("# ") else [f"{path}: missing top-level heading"]
     parsed = sections(content)
     for name in required:
@@ -227,8 +313,8 @@ def parse_named_bullets(body: str, label: str) -> dict[str, str]:
     return parsed
 
 
-def load_index(paths: MemoryPaths) -> tuple[list[str], list[Rule]]:
-    parsed = sections(read_text(paths.subsystem_dir / "INDEX.md"))
+def load_index_from_text(index_text: str) -> tuple[list[str], list[Rule]]:
+    parsed = sections(index_text)
     packs = parse_named_bullets(parsed["Pack List"], "Pack List")
     mapping = parse_named_bullets(parsed["Path Mapping Rules"], "Path Mapping Rules")
     rules = []
@@ -246,6 +332,10 @@ def load_index(paths: MemoryPaths) -> tuple[list[str], list[Rule]]:
     return list(packs.keys()), rules
 
 
+def load_index(paths: MemoryPaths) -> tuple[list[str], list[Rule]]:
+    return load_index_from_text(read_text(paths.subsystem_dir / "INDEX.md"))
+
+
 def rule_overlap(left: Rule, right: Rule) -> bool:
     if left.subsystem == right.subsystem:
         return False
@@ -260,7 +350,7 @@ def rule_overlap(left: Rule, right: Rule) -> bool:
     return False
 
 
-def resolve_subsystems(repo_path: str, rules: list[Rule]) -> list[str]:
+def resolve_subsystems(repo_path: str, rules: list[Rule] | tuple[Rule, ...]) -> list[str]:
     repo_path = normalize_path(repo_path)
     return sorted({rule.subsystem for rule in rules if rule.matches(repo_path)})
 
@@ -349,8 +439,8 @@ def validate_record(kind: str, record: dict, path: Path, line_no: int, subsystem
     return errors
 
 
-def parse_focus_subsystems(paths: MemoryPaths) -> list[str]:
-    body = sections(read_text(paths.docs_dir / "current_focus.md"))["Relevant Subsystem Packs"]
+def parse_focus_subsystems_content(content: str) -> list[str]:
+    body = sections(content)["Relevant Subsystem Packs"]
     result = []
     for raw in body.splitlines():
         line = raw.strip()
@@ -365,15 +455,29 @@ def parse_focus_subsystems(paths: MemoryPaths) -> list[str]:
     return result
 
 
-def validate_all(paths: MemoryPaths) -> list[str]:
+def parse_focus_subsystems(paths: MemoryPaths) -> list[str]:
+    return parse_focus_subsystems_content(read_text(paths.docs_dir / "current_focus.md"))
+
+
+def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
     errors = []
     for rel in OBSOLETE_PATHS:
         if (paths.repo_root / rel).exists():
             errors.append(f"obsolete v1 path still present: {paths.repo_root / rel}")
+
+    doc_texts: dict[str, str | None] = {}
     for name, (required, budget) in MARKDOWN_SPECS.items():
-        errors.extend(validate_markdown(paths.docs_dir / name, required, budget))
-    errors.extend(validate_markdown(paths.subsystem_dir / "INDEX.md", INDEX_SECTIONS, None))
+        path = paths.docs_dir / name
+        content = read_optional_text(path)
+        doc_texts[name] = content
+        errors.extend(validate_markdown_content(path, content, required, budget))
+
+    index_path = paths.subsystem_dir / "INDEX.md"
+    index_text = read_optional_text(index_path)
+    errors.extend(validate_markdown_content(index_path, index_text, INDEX_SECTIONS, None))
+
     subsystem_names = sorted(path.stem for path in paths.subsystem_dir.glob("*.md") if path.name != "INDEX.md")
+    subsystem_texts: dict[str, str | None] = {}
     subsystem_set = set(subsystem_names)
     if subsystem_set != set(EXPECTED_SUBSYSTEMS):
         missing = sorted(set(EXPECTED_SUBSYSTEMS) - subsystem_set)
@@ -383,99 +487,96 @@ def validate_all(paths: MemoryPaths) -> list[str]:
         if extra:
             errors.append(f"{paths.subsystem_dir}: unexpected subsystem packs: {', '.join(extra)}")
     for name in subsystem_names:
-        errors.extend(validate_markdown(paths.subsystem_path(name), SUBSYSTEM_SECTIONS, SUBSYSTEM_BUDGET))
-    if errors:
-        return errors
-    try:
-        pack_names, rules = load_index(paths)
-    except ValueError as exc:
-        return [str(exc)]
-    if set(pack_names) != subsystem_set:
-        errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: pack list must match subsystem files exactly")
-    mapped_subsystems = {rule.subsystem for rule in rules}
-    missing_mappings = sorted(subsystem_set - mapped_subsystems)
-    if missing_mappings:
-        errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: missing path mappings for subsystem packs: {', '.join(missing_mappings)}")
-    for rule in rules:
-        if not (paths.repo_root / rule.path.rstrip("/")).exists():
-            errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: mapping target does not exist: {rule.path}")
-    for i, left in enumerate(rules):
-        for right in rules[i + 1 :]:
-            if rule_overlap(left, right):
-                errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: ambiguous mapping between {left.subsystem}:{left.path} and {right.subsystem}:{right.path}")
-    try:
-        for name in parse_focus_subsystems(paths):
+        path = paths.subsystem_path(name)
+        content = read_optional_text(path)
+        subsystem_texts[name] = content
+        errors.extend(validate_markdown_content(path, content, SUBSYSTEM_SECTIONS, SUBSYSTEM_BUDGET))
+
+    pack_names: list[str] = []
+    rules: list[Rule] = []
+    if index_text is not None:
+        try:
+            pack_names, rules = load_index_from_text(index_text)
+        except ValueError as exc:
+            errors.append(str(exc))
+
+    focus_subsystems: list[str] = []
+    current_focus_text = doc_texts.get("current_focus.md")
+    if current_focus_text is not None:
+        try:
+            focus_subsystems = parse_focus_subsystems_content(current_focus_text)
+        except ValueError as exc:
+            errors.append(f"{paths.docs_dir / 'current_focus.md'}: {exc}")
+
+    if pack_names:
+        if set(pack_names) != subsystem_set:
+            errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: pack list must match subsystem files exactly")
+        mapped_subsystems = {rule.subsystem for rule in rules}
+        missing_mappings = sorted(subsystem_set - mapped_subsystems)
+        if missing_mappings:
+            errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: missing path mappings for subsystem packs: {', '.join(missing_mappings)}")
+        for rule in rules:
+            if not (paths.repo_root / rule.path.rstrip("/")).exists():
+                errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: mapping target does not exist: {rule.path}")
+        for i, left in enumerate(rules):
+            for right in rules[i + 1 :]:
+                if rule_overlap(left, right):
+                    errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: ambiguous mapping between {left.subsystem}:{left.path} and {right.subsystem}:{right.path}")
+        for name in focus_subsystems:
             if name not in subsystem_set:
                 errors.append(f"{paths.docs_dir / 'current_focus.md'}: unknown subsystem in Relevant Subsystem Packs: {name}")
-    except ValueError as exc:
-        errors.append(f"{paths.docs_dir / 'current_focus.md'}: {exc}")
+
+    history_rows: dict[str, tuple[tuple[int, dict], ...]] = {}
     for filename in HISTORY_FILES:
         kind = filename.replace(".jsonl", "")
         try:
             rows = load_jsonl(paths.history_path(filename))
         except ValueError as exc:
             errors.append(str(exc))
-            continue
+            rows = []
+        history_rows[kind] = tuple(rows)
+
+    for kind, rows in history_rows.items():
+        path = paths.history_path(f"{kind}.jsonl")
         for line_no, record in rows:
-            errors.extend(validate_record(kind, record, paths.history_path(filename), line_no, subsystem_set))
-    return errors
+            errors.extend(validate_record(kind, record, path, line_no, subsystem_set))
+
+    if errors:
+        raise ValueError("\n".join(errors))
+
+    return ValidatedMemoryData(
+        paths=paths,
+        doc_texts={name: content for name, content in doc_texts.items() if content is not None},
+        subsystem_texts={name: content for name, content in subsystem_texts.items() if content is not None},
+        pack_names=tuple(pack_names),
+        rules=tuple(rules),
+        focus_subsystems=tuple(focus_subsystems),
+        history_rows=history_rows,
+    )
 
 
-def select_subsystems(paths: MemoryPaths, names: list[str], repo_paths: list[str]) -> list[str]:
-    pack_names, rules = load_index(paths)
-    allowed = set(pack_names)
-    selected = []
-    for name in names:
-        name = normalize_text(name, "subsystem")
-        if name not in allowed:
-            raise ValueError(f"unknown subsystem: {name}")
-        if name not in selected:
-            selected.append(name)
-    for repo_path in repo_paths:
-        matches = resolve_subsystems(repo_path, rules)
-        if not matches:
-            raise ValueError(f"no subsystem mapping for path: {repo_path}")
-        if len(matches) > 1:
-            raise ValueError(f"ambiguous subsystem mapping for path {repo_path}: {', '.join(matches)}")
-        if matches[0] not in selected:
-            selected.append(matches[0])
-    return selected
+def validate_all(paths: MemoryPaths) -> list[str]:
+    try:
+        load_validated_data(paths)
+    except ValueError as exc:
+        return [line for line in str(exc).splitlines() if line]
+    return []
 
 
-def history_entries(paths: MemoryPaths, selected: set[str], *, include_excluded: bool = False) -> list[str]:
-    _, rules = load_index(paths)
-    superseded_ids = history_superseded_ids(paths)
-    entries = []
-    for filename in HISTORY_FILES:
-        kind = filename.replace(".jsonl", "")
-        for _, record in load_jsonl(paths.history_path(filename)):
-            if record["record_id"] in superseded_ids:
-                continue
-            if "subsystem" in record:
-                relevant = record.get("subsystem") in selected
-            else:
-                relevant = False
-                for affected in record.get("affected_paths", []):
-                    if any(name in selected for name in resolve_subsystems(affected, rules)):
-                        relevant = True
-                        break
-            if not relevant:
-                continue
-            if not include_excluded and exclude_from_default_context(kind, record):
-                continue
-            if kind == "policies":
-                text = f"{record['topic']}: {record['statement']} ({record['status']})"
-            elif kind == "subsystem_facts":
-                text = f"{record['subsystem']}: {record['fact']} ({record['status']})"
-            elif kind == "investigations":
-                text = f"{record['subsystem']}: {record['question']} ({record['status']}, {record['confidence']})"
-            elif kind == "compat_events":
-                text = f"{record['subsystem']}: {record['title']} ({record['status']})"
-            else:
-                text = f"{record['stream']}: {record['summary']} ({record['status']})"
-            entries.append((record["timestamp_utc"], f"- {record['timestamp_utc']} [{kind}] {text}"))
-    entries.sort(key=lambda item: item[0])
-    return [item[1] for item in entries]
+def tokenize(value: str) -> frozenset[str]:
+    return frozenset(TOKEN_PATTERN.findall(value.lower()))
+
+
+def history_text(kind: str, record: dict) -> str:
+    if kind == "policies":
+        return f"{record['topic']}: {record['statement']} ({record['status']})"
+    if kind == "subsystem_facts":
+        return f"{record['subsystem']}: {record['fact']} ({record['status']})"
+    if kind == "investigations":
+        return f"{record['subsystem']}: {record['question']} ({record['status']}, {record['confidence']})"
+    if kind == "compat_events":
+        return f"{record['subsystem']}: {record['title']} ({record['status']})"
+    return f"{record['stream']}: {record['summary']} ({record['status']})"
 
 
 def exclude_from_default_context(kind: str, record: dict) -> bool:
@@ -496,33 +597,238 @@ def exclude_from_default_context(kind: str, record: dict) -> bool:
 
 def history_superseded_ids(paths: MemoryPaths) -> set[str]:
     ids = set()
-    for filename in HISTORY_FILES:
-        for _, record in load_jsonl(paths.history_path(filename)):
+    validated = load_validated_data(paths)
+    for rows in validated.history_rows.values():
+        for _, record in rows:
             ids.update(record.get("supersedes", []))
     return ids
 
 
+def build_history_entry(kind: str, record: dict, rules: tuple[Rule, ...]) -> HistoryEntry:
+    affected_paths = tuple(record.get("affected_paths", ()))
+    evidence_refs = tuple(record.get("evidence_refs", ()))
+    mapped_subsystems = set()
+    for path in [*affected_paths, *evidence_refs]:
+        mapped_subsystems.update(resolve_subsystems(path, rules))
+    record_text = history_text(kind, record)
+    rendered_line = f"- {record['timestamp_utc']} [{kind}] {record_text}"
+    return HistoryEntry(
+        kind=kind,
+        record=record,
+        timestamp_utc=record["timestamp_utc"],
+        rendered_line=rendered_line,
+        record_text=record_text,
+        subsystem=record.get("subsystem"),
+        affected_paths=affected_paths,
+        evidence_refs=evidence_refs,
+        mapped_subsystems=frozenset(mapped_subsystems),
+        text_tokens=tokenize(record_text),
+        path_tokens=tokenize(" ".join([*affected_paths, *evidence_refs])),
+        excluded_by_default=exclude_from_default_context(kind, record),
+    )
+
+
+def build_snapshot(paths: MemoryPaths) -> MemorySnapshot:
+    validated = load_validated_data(paths)
+    superseded_ids = set()
+    for rows in validated.history_rows.values():
+        for _, record in rows:
+            superseded_ids.update(record.get("supersedes", []))
+
+    history_entries: list[HistoryEntry] = []
+    exact_affected_path_index: dict[str, list[int]] = defaultdict(list)
+    exact_evidence_ref_index: dict[str, list[int]] = defaultdict(list)
+    path_prefix_index: dict[str, list[int]] = defaultdict(list)
+    evidence_prefix_index: dict[str, list[int]] = defaultdict(list)
+    subsystem_index: dict[str, list[int]] = defaultdict(list)
+    inferred_subsystem_index: dict[str, list[int]] = defaultdict(list)
+
+    for filename in HISTORY_FILES:
+        kind = filename.replace(".jsonl", "")
+        for _, record in validated.history_rows[kind]:
+            if record["record_id"] in superseded_ids:
+                continue
+            entry = build_history_entry(kind, record, validated.rules)
+            index = len(history_entries)
+            history_entries.append(entry)
+            for path in entry.affected_paths:
+                exact_affected_path_index[path].append(index)
+                path_prefix_index[path].append(index)
+            for path in entry.evidence_refs:
+                exact_evidence_ref_index[path].append(index)
+                evidence_prefix_index[path].append(index)
+            if entry.subsystem is not None:
+                subsystem_index[entry.subsystem].append(index)
+            else:
+                for subsystem in entry.mapped_subsystems:
+                    inferred_subsystem_index[subsystem].append(index)
+
+    return MemorySnapshot(
+        paths=paths,
+        pack_names=validated.pack_names,
+        rules=validated.rules,
+        focus_subsystems=validated.focus_subsystems,
+        project_brief=validated.doc_texts["project_brief.md"].strip(),
+        current_focus=validated.doc_texts["current_focus.md"].strip(),
+        subsystem_docs={name: text.strip() for name, text in validated.subsystem_texts.items()},
+        history_entries=tuple(history_entries),
+        exact_affected_path_index={path: tuple(indices) for path, indices in exact_affected_path_index.items()},
+        exact_evidence_ref_index={path: tuple(indices) for path, indices in exact_evidence_ref_index.items()},
+        path_prefix_index={path: tuple(indices) for path, indices in path_prefix_index.items()},
+        evidence_prefix_index={path: tuple(indices) for path, indices in evidence_prefix_index.items()},
+        subsystem_index={name: tuple(indices) for name, indices in subsystem_index.items()},
+        inferred_subsystem_index={name: tuple(indices) for name, indices in inferred_subsystem_index.items()},
+    )
+
+
+def ensure_snapshot(source: MemoryPaths | MemorySnapshot) -> MemorySnapshot:
+    if isinstance(source, MemorySnapshot):
+        return source
+    return build_snapshot(source)
+
+
+def select_subsystems(source: MemoryPaths | MemorySnapshot, names: list[str], repo_paths: list[str]) -> list[str]:
+    snapshot = ensure_snapshot(source)
+    allowed = set(snapshot.pack_names)
+    selected = []
+    for name in names:
+        name = normalize_text(name, "subsystem")
+        if name not in allowed:
+            raise ValueError(f"unknown subsystem: {name}")
+        if name not in selected:
+            selected.append(name)
+    for repo_path in repo_paths:
+        matches = resolve_subsystems(repo_path, snapshot.rules)
+        if not matches:
+            raise ValueError(f"no subsystem mapping for path: {repo_path}")
+        if len(matches) > 1:
+            raise ValueError(f"ambiguous subsystem mapping for path {repo_path}: {', '.join(matches)}")
+        if matches[0] not in selected:
+            selected.append(matches[0])
+    return selected
+
+
+def candidate_history_indices(snapshot: MemorySnapshot, selected: set[str], repo_paths: list[str]) -> list[int]:
+    indices = set()
+    for subsystem in selected:
+        indices.update(snapshot.subsystem_index.get(subsystem, ()))
+        indices.update(snapshot.inferred_subsystem_index.get(subsystem, ()))
+    for repo_path in repo_paths:
+        indices.update(snapshot.exact_affected_path_index.get(repo_path, ()))
+        indices.update(snapshot.exact_evidence_ref_index.get(repo_path, ()))
+        for prefix, prefix_indices in snapshot.path_prefix_index.items():
+            normalized_prefix = prefix.rstrip("/")
+            if normalized_prefix and repo_path.startswith(normalized_prefix):
+                indices.update(prefix_indices)
+        for prefix, prefix_indices in snapshot.evidence_prefix_index.items():
+            normalized_prefix = prefix.rstrip("/")
+            if normalized_prefix and repo_path.startswith(normalized_prefix):
+                indices.update(prefix_indices)
+    return list(indices)
+
+
+def prefix_match_length(entry: HistoryEntry, repo_paths: list[str]) -> int:
+    best = 0
+    for query_path in repo_paths:
+        for path in [*entry.affected_paths, *entry.evidence_refs]:
+            prefix = path.rstrip("/")
+            if prefix and query_path.startswith(prefix):
+                best = max(best, len(prefix))
+    return best
+
+
+def lexical_overlap_score(entry: HistoryEntry, query_tokens: frozenset[str]) -> int:
+    return len(query_tokens & (entry.text_tokens | entry.path_tokens))
+
+
+def relevant_history_sort_key(entry: HistoryEntry, selected: set[str], repo_paths: list[str], rules: tuple[Rule, ...]) -> tuple[int, int, int, int, int, int, int, str]:
+    query_tokens = tokenize(" ".join(repo_paths))
+    exact_affected = int(any(path in entry.affected_paths for path in repo_paths))
+    exact_evidence = int(any(path in entry.evidence_refs for path in repo_paths))
+    prefix_length = prefix_match_length(entry, repo_paths)
+    direct_subsystem = int(entry.subsystem in selected)
+    mapped_subsystem = int(entry.subsystem is None and bool(entry.mapped_subsystems & selected))
+    lexical_overlap = lexical_overlap_score(entry, query_tokens)
+
+    penalized = False
+    if repo_paths and all(not path.startswith("docs/") for path in repo_paths):
+        if not (exact_affected or exact_evidence or prefix_length or direct_subsystem):
+            selected_paths = [
+                path
+                for path in [*entry.affected_paths, *entry.evidence_refs]
+                if any(name in selected for name in resolve_subsystems(path, rules))
+            ]
+            penalized = bool(selected_paths) and all(path in ARCHITECTURE_DOC_CHURN_PATHS for path in selected_paths)
+
+    return (
+        exact_affected,
+        exact_evidence,
+        prefix_length,
+        direct_subsystem,
+        mapped_subsystem,
+        lexical_overlap,
+        0 if penalized else 1,
+        entry.timestamp_utc,
+    )
+
+
+def history_entries(
+    source: MemoryPaths | MemorySnapshot,
+    selected: set[str],
+    *,
+    repo_paths: list[str] | None = None,
+    include_excluded: bool = False,
+    history_mode: str = "recent",
+) -> list[str]:
+    if history_mode not in HISTORY_MODES:
+        raise ValueError(f"unsupported history mode: {history_mode}")
+    snapshot = ensure_snapshot(source)
+    normalized_repo_paths = [normalize_path(path) for path in (repo_paths or [])]
+    entries = []
+    for index in candidate_history_indices(snapshot, selected, normalized_repo_paths):
+        entry = snapshot.history_entries[index]
+        if not include_excluded and entry.excluded_by_default:
+            continue
+        entries.append(entry)
+    if history_mode == "recent":
+        entries.sort(key=lambda item: item.timestamp_utc)
+    else:
+        entries.sort(
+            key=lambda item: relevant_history_sort_key(item, selected, normalized_repo_paths, snapshot.rules),
+            reverse=True,
+        )
+    return [entry.rendered_line for entry in entries]
+
+
 def render_context(
-    paths: MemoryPaths,
+    source: MemoryPaths | MemorySnapshot,
     subsystem_names: list[str] | None = None,
     repo_paths: list[str] | None = None,
     include_history: int = 0,
     include_excluded_history: bool = False,
+    history_mode: str = "recent",
 ) -> str:
-    errors = validate_all(paths)
-    if errors:
-        raise ValueError("\n".join(errors))
+    snapshot = ensure_snapshot(source)
     subsystem_names = subsystem_names or []
     repo_paths = repo_paths or []
-    selected = select_subsystems(paths, subsystem_names, repo_paths)
-    parts = [read_text(paths.docs_dir / "project_brief.md").strip(), "", read_text(paths.docs_dir / "current_focus.md").strip()]
+    selected = select_subsystems(snapshot, subsystem_names, repo_paths)
+    parts = [snapshot.project_brief, "", snapshot.current_focus]
     for name in selected:
-        parts.extend(["", read_text(paths.subsystem_path(name)).strip()])
+        parts.extend(["", snapshot.subsystem_docs[name]])
     if include_history > 0:
-        targets = set(selected or parse_focus_subsystems(paths))
-        items = history_entries(paths, targets, include_excluded=include_excluded_history)
+        targets = set(selected or snapshot.focus_subsystems)
+        items = history_entries(
+            snapshot,
+            targets,
+            repo_paths=repo_paths,
+            include_excluded=include_excluded_history,
+            history_mode=history_mode,
+        )
         if items:
-            parts.extend(["", "## Recent History", *items[-include_history:]])
+            if history_mode == "recent":
+                parts.extend(["", "## Recent History", *items[-include_history:]])
+            else:
+                parts.extend(["", "## Relevant History", *items[:include_history]])
     return "\n".join(parts).strip() + "\n"
 
 
@@ -532,7 +838,15 @@ def append_record(path: Path, record: dict) -> None:
         handle.write("\n")
 
 
-def build_record(paths: MemoryPaths, kind: str, timestamp: str | None, author: str, affected_paths: list[str], evidence_refs: list[str], **fields) -> dict:
+def build_record(
+    paths: MemoryPaths,
+    kind: str,
+    timestamp: str | None,
+    author: str,
+    affected_paths: list[str],
+    evidence_refs: list[str],
+    **fields,
+) -> dict:
     timestamp_utc = utc_now(timestamp)
     record = {
         "schema_version": SCHEMA_VERSION,
@@ -548,18 +862,28 @@ def build_record(paths: MemoryPaths, kind: str, timestamp: str | None, author: s
 
 
 def write_record(paths: MemoryPaths, filename: str, record: dict) -> dict:
-    errors = validate_all(paths)
-    if errors:
-        raise ValueError("\n".join(errors))
+    snapshot = build_snapshot(paths)
     kind = filename.replace(".jsonl", "")
-    record_errors = validate_record(kind, record, paths.history_path(filename), 1, set(load_index(paths)[0]))
+    record_errors = validate_record(kind, record, paths.history_path(filename), 1, set(snapshot.pack_names))
     if record_errors:
         raise ValueError("\n".join(record_errors))
     append_record(paths.history_path(filename), record)
     return record
 
 
-def add_policy(paths: MemoryPaths, *, topic: str, status: str, statement: str, rationale: str, supersedes: list[str], evidence_refs: list[str], affected_paths: list[str], author: str, timestamp: str | None) -> dict:
+def add_policy(
+    paths: MemoryPaths,
+    *,
+    topic: str,
+    status: str,
+    statement: str,
+    rationale: str,
+    supersedes: list[str],
+    evidence_refs: list[str],
+    affected_paths: list[str],
+    author: str,
+    timestamp: str | None,
+) -> dict:
     if status not in STATUSES["policies"]:
         raise ValueError(f"unsupported policy status: {status}")
     record = build_record(
@@ -578,7 +902,19 @@ def add_policy(paths: MemoryPaths, *, topic: str, status: str, statement: str, r
     return write_record(paths, "policies.jsonl", record)
 
 
-def add_fact(paths: MemoryPaths, *, subsystem: str, status: str, fact: str, rationale: str, supersedes: list[str], evidence_refs: list[str], affected_paths: list[str], author: str, timestamp: str | None) -> dict:
+def add_fact(
+    paths: MemoryPaths,
+    *,
+    subsystem: str,
+    status: str,
+    fact: str,
+    rationale: str,
+    supersedes: list[str],
+    evidence_refs: list[str],
+    affected_paths: list[str],
+    author: str,
+    timestamp: str | None,
+) -> dict:
     if status not in STATUSES["subsystem_facts"]:
         raise ValueError(f"unsupported fact status: {status}")
     record = build_record(
@@ -597,7 +933,20 @@ def add_fact(paths: MemoryPaths, *, subsystem: str, status: str, fact: str, rati
     return write_record(paths, "subsystem_facts.jsonl", record)
 
 
-def add_investigation(paths: MemoryPaths, *, subsystem: str, status: str, question: str, current_best_answer: str, confidence: str, next_probe: str, evidence_refs: list[str], affected_paths: list[str], author: str, timestamp: str | None) -> dict:
+def add_investigation(
+    paths: MemoryPaths,
+    *,
+    subsystem: str,
+    status: str,
+    question: str,
+    current_best_answer: str,
+    confidence: str,
+    next_probe: str,
+    evidence_refs: list[str],
+    affected_paths: list[str],
+    author: str,
+    timestamp: str | None,
+) -> dict:
     if status not in STATUSES["investigations"]:
         raise ValueError(f"unsupported investigation status: {status}")
     if confidence not in {"low", "medium", "high"}:
@@ -619,7 +968,18 @@ def add_investigation(paths: MemoryPaths, *, subsystem: str, status: str, questi
     return write_record(paths, "investigations.jsonl", record)
 
 
-def add_compat_event(paths: MemoryPaths, *, subsystem: str, status: str, title: str, summary: str, evidence_refs: list[str], affected_paths: list[str], author: str, timestamp: str | None) -> dict:
+def add_compat_event(
+    paths: MemoryPaths,
+    *,
+    subsystem: str,
+    status: str,
+    title: str,
+    summary: str,
+    evidence_refs: list[str],
+    affected_paths: list[str],
+    author: str,
+    timestamp: str | None,
+) -> dict:
     if status not in STATUSES["compat_events"]:
         raise ValueError(f"unsupported compat_event status: {status}")
     record = build_record(
@@ -637,7 +997,18 @@ def add_compat_event(paths: MemoryPaths, *, subsystem: str, status: str, title: 
     return write_record(paths, "compat_events.jsonl", record)
 
 
-def add_task_event(paths: MemoryPaths, *, stream: str, status: str, summary: str, next_actions: list[str], evidence_refs: list[str], affected_paths: list[str], author: str, timestamp: str | None) -> dict:
+def add_task_event(
+    paths: MemoryPaths,
+    *,
+    stream: str,
+    status: str,
+    summary: str,
+    next_actions: list[str],
+    evidence_refs: list[str],
+    affected_paths: list[str],
+    author: str,
+    timestamp: str | None,
+) -> dict:
     if status not in STATUSES["task_events"]:
         raise ValueError(f"unsupported task_event status: {status}")
     record = build_record(
@@ -663,6 +1034,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     context.add_argument("--subsystem", action="append", default=[])
     context.add_argument("--path", action="append", default=[])
     context.add_argument("--include-history", type=int, default=0)
+    context.add_argument(
+        "--history-mode",
+        default="recent",
+        choices=HISTORY_MODES,
+        help="Choose chronological recent history or ranked relevant history when --include-history is used.",
+    )
     context.add_argument(
         "--include-excluded-history",
         action="store_true",
@@ -738,13 +1115,15 @@ def main(argv: list[str] | None = None) -> int:
             print("ok")
             return 0
         if args.command == "context":
+            snapshot = build_snapshot(paths)
             print(
                 render_context(
-                    paths,
+                    snapshot,
                     args.subsystem,
                     args.path,
                     args.include_history,
                     args.include_excluded_history,
+                    args.history_mode,
                 ),
                 end="",
             )

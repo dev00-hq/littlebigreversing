@@ -27,6 +27,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` are the daily loop, not the full gate.
 - `zig build test` is not a substitute for explicit `zig build run` or `zig build tool` acceptance.
 - Tool-only CLI/report paths need a real `zig build tool -- ...` run; test targets alone can miss parse/run/format drift.
+- Memory history lookup now treats repo-relative `evidence_refs` as retrieval edges too; if a hit is missing, recheck the query path string.
 - `scripts/verify-viewer.ps1` mixes expected-failure probes with success-path assertions; helpers that inspect nonzero exits must clear `$LASTEXITCODE`.
 - On current PowerShell, expected-failure native stderr should be normalized line-by-line; `Out-String` over the whole captured collection can rewrap raw tool output as `NativeCommandError` noise.
 - Interrupted `zig build run` launches can strand `port/zig-out/bin/lba2.exe`; clear the stale process before blaming the code.

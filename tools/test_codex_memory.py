@@ -19,6 +19,19 @@ class CodexMemoryV2Test(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
 
+    def history_lines(self, output: str, heading: str) -> list[str]:
+        marker = f"## {heading}"
+        if marker not in output:
+            return []
+        lines = output.split(marker, 1)[1].splitlines()[1:]
+        result = []
+        for line in lines:
+            if line.startswith("## "):
+                break
+            if line.strip():
+                result.append(line)
+        return result
+
     def pack_doc(self, name: str) -> str:
         return f"""# {name}
 
@@ -136,7 +149,7 @@ Repo-scoped memory for tests.
 """,
         )
         platform_linux_rule = "" if missing_mapping else "- `platform_linux`: `docs/codex_memory/subsystems/platform_linux.md`\n"
-        architecture_rule = "- `architecture`: `AGENTS.md`, `tools/codex_memory.py`"
+        architecture_rule = "- `architecture`: `AGENTS.md`, `ISSUES.md`, `docs/PROMPT.md`, `docs/codex_memory/README.md`, `docs/codex_memory/current_focus.md`, `docs/codex_memory/project_brief.md`, `tools/codex_memory.py`"
         self.write(
             paths.subsystem_dir / "INDEX.md",
             f"""# Subsystem Index
@@ -171,6 +184,8 @@ Repo-scoped memory for tests.
             self.write(paths.history_path(filename), "")
 
         self.write(paths.repo_root / "AGENTS.md", "# agents\n")
+        self.write(paths.repo_root / "ISSUES.md", "# issues\n")
+        self.write(paths.repo_root / "docs" / "PROMPT.md", "# prompt\n")
         self.write(paths.repo_root / "tools" / "codex_memory.py", "# tool\n")
         self.write(paths.repo_root / "scripts" / "check-env.ps1", "# windows\n")
         self.write(paths.repo_root / "docs" / "codex_memory" / "subsystems" / "platform_linux.md", self.pack_doc("Platform Linux"))
@@ -393,6 +408,306 @@ Repo-scoped memory for tests.
         )
         self.assertIn("New framing rule.", output)
         self.assertNotIn("Old framing rule.", output)
+
+    def test_snapshot_render_matches_path_render(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_fact(
+            paths,
+            subsystem="backgrounds",
+            status="current",
+            fact="Background inspection is separate from scene inspection.",
+            rationale="The loader boundary is different.",
+            supersedes=[],
+            evidence_refs=["port/src/game_data/background/parser.zig"],
+            affected_paths=["port/src/game_data/background/"],
+            author="tester",
+            timestamp="2026-03-26T22:05:00Z",
+        )
+        from_paths = codex_memory.render_context(
+            paths,
+            repo_paths=["port/src/game_data/background/parser.zig"],
+            include_history=5,
+        )
+        snapshot = codex_memory.build_snapshot(paths)
+        from_snapshot = codex_memory.render_context(
+            snapshot,
+            repo_paths=["port/src/game_data/background/parser.zig"],
+            include_history=5,
+        )
+        self.assertEqual(from_paths, from_snapshot)
+
+    def test_context_recent_mode_matches_default_mode(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_fact(
+            paths,
+            subsystem="backgrounds",
+            status="current",
+            fact="Older background fact.",
+            rationale="Older background rationale.",
+            supersedes=[],
+            evidence_refs=["port/src/game_data/background/parser.zig"],
+            affected_paths=["port/src/game_data/background/parser.zig"],
+            author="tester",
+            timestamp="2026-03-26T22:05:00Z",
+        )
+        codex_memory.add_fact(
+            paths,
+            subsystem="backgrounds",
+            status="current",
+            fact="Newer background fact.",
+            rationale="Newer background rationale.",
+            supersedes=[],
+            evidence_refs=["port/src/game_data/background/parser.zig"],
+            affected_paths=["port/src/game_data/background/parser.zig"],
+            author="tester",
+            timestamp="2026-03-26T22:06:00Z",
+        )
+        default_output = codex_memory.render_context(
+            paths,
+            repo_paths=["port/src/game_data/background/parser.zig"],
+            include_history=5,
+        )
+        recent_output = codex_memory.render_context(
+            paths,
+            repo_paths=["port/src/game_data/background/parser.zig"],
+            include_history=5,
+            history_mode="recent",
+        )
+        self.assertEqual(default_output, recent_output)
+
+    def test_context_recent_includes_evidence_only_exact_path_matches(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_policy(
+            paths,
+            topic="memory-workflow",
+            status="accepted",
+            statement="Evidence-only tool policy.",
+            rationale="Exact evidence refs should surface for path-scoped history.",
+            supersedes=[],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=[],
+            author="tester",
+            timestamp="2026-03-26T22:07:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            repo_paths=["tools/codex_memory.py"],
+            include_history=5,
+        )
+        lines = self.history_lines(output, "Recent History")
+        self.assertEqual(1, len(lines))
+        self.assertIn("Evidence-only tool policy.", lines[0])
+
+    def test_context_relevant_includes_evidence_only_exact_path_matches(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_policy(
+            paths,
+            topic="memory-workflow",
+            status="accepted",
+            statement="Evidence-only relevant policy.",
+            rationale="Exact evidence refs should surface for relevant path-scoped history.",
+            supersedes=[],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=[],
+            author="tester",
+            timestamp="2026-03-26T22:08:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            repo_paths=["tools/codex_memory.py"],
+            include_history=5,
+            history_mode="relevant",
+        )
+        lines = self.history_lines(output, "Relevant History")
+        self.assertEqual(1, len(lines))
+        self.assertIn("Evidence-only relevant policy.", lines[0])
+
+    def test_context_subsystem_query_includes_evidence_only_matches(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_policy(
+            paths,
+            topic="memory-workflow",
+            status="accepted",
+            statement="Subsystem evidence-only policy.",
+            rationale="Subsystem-scoped history should infer ownership from evidence refs too.",
+            supersedes=[],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=[],
+            author="tester",
+            timestamp="2026-03-26T22:09:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            subsystem_names=["architecture"],
+            include_history=5,
+        )
+        lines = self.history_lines(output, "Recent History")
+        self.assertEqual(1, len(lines))
+        self.assertIn("Subsystem evidence-only policy.", lines[0])
+
+    def test_context_path_query_includes_evidence_prefix_matches(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_policy(
+            paths,
+            topic="memory-workflow",
+            status="accepted",
+            statement="Evidence prefix policy.",
+            rationale="Directory evidence refs should surface for child paths.",
+            supersedes=[],
+            evidence_refs=["tools/"],
+            affected_paths=[],
+            author="tester",
+            timestamp="2026-03-26T22:10:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            repo_paths=["tools/codex_memory.py"],
+            include_history=5,
+            history_mode="relevant",
+        )
+        lines = self.history_lines(output, "Relevant History")
+        self.assertEqual(1, len(lines))
+        self.assertIn("Evidence prefix policy.", lines[0])
+
+    def test_context_relevant_ranks_exact_path_above_subsystem_only(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_fact(
+            paths,
+            subsystem="architecture",
+            status="current",
+            fact="Architecture-wide memory guidance.",
+            rationale="General architecture guidance.",
+            supersedes=[],
+            evidence_refs=["docs/codex_memory/README.md"],
+            affected_paths=["docs/codex_memory/README.md"],
+            author="tester",
+            timestamp="2026-03-26T23:01:00Z",
+        )
+        codex_memory.add_policy(
+            paths,
+            topic="memory-workflow",
+            status="accepted",
+            statement="Exact tool path policy.",
+            rationale="The tool path is the most specific memory target.",
+            supersedes=[],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=["tools/codex_memory.py"],
+            author="tester",
+            timestamp="2026-03-26T23:02:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            repo_paths=["tools/codex_memory.py"],
+            include_history=2,
+            history_mode="relevant",
+        )
+        lines = self.history_lines(output, "Relevant History")
+        self.assertEqual(2, len(lines))
+        self.assertIn("Exact tool path policy.", lines[0])
+        self.assertIn("Architecture-wide memory guidance.", lines[1])
+
+    def test_context_relevant_downranks_architecture_doc_churn_for_code_path_queries(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        codex_memory.add_task_event(
+            paths,
+            stream="viewer-prep",
+            status="completed",
+            summary="Prompt churn.",
+            next_actions=["Keep prompts narrow."],
+            evidence_refs=["docs/PROMPT.md"],
+            affected_paths=["docs/PROMPT.md"],
+            author="tester",
+            timestamp="2026-03-26T23:10:00Z",
+        )
+        codex_memory.add_task_event(
+            paths,
+            stream="viewer-prep",
+            status="completed",
+            summary="Current focus churn.",
+            next_actions=["Keep focus current."],
+            evidence_refs=["docs/codex_memory/current_focus.md"],
+            affected_paths=["docs/codex_memory/current_focus.md"],
+            author="tester",
+            timestamp="2026-03-26T23:11:00Z",
+        )
+        codex_memory.add_task_event(
+            paths,
+            stream="viewer-prep",
+            status="completed",
+            summary="Tool contract landed.",
+            next_actions=["Keep the tool contract explicit."],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=["tools/codex_memory.py"],
+            author="tester",
+            timestamp="2026-03-26T23:12:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            repo_paths=["tools/codex_memory.py"],
+            include_history=3,
+            history_mode="relevant",
+        )
+        lines = self.history_lines(output, "Relevant History")
+        self.assertEqual(3, len(lines))
+        self.assertIn("Tool contract landed.", lines[0])
+        self.assertNotIn("Prompt churn.", lines[0])
+        self.assertNotIn("Current focus churn.", lines[0])
+
+    def test_context_relevant_keeps_excluded_and_superseded_rules(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        old = codex_memory.add_policy(
+            paths,
+            topic="memory-workflow",
+            status="accepted",
+            statement="Old exact tool rule.",
+            rationale="Older exact tool guidance.",
+            supersedes=[],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=["tools/codex_memory.py"],
+            author="tester",
+            timestamp="2026-03-26T23:15:00Z",
+        )
+        codex_memory.add_policy(
+            paths,
+            topic="memory-workflow",
+            status="accepted",
+            statement="New exact tool rule.",
+            rationale="Newer exact tool guidance.",
+            supersedes=[old["record_id"]],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=["tools/codex_memory.py"],
+            author="tester",
+            timestamp="2026-03-26T23:16:00Z",
+        )
+        codex_memory.add_task_event(
+            paths,
+            stream="prompt-refresh",
+            status="completed",
+            summary="Prompt refresh touched the tool path.",
+            next_actions=["Keep prompt refresh out of default pickup."],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=["tools/codex_memory.py"],
+            author="tester",
+            timestamp="2026-03-26T23:17:00Z",
+        )
+        output = codex_memory.render_context(
+            paths,
+            repo_paths=["tools/codex_memory.py"],
+            include_history=5,
+            history_mode="relevant",
+        )
+        self.assertIn("New exact tool rule.", output)
+        self.assertNotIn("Old exact tool rule.", output)
+        self.assertNotIn("Prompt refresh touched the tool path.", output)
 
     def test_add_each_record_type(self) -> None:
         paths = self.make_paths()
