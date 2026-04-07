@@ -81,13 +81,31 @@ function Invoke-ExecutableCommand {
     Write-Host ("=== {0} ===" -f $Label) -ForegroundColor Cyan
 
     Push-Location $WorkingDirectory
+    $output = ""
+    $exitCode = 0
+    $previousErrorActionPreference = $ErrorActionPreference
+    $nativeCommandPreferenceVar = Get-Variable -Name PSNativeCommandUseErrorActionPreference -ErrorAction SilentlyContinue
+    $previousNativeCommandUseErrorActionPreference = $false
     try {
+        if ($null -ne $nativeCommandPreferenceVar) {
+            $previousNativeCommandUseErrorActionPreference = [bool]$nativeCommandPreferenceVar.Value
+            $PSNativeCommandUseErrorActionPreference = $false
+        }
+        # Expected-failure probes need the full stderr/stdout text, including the first rejection line.
+        $ErrorActionPreference = "Continue"
         $outputLines = (& $FilePath @Arguments 2>&1)
         $exitCode = $LASTEXITCODE
         $global:LASTEXITCODE = 0
-        $output = ($outputLines | Out-String)
+        $output = (($outputLines | ForEach-Object { $_.ToString() }) -join [Environment]::NewLine)
+        if ($output.Length -gt 0) {
+            $output += [Environment]::NewLine
+        }
     }
     finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($null -ne $nativeCommandPreferenceVar) {
+            $PSNativeCommandUseErrorActionPreference = $previousNativeCommandUseErrorActionPreference
+        }
         Pop-Location
     }
 

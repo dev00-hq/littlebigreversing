@@ -16,7 +16,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - `port/` stays canonical; runtime/viewer ownership remains split across `world_geometry`, `room_state`, `session`, `world_query`, `locomotion`, `viewer_shell`, `main`, and `render`.
 - `life_audit.zig` owns offline ranking of decoded interior candidates, and `tools/cli.zig` exposes `rank-decoded-interior-candidates` plus `triage-same-index-decoded-interior-candidates`.
 - `inspect-room` failures now distinguish unsupported life from fragment-zone bounds; `219/219` prints per-zone `invalid_fragment_zone_bounds` diagnostics before the raw error.
-- Same-index triage is now explicit: `86/86` is the highest-ranked compatible same-index pair above the guarded baseline, but it clears trivially with `fragment_count=0` and `grm_zone_count=0`; `187/187` is the first fragment-bearing compatible pair.
+- Same-index triage now exposes both top-level answers: `86/86` is the highest-ranked compatible same-index pair above the guarded baseline, but it clears trivially with `fragment_count=0` and `grm_zone_count=0`; `187/187` is the first fragment-bearing compatible pair.
 
 ## Known Traps
 
@@ -28,6 +28,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - `zig build test` is not a substitute for explicit `zig build run` or `zig build tool` acceptance.
 - Tool-only CLI/report paths need a real `zig build tool -- ...` run; test targets alone can miss parse/run/format drift.
 - `scripts/verify-viewer.ps1` mixes expected-failure probes with success-path assertions; helpers that inspect nonzero exits must clear `$LASTEXITCODE`.
+- On current PowerShell, expected-failure native stderr should be normalized line-by-line; `Out-String` over the whole captured collection can rewrap raw tool output as `NativeCommandError` noise.
 - Interrupted `zig build run` launches can strand `port/zig-out/bin/lba2.exe`; clear the stale process before blaming the code.
 - On guarded `19/19`, the exact containing-zone result for admitted `39/6` and the accepted south step is the empty set.
 - Do not confuse the guarded `19/19` diagnostic baseline with a playable-path candidate; it still lands on `raw_invalid_start` with `track_count=0`.

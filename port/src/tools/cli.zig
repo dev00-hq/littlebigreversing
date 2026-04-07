@@ -229,6 +229,9 @@ const SameIndexDecodedInteriorCandidateTriagePayload = struct {
     highest_ranked_compatible_candidate: ?SameIndexDecodedInteriorCandidateTriageSummary,
     highest_ranked_compatible_candidate_outranks_current_supported_baseline: bool,
     highest_ranked_compatible_candidate_above_baseline: ?SameIndexDecodedInteriorCandidateTriageSummary,
+    highest_ranked_fragment_bearing_compatible_candidate: ?SameIndexDecodedInteriorCandidateTriageSummary,
+    highest_ranked_fragment_bearing_compatible_candidate_outranks_current_supported_baseline: bool,
+    highest_ranked_fragment_bearing_compatible_candidate_above_baseline: ?SameIndexDecodedInteriorCandidateTriageSummary,
     candidates: []const SameIndexDecodedInteriorCandidateTriageSummary,
 };
 
@@ -1383,39 +1386,7 @@ fn triageSameIndexDecodedInteriorCandidates(
     var stderr_buffer: [4096]u8 = undefined;
     var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
     const stderr = &stderr_writer.interface;
-    try diagnostics.printLine(stderr, &.{
-        .{ .key = "command", .value = "triage-same-index-decoded-interior-candidates" },
-        .{ .key = "asset_path", .value = "SCENE.HQR" },
-    });
-    try stderr.print(
-        "ranking_basis={s} candidate_count={d} compatible_candidate_count={d} compatible_candidate_count_above_baseline={d} current_supported_baseline_scene_entry_index={d} current_supported_baseline_rank={d}\n",
-        .{
-            formatRankingBasis(),
-            payload.candidate_count,
-            payload.compatible_candidate_count,
-            payload.compatible_candidate_count_above_baseline,
-            payload.current_supported_baseline_scene_entry_index,
-            payload.current_supported_baseline_rank,
-        },
-    );
-    try printSameIndexDecodedInteriorCandidateTriage(stderr, "current_supported_baseline", payload.current_supported_baseline);
-    if (payload.highest_ranked_compatible_candidate) |candidate| {
-        try printSameIndexDecodedInteriorCandidateTriage(stderr, "highest_ranked_compatible_candidate", candidate);
-    } else {
-        try stderr.writeAll("highest_ranked_compatible_candidate=none\n");
-    }
-    if (payload.highest_ranked_compatible_candidate_above_baseline) |candidate| {
-        try printSameIndexDecodedInteriorCandidateTriage(stderr, "highest_ranked_compatible_candidate_above_baseline", candidate);
-    } else {
-        try stderr.writeAll("highest_ranked_compatible_candidate_above_baseline=none\n");
-    }
-    try stderr.print(
-        "highest_ranked_compatible_candidate_outranks_current_supported_baseline={}\n",
-        .{payload.highest_ranked_compatible_candidate_outranks_current_supported_baseline},
-    );
-    for (payload.candidates) |candidate| {
-        try printSameIndexDecodedInteriorCandidateTriage(stderr, "candidate", candidate);
-    }
+    try printSameIndexDecodedInteriorCandidateTriagePayload(stderr, payload);
     try stderr.flush();
 }
 
@@ -1581,6 +1552,8 @@ fn buildSameIndexDecodedInteriorCandidateTriagePayload(
     var compatible_candidate_count_above_baseline: usize = 0;
     var highest_ranked_compatible_candidate: ?SameIndexDecodedInteriorCandidateTriageSummary = null;
     var highest_ranked_compatible_candidate_above_baseline: ?SameIndexDecodedInteriorCandidateTriageSummary = null;
+    var highest_ranked_fragment_bearing_compatible_candidate: ?SameIndexDecodedInteriorCandidateTriageSummary = null;
+    var highest_ranked_fragment_bearing_compatible_candidate_above_baseline: ?SameIndexDecodedInteriorCandidateTriageSummary = null;
 
     for (ranked, 0..) |candidate, index| {
         const diagnostics_snapshot = try room_state.inspectRoomFragmentZoneDiagnostics(
@@ -1609,6 +1582,15 @@ fn buildSameIndexDecodedInteriorCandidateTriagePayload(
             }
         }
 
+        if (isFragmentBearingCompatibleSameIndexCandidate(summary)) {
+            if (highest_ranked_fragment_bearing_compatible_candidate == null) {
+                highest_ranked_fragment_bearing_compatible_candidate = summary;
+            }
+            if (summary.rank < baseline_index + 1 and highest_ranked_fragment_bearing_compatible_candidate_above_baseline == null) {
+                highest_ranked_fragment_bearing_compatible_candidate_above_baseline = summary;
+            }
+        }
+
         try candidates.append(allocator, summary);
     }
 
@@ -1627,8 +1609,15 @@ fn buildSameIndexDecodedInteriorCandidateTriagePayload(
         .highest_ranked_compatible_candidate = highest_ranked_compatible_candidate,
         .highest_ranked_compatible_candidate_outranks_current_supported_baseline = if (highest_ranked_compatible_candidate) |candidate| candidate.rank < baseline_index + 1 else false,
         .highest_ranked_compatible_candidate_above_baseline = highest_ranked_compatible_candidate_above_baseline,
+        .highest_ranked_fragment_bearing_compatible_candidate = highest_ranked_fragment_bearing_compatible_candidate,
+        .highest_ranked_fragment_bearing_compatible_candidate_outranks_current_supported_baseline = if (highest_ranked_fragment_bearing_compatible_candidate) |candidate| candidate.rank < baseline_index + 1 else false,
+        .highest_ranked_fragment_bearing_compatible_candidate_above_baseline = highest_ranked_fragment_bearing_compatible_candidate_above_baseline,
         .candidates = owned_candidates,
     };
+}
+
+fn isFragmentBearingCompatibleSameIndexCandidate(candidate: SameIndexDecodedInteriorCandidateTriageSummary) bool {
+    return candidate.compatible and candidate.fragment_count > 0 and candidate.grm_zone_count > 0;
 }
 
 fn buildSameIndexDecodedInteriorCandidateTriageSummary(
@@ -1872,6 +1861,59 @@ fn printSameIndexDecodedInteriorCandidateTriage(
             formatOptionalUsize(&first_invalid_fragment_entry_index_buffer, candidate.first_invalid_fragment_entry_index),
         },
     );
+}
+
+fn printSameIndexDecodedInteriorCandidateTriagePayload(
+    writer: anytype,
+    payload: SameIndexDecodedInteriorCandidateTriagePayload,
+) !void {
+    try diagnostics.printLine(writer, &.{
+        .{ .key = "command", .value = "triage-same-index-decoded-interior-candidates" },
+        .{ .key = "asset_path", .value = "SCENE.HQR" },
+    });
+    try writer.print(
+        "ranking_basis={s} candidate_count={d} compatible_candidate_count={d} compatible_candidate_count_above_baseline={d} current_supported_baseline_scene_entry_index={d} current_supported_baseline_rank={d}\n",
+        .{
+            formatRankingBasis(),
+            payload.candidate_count,
+            payload.compatible_candidate_count,
+            payload.compatible_candidate_count_above_baseline,
+            payload.current_supported_baseline_scene_entry_index,
+            payload.current_supported_baseline_rank,
+        },
+    );
+    try printSameIndexDecodedInteriorCandidateTriage(writer, "current_supported_baseline", payload.current_supported_baseline);
+    if (payload.highest_ranked_compatible_candidate) |candidate| {
+        try printSameIndexDecodedInteriorCandidateTriage(writer, "highest_ranked_compatible_candidate", candidate);
+    } else {
+        try writer.writeAll("highest_ranked_compatible_candidate=none\n");
+    }
+    if (payload.highest_ranked_compatible_candidate_above_baseline) |candidate| {
+        try printSameIndexDecodedInteriorCandidateTriage(writer, "highest_ranked_compatible_candidate_above_baseline", candidate);
+    } else {
+        try writer.writeAll("highest_ranked_compatible_candidate_above_baseline=none\n");
+    }
+    try writer.print(
+        "highest_ranked_compatible_candidate_outranks_current_supported_baseline={}\n",
+        .{payload.highest_ranked_compatible_candidate_outranks_current_supported_baseline},
+    );
+    if (payload.highest_ranked_fragment_bearing_compatible_candidate) |candidate| {
+        try printSameIndexDecodedInteriorCandidateTriage(writer, "highest_ranked_fragment_bearing_compatible_candidate", candidate);
+    } else {
+        try writer.writeAll("highest_ranked_fragment_bearing_compatible_candidate=none\n");
+    }
+    if (payload.highest_ranked_fragment_bearing_compatible_candidate_above_baseline) |candidate| {
+        try printSameIndexDecodedInteriorCandidateTriage(writer, "highest_ranked_fragment_bearing_compatible_candidate_above_baseline", candidate);
+    } else {
+        try writer.writeAll("highest_ranked_fragment_bearing_compatible_candidate_above_baseline=none\n");
+    }
+    try writer.print(
+        "highest_ranked_fragment_bearing_compatible_candidate_outranks_current_supported_baseline={}\n",
+        .{payload.highest_ranked_fragment_bearing_compatible_candidate_outranks_current_supported_baseline},
+    );
+    for (payload.candidates) |candidate| {
+        try printSameIndexDecodedInteriorCandidateTriage(writer, "candidate", candidate);
+    }
 }
 
 fn formatRankingBasis() []const u8 {
@@ -2541,6 +2583,19 @@ test "same-index decoded interior triage payload pins the current baseline compa
     try std.testing.expectEqual(@as(usize, 86), highest_above_baseline.scene_entry_index);
     try std.testing.expectEqual(true, payload.highest_ranked_compatible_candidate_outranks_current_supported_baseline);
 
+    const highest_fragment_bearing = payload.highest_ranked_fragment_bearing_compatible_candidate orelse return error.MissingHighestFragmentBearingCompatibleCandidate;
+    try std.testing.expectEqual(@as(usize, 16), highest_fragment_bearing.rank);
+    try std.testing.expectEqual(@as(usize, 187), highest_fragment_bearing.scene_entry_index);
+    try std.testing.expectEqual(true, highest_fragment_bearing.compatible);
+    try std.testing.expectEqual(@as(usize, 2), highest_fragment_bearing.fragment_count);
+    try std.testing.expectEqual(@as(usize, 2), highest_fragment_bearing.grm_zone_count);
+    try std.testing.expectEqual(@as(usize, 2), highest_fragment_bearing.compatible_zone_count);
+
+    const highest_fragment_bearing_above_baseline = payload.highest_ranked_fragment_bearing_compatible_candidate_above_baseline orelse return error.MissingHighestFragmentBearingCompatibleCandidateAboveBaseline;
+    try std.testing.expectEqual(@as(usize, 16), highest_fragment_bearing_above_baseline.rank);
+    try std.testing.expectEqual(@as(usize, 187), highest_fragment_bearing_above_baseline.scene_entry_index);
+    try std.testing.expectEqual(true, payload.highest_ranked_fragment_bearing_compatible_candidate_outranks_current_supported_baseline);
+
     const blocked_top = payload.candidates[0];
     try std.testing.expectEqual(@as(usize, 219), blocked_top.scene_entry_index);
     try std.testing.expectEqual(false, blocked_top.compatible);
@@ -2561,6 +2616,31 @@ test "same-index decoded interior triage payload pins the current baseline compa
     try std.testing.expectEqual(@as(usize, 2), first_fragment_bearing_compatible.fragment_count);
     try std.testing.expectEqual(@as(usize, 2), first_fragment_bearing_compatible.grm_zone_count);
     try std.testing.expectEqual(@as(usize, 2), first_fragment_bearing_compatible.compatible_zone_count);
+}
+
+test "same-index decoded interior triage text output surfaces the fragment-bearing summary" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const scene_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
+    defer allocator.free(scene_path);
+
+    const ranked = try life_audit.rankDecodedInteriorSceneCandidates(allocator, scene_path);
+    defer allocator.free(ranked);
+
+    const payload = try buildSameIndexDecodedInteriorCandidateTriagePayload(allocator, resolved, ranked);
+    defer allocator.free(payload.candidates);
+
+    var buffer: [32768]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&buffer);
+    try printSameIndexDecodedInteriorCandidateTriagePayload(stream.writer(), payload);
+
+    const output = stream.getWritten();
+    try std.testing.expect(std.mem.indexOf(u8, output, "highest_ranked_compatible_candidate rank=2 scene_entry_index=86") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "highest_ranked_fragment_bearing_compatible_candidate rank=16 scene_entry_index=187") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "highest_ranked_fragment_bearing_compatible_candidate_above_baseline rank=16 scene_entry_index=187") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "highest_ranked_fragment_bearing_compatible_candidate_outranks_current_supported_baseline=true") != null);
 }
 
 test "inspect-room composes the guarded canonical interior pair metadata" {

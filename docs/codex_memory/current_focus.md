@@ -14,7 +14,7 @@
 
 - Guarded `19/19` and negative-load diagnostics stay explicit.
 - Phase 5 branch-B triage: `219` is first and `19` is `49/50` under `rank-decoded-interior-candidates`, while `triage-same-index-decoded-interior-candidates` reports `86/86` as the highest-ranked compatible same-index pair above baseline.
-- Fragment-bearing same-index triage: `86/86` is only a zero-fragment/zero-GRM compatible pass; `187/187` is the first fragment-bearing compatible same-index pair, at rank `16` with `fragment_count=2`, `grm_zone_count=2`, and `compatible_zone_count=2`.
+- Fragment-bearing triage is now explicit: `86/86` stays the zero-fragment/zero-GRM pass, while `187/187` is the first fragment-bearing compatible pair at `rank=16` with `fragment_count=2`, `grm_zone_count=2`, and `compatible_zone_count=2`.
 - Top-candidate blocker: `inspect-room 219 219 --json` now emits six fragment-zone issues; the first is zone `1` `z=4208..5744`.
 
 ## Blocked Items
@@ -28,7 +28,7 @@
 
 ## Next Actions
 
-- Keep the next Phase 5 slice on same-index interpretation after the landed triage report: preserve `86/86` as the highest-ranked compatible pair overall, but treat `187/187` as the first fragment-bearing compatible pair if the goal is new fragment-zone evidence.
+- Use the landed triage summaries for the next Phase 5 choice: preserve `86/86` as the highest-ranked compatible pair overall, but treat `187/187` as the first fragment-bearing compatible pair if the goal is new fragment-zone evidence.
 - Use `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` during iteration; keep bare `zig build test` plus `scripts/verify-viewer.ps1` for before-close validation.
 - Keep future life work on unsupported-life diagnostics or new checked-in proof only.
 
