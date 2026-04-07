@@ -41,10 +41,14 @@ class TracePreset:
     target_offset: int
     focus_offset_start: int
     focus_offset_end: int
-    fingerprint_offset: int
-    fingerprint_hex: str
+    fingerprint_offset: int | None
+    fingerprint_hex: str | None
     max_hits: int
     default_timeout_sec: float | None
+    comparison_object: int | None = None
+    comparison_opcode: int | None = None
+    comparison_offset: int | None = None
+    launch_save: str | None = None
 
 
 DEFAULT_BASIC_TARGET_OBJECT = 0
@@ -63,6 +67,33 @@ TAVERN_TRACE_PRESET = TracePreset(
     fingerprint_hex="28 14 00 21 2F 00 23 0D 0E 00",
     max_hits=1,
     default_timeout_sec=60.0,
+)
+
+SCENE11_PAIR_PRESET = TracePreset(
+    name="scene11-pair",
+    target_object=12,
+    target_opcode=0x74,
+    target_offset=38,
+    focus_offset_start=30,
+    focus_offset_end=48,
+    fingerprint_offset=30,
+    fingerprint_hex="00 01 17 42 00 75 2D 00 74 17",
+    max_hits=1,
+    default_timeout_sec=60.0,
+    comparison_object=18,
+    comparison_opcode=0x76,
+    comparison_offset=84,
+    launch_save=str(
+        REPO_ROOT
+        / "work"
+        / "_innoextract_full"
+        / "Speedrun"
+        / "Windows"
+        / "LBA2_cdrom"
+        / "LBA2"
+        / "SAVE"
+        / "scene11-pair.LBA"
+    ),
 )
 
 
@@ -84,7 +115,7 @@ def parse_args() -> argparse.Namespace:
         default=r"D:\repos\reverse\frida",
         help="Frida repository root containing build/install-root.",
     )
-    parser.add_argument("--mode", choices=["basic", "tavern-trace"], default="basic")
+    parser.add_argument("--mode", choices=["basic", "tavern-trace", "scene11-pair"], default="basic")
     parser.add_argument("--target-object", type=parse_int, default=None, help="Object index to match.")
     parser.add_argument("--target-opcode", type=parse_int, default=None, help="Opcode byte to match.")
     parser.add_argument("--target-offset", type=parse_int, default=None, help="PtrPrg - PtrLife offset to match.")
@@ -100,7 +131,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--log-all", action="store_true", help="Emit every DoLife loop hit instead of only matches.")
     parser.add_argument(
         "--screenshot-dir",
-        help="Root screenshot directory. Only supported with --mode tavern-trace.",
+        help="Root screenshot directory. Only supported with --mode tavern-trace or --mode scene11-pair.",
+    )
+    parser.add_argument(
+        "--launch-save",
+        help="Optional save file path to pass as ArgV[1] when spawning the original runtime.",
     )
     args = parser.parse_args()
 
@@ -109,8 +144,8 @@ def parse_args() -> argparse.Namespace:
     if args.timeout_sec is not None and args.timeout_sec < 0:
         parser.error("--timeout-sec must be at least 0")
 
-    if args.mode != "tavern-trace" and args.screenshot_dir is not None:
-        parser.error("--screenshot-dir requires --mode tavern-trace")
+    if args.mode not in ("tavern-trace", "scene11-pair") and args.screenshot_dir is not None:
+        parser.error("--screenshot-dir requires --mode tavern-trace or --mode scene11-pair")
 
     if args.mode == "tavern-trace":
         preset = TAVERN_TRACE_PRESET
@@ -129,8 +164,37 @@ def parse_args() -> argparse.Namespace:
         args.focus_offset_end = preset.focus_offset_end
         args.fingerprint_offset = preset.fingerprint_offset
         args.fingerprint_hex = preset.fingerprint_hex
-        args.fingerprint_bytes = parse_hex_bytes(preset.fingerprint_hex)
+        args.fingerprint_bytes = parse_hex_bytes(preset.fingerprint_hex) if preset.fingerprint_hex else ()
         args.timeout_sec = preset.default_timeout_sec if args.timeout_sec is None else args.timeout_sec
+        args.comparison_object = preset.comparison_object
+        args.comparison_opcode = preset.comparison_opcode
+        args.comparison_offset = preset.comparison_offset
+        args.launch_save = preset.launch_save if args.launch_save is None else args.launch_save
+        if args.screenshot_dir is None:
+            args.screenshot_dir = str(REPO_ROOT / "work" / "life_trace" / "shots")
+    elif args.mode == "scene11-pair":
+        preset = SCENE11_PAIR_PRESET
+        if args.target_object is not None and args.target_object != preset.target_object:
+            parser.error(f"--mode scene11-pair requires --target-object {preset.target_object}")
+        if args.target_opcode is not None and args.target_opcode != preset.target_opcode:
+            parser.error(f"--mode scene11-pair requires --target-opcode 0x{preset.target_opcode:02X}")
+        if args.target_offset is not None and args.target_offset != preset.target_offset:
+            parser.error(f"--mode scene11-pair requires --target-offset {preset.target_offset}")
+
+        args.target_object = preset.target_object
+        args.target_opcode = preset.target_opcode
+        args.target_offset = preset.target_offset
+        args.max_hits = preset.max_hits
+        args.focus_offset_start = preset.focus_offset_start
+        args.focus_offset_end = preset.focus_offset_end
+        args.fingerprint_offset = preset.fingerprint_offset
+        args.fingerprint_hex = preset.fingerprint_hex
+        args.fingerprint_bytes = parse_hex_bytes(preset.fingerprint_hex) if preset.fingerprint_hex else ()
+        args.timeout_sec = preset.default_timeout_sec if args.timeout_sec is None else args.timeout_sec
+        args.comparison_object = preset.comparison_object
+        args.comparison_opcode = preset.comparison_opcode
+        args.comparison_offset = preset.comparison_offset
+        args.launch_save = preset.launch_save if args.launch_save is None else args.launch_save
         if args.screenshot_dir is None:
             args.screenshot_dir = str(REPO_ROOT / "work" / "life_trace" / "shots")
     else:
@@ -142,6 +206,9 @@ def parse_args() -> argparse.Namespace:
         args.fingerprint_offset = None
         args.fingerprint_hex = None
         args.fingerprint_bytes = ()
+        args.comparison_object = None
+        args.comparison_opcode = None
+        args.comparison_offset = None
         args.timeout_sec = 0 if args.timeout_sec is None else args.timeout_sec
 
     return args
@@ -185,6 +252,9 @@ def load_agent_source(args: argparse.Namespace) -> str:
         "fingerprintOffset": args.fingerprint_offset,
         "fingerprintHex": args.fingerprint_hex,
         "fingerprintBytes": list(args.fingerprint_bytes),
+        "comparisonObject": args.comparison_object,
+        "comparisonOpcode": args.comparison_opcode,
+        "comparisonOffset": args.comparison_offset,
     }
     template = (Path(__file__).with_name("agent.js")).read_text(encoding="utf-8")
     return template.replace("__TRACE_CONFIG__", json.dumps(config, separators=(",", ":")))
@@ -889,6 +959,280 @@ class TavernTraceController:
         return required
 
 
+class Scene11PairController:
+    def __init__(self, args: argparse.Namespace, writer: JsonlWriter, pid: int) -> None:
+        self.args = args
+        self.writer = writer
+        self.pid = pid
+        self.phase = "attached"
+        self.exit_code = 1
+        self.terminal = False
+        self.last_error: str | None = None
+
+        self.capture = WindowCapture()
+        self.screenshot_root = Path(args.screenshot_dir).resolve()
+        self.run_screenshot_dir = self.screenshot_root / writer.run_id
+        self.run_screenshot_dir.mkdir(parents=True, exist_ok=True)
+
+        self.matched_fingerprint = False
+        self.fingerprint_event_id: str | None = None
+        self.primary_event_id: str | None = None
+        self.primary_event: dict | None = None
+        self.comparison_event_id: str | None = None
+        self.comparison_event: dict | None = None
+        self.required_screenshots: dict[str, str] = {}
+
+    def begin(self) -> None:
+        self._advance_phase("waiting_for_fingerprint", "waiting for the canonical scene-11 fingerprint")
+
+    def handle_event(self, event: dict) -> None:
+        event_id = self.writer.write_event(event)
+        kind = event.get("kind")
+
+        if kind == "error":
+            self._finalize("unexpected_control_flow", event.get("description") or "agent error", take_final_screenshot=True)
+            return
+
+        if kind == "target_validation" and event.get("matches_fingerprint"):
+            if not self.matched_fingerprint:
+                self.matched_fingerprint = True
+                self.fingerprint_event_id = event_id
+                self._advance_phase("capturing_primary", "scene-11 fingerprint matched; waiting for object 12 LM_DEFAULT")
+                self._capture_required_poi(
+                    poi="fingerprint_match",
+                    event_id=event_id,
+                    object_index=event.get("object_index", self.args.target_object),
+                    offset_value=event.get("fingerprint_start_offset", self.args.fingerprint_offset),
+                )
+            return
+
+        if kind not in ("window_trace", "do_life_return"):
+            return
+
+        trace_role = event.get("trace_role")
+        if trace_role == "primary" and self.primary_event_id is None:
+            self.primary_event_id = event_id
+            self.primary_event = dict(event)
+            self._capture_required_poi(
+                poi="primary_opcode_hit",
+                event_id=event_id,
+                object_index=event.get("object_index", self.args.target_object),
+                offset_value=event.get("ptr_prg_before_offset", self.args.target_offset),
+            )
+            self._advance_phase("capturing_comparison", "captured object 12 LM_DEFAULT; waiting for object 18 LM_END_SWITCH")
+            if self.comparison_event_id is not None:
+                self._finalize_scene11_verdict()
+            return
+
+        if trace_role == "comparison" and self.comparison_event_id is None:
+            self.comparison_event_id = event_id
+            self.comparison_event = dict(event)
+            self._capture_required_poi(
+                poi="comparison_opcode_hit",
+                event_id=event_id,
+                object_index=event.get("object_index", self.args.comparison_object),
+                offset_value=event.get("ptr_prg_before_offset", self.args.comparison_offset),
+            )
+            if self.primary_event_id is None:
+                self._advance_phase("capturing_primary", "captured object 18 comparison early; still waiting for object 12 LM_DEFAULT")
+            else:
+                self._finalize_scene11_verdict()
+
+    def handle_timeout(self) -> None:
+        if not self.matched_fingerprint:
+            self._finalize(
+                "timed_out_before_fingerprint",
+                f"timed out after {self.args.timeout_sec:g} seconds before the canonical scene-11 fingerprint matched",
+                take_final_screenshot=True,
+            )
+            return
+
+        if self.primary_event_id is None:
+            self._finalize(
+                "timed_out_before_primary",
+                f"timed out after {self.args.timeout_sec:g} seconds before capturing object {self.args.target_object} opcode 0x{self.args.target_opcode:02X} at offset {self.args.target_offset}",
+                take_final_screenshot=True,
+            )
+            return
+
+        self._finalize(
+            "timed_out_before_comparison",
+            f"timed out after {self.args.timeout_sec:g} seconds before capturing object {self.args.comparison_object} opcode 0x{self.args.comparison_opcode:02X} at offset {self.args.comparison_offset}",
+            take_final_screenshot=True,
+        )
+
+    def handle_interrupt(self) -> None:
+        self._finalize("unexpected_control_flow", "interrupted before the scene-11 pair trace completed", take_final_screenshot=True)
+
+    def next_deadline(self) -> float | None:
+        return None
+
+    def poll(self, now: float) -> None:
+        return
+
+    def _advance_phase(self, phase: str, message: str) -> None:
+        if self.phase == phase or self.terminal:
+            return
+        self.phase = phase
+        self.writer.write_event({"kind": "status", "phase": phase, "message": message})
+
+    def _capture_required_poi(self, poi: str, event_id: str, object_index: int, offset_value: int | None) -> None:
+        if poi in self.required_screenshots or self.terminal:
+            return
+
+        try:
+            screenshot_path, window = self._capture_window_file(poi, event_id, object_index, offset_value)
+        except CaptureError as error:
+            self.writer.write_event(
+                {
+                    "kind": "screenshot_error",
+                    "poi": poi,
+                    "reason": str(error),
+                    "capture_status": "failed",
+                },
+                event_id=event_id,
+            )
+            self._finalize(
+                "screenshot_capture_failed",
+                f"required screenshot failed for {poi}: {error}",
+                take_final_screenshot=False,
+            )
+            return
+
+        self.required_screenshots[poi] = screenshot_path
+        self.writer.write_event(
+            {
+                "kind": "screenshot",
+                "poi": poi,
+                "screenshot_path": screenshot_path,
+                "source_window_title": window.title,
+                "capture_status": "captured",
+            },
+            event_id=event_id,
+        )
+
+    def _capture_window_file(
+        self,
+        poi: str,
+        event_id: str,
+        object_index: int,
+        offset_value: int | None,
+    ) -> tuple[str, WindowInfo]:
+        filename = f"{event_id}__{poi}__obj{object_index}__off{self._format_offset(offset_value)}.png"
+        absolute_path = self.run_screenshot_dir / filename
+        window = self.capture.capture(self.pid, absolute_path)
+        return self._display_path(absolute_path), window
+
+    def _display_path(self, path: Path) -> str:
+        try:
+            return str(path.relative_to(REPO_ROOT)).replace("\\", "/")
+        except ValueError:
+            return str(path)
+
+    @staticmethod
+    def _format_offset(offset_value: int | None) -> str:
+        if offset_value is None:
+            return "na"
+        return f"{int(offset_value):03d}"
+
+    def _finalize_scene11_verdict(self) -> None:
+        if self.matched_fingerprint and self.primary_event_id is not None and self.comparison_event_id is not None:
+            self._finalize(
+                "scene11_pair_complete",
+                "captured scene-11 LM_DEFAULT and LM_END_SWITCH evidence on live paths",
+                take_final_screenshot=True,
+            )
+            return
+
+        self._finalize(
+            "unexpected_control_flow",
+            "captured an incomplete scene-11 pair evidence set",
+            take_final_screenshot=True,
+        )
+
+    def _finalize(self, result: str, reason: str, *, take_final_screenshot: bool) -> None:
+        if self.terminal:
+            return
+
+        verdict_event_id = self.writer.next_event_id()
+        if take_final_screenshot:
+            try:
+                screenshot_path, window = self._capture_window_file(
+                    poi="final_verdict",
+                    event_id=verdict_event_id,
+                    object_index=self.args.target_object,
+                    offset_value=self.args.target_offset,
+                )
+            except CaptureError as error:
+                self.writer.write_event(
+                    {
+                        "kind": "screenshot_error",
+                        "poi": "final_verdict",
+                        "reason": str(error),
+                        "capture_status": "failed",
+                    },
+                    event_id=verdict_event_id,
+                )
+                result = "screenshot_capture_failed"
+                reason = f"required screenshot failed for final_verdict: {error}"
+            else:
+                self.required_screenshots["final_verdict"] = screenshot_path
+                self.writer.write_event(
+                    {
+                        "kind": "screenshot",
+                        "poi": "final_verdict",
+                        "screenshot_path": screenshot_path,
+                        "source_window_title": window.title,
+                        "capture_status": "captured",
+                    },
+                    event_id=verdict_event_id,
+                )
+
+        required_screenshots_complete = (
+            result != "screenshot_capture_failed"
+            and self._required_pois() <= set(self.required_screenshots)
+        )
+
+        self.writer.write_event(
+            {
+                "kind": "verdict",
+                "phase": "completed",
+                "matched_fingerprint": self.matched_fingerprint,
+                "required_screenshots_complete": required_screenshots_complete,
+                "result": result,
+                "reason": reason,
+                "fingerprint_event_id": self.fingerprint_event_id,
+                "primary_event_id": self.primary_event_id,
+                "primary_post_hit_outcome": None if self.primary_event is None else self.primary_event.get("post_hit_outcome"),
+                "primary_entered_do_func_life": None if self.primary_event is None else self.primary_event.get("entered_do_func_life"),
+                "primary_entered_do_test": None if self.primary_event is None else self.primary_event.get("entered_do_test"),
+                "comparison_event_id": self.comparison_event_id,
+                "comparison_post_hit_outcome": None if self.comparison_event is None else self.comparison_event.get("post_hit_outcome"),
+                "comparison_entered_do_func_life": None if self.comparison_event is None else self.comparison_event.get("entered_do_func_life"),
+                "comparison_entered_do_test": None if self.comparison_event is None else self.comparison_event.get("entered_do_test"),
+            },
+            event_id=verdict_event_id,
+        )
+
+        if self.phase != "completed":
+            self.phase = "completed"
+
+        self.last_error = None if result == "scene11_pair_complete" else reason
+        self.exit_code = 0 if result == "scene11_pair_complete" else 1
+        self.terminal = True
+
+    def _required_pois(self) -> set[str]:
+        required: set[str] = set()
+        if self.matched_fingerprint:
+            required.add("fingerprint_match")
+        if self.primary_event_id is not None:
+            required.add("primary_opcode_hit")
+        if self.comparison_event_id is not None:
+            required.add("comparison_opcode_hit")
+        required.add("final_verdict")
+        return required
+
+
 def main() -> int:
     args = parse_args()
     output_path = Path(args.output).resolve()
@@ -905,7 +1249,7 @@ def main() -> int:
     session = None
     script = None
     spawned_pid: int | None = None
-    controller: BasicTraceController | TavernTraceController | None = None
+    controller: BasicTraceController | TavernTraceController | Scene11PairController | None = None
 
     def on_message(message: dict, data) -> None:
         event, _error = normalize_script_message(message)
@@ -922,13 +1266,24 @@ def main() -> int:
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
-            spawned_pid = device.spawn([str(launch_path)], cwd=str(launch_path.parent))
+            spawn_argv = [str(launch_path)]
+            if args.launch_save is not None:
+                launch_save_path = Path(args.launch_save)
+                if not launch_save_path.exists():
+                    raise RuntimeError(f"launch save path does not exist: {launch_save_path}")
+                spawn_argv.append(str(launch_save_path))
+            spawned_pid = device.spawn(spawn_argv, cwd=str(launch_path.parent))
             pid = spawned_pid
         else:
             process = find_process(device, args.process)
             pid = process.pid
 
-        controller = TavernTraceController(args, writer, pid) if args.mode == "tavern-trace" else BasicTraceController(args, writer)
+        if args.mode == "tavern-trace":
+            controller = TavernTraceController(args, writer, pid)
+        elif args.mode == "scene11-pair":
+            controller = Scene11PairController(args, writer, pid)
+        else:
+            controller = BasicTraceController(args, writer)
 
         session = device.attach(pid)
         script = session.create_script(load_agent_source(args))
@@ -950,6 +1305,7 @@ def main() -> int:
                 "pid": pid,
                 "process_name": args.process,
                 "launch_path": args.launch,
+                "launch_save": args.launch_save,
             }
         )
 
@@ -982,10 +1338,10 @@ def main() -> int:
                         "pid": pid,
                     }
                 )
-                if isinstance(controller, TavernTraceController):
+                if isinstance(controller, (TavernTraceController, Scene11PairController)):
                     controller._finalize(
                         "process_exited",
-                        f"process {pid} exited before the Tavern trace completed",
+                        f"process {pid} exited before the structured trace completed",
                         take_final_screenshot=False,
                     )
                 else:
@@ -1024,7 +1380,7 @@ def main() -> int:
                 "stack": None,
             }
         )
-        if controller is not None and isinstance(controller, TavernTraceController) and not controller.terminal:
+        if controller is not None and isinstance(controller, (TavernTraceController, Scene11PairController)) and not controller.terminal:
             controller._finalize("unexpected_control_flow", str(error), take_final_screenshot=True)
         elif controller is not None:
             controller.last_error = str(error)

@@ -31,3 +31,4 @@ zig-out/
 port/.zig-cache/
 port/zig-out/
 .old_memory/
+tmp_ocr/

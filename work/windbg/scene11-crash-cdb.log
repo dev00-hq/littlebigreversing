@@ -1,0 +1,785 @@
+Opened log file 'D:\repos\reverse\littlebigreversing\work\windbg\scene11-crash-cdb.log'
+
+************* Preparing the environment for Debugger Extensions Gallery repositories **************
+   ExtensionRepository : Implicit
+   UseExperimentalFeatureForNugetShare : true
+   AllowNugetExeUpdate : true
+   NonInteractiveNuget : true
+   AllowNugetMSCredentialProviderInstall : true
+   AllowParallelInitializationOfLocalRepositories : true
+   EnableRedirectToChakraJsProvider : false
+
+   -- Configuring repositories
+      ----> Repository : LocalInstalled, Enabled: true
+      ----> Repository : UserExtensions, Enabled: true
+
+>>>>>>>>>>>>> Preparing the environment for Debugger Extensions Gallery repositories completed, duration 0.016 seconds
+
+************* Waiting for Debugger Extensions Gallery to Initialize **************
+
+>>>>>>>>>>>>> Waiting for Debugger Extensions Gallery to Initialize completed, duration 0.437 seconds
+   ----> Repository : UserExtensions, Enabled: true, Packages count: 0
+   ----> Repository : LocalInstalled, Enabled: true, Packages count: 46
+
+Microsoft (R) Windows Debugger Version 10.0.29547.1002 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+*** wait with pending attach
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\atlmfc.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\concurrency.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\cpp_rest.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\ObjectiveC.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\stl.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Data.Json.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Geolocation.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Sensors.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Media.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\windows.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\winrt.natvis'
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+
++------------------------------------------------------------------------+
+| This target supports Hardware-enforced Stack Protection. A HW based    |
+| "Shadow Stack" may be available to assist in debugging and analysis.   |
+| See aka.ms/userhsp for more info.                                      |
+|                                                                        |
+| dps @ssp                                                               |
+|                                                                        |
++------------------------------------------------------------------------+
+
+ModLoad: 00000000`00400000 00000000`004e3000   D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE
+ModLoad: 00007fff`34960000 00007fff`34bc7000   C:\WINDOWS\SYSTEM32\ntdll.dll
+ModLoad: 00000000`77ab0000 00000000`77c6f000   ntdll.dll
+ModLoad: 00007fff`32ce0000 00007fff`32d35000   C:\WINDOWS\System32\wow64.dll
+ModLoad: 00007fff`343c0000 00007fff`343cb000   C:\WINDOWS\System32\wow64base.dll
+ModLoad: 00007fff`343d0000 00007fff`34459000   C:\WINDOWS\System32\wow64win.dll
+ModLoad: 00007fff`330f0000 00007fff`33109000   C:\WINDOWS\System32\wow64con.dll
+ModLoad: 00000000`77aa0000 00000000`77aaa000   C:\WINDOWS\System32\wow64cpu.dll
+ModLoad: 00000000`75dd0000 00000000`75ec0000   KERNEL32.dll
+ModLoad: 00000000`76060000 00000000`76328000   KERNELBASE.dll
+ModLoad: 00000000`74d00000 00000000`74dae000   apphelp.dll
+ModLoad: 00000000`76b20000 00000000`76b42000   GDI32.dll
+ModLoad: 00000000`77880000 00000000`7789a000   win32u.dll
+ModLoad: 00000000`76360000 00000000`7644b000   gdi32full.dll
+ModLoad: 00000000`75d40000 00000000`75dc5000   msvcp_win.dll
+ModLoad: 00000000`76c30000 00000000`76d40000   ucrtbase.dll
+ModLoad: 00000000`776b0000 00000000`77879000   USER32.dll
+ModLoad: 00000000`75390000 00000000`75415000   ADVAPI32.dll
+ModLoad: 00000000`775e0000 00000000`776a7000   msvcrt.dll
+ModLoad: 00000000`75ca0000 00000000`75d23000   SECHOST.dll
+ModLoad: 00000000`75130000 00000000`751ec000   RPCRT4.dll
+ModLoad: 00000000`74c30000 00000000`74c63000   WINMM.dll
+ModLoad: 00000000`65c90000 00000000`65d7c000   DDRAW.dll
+ModLoad: 00000000`63680000 00000000`63789000   dxgi.dll
+ModLoad: 00000000`664d0000 00000000`664d7000   DCIMAN32.dll
+ModLoad: 00000000`74bd0000 00000000`74c25000   POWRPROF.dll
+ModLoad: 00000000`65840000 00000000`65876000   dxcore.dll
+ModLoad: 00000000`00760000 00000000`00776000   smackw32.dll
+ModLoad: 00000000`00d10000 00000000`00d3b000   mss32.dll
+ModLoad: 00000000`76330000 00000000`76355000   IMM32.dll
+ModLoad: 00000000`74ad0000 00000000`74ade000   UMPDC.dll
+ModLoad: 00000000`60980000 00000000`61b25000   libfrida-agent-raw.dll
+ModLoad: 00000000`75bd0000 00000000`75c22000   SHLWAPI.dll
+ModLoad: 00000000`75420000 00000000`75b04000   Windows.Storage.dll
+ModLoad: 00000000`772d0000 00000000`77562000   combase.dll
+ModLoad: 00000000`74fa0000 00000000`75001000   WS2_32.dll
+ModLoad: 00000000`771b0000 00000000`772b9000   CRYPT32.dll
+ModLoad: 00000000`76030000 00000000`76036000   PSAPI.DLL
+ModLoad: 00000000`76450000 00000000`76a86000   SHELL32.dll
+ModLoad: 00000000`74100000 00000000`741e4000   DNSAPI.dll
+ModLoad: 00000000`75290000 00000000`75389000   WinTypes.dll
+ModLoad: 00000000`75ed0000 00000000`76021000   ole32.dll
+ModLoad: 00000000`73f70000 00000000`73f97000   IPHLPAPI.DLL
+ModLoad: 00000000`73820000 00000000`7383c000   bcrypt.dll
+ModLoad: 00000000`75d30000 00000000`75d37000   NSI.dll 
+ModLoad: 00000000`74ab0000 00000000`74ac5000   AppCore.dll
+ModLoad: 00000000`69bf0000 00000000`69c70000   UxTheme.dll
+ModLoad: 00000000`10000000 00000000`100cf000   dxwnd.dll
+ModLoad: 00000000`75010000 00000000`75129000   MSCTF.dll
+ModLoad: 00000000`77910000 00000000`77984000   bcryptPrimitives.dll
+ModLoad: 00000000`77990000 00000000`77a2f000   OLEAUT32.dll
+ModLoad: 00000000`63350000 00000000`63453000   TextInputFramework.dll
+ModLoad: 00000000`62850000 00000000`628c6000   DSOUND.dll
+ModLoad: 00000000`626d0000 00000000`6276a000   ResampleDmo.DLL
+ModLoad: 00000000`664a0000 00000000`664c6000   WINMMBASE.dll
+ModLoad: 00000000`76b50000 00000000`76c22000   SHCORE.dll
+ModLoad: 00000000`66490000 00000000`66499000   msdmo.dll
+ModLoad: 00000000`63040000 00000000`6311d000   CoreMessaging.dll
+ModLoad: 00000000`76a90000 00000000`76b16000   CLBCatQ.DLL
+ModLoad: 00000000`66870000 00000000`668ee000   MMDevAPI.DLL
+ModLoad: 00000000`74080000 00000000`740a4000   DEVOBJ.dll
+ModLoad: 00000000`74af0000 00000000`74b33000   CFGMGR32.dll
+ModLoad: 00000000`66700000 00000000`6686d000   AudioSes.DLL
+ModLoad: 00000000`66470000 00000000`66480000   ResourcePolicyClient.dll
+ModLoad: 00000000`62810000 00000000`6284d000   WDMAUD.dll
+ModLoad: 00000000`65c70000 00000000`65c8b000   WDMAUD2.dll
+ModLoad: 00000000`66460000 00000000`66469000   AVRT.dll
+ModLoad: 00000000`65c60000 00000000`65c6b000   MSACM32.DRV
+ModLoad: 00000000`627d0000 00000000`627ea000   MSACM32.dll
+ModLoad: 00000000`65a00000 00000000`65a08000   MIDIMAP.dll
+ModLoad: 00000000`665f0000 00000000`666fd000   Windows.UI.dll
+ModLoad: 00000000`65820000 00000000`6583a000   atidx9loader32.dll
+ModLoad: 00000000`63790000 00000000`65811000   amdxn32.dll
+ModLoad: 00000000`76d50000 00000000`771a1000   SETUPAPI.dll
+ModLoad: 00000000`63650000 00000000`6367e000   amdihk32.dll
+ModLoad: 00000000`66950000 00000000`66975000   dwmapi.dll
+ModLoad: 00000000`626b0000 00000000`626c6000   MCICDA.dll
+ModLoad: 00000000`634b0000 00000000`63555000   TextShaping.dll
+(b3d4.884c): Break instruction exception - code 80000003 (first chance)
+ntdll!DbgBreakPoint:
+00007fff`34a80c80 cc              int     3
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       SRV*C:\Symbols*https://msdl.microsoft.com/download/symbols
+BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875) connected at Tue Apr  7 01:37:27 2026
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> !peb
+Wow64 PEB32 at 2eb000
+    InheritedAddressSpace:    No
+    ReadImageFileExecOptions: No
+    BeingDebugged:            Yes
+    ImageBaseAddress:         0000000000400000
+    NtGlobalFlag:             0
+    NtGlobalFlag2:            0
+    Ldr                       0000000077be7340
+    ***  _PEB_LDR_DATA type was not found...
+    *** unable to read Ldr table at 0000000077be7340
+    SubSystemData:     0000000000000000
+    ProcessHeap:       0000000000780000
+    ProcessParameters: 00000000007f6538
+    ***  _CURDIR type was not found...
+    WindowTitle:  '< Name not readable >'
+    ImageFile:    '< Name not readable >'
+    CommandLine:  '< Name not readable >'
+    DllPath:      '< Name not readable >'
+    Environment:  0000000000000000
+       Unable to read Environment string.
+
+
+Wow64 PEB at 00000000002ea000
+    InheritedAddressSpace:    No
+    ReadImageFileExecOptions: No
+    BeingDebugged:            Yes
+    ImageBaseAddress:         0000000000400000
+    NtGlobalFlag:             0
+    NtGlobalFlag2:            0
+    Ldr                       00007fff34b32920
+    Ldr.Initialized:          Yes
+    Ldr.InInitializationOrderModuleList: 00000000007e4db0 . 00000000007ea990
+    Ldr.InLoadOrderModuleList:           00000000007e4fc0 . 00000000007ea970
+    Ldr.InMemoryOrderModuleList:         00000000007e4fd0 . 00000000007ea980
+            Base TimeStamp                     Module
+          400000 33b0dd46 Jun 25 04:56:38 1997 D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE
+    7fff34960000 5ffc11eb Jan 11 05:52:59 2021 C:\WINDOWS\SYSTEM32\ntdll.dll
+    7fff32ce0000 fc6f0b3b Mar 16 15:36:43 2104 C:\WINDOWS\System32\wow64.dll
+    7fff343c0000 0ca5a7c6 Sep 21 16:43:02 1976 C:\WINDOWS\System32\wow64base.dll
+    7fff343d0000 4c37b19f Jul 09 19:32:47 2010 C:\WINDOWS\System32\wow64win.dll
+    7fff330f0000 8d3695cf Jan 27 18:19:11 2045 C:\WINDOWS\System32\wow64con.dll
+        77aa0000 181bb337 Oct 26 05:22:15 1982 C:\WINDOWS\System32\wow64cpu.dll
+    SubSystemData:     0000000000000000
+    ProcessHeap:       00000000007e0000
+    ProcessParameters: 00000000007e9270
+    CurrentDirectory:  'C:\WINDOWS\'
+    WindowTitle:  'D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE'
+    ImageFile:    'D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE'
+    CommandLine:  'D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\SAVE\scene11-pair.LBA'
+    DllPath:      '< Name not readable >'
+    Environment:  00000000007e2240
+        ALLUSERSPROFILE=C:\ProgramData
+        AMDRMSDKPATH=C:\Program Files\AMD\RyzenMasterSDK\
+        APPDATA=C:\Users\sebam\AppData\Roaming
+        ChocolateyInstall=C:\ProgramData\chocolatey
+        ChocolateyLastPathUpdate=133735844417618933
+        CHROME_CRASHPAD_PIPE_NAME=\\.\pipe\crashpad_5340_VWQZYBAHMWBVEWLW
+        CODEX_INTERNAL_ORIGINATOR_OVERRIDE=Codex Desktop
+        CODEX_SHELL=1
+        CODEX_THREAD_ID=019d666d-89ad-75e2-9ae6-c21ac73ccbc7
+        CommonProgramFiles=C:\Program Files\Common Files
+        CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+        CommonProgramW6432=C:\Program Files\Common Files
+        COMPUTERNAME=BEEEE
+        ComSpec=C:\WINDOWS\system32\cmd.exe
+        CONDA_PROMPT_MODIFIER=False
+        DISABLE_AUTO_UPDATE=true
+        DriverData=C:\Windows\System32\Drivers\DriverData
+        HOMEDRIVE=C:
+        HOMEPATH=\Users\sebam
+        JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\
+        LOCALAPPDATA=C:\Users\sebam\AppData\Local
+        LOGONSERVER=\\BEEEE
+        NUMBER_OF_PROCESSORS=12
+        NVM_HOME=C:\Users\sebam\AppData\Roaming\nvm
+        NVM_SYMLINK=C:\nvm4w\nodejs
+        OneDrive=C:\Users\sebam\OneDrive
+        OneDriveConsumer=C:\Users\sebam\OneDrive
+        OS=Windows_NT
+        Path=D:\repos\reverse\frida\build\install-root\Program Files\Frida\bin;D:\repos\reverse\frida\build\install-root\Program Files\Frida\lib\frida\x86_64;C:\Program Files\PowerShell\7;C:\Users\sebam\.codex\tmp\arg0\codex-arg0HqgywB;C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin;C:\Python312\Scripts\;C:\Python312\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files\Git\cmd;C:\Users\sebam\AppData\Roaming\nvm;c:\Users\sebam\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\sebam\AppData\Roaming\nvm;C:\nvm4w\nodejs;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\PowerShell\7\;C:\Users\sebam\.cargo\bin;C:\Users\sebam\AppData\Local\Programs\Python\Python313\Scripts\;C:\Users\sebam\AppData\Local\Programs\Python\Python313\;C:\Users\sebam\AppData\Local\Microsoft\WindowsApps;C:\Users\sebam\.dotnet\tools;C:\Users\sebam\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\sebam\.cache\lm-studio\bin;C:\Users\sebam\AppData\Roaming\npm;C:\Users\sebam\Downloads\AIShell-1.0.0-preview.1-win-x64;C:\Users\sebam\.dotnet\tools;C:\Users\sebam\AppData\Local\Microsoft\WindowsApps;C:\Users\sebam\AppData\Local\Programs\Ollama;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\dscharrer.innoextract_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\zig.zig_Microsoft.Winget.Source_8wekyb3d8bbwe\zig-x86_64-windows-0.15.2;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\ripgrep-15.1.0-x86_64-pc-windows-msvc;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\sharkdp.fd_Microsoft.Winget.Source_8wekyb3d8bbwe\fd-v10.4.2-x86_64-pc-windows-msvc;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\junegunn.fzf_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\mbuilov.sed_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\JesseDuffield.lazygit_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\sebam\AppData\Local\Microsoft\WinGet\Packages\jdx.mise_Microsoft.Winget.Source_8wekyb3d8bbwe\mise\bin;D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV;D:\repos\reverse\ghidra\build\dist\ghidra_12.2_DEV\support;C:\Users\sebam\AppData\Local\Programs\Zed\bin;C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64;C:\Users\sebam\AppData\Local\OpenAI\Codex\bin;C:\Program Files\WindowsApps\OpenAI.Codex_26.325.3894.0_x64__2p2nqsd0c76g0\app\resources
+        PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL
+        POSH_SESSION_ID=00018337-521e-4904-96c9-59613742f401
+        POSH_SHELL=pwsh
+        POSH_SHELL_VERSION=7.5.5
+        POWERLINE_COMMAND=oh-my-posh
+        POWERSHELL_DISTRIBUTION_CHANNEL=MSI:Windows 10 Pro
+        PROCESSOR_ARCHITECTURE=AMD64
+        PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD
+        PROCESSOR_LEVEL=25
+        PROCESSOR_REVISION=6102
+        ProgramData=C:\ProgramData
+        ProgramFiles=C:\Program Files
+        ProgramFiles(x86)=C:\Program Files (x86)
+        ProgramW6432=C:\Program Files
+        PSModulePath=C:\Users\sebam\OneDrive\Documentos\PowerShell\Modules;C:\Program Files\PowerShell\Modules;c:\program files\powershell\7\Modules;C:\Users\sebam\OneDrive\Documentos\WindowsPowerShell\Modules;C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules
+        PUBLIC=C:\Users\Public
+        PYENV_VIRTUALENV_DISABLE_PROMPT=1
+        PYTHONPATH=D:\repos\reverse\frida\build\install-root\Program Files\Frida\lib\site-packages
+        RUST_LOG=warn
+        SHELL=C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
+        SystemDrive=C:
+        SystemRoot=C:\WINDOWS
+        TEMP=C:\Users\sebam\AppData\Local\Temp
+        TMP=C:\Users\sebam\AppData\Local\Temp
+        USERDOMAIN=BEEEE
+        USERDOMAIN_ROAMINGPROFILE=BEEEE
+        USERNAME=sebam
+        USERPROFILE=C:\Users\sebam
+        VBOX_MSI_INSTALL_PATH=C:\Program Files\Oracle\VirtualBox\
+        VIRTUAL_ENV_DISABLE_PROMPT=1
+        windir=C:\WINDOWS
+        ZSH_TMUX_AUTOSTART=false
+        ZSH_TMUX_AUTOSTARTED=true
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> r
+rax=0000000000000000 rbx=0000000000000000 rcx=0000000000000000
+rdx=0000000000000000 rsi=0000000000000000 rdi=0000000000000000
+rip=00007fff34a80c80 rsp=000000000075f498 rbp=0000000000000000
+ r8=0000000000000000  r9=00007fff34a92d60 r10=0000000000000000
+r11=0000000000000000 r12=0000000000000000 r13=0000000000000000
+r14=0000000000000000 r15=0000000000000000
+iopl=0         nv up ei pl nz na po nc
+cs=0033  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00000202
+ntdll!DbgBreakPoint:
+00007fff`34a80c80 cc              int     3
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> kb
+RetAddr               : Args to Child                                                           : Call Site
+00007fff`34a92dae     : 00000000`00000000 00000000`00000000 00000000`00000000 00000000`00000000 : ntdll!DbgBreakPoint
+00007fff`349ec4a2     : 00000000`00000000 00000000`00000000 000004f0`fffffb30 000004d0`fffffb30 : ntdll!DbgUiRemoteBreakin+0x4e
+00000000`00000000     : 00000000`00000000 00000000`00000000 00000000`00000000 00000000`00000000 : ntdll!RtlUserThreadStart+0x42
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> lm
+start             end                 module name
+00000000`00400000 00000000`004e3000   LBA2       (deferred)             
+00000000`00760000 00000000`00776000   smackw32   (deferred)             
+00000000`00d10000 00000000`00d3b000   mss32      (deferred)             
+00000000`10000000 00000000`100cf000   dxwnd      (deferred)             
+00000000`60980000 00000000`61b25000   libfrida_agent_raw   (deferred)             
+00000000`626b0000 00000000`626c6000   MCICDA     (deferred)             
+00000000`626d0000 00000000`6276a000   ResampleDmo   (deferred)             
+00000000`627d0000 00000000`627ea000   MSACM32_627d0000   (deferred)             
+00000000`62810000 00000000`6284d000   WDMAUD     (deferred)             
+00000000`62850000 00000000`628c6000   DSOUND     (deferred)             
+00000000`63040000 00000000`6311d000   CoreMessaging   (deferred)             
+00000000`63350000 00000000`63453000   TextInputFramework   (deferred)             
+00000000`634b0000 00000000`63555000   TextShaping   (deferred)             
+00000000`63650000 00000000`6367e000   amdihk32   (deferred)             
+00000000`63680000 00000000`63789000   dxgi       (deferred)             
+00000000`63790000 00000000`65811000   amdxn32    (deferred)             
+00000000`65820000 00000000`6583a000   atidx9loader32   (deferred)             
+00000000`65840000 00000000`65876000   dxcore     (deferred)             
+00000000`65a00000 00000000`65a08000   MIDIMAP    (deferred)             
+00000000`65c60000 00000000`65c6b000   MSACM32    (deferred)             
+00000000`65c70000 00000000`65c8b000   WDMAUD2    (deferred)             
+00000000`65c90000 00000000`65d7c000   DDRAW      (deferred)             
+00000000`66460000 00000000`66469000   AVRT       (deferred)             
+00000000`66470000 00000000`66480000   ResourcePolicyClient   (deferred)             
+00000000`66490000 00000000`66499000   msdmo      (deferred)             
+00000000`664a0000 00000000`664c6000   WINMMBASE   (deferred)             
+00000000`664d0000 00000000`664d7000   DCIMAN32   (deferred)             
+00000000`665f0000 00000000`666fd000   Windows_UI   (deferred)             
+00000000`66700000 00000000`6686d000   AudioSes   (deferred)             
+00000000`66870000 00000000`668ee000   MMDevAPI   (deferred)             
+00000000`66950000 00000000`66975000   dwmapi     (deferred)             
+00000000`69bf0000 00000000`69c70000   UxTheme    (deferred)             
+00000000`73820000 00000000`7383c000   bcrypt     (deferred)             
+00000000`73f70000 00000000`73f97000   IPHLPAPI   (deferred)             
+00000000`74080000 00000000`740a4000   DEVOBJ     (deferred)             
+00000000`74100000 00000000`741e4000   DNSAPI     (deferred)             
+00000000`74ab0000 00000000`74ac5000   AppCore    (deferred)             
+00000000`74ad0000 00000000`74ade000   UMPDC      (deferred)             
+00000000`74af0000 00000000`74b33000   CFGMGR32   (deferred)             
+00000000`74bd0000 00000000`74c25000   POWRPROF   (deferred)             
+00000000`74c30000 00000000`74c63000   WINMM      (deferred)             
+00000000`74d00000 00000000`74dae000   apphelp    (deferred)             
+00000000`74fa0000 00000000`75001000   WS2_32     (deferred)             
+00000000`75010000 00000000`75129000   MSCTF      (deferred)             
+00000000`75130000 00000000`751ec000   RPCRT4     (deferred)             
+00000000`75290000 00000000`75389000   WinTypes   (deferred)             
+00000000`75390000 00000000`75415000   ADVAPI32   (deferred)             
+00000000`75420000 00000000`75b04000   Windows_Storage   (deferred)             
+00000000`75bd0000 00000000`75c22000   SHLWAPI    (deferred)             
+00000000`75ca0000 00000000`75d23000   SECHOST    (deferred)             
+00000000`75d30000 00000000`75d37000   NSI        (deferred)             
+00000000`75d40000 00000000`75dc5000   msvcp_win   (deferred)             
+00000000`75dd0000 00000000`75ec0000   KERNEL32   (deferred)             
+00000000`75ed0000 00000000`76021000   ole32      (deferred)             
+00000000`76030000 00000000`76036000   PSAPI      (deferred)             
+00000000`76060000 00000000`76328000   KERNELBASE   (deferred)             
+00000000`76330000 00000000`76355000   IMM32      (deferred)             
+00000000`76360000 00000000`7644b000   gdi32full   (deferred)             
+00000000`76450000 00000000`76a86000   SHELL32    (deferred)             
+00000000`76a90000 00000000`76b16000   CLBCatQ    (deferred)             
+00000000`76b20000 00000000`76b42000   GDI32      (deferred)             
+00000000`76b50000 00000000`76c22000   SHCORE     (deferred)             
+00000000`76c30000 00000000`76d40000   ucrtbase   (deferred)             
+00000000`76d50000 00000000`771a1000   SETUPAPI   (deferred)             
+00000000`771b0000 00000000`772b9000   CRYPT32    (deferred)             
+00000000`772d0000 00000000`77562000   combase    (deferred)             
+00000000`775e0000 00000000`776a7000   msvcrt     (deferred)             
+00000000`776b0000 00000000`77879000   USER32     (deferred)             
+00000000`77880000 00000000`7789a000   win32u     (deferred)             
+00000000`77910000 00000000`77984000   bcryptPrimitives   (deferred)             
+00000000`77990000 00000000`77a2f000   OLEAUT32   (deferred)             
+00000000`77aa0000 00000000`77aaa000   wow64cpu   (deferred)             
+00000000`77ab0000 00000000`77c6f000   ntdll_77ab0000   (deferred)             
+00007fff`32ce0000 00007fff`32d35000   wow64      (deferred)             
+00007fff`330f0000 00007fff`33109000   wow64con   (deferred)             
+00007fff`343c0000 00007fff`343cb000   wow64base   (deferred)             
+00007fff`343d0000 00007fff`34459000   wow64win   (deferred)             
+00007fff`34960000 00007fff`34bc7000   ntdll      (pdb symbols)          c:\symbols\ntdll.pdb\5A9F4004DB806B50BCBD7B6C55417B041\ntdll.pdb
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> ~
+   0  Id: b3d4.997c Suspend: 1 Teb: 00000000`002ec000 Unfrozen
+   1  Id: b3d4.7b68 Suspend: 1 Teb: 00000000`002f0000 Unfrozen
+   2  Id: b3d4.7324 Suspend: 1 Teb: 00000000`00300000 Unfrozen "gmain"
+   3  Id: b3d4.e98 Suspend: 1 Teb: 00000000`00304000 Unfrozen "pool-frida"
+   4  Id: b3d4.b324 Suspend: 1 Teb: 00000000`00308000 Unfrozen "gdbus"
+   5  Id: b3d4.913c Suspend: 1 Teb: 00000000`0030c000 Unfrozen "gum-js-loop"
+   6  Id: b3d4.a7c4 Suspend: 1 Teb: 00000000`00314000 Unfrozen
+   7  Id: b3d4.1b04 Suspend: 1 Teb: 00000000`00318000 Unfrozen
+   8  Id: b3d4.8690 Suspend: 1 Teb: 00000000`0031c000 Unfrozen
+   9  Id: b3d4.9ff8 Suspend: 1 Teb: 00000000`00320000 Unfrozen
+  10  Id: b3d4.a1b4 Suspend: 1 Teb: 00000000`00324000 Unfrozen
+  11  Id: b3d4.adc0 Suspend: 1 Teb: 00000000`00330000 Unfrozen
+  12  Id: b3d4.9b7c Suspend: 1 Teb: 00000000`00374000 Unfrozen
+  13  Id: b3d4.6714 Suspend: 1 Teb: 00000000`00378000 Unfrozen
+  14  Id: b3d4.8e18 Suspend: 1 Teb: 00000000`0037c000 Unfrozen
+  15  Id: b3d4.ac78 Suspend: 1 Teb: 00000000`00384000 Unfrozen
+  16  Id: b3d4.ad8c Suspend: 1 Teb: 00000000`00388000 Unfrozen
+  17  Id: b3d4.3e44 Suspend: 1 Teb: 00000000`0038c000 Unfrozen
+  18  Id: b3d4.2fe0 Suspend: 1 Teb: 00000000`00390000 Unfrozen
+  19  Id: b3d4.5edc Suspend: 1 Teb: 00000000`00394000 Unfrozen
+. 20  Id: b3d4.884c Suspend: 1 Teb: 00000000`00398000 Unfrozen
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> .lastevent
+Last event: b3d4.884c: Break instruction exception - code 80000003 (first chance)
+  debugger time: Tue Apr  7 01:37:23.800 2026 (UTC - 4:00)
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020> !wow64exts.sw
+Switched to Guest (WoW) mode
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020:x86> k
+ChildEBP RetAddr      
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0075f494 34a92dae     0x34a80c80
+00000000 00000000     0x34a92dae
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020:x86> ~* kb
+
+   0  Id: b3d4.997c Suspend: 1 Teb: 002ec000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+000ee658 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   1  Id: b3d4.7b68 Suspend: 1 Teb: 002f0000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+00170634 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   2  Id: b3d4.7324 Suspend: 1 Teb: 00300000 Unfrozen "gmain"
+ChildEBP RetAddr      Args to Child              
+02610a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   3  Id: b3d4.e98 Suspend: 1 Teb: 00304000 Unfrozen "pool-frida"
+ChildEBP RetAddr      Args to Child              
+02680a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   4  Id: b3d4.b324 Suspend: 1 Teb: 00308000 Unfrozen "gdbus"
+ChildEBP RetAddr      Args to Child              
+026f0a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   5  Id: b3d4.913c Suspend: 1 Teb: 0030c000 Unfrozen "gum-js-loop"
+ChildEBP RetAddr      Args to Child              
+02e7fb08 00000000     00000001 02e7fcbc 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   6  Id: b3d4.a7c4 Suspend: 1 Teb: 00314000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+03440a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   7  Id: b3d4.1b04 Suspend: 1 Teb: 00318000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+035be1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0409ff74 75de5d49     00780880 75de5d30 0409ffdc 0x32ce67f8
+0409ff84 77b1d81b     00780880 bfe686bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0409ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0409ffec 00000000     77b06290 00780880 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+   8  Id: b3d4.8690 Suspend: 1 Teb: 0031c000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0360e104 32ce979c     00007fff 0031c000 00000000 0x34ac1f94
+0419fdf4 62892be6     000003fc 00000004 00000000 0x32ce979c
+0419fe28 6287b9d9     0419fe58 0419fe54 03690610 DSOUND!CSharedMemoryBlock::Read+0x3b
+0419fe5c 6287b535     0419fe78 6285582c 03690610 DSOUND!CDirectSoundAdministrator::ReadSharedThreadList+0x4e
+0419fe88 6287bd3a     036906c8 6285582c 00000000 DSOUND!CDirectSoundAdministrator::GetDsoundFocusState+0x76
+0419fef4 6287bb3c     00000000 03690624 6287baf0 DSOUND!CDirectSoundAdministrator::UpdateGlobalFocusState+0xc7
+0419ff38 62892f35     03690624 00000000 03690624 DSOUND!CDirectSoundAdministrator::ThreadProc+0x4c
+0419ff50 62892b6f     62892f60 62892f60 03690624 DSOUND!CThread::ThreadLoop+0x46
+0419ff60 62892f80     62892f60 62892f60 00000000 DSOUND!CThread::PrivateThreadProc+0x4e
+0419ff74 75de5d49     03690624 75de5d30 0419ffdc DSOUND!CThread::ThreadStartRoutine+0x20
+0419ff84 77b1d81b     03690624 bff686bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0419ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0419ffec 00000000     62892f60 03690624 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+   9  Id: b3d4.9ff8 Suspend: 1 Teb: 00320000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+03660a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+  10  Id: b3d4.a1b4 Suspend: 1 Teb: 00324000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0effe1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0f0fff74 75de5d49     00780880 75de5d30 0f0fffdc 0x32ce67f8
+0f0fff84 77b1d81b     00780880 b4e086bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0f0fffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0f0fffec 00000000     77b06290 00780880 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  11  Id: b3d4.adc0 Suspend: 1 Teb: 00330000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0f55e1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0f65ff74 75de5d49     0084e1b0 75de5d30 0f65ffdc 0x32ce67f8
+0f65ff84 77b1d81b     0084e1b0 b48a86bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0f65ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0f65ffec 00000000     77b06290 0084e1b0 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  12  Id: b3d4.9b7c Suspend: 1 Teb: 00374000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+0f3a0a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+  13  Id: b3d4.6714 Suspend: 1 Teb: 00378000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+0f510a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+  14  Id: b3d4.8e18 Suspend: 1 Teb: 0037c000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+0f8cff38 00000000     00000002 0f8cff70 00000000 wow64cpu!CpupSyscallStub+0x13
+
+  15  Id: b3d4.ac78 Suspend: 1 Teb: 00384000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+0fc5ff0c 00000000     00000002 0ce1d0a4 00000000 wow64cpu!CpupSyscallStub+0x13
+
+  16  Id: b3d4.ad8c Suspend: 1 Teb: 00388000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0f90e1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0fa0ff74 75de5d49     00780880 75de5d30 0fa0ffdc 0x32ce67f8
+0fa0ff84 77b1d81b     00780880 b44f86bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0fa0ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0fa0ffec 00000000     77b06290 00780880 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  17  Id: b3d4.3e44 Suspend: 1 Teb: 0038c000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0fcde1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0fddff74 75de5d49     00780880 75de5d30 0fddffdc 0x32ce67f8
+0fddff84 77b1d81b     00780880 b43286bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0fddffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0fddffec 00000000     77b06290 00780880 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  18  Id: b3d4.2fe0 Suspend: 1 Teb: 00390000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+02f1e1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0301ff74 75de5d49     0081ebb8 75de5d30 0301ffdc 0x32ce67f8
+0301ff84 77b1d81b     0081ebb8 b8ee86bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0301ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0301ffec 00000000     77b06290 0081ebb8 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  19  Id: b3d4.5edc Suspend: 1 Teb: 00394000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+11e5e1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+11f5ff74 75de5d49     0081ebb8 75de5d30 11f5ffdc 0x32ce67f8
+11f5ff84 77b1d81b     0081ebb8 aa1a86bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+11f5ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+11f5ffec 00000000     77b06290 0081ebb8 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+# 20  Id: b3d4.884c Suspend: 1 Teb: 00398000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0075f494 34a92dae     00007fff 00000000 00000000 0x34a80c80
+00000000 00000000     00000000 00000000 00000000 0x34a92dae
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:020:x86> ~2s
+wow64cpu!CpupSyscallStub+0x13:
+0033:77aa1f83 <Effective machine and debuggee state conflict, disassembly not possible>
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:002:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:002:x86> r
+eax=0000001a ebx=00000001 ecx=00000001 edx=02b3fcc4 esi=00000001 edi=ffffffff
+eip=77aa1f83 esp=025feb18 ebp=02b3fb10 iopl=0         nv up ei pl zr na pe nc
+cs=0033  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00000244
+wow64cpu!CpupSyscallStub+0x13:
+0033:77aa1f83 <Effective machine and debuggee state conflict, disassembly not possible>
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:002:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:002:x86> kb
+ChildEBP RetAddr      Args to Child              
+02610a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:002:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:002:x86> u eip-20 L30
+wow64cpu!Thunk0Arg+0x26:
+77aa1f63 ff2e            jmp     fword ptr [esi]
+77aa1f65 cc              int     3
+77aa1f66 cc              int     3
+77aa1f67 cc              int     3
+77aa1f68 cc              int     3
+77aa1f69 cc              int     3
+77aa1f6a cc              int     3
+77aa1f6b 0f1f440000      nop     dword ptr [eax+eax]
+wow64cpu!CpupSyscallStub:
+77aa1f70 4c              dec     esp
+77aa1f71 8b1d69240000    mov     ebx,dword ptr ds:[2469h]
+77aa1f77 41              inc     ecx
+77aa1f78 f6830803000001  test    byte ptr [ebx+308h],1
+77aa1f7f 7503            jne     wow64cpu!CpupSyscallStub+0x14 (77aa1f84)
+77aa1f81 0f05            syscall
+77aa1f83 c3              ret
+77aa1f84 cd2e            int     2Eh
+77aa1f86 c3              ret
+77aa1f87 cc              int     3
+77aa1f88 cc              int     3
+77aa1f89 cc              int     3
+77aa1f8a cc              int     3
+77aa1f8b cc              int     3
+77aa1f8c cc              int     3
+77aa1f8d cc              int     3
+77aa1f8e cc              int     3
+77aa1f8f cc              int     3
+77aa1f90 cc              int     3
+77aa1f91 cc              int     3
+77aa1f92 cc              int     3
+77aa1f93 cc              int     3
+77aa1f94 cc              int     3
+77aa1f95 cc              int     3
+77aa1f96 66660f1f840000000000 nop word ptr [eax+eax]
+wow64cpu!_security_check_cookie:
+77aa1fa0 48              dec     eax
+77aa1fa1 3b0d59300000    cmp     ecx,dword ptr ds:[3059h]
+77aa1fa7 7510            jne     wow64cpu!_security_check_cookie+0x19 (77aa1fb9)
+77aa1fa9 48              dec     eax
+77aa1faa c1c110          rol     ecx,10h
+77aa1fad 66f7c1ffff      test    cx,0FFFFh
+77aa1fb2 7501            jne     wow64cpu!_security_check_cookie+0x15 (77aa1fb5)
+77aa1fb4 c3              ret
+77aa1fb5 48              dec     eax
+77aa1fb6 c1c910          ror     ecx,10h
+77aa1fb9 e932f5ffff      jmp     wow64cpu!_report_gsfailure (77aa14f0)
+77aa1fbe cc              int     3
+77aa1fbf cc              int     3
+77aa1fc0 cc              int     3
+77aa1fc1 cc              int     3
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:002:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:002:x86> ~7s
+0033:34ac5744 <Effective machine and debuggee state conflict, disassembly not possible>
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:007:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:007:x86> ~7s
+0033:34ac5744 <Effective machine and debuggee state conflict, disassembly not possible>
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:007:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:007:x86> !wow64exts.sw
+Switched to Host mode
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:007> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:007> kb
+RetAddr               : Args to Child                                                           : Call Site
+00007fff`32ce67f8     : 00000000`00000000 00000000`00000000 00000000`00000000 00007fff`32cf5e29 : ntdll!NtWaitForWorkViaWorkerFactory+0x14
+00007fff`32ce8d6b     : 00000000`0031a000 00000000`0031a000 00000000`00318000 00000000`00318000 : wow64!whNtWaitForWorkViaWorkerFactory+0x118
+00000000`77aa1a79     : 00000023`77b2923c 00007fff`34a30023 00000000`00780880 00000000`00842810 : wow64!Wow64SystemServiceEx+0x19b
+00000000`77aa1789     : 00000000`0409fd14 00007fff`32ce7264 00000000`0409fd24 00000000`00000000 : wow64cpu!ServiceNoTurbo+0xb
+00007fff`32cf298d     : 00000000`77b06290 00000000`00000000 00000000`00780880 00000000`00000000 : wow64cpu!BTCpuSimulate+0x9
+00007fff`32cf2152     : 00000000`00000000 00000000`002ea000 00000000`00000000 00000000`002ea000 : wow64!RunCpuSimulation+0xd
+00007fff`34a1b610     : 00000000`00000000 00000000`00000000 00000000`002ea000 00000000`00000000 : wow64!Wow64LdrpInitialize+0x122
+00007fff`34a1b4ca     : 00000000`00000000 00007fff`34960000 00000000`002ea000 00000000`00318000 : ntdll!LdrpInitialize+0x9c
+00007fff`34a4b12e     : 00000000`035bf010 00000000`00000000 00000000`00000000 00000000`00000000 : ntdll!LdrpInitializeInternal+0x5a
+00000000`00000000     : 00000000`00000000 00000000`00000000 00000000`00000000 00000000`00000000 : ntdll!LdrInitializeThunk+0xe
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:007> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:007> g
+ModLoad: 00000000`6f620000 00000000`6f62a000   C:\WINDOWS\SysWOW64\CRYPTBASE.DLL
+(b3d4.8d88): Break instruction exception - code 80000003 (first chance)
+ntdll!DbgBreakPoint:
+00007fff`34a80c80 cc              int     3
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:021> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:021> .lastevent
+Last event: b3d4.8d88: Break instruction exception - code 80000003 (first chance)
+  debugger time: Tue Apr  7 01:38:44.049 2026 (UTC - 4:00)
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:021> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:021> !wow64exts.sw
+Switched to Guest (WoW) mode
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:021:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:021:x86> ~* kb
+
+   0  Id: b3d4.997c Suspend: 1 Teb: 002ec000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+000ee658 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   1  Id: b3d4.7b68 Suspend: 1 Teb: 002f0000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+00170634 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   2  Id: b3d4.7324 Suspend: 1 Teb: 00300000 Unfrozen "gmain"
+ChildEBP RetAddr      Args to Child              
+02610a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   3  Id: b3d4.e98 Suspend: 1 Teb: 00304000 Unfrozen "pool-frida"
+ChildEBP RetAddr      Args to Child              
+02680a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   4  Id: b3d4.b324 Suspend: 1 Teb: 00308000 Unfrozen "gdbus"
+ChildEBP RetAddr      Args to Child              
+026f0a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   5  Id: b3d4.913c Suspend: 1 Teb: 0030c000 Unfrozen "gum-js-loop"
+ChildEBP RetAddr      Args to Child              
+02e7fb08 00000000     00000001 02e7fcbc 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   6  Id: b3d4.a7c4 Suspend: 1 Teb: 00314000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+03440a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   7  Id: b3d4.1b04 Suspend: 1 Teb: 00318000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+035be1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0409ff74 75de5d49     00780880 75de5d30 0409ffdc 0x32ce67f8
+0409ff84 77b1d81b     00780880 bfe686bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0409ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0409ffec 00000000     77b06290 00780880 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+   8  Id: b3d4.8690 Suspend: 1 Teb: 0031c000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+0419fd9c 00000000     00000001 0419fde0 00000000 wow64cpu!CpupSyscallStub+0x13
+
+   9  Id: b3d4.9ff8 Suspend: 1 Teb: 00320000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+03660a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+  10  Id: b3d4.a1b4 Suspend: 1 Teb: 00324000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0effe1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0f0fff74 75de5d49     00780880 75de5d30 0f0fffdc 0x32ce67f8
+0f0fff84 77b1d81b     00780880 b4e086bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0f0fffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0f0fffec 00000000     77b06290 00780880 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  11  Id: b3d4.adc0 Suspend: 1 Teb: 00330000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0f55e1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0f65ff74 75de5d49     0084e1b0 75de5d30 0f65ffdc 0x32ce67f8
+0f65ff84 77b1d81b     0084e1b0 b48a86bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0f65ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0f65ffec 00000000     77b06290 0084e1b0 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  12  Id: b3d4.9b7c Suspend: 1 Teb: 00374000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+0f3a0a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+  13  Id: b3d4.6714 Suspend: 1 Teb: 00378000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+0f510a64 00000000     00000000 00000000 00000000 wow64cpu!CpupSyscallStub+0x13
+
+  14  Id: b3d4.8e18 Suspend: 1 Teb: 0037c000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+0f8cff38 00000000     00000002 0f8cff70 00000000 wow64cpu!CpupSyscallStub+0x13
+
+  15  Id: b3d4.ac78 Suspend: 1 Teb: 00384000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+0fc5ff0c 00000000     00000002 0ce1d0a4 00000000 wow64cpu!CpupSyscallStub+0x13
+
+  16  Id: b3d4.ad8c Suspend: 1 Teb: 00388000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0f90e1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0fa0ff74 75de5d49     00780880 75de5d30 0fa0ffdc 0x32ce67f8
+0fa0ff84 77b1d81b     00780880 b44f86bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0fa0ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0fa0ffec 00000000     77b06290 00780880 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  17  Id: b3d4.3e44 Suspend: 1 Teb: 0038c000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0fcde1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0fddff74 75de5d49     00780880 75de5d30 0fddffdc 0x32ce67f8
+0fddff84 77b1d81b     00780880 b43286bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0fddffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0fddffec 00000000     77b06290 00780880 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  18  Id: b3d4.2fe0 Suspend: 1 Teb: 00390000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+02f1e1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+0301ff74 75de5d49     0081ebb8 75de5d30 0301ffdc 0x32ce67f8
+0301ff84 77b1d81b     0081ebb8 b8ee86bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+0301ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+0301ffec 00000000     77b06290 0081ebb8 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  19  Id: b3d4.5edc Suspend: 1 Teb: 00394000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+11e5e1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+11f5ff74 75de5d49     0081ebb8 75de5d30 11f5ffdc 0x32ce67f8
+11f5ff84 77b1d81b     0081ebb8 aa1a86bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+11f5ffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+11f5ffec 00000000     77b06290 0081ebb8 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+  20  Id: b3d4.af0c Suspend: 1 Teb: 0039c000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+0075e1b4 32ce67f8     00007fff 00000000 00000000 0x34ac5744
+00acff74 75de5d49     008011f8 75de5d30 00acffdc 0x32ce67f8
+00acff84 77b1d81b     008011f8 bb4386bf 00000000 KERNEL32!BaseThreadInitThunk+0x19
+00acffdc 77b1d7a1     ffffffff 77b646c1 00000000 ntdll_77ab0000!__RtlUserThreadStart+0x2b
+00acffec 00000000     77b06290 008011f8 00000000 ntdll_77ab0000!_RtlUserThreadStart+0x1b
+
+# 21  Id: b3d4.8d88 Suspend: 1 Teb: 003a0000 Unfrozen
+ChildEBP RetAddr      Args to Child              
+WARNING: Frame IP not in any known module. Following frames may be wrong.
+007cf494 34a92dae     00007fff 00000000 00000000 0x34a80c80
+00000000 00000000     00000000 00000000 00000000 0x34a92dae
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:58875)] 0:021:x86> .echo COMMAND_COMPLETED_MARKER
+COMMAND_COMPLETED_MARKER
+BEEEE\sebam (tcp [::ffff:127.0.0.1]:58876) disconnected at Tue Apr  7 01:49:49 2026

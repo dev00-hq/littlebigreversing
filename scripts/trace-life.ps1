@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("Basic", "TavernTrace")]
+    [ValidateSet("Basic", "TavernTrace", "Scene11Pair")]
     [string]$Mode = "Basic",
     [string]$ProcessName = "LBA2.EXE",
     [switch]$Launch,
@@ -39,10 +39,14 @@ if ([string]::IsNullOrWhiteSpace($OutputPath)) {
     $OutputPath = Join-Path $outputDir "life-trace-$timestamp.jsonl"
 }
 
-$resolvedMode = if ($Mode -eq "TavernTrace") { "tavern-trace" } else { "basic" }
+$resolvedMode = switch ($Mode) {
+    "TavernTrace" { "tavern-trace" }
+    "Scene11Pair" { "scene11-pair" }
+    default { "basic" }
+}
 $resolvedTimeoutSeconds = $TimeoutSeconds
 
-if ($Mode -eq "TavernTrace") {
+if ($Mode -in @("TavernTrace", "Scene11Pair")) {
     $conflictingFlags = @()
     foreach ($parameterName in @("TargetObject", "TargetOpcode", "TargetOffset")) {
         if ($PSBoundParameters.ContainsKey($parameterName)) {
@@ -51,7 +55,7 @@ if ($Mode -eq "TavernTrace") {
     }
 
     if ($conflictingFlags.Count -gt 0) {
-        throw "The following flags conflict with -Mode TavernTrace: $($conflictingFlags -join ', ')"
+        throw "The following flags conflict with -Mode ${Mode}: $($conflictingFlags -join ', ')"
     }
 
     if ([string]::IsNullOrWhiteSpace($ScreenshotDir)) {
@@ -64,7 +68,7 @@ if ($Mode -eq "TavernTrace") {
         $resolvedTimeoutSeconds = 60
     }
 } elseif (-not [string]::IsNullOrWhiteSpace($ScreenshotDir)) {
-    throw "-ScreenshotDir is only supported with -Mode TavernTrace"
+    throw "-ScreenshotDir is only supported with -Mode TavernTrace or -Mode Scene11Pair"
 }
 
 $pythonArguments = @(
@@ -76,7 +80,7 @@ $pythonArguments = @(
     "--max-hits", $MaxHits
 )
 
-if ($Mode -eq "TavernTrace") {
+if ($Mode -in @("TavernTrace", "Scene11Pair")) {
     $pythonArguments += @("--screenshot-dir", (Resolve-Path $ScreenshotDir).Path)
 } else {
     $pythonArguments += @(
