@@ -208,6 +208,68 @@ pub const RoomSnapshot = struct {
     }
 };
 
+pub const FragmentZoneAxisDiagnostic = struct {
+    min_value: i32,
+    max_value: i32,
+    unit: i32,
+    origin_alignment_required: bool,
+    origin_aligned: ?bool,
+    origin_remainder: ?i32,
+    origin_cell: ?usize,
+    span_non_negative: bool,
+    span_aligned: bool,
+    span_remainder: ?i32,
+    cell_count: ?usize,
+};
+
+pub const FragmentDimensionsSnapshot = struct {
+    width: usize,
+    height: usize,
+    depth: usize,
+};
+
+pub const FragmentZoneCompatibilityIssue = enum {
+    compatible,
+    invalid_fragment_zone_index,
+    fragment_zone_index_out_of_range,
+    invalid_x_axis_origin,
+    invalid_z_axis_origin,
+    invalid_x_axis_span,
+    invalid_y_axis_span,
+    invalid_z_axis_span,
+    footprint_mismatch,
+};
+
+pub const FragmentZoneCompatibilityDiagnostic = struct {
+    zone_index: usize,
+    zone_num: i16,
+    grm_index: i32,
+    initially_on: bool,
+    x_axis: FragmentZoneAxisDiagnostic,
+    y_axis: FragmentZoneAxisDiagnostic,
+    z_axis: FragmentZoneAxisDiagnostic,
+    fragment_entry_index: ?usize,
+    fragment_dimensions: ?FragmentDimensionsSnapshot,
+    issue: FragmentZoneCompatibilityIssue,
+};
+
+pub const RoomFragmentZoneDiagnostics = struct {
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    classic_loader_scene_number: ?usize,
+    scene_kind: []const u8,
+    fragment_count: usize,
+    grm_zone_count: usize,
+    compatible_zone_count: usize,
+    invalid_zone_count: usize,
+    first_invalid_zone_index: ?usize,
+    zones: []FragmentZoneCompatibilityDiagnostic,
+
+    pub fn deinit(self: RoomFragmentZoneDiagnostics, allocator: std.mem.Allocator) void {
+        allocator.free(self.zones);
+    }
+};
+
 const WorldPointSnapshot = world_geometry.WorldPointSnapshot;
 
 pub fn heroStartWorldPoint(room: *const RoomSnapshot) WorldPointSnapshot {
@@ -274,6 +336,60 @@ pub fn loadRoomSnapshotUncheckedForTests(
 ) !RoomSnapshot {
     if (!builtin.is_test) @compileError("loadRoomSnapshotUncheckedForTests is only available in test builds");
     return loadRoomSnapshotInternal(allocator, resolved, scene_entry_index, background_entry_index, .skip);
+}
+
+pub fn inspectRoomFragmentZoneDiagnostics(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+) !RoomFragmentZoneDiagnostics {
+    const scene_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
+    defer allocator.free(scene_path);
+
+    var scene = try scene_data.loadSceneMetadata(allocator, scene_path, scene_entry_index);
+    defer scene.deinit(allocator);
+
+    switch (try life_audit.validateSceneLifeBoundary(scene)) {
+        .decoded => {},
+        .unsupported_life_blob => return error.ViewerUnsupportedSceneLife,
+    }
+
+    if (scene.cube_mode != 0) return error.ViewerSceneMustBeInterior;
+
+    const background_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "LBA_BKG.HQR" });
+    defer allocator.free(background_path);
+
+    const background = try background_data.loadBackgroundMetadata(allocator, background_path, background_entry_index);
+    defer background.deinit(allocator);
+
+    const zones = try buildFragmentZoneCompatibilityDiagnostics(allocator, scene.zones, background.composition.fragments);
+    errdefer allocator.free(zones);
+
+    var compatible_zone_count: usize = 0;
+    var invalid_zone_count: usize = 0;
+    var first_invalid_zone_index: ?usize = null;
+    for (zones) |zone| {
+        if (zone.issue == .compatible) {
+            compatible_zone_count += 1;
+        } else {
+            invalid_zone_count += 1;
+            if (first_invalid_zone_index == null) first_invalid_zone_index = zone.zone_index;
+        }
+    }
+
+    return .{
+        .scene_entry_index = scene.entry_index,
+        .background_entry_index = background.entry_index,
+        .classic_loader_scene_number = scene.classicLoaderSceneNumber(),
+        .scene_kind = scene.sceneKind(),
+        .fragment_count = background.composition.fragments.fragments.len,
+        .grm_zone_count = zones.len,
+        .compatible_zone_count = compatible_zone_count,
+        .invalid_zone_count = invalid_zone_count,
+        .first_invalid_zone_index = first_invalid_zone_index,
+        .zones = zones,
+    };
 }
 
 pub fn inspectUnsupportedSceneLifeHit(
@@ -511,6 +627,82 @@ fn copyBrickPreviewLibrary(
     };
 }
 
+fn buildFragmentZoneCompatibilityDiagnostics(
+    allocator: std.mem.Allocator,
+    zones: []const scene_data.SceneZone,
+    fragments: background_data.FragmentLibrary,
+) ![]FragmentZoneCompatibilityDiagnostic {
+    var copied: std.ArrayList(FragmentZoneCompatibilityDiagnostic) = .empty;
+    errdefer copied.deinit(allocator);
+
+    for (zones, 0..) |zone, zone_index| {
+        if (zone.zone_type != .grm) continue;
+
+        const semantics = zone.semantics.grm;
+        const x_min = @min(zone.x0, zone.x1);
+        const x_max = @max(zone.x0, zone.x1);
+        const y_min = @min(zone.y0, zone.y1);
+        const y_max = @max(zone.y0, zone.y1);
+        const z_min = @min(zone.z0, zone.z1);
+        const z_max = @max(zone.z0, zone.z1);
+
+        var diagnostic = FragmentZoneCompatibilityDiagnostic{
+            .zone_index = zone_index,
+            .zone_num = zone.num,
+            .grm_index = semantics.grm_index,
+            .initially_on = semantics.initially_on,
+            .x_axis = describeFragmentZoneAxis(x_min, x_max, world_grid_span_xz, true),
+            .y_axis = describeFragmentZoneAxis(y_min, y_max, world_grid_span_y, false),
+            .z_axis = describeFragmentZoneAxis(z_min, z_max, world_grid_span_xz, true),
+            .fragment_entry_index = null,
+            .fragment_dimensions = null,
+            .issue = .compatible,
+        };
+
+        if (semantics.grm_index < 0) {
+            diagnostic.issue = .invalid_fragment_zone_index;
+            try copied.append(allocator, diagnostic);
+            continue;
+        }
+
+        const grm_index: usize = @intCast(semantics.grm_index);
+        if (grm_index >= fragments.fragments.len) {
+            diagnostic.issue = .fragment_zone_index_out_of_range;
+            try copied.append(allocator, diagnostic);
+            continue;
+        }
+
+        const fragment = fragments.fragments[grm_index];
+        diagnostic.fragment_entry_index = fragment.entry_index;
+        diagnostic.fragment_dimensions = .{
+            .width = fragment.width,
+            .height = fragment.height,
+            .depth = fragment.depth,
+        };
+
+        if (!(diagnostic.x_axis.origin_aligned orelse true)) {
+            diagnostic.issue = .invalid_x_axis_origin;
+        } else if (!(diagnostic.z_axis.origin_aligned orelse true)) {
+            diagnostic.issue = .invalid_z_axis_origin;
+        } else if (!diagnostic.x_axis.span_aligned) {
+            diagnostic.issue = .invalid_x_axis_span;
+        } else if (!diagnostic.y_axis.span_aligned) {
+            diagnostic.issue = .invalid_y_axis_span;
+        } else if (!diagnostic.z_axis.span_aligned) {
+            diagnostic.issue = .invalid_z_axis_span;
+        } else if (diagnostic.x_axis.cell_count.? != fragment.width or
+            diagnostic.y_axis.cell_count.? != fragment.height or
+            diagnostic.z_axis.cell_count.? != fragment.depth)
+        {
+            diagnostic.issue = .footprint_mismatch;
+        }
+
+        try copied.append(allocator, diagnostic);
+    }
+
+    return copied.toOwnedSlice(allocator);
+}
+
 pub fn buildFragmentZoneSnapshots(
     allocator: std.mem.Allocator,
     zones: []const scene_data.SceneZone,
@@ -696,6 +888,51 @@ pub fn classifySurfaceShape(shape: u8) SurfaceShapeClass {
     };
 }
 
+fn describeFragmentZoneAxis(
+    min_value: i32,
+    max_value: i32,
+    unit: i32,
+    origin_alignment_required: bool,
+) FragmentZoneAxisDiagnostic {
+    const span_non_negative = max_value >= min_value;
+    const delta = if (span_non_negative) max_value - min_value else 0;
+    const origin_aligned = if (origin_alignment_required)
+        min_value >= 0 and @mod(min_value, unit) == 0
+    else
+        null;
+    const origin_remainder = if (origin_alignment_required and min_value >= 0)
+        @as(i32, @mod(min_value, unit))
+    else
+        null;
+    const origin_cell = if (origin_alignment_required and origin_aligned.?)
+        @as(usize, @intCast(@divTrunc(min_value, unit)))
+    else
+        null;
+    const span_aligned = span_non_negative and @mod(delta, unit) == 0;
+    const span_remainder = if (span_non_negative)
+        @as(i32, @mod(delta, unit))
+    else
+        null;
+    const cell_count = if (span_aligned)
+        @as(usize, @intCast(@divTrunc(delta, unit) + 1))
+    else
+        null;
+
+    return .{
+        .min_value = min_value,
+        .max_value = max_value,
+        .unit = unit,
+        .origin_alignment_required = origin_alignment_required,
+        .origin_aligned = origin_aligned,
+        .origin_remainder = origin_remainder,
+        .origin_cell = origin_cell,
+        .span_non_negative = span_non_negative,
+        .span_aligned = span_aligned,
+        .span_remainder = span_remainder,
+        .cell_count = cell_count,
+    };
+}
+
 fn zoneAxisOrigin(min_value: i32, unit: i32) !usize {
     if (min_value < 0) return error.InvalidFragmentZoneBounds;
     if (@mod(min_value, unit) != 0) return error.InvalidFragmentZoneBounds;
@@ -707,4 +944,49 @@ fn fragmentZoneAxisCellCount(min_value: i32, max_value: i32, unit: i32) !usize {
     const delta = max_value - min_value;
     if (@mod(delta, unit) != 0) return error.InvalidFragmentZoneBounds;
     return @intCast(@divTrunc(delta, unit) + 1);
+}
+
+test "inspectRoomFragmentZoneDiagnostics explains the 219 219 invalid fragment-zone blocker" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const diagnostics = try inspectRoomFragmentZoneDiagnostics(allocator, resolved, 219, 219);
+    defer diagnostics.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 219), diagnostics.scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 219), diagnostics.background_entry_index);
+    try std.testing.expectEqual(@as(?usize, 217), diagnostics.classic_loader_scene_number);
+    try std.testing.expectEqualStrings("interior", diagnostics.scene_kind);
+    try std.testing.expectEqual(@as(usize, 3), diagnostics.fragment_count);
+    try std.testing.expectEqual(@as(usize, 6), diagnostics.grm_zone_count);
+    try std.testing.expectEqual(@as(usize, 0), diagnostics.compatible_zone_count);
+    try std.testing.expectEqual(@as(usize, 6), diagnostics.invalid_zone_count);
+    try std.testing.expectEqual(@as(?usize, 1), diagnostics.first_invalid_zone_index);
+
+    const first = diagnostics.zones[0];
+    try std.testing.expectEqual(@as(usize, 1), first.zone_index);
+    try std.testing.expectEqual(@as(i16, 0), first.zone_num);
+    try std.testing.expectEqual(@as(i32, 0), first.grm_index);
+    try std.testing.expectEqual(false, first.initially_on);
+    try std.testing.expectEqual(.invalid_z_axis_origin, first.issue);
+    try std.testing.expectEqual(@as(?usize, 159), first.fragment_entry_index);
+    try std.testing.expect(first.fragment_dimensions != null);
+    try std.testing.expectEqual(true, first.x_axis.origin_aligned.?);
+    try std.testing.expectEqual(@as(?i32, 0), first.x_axis.origin_remainder);
+    try std.testing.expectEqual(@as(?usize, 27), first.x_axis.origin_cell);
+    try std.testing.expectEqual(false, first.z_axis.origin_aligned.?);
+    try std.testing.expectEqual(@as(?i32, 112), first.z_axis.origin_remainder);
+    try std.testing.expectEqual(@as(?usize, null), first.z_axis.origin_cell);
+
+    const third = diagnostics.zones[2];
+    try std.testing.expectEqual(@as(usize, 11), third.zone_index);
+    try std.testing.expectEqual(@as(i16, 11), third.zone_num);
+    try std.testing.expectEqual(@as(i32, 1), third.grm_index);
+    try std.testing.expectEqual(.invalid_x_axis_origin, third.issue);
+    try std.testing.expectEqual(@as(?usize, 160), third.fragment_entry_index);
+    try std.testing.expectEqual(false, third.x_axis.origin_aligned.?);
+    try std.testing.expectEqual(@as(?i32, 80), third.x_axis.origin_remainder);
+    try std.testing.expectEqual(false, third.z_axis.origin_aligned.?);
+    try std.testing.expectEqual(@as(?i32, 320), third.z_axis.origin_remainder);
 }

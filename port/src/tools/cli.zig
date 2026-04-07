@@ -19,6 +19,7 @@ const Command = enum {
     extract_entry,
     inspect_scene,
     inspect_room,
+    inspect_room_fragment_zones,
     audit_life_programs,
     rank_decoded_interior_candidates,
     inspect_life_program,
@@ -138,6 +139,33 @@ const RoomInspectionPayload = struct {
     background: RoomBackgroundSummary,
 };
 
+const RoomFragmentZoneDiagnosticSummary = struct {
+    zone_index: usize,
+    zone_num: i16,
+    grm_index: i32,
+    initially_on: bool,
+    issue: []const u8,
+    fragment_entry_index: ?usize,
+    fragment_dimensions: ?room_state.FragmentDimensionsSnapshot,
+    x_axis: room_state.FragmentZoneAxisDiagnostic,
+    y_axis: room_state.FragmentZoneAxisDiagnostic,
+    z_axis: room_state.FragmentZoneAxisDiagnostic,
+};
+
+const RoomFragmentZoneDiagnosticsPayload = struct {
+    command: []const u8,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    classic_loader_scene_number: ?usize,
+    scene_kind: []const u8,
+    fragment_count: usize,
+    grm_zone_count: usize,
+    compatible_zone_count: usize,
+    invalid_zone_count: usize,
+    first_invalid_zone_index: ?usize,
+    zones: []const RoomFragmentZoneDiagnosticSummary,
+};
+
 const RankedDecodedInteriorCandidateSummary = struct {
     rank: usize,
     scene_entry_index: usize,
@@ -177,6 +205,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         .extract_entry => try extractEntry(allocator, resolved, parsed.relative_path.?, parsed.entry_index.?),
         .inspect_scene => try inspectScene(allocator, resolved, parsed.entry_index.?, parsed.output_json),
         .inspect_room => try inspectRoom(allocator, resolved, parsed.entry_index.?, parsed.background_entry_index.?, parsed.output_json),
+        .inspect_room_fragment_zones => try inspectRoomFragmentZones(allocator, resolved, parsed.entry_index.?, parsed.background_entry_index.?, parsed.output_json),
         .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed),
         .rank_decoded_interior_candidates => try rankDecodedInteriorCandidates(allocator, resolved, parsed.output_json),
         .inspect_life_program => try inspectLifeProgram(allocator, resolved, parsed),
@@ -298,6 +327,29 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
         }
         return .{
             .command = .inspect_room,
+            .asset_root_override = asset_root_override,
+            .relative_path = null,
+            .entry_index = try std.fmt.parseInt(usize, args[command_index + 1], 10),
+            .background_entry_index = try std.fmt.parseInt(usize, args[command_index + 2], 10),
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
+            .life_program_owner = null,
+            .output_json = output_json,
+        };
+    }
+    if (std.mem.eql(u8, command_name, "inspect-room-fragment-zones")) {
+        if (command_index + 1 >= args.len) return error.MissingSceneEntryIndex;
+        if (command_index + 2 >= args.len) return error.MissingBackgroundEntryIndex;
+        var output_json = false;
+        for (args[(command_index + 3)..]) |arg| {
+            if (std.mem.eql(u8, arg, "--json")) {
+                output_json = true;
+            } else {
+                return error.UnknownOption;
+            }
+        }
+        return .{
+            .command = .inspect_room_fragment_zones,
             .asset_root_override = asset_root_override,
             .relative_path = null,
             .entry_index = try std.fmt.parseInt(usize, args[command_index + 1], 10),
@@ -758,6 +810,11 @@ fn inspectRoom(
             const hit = try room_state.inspectUnsupportedSceneLifeHit(allocator, resolved, scene_entry_index);
             try printUnsupportedSceneLifeDiagnostic(stderr, scene_entry_index, background_entry_index, hit);
             try stderr.flush();
+        } else if (err == error.InvalidFragmentZoneBounds) {
+            const diagnostics_snapshot = try room_state.inspectRoomFragmentZoneDiagnostics(allocator, resolved, scene_entry_index, background_entry_index);
+            defer diagnostics_snapshot.deinit(allocator);
+            try printFragmentZoneBoundsDiagnostic(stderr, diagnostics_snapshot);
+            try stderr.flush();
         }
         return err;
     };
@@ -863,6 +920,88 @@ fn inspectRoom(
     try stderr.flush();
 }
 
+fn inspectRoomFragmentZones(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    output_json: bool,
+) !void {
+    var stderr_buffer: [4096]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    const stderr = &stderr_writer.interface;
+
+    const diagnostics_snapshot = room_state.inspectRoomFragmentZoneDiagnostics(allocator, resolved, scene_entry_index, background_entry_index) catch |err| {
+        if (err == error.ViewerUnsupportedSceneLife) {
+            const hit = try room_state.inspectUnsupportedSceneLifeHit(allocator, resolved, scene_entry_index);
+            try printUnsupportedSceneLifeDiagnostic(stderr, scene_entry_index, background_entry_index, hit);
+            try stderr.flush();
+        }
+        return err;
+    };
+    defer diagnostics_snapshot.deinit(allocator);
+
+    const payload = try buildRoomFragmentZoneDiagnosticsPayload(allocator, diagnostics_snapshot);
+    defer allocator.free(payload.zones);
+
+    if (output_json) {
+        const json = try stringifyJsonAlloc(allocator, payload);
+        defer allocator.free(json);
+        try std.fs.File.stdout().writeAll(json);
+        try std.fs.File.stdout().writeAll("\n");
+        return;
+    }
+
+    try diagnostics.printLine(stderr, &.{
+        .{ .key = "command", .value = "inspect-room-fragment-zones" },
+        .{ .key = "scene_kind", .value = payload.scene_kind },
+    });
+    try stderr.print(
+        "scene_entry_index={d} background_entry_index={d} classic_loader_scene_number={any} fragment_count={d} grm_zone_count={d} compatible_zone_count={d} invalid_zone_count={d} first_invalid_zone_index={any}\n",
+        .{
+            payload.scene_entry_index,
+            payload.background_entry_index,
+            payload.classic_loader_scene_number,
+            payload.fragment_count,
+            payload.grm_zone_count,
+            payload.compatible_zone_count,
+            payload.invalid_zone_count,
+            payload.first_invalid_zone_index,
+        },
+    );
+    for (payload.zones) |zone| {
+        var fragment_dimensions_buffer: [32]u8 = undefined;
+        try stderr.print(
+            "zone_index={d} zone_num={d} grm_index={d} initially_on={} issue={s} fragment_entry_index={any} fragment_dimensions={s} x_bounds={d}..{d} x_origin_aligned={any} x_origin_remainder={any} x_cells={any} y_bounds={d}..{d} y_span_aligned={} y_span_remainder={any} y_cells={any} z_bounds={d}..{d} z_origin_aligned={any} z_origin_remainder={any} z_cells={any}\n",
+            .{
+                zone.zone_index,
+                zone.zone_num,
+                zone.grm_index,
+                zone.initially_on,
+                zone.issue,
+                zone.fragment_entry_index,
+                formatOptionalFragmentDimensions(&fragment_dimensions_buffer, zone.fragment_dimensions),
+                zone.x_axis.min_value,
+                zone.x_axis.max_value,
+                zone.x_axis.origin_aligned,
+                zone.x_axis.origin_remainder,
+                zone.x_axis.cell_count,
+                zone.y_axis.min_value,
+                zone.y_axis.max_value,
+                zone.y_axis.span_aligned,
+                zone.y_axis.span_remainder,
+                zone.y_axis.cell_count,
+                zone.z_axis.min_value,
+                zone.z_axis.max_value,
+                zone.z_axis.origin_aligned,
+                zone.z_axis.origin_remainder,
+                zone.z_axis.cell_count,
+            },
+        );
+    }
+    try stderr.flush();
+}
+
 fn buildRoomInspectionPayload(room: *const room_state.RoomSnapshot) RoomInspectionPayload {
     return .{
         .command = "inspect-room",
@@ -930,6 +1069,43 @@ fn buildRoomInspectionPayload(room: *const room_state.RoomSnapshot) RoomInspecti
                 .total_opaque_pixel_count = room.background.bricks.total_opaque_pixel_count,
             },
         },
+    };
+}
+
+fn buildRoomFragmentZoneDiagnosticsPayload(
+    allocator: std.mem.Allocator,
+    diagnostics_snapshot: room_state.RoomFragmentZoneDiagnostics,
+) !RoomFragmentZoneDiagnosticsPayload {
+    const zones = try allocator.alloc(RoomFragmentZoneDiagnosticSummary, diagnostics_snapshot.zones.len);
+    errdefer allocator.free(zones);
+
+    for (diagnostics_snapshot.zones, zones) |zone, *slot| {
+        slot.* = .{
+            .zone_index = zone.zone_index,
+            .zone_num = zone.zone_num,
+            .grm_index = zone.grm_index,
+            .initially_on = zone.initially_on,
+            .issue = @tagName(zone.issue),
+            .fragment_entry_index = zone.fragment_entry_index,
+            .fragment_dimensions = zone.fragment_dimensions,
+            .x_axis = zone.x_axis,
+            .y_axis = zone.y_axis,
+            .z_axis = zone.z_axis,
+        };
+    }
+
+    return .{
+        .command = "inspect-room-fragment-zones",
+        .scene_entry_index = diagnostics_snapshot.scene_entry_index,
+        .background_entry_index = diagnostics_snapshot.background_entry_index,
+        .classic_loader_scene_number = diagnostics_snapshot.classic_loader_scene_number,
+        .scene_kind = diagnostics_snapshot.scene_kind,
+        .fragment_count = diagnostics_snapshot.fragment_count,
+        .grm_zone_count = diagnostics_snapshot.grm_zone_count,
+        .compatible_zone_count = diagnostics_snapshot.compatible_zone_count,
+        .invalid_zone_count = diagnostics_snapshot.invalid_zone_count,
+        .first_invalid_zone_index = diagnostics_snapshot.first_invalid_zone_index,
+        .zones = zones,
     };
 }
 
@@ -1130,6 +1306,106 @@ fn printUnsupportedSceneLifeDiagnostic(
             hit.byte_offset,
         },
     );
+}
+
+fn printFragmentZoneBoundsDiagnostic(
+    writer: anytype,
+    diagnostics_snapshot: room_state.RoomFragmentZoneDiagnostics,
+) !void {
+    var classic_loader_scene_number_buffer: [16]u8 = undefined;
+    try writer.print(
+        "event=room_load_rejected scene_entry_index={d} background_entry_index={d} reason=invalid_fragment_zone_bounds classic_loader_scene_number={s} scene_kind={s} invalid_fragment_zone_issue_count={d}\n",
+        .{
+            diagnostics_snapshot.scene_entry_index,
+            diagnostics_snapshot.background_entry_index,
+            formatOptionalUsize(&classic_loader_scene_number_buffer, diagnostics_snapshot.classic_loader_scene_number),
+            diagnostics_snapshot.scene_kind,
+            diagnostics_snapshot.invalid_zone_count,
+        },
+    );
+
+    for (diagnostics_snapshot.zones) |zone| {
+        if (zone.issue == .compatible) continue;
+
+        if (fragmentZoneAxisDiagnostic(zone)) |axis| {
+            try writer.print(
+                "event=fragment_zone_validation_issue scene_entry_index={d} background_entry_index={d} zone_index={d} zone_num={d} grm_index={d} fragment_entry_index={any} axis={s} min_value={d} max_value={d} unit={d} failure_reason={s} issue={s}\n",
+                .{
+                    diagnostics_snapshot.scene_entry_index,
+                    diagnostics_snapshot.background_entry_index,
+                    zone.zone_index,
+                    zone.zone_num,
+                    zone.grm_index,
+                    zone.fragment_entry_index,
+                    fragmentZoneIssueAxisName(zone.issue),
+                    axis.min_value,
+                    axis.max_value,
+                    axis.unit,
+                    fragmentZoneFailureReasonName(zone.issue, axis),
+                    @tagName(zone.issue),
+                },
+            );
+        } else {
+            try writer.print(
+                "event=fragment_zone_validation_issue scene_entry_index={d} background_entry_index={d} zone_index={d} zone_num={d} grm_index={d} fragment_entry_index={any} axis=none failure_reason={s} issue={s}\n",
+                .{
+                    diagnostics_snapshot.scene_entry_index,
+                    diagnostics_snapshot.background_entry_index,
+                    zone.zone_index,
+                    zone.zone_num,
+                    zone.grm_index,
+                    zone.fragment_entry_index,
+                    fragmentZoneNonAxisFailureReasonName(zone.issue),
+                    @tagName(zone.issue),
+                },
+            );
+        }
+    }
+}
+
+fn fragmentZoneAxisDiagnostic(
+    zone: room_state.FragmentZoneCompatibilityDiagnostic,
+) ?room_state.FragmentZoneAxisDiagnostic {
+    return switch (zone.issue) {
+        .invalid_x_axis_origin, .invalid_x_axis_span => zone.x_axis,
+        .invalid_y_axis_span => zone.y_axis,
+        .invalid_z_axis_origin, .invalid_z_axis_span => zone.z_axis,
+        else => null,
+    };
+}
+
+fn fragmentZoneIssueAxisName(issue: room_state.FragmentZoneCompatibilityIssue) []const u8 {
+    return switch (issue) {
+        .invalid_x_axis_origin, .invalid_x_axis_span => "x",
+        .invalid_y_axis_span => "y",
+        .invalid_z_axis_origin, .invalid_z_axis_span => "z",
+        else => "none",
+    };
+}
+
+fn fragmentZoneFailureReasonName(
+    issue: room_state.FragmentZoneCompatibilityIssue,
+    axis: room_state.FragmentZoneAxisDiagnostic,
+) []const u8 {
+    return switch (issue) {
+        .invalid_x_axis_origin,
+        .invalid_z_axis_origin,
+        => if (axis.origin_remainder == null) "negative_min" else "misaligned_min",
+        .invalid_x_axis_span,
+        .invalid_y_axis_span,
+        .invalid_z_axis_span,
+        => if (!axis.span_non_negative) "reversed_bounds" else "misaligned_span",
+        else => "unknown",
+    };
+}
+
+fn fragmentZoneNonAxisFailureReasonName(issue: room_state.FragmentZoneCompatibilityIssue) []const u8 {
+    return switch (issue) {
+        .invalid_fragment_zone_index => "invalid_fragment_zone_index",
+        .fragment_zone_index_out_of_range => "fragment_zone_index_out_of_range",
+        .footprint_mismatch => "footprint_mismatch",
+        else => "unknown",
+    };
 }
 
 fn buildRankedDecodedInteriorCandidatesPayload(
@@ -1701,6 +1977,20 @@ fn formatOptionalUsize(buffer: []u8, value: ?usize) []const u8 {
     return "none";
 }
 
+fn formatOptionalFragmentDimensions(
+    buffer: []u8,
+    value: ?room_state.FragmentDimensionsSnapshot,
+) []const u8 {
+    if (value) |resolved| {
+        return std.fmt.bufPrint(buffer, "{d}x{d}x{d}", .{
+            resolved.width,
+            resolved.height,
+            resolved.depth,
+        }) catch unreachable;
+    }
+    return "none";
+}
+
 fn lifeAuditStatusName(status: life_program.LifeProgramAuditStatus) []const u8 {
     return switch (status) {
         .decoded => "decoded",
@@ -1748,6 +2038,16 @@ test "argument parsing supports inspect-room json output" {
     try std.testing.expectEqual(Command.inspect_room, parsed.command);
     try std.testing.expectEqual(@as(usize, 2), parsed.entry_index.?);
     try std.testing.expectEqual(@as(usize, 2), parsed.background_entry_index.?);
+    try std.testing.expect(parsed.output_json);
+}
+
+test "argument parsing supports inspect-room-fragment-zones json output" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-room-fragment-zones", "219", "219", "--json" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.inspect_room_fragment_zones, parsed.command);
+    try std.testing.expectEqual(@as(usize, 219), parsed.entry_index.?);
+    try std.testing.expectEqual(@as(usize, 219), parsed.background_entry_index.?);
     try std.testing.expect(parsed.output_json);
 }
 
@@ -1938,6 +2238,46 @@ test "inspect-room json keeps the guarded canonical interior pair stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"fragment_count\": 0") != null);
 }
 
+test "inspect-room-fragment-zones payload explains the 219 219 blocker" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const diagnostics_snapshot = try room_state.inspectRoomFragmentZoneDiagnostics(allocator, resolved, 219, 219);
+    defer diagnostics_snapshot.deinit(allocator);
+
+    const payload = try buildRoomFragmentZoneDiagnosticsPayload(allocator, diagnostics_snapshot);
+    defer allocator.free(payload.zones);
+
+    try std.testing.expectEqualStrings("inspect-room-fragment-zones", payload.command);
+    try std.testing.expectEqual(@as(usize, 219), payload.scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 219), payload.background_entry_index);
+    try std.testing.expectEqual(@as(?usize, 217), payload.classic_loader_scene_number);
+    try std.testing.expectEqualStrings("interior", payload.scene_kind);
+    try std.testing.expectEqual(@as(usize, 3), payload.fragment_count);
+    try std.testing.expectEqual(@as(usize, 6), payload.grm_zone_count);
+    try std.testing.expectEqual(@as(usize, 0), payload.compatible_zone_count);
+    try std.testing.expectEqual(@as(usize, 6), payload.invalid_zone_count);
+    try std.testing.expectEqual(@as(?usize, 1), payload.first_invalid_zone_index);
+
+    const first = payload.zones[0];
+    try std.testing.expectEqual(@as(usize, 1), first.zone_index);
+    try std.testing.expectEqual(@as(i16, 0), first.zone_num);
+    try std.testing.expectEqual(@as(i32, 0), first.grm_index);
+    try std.testing.expectEqualStrings("invalid_z_axis_origin", first.issue);
+    try std.testing.expectEqual(@as(?usize, 159), first.fragment_entry_index);
+    try std.testing.expect(first.fragment_dimensions != null);
+    try std.testing.expectEqual(false, first.z_axis.origin_aligned.?);
+    try std.testing.expectEqual(@as(?i32, 112), first.z_axis.origin_remainder);
+
+    const third = payload.zones[2];
+    try std.testing.expectEqual(@as(usize, 11), third.zone_index);
+    try std.testing.expectEqualStrings("invalid_x_axis_origin", third.issue);
+    try std.testing.expectEqual(@as(?usize, 160), third.fragment_entry_index);
+    try std.testing.expectEqual(false, third.x_axis.origin_aligned.?);
+    try std.testing.expectEqual(@as(?i32, 80), third.x_axis.origin_remainder);
+}
+
 test "inspect-room rejects unsupported scene life outside the guarded runtime boundary" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
@@ -1962,6 +2302,24 @@ test "inspect-room formats unsupported-life diagnostics with first-hit blocker d
         "event=room_load_rejected scene_entry_index=11 background_entry_index=10 reason=unsupported_life_blob classic_loader_scene_number=9 scene_kind=interior unsupported_life_owner_kind=object unsupported_life_object_index=12 unsupported_life_opcode_name=LM_DEFAULT unsupported_life_opcode_id=116 unsupported_life_offset=38\n",
         stream.getWritten(),
     );
+}
+
+test "inspect-room formats invalid-fragment-zone diagnostics with offending grm zone details" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const diagnostics_snapshot = try room_state.inspectRoomFragmentZoneDiagnostics(allocator, resolved, 219, 219);
+    defer diagnostics_snapshot.deinit(allocator);
+
+    var buffer: [2048]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&buffer);
+    try printFragmentZoneBoundsDiagnostic(stream.writer(), diagnostics_snapshot);
+
+    const output = stream.getWritten();
+    try std.testing.expect(std.mem.indexOf(u8, output, "event=room_load_rejected scene_entry_index=219 background_entry_index=219 reason=invalid_fragment_zone_bounds classic_loader_scene_number=217 scene_kind=interior invalid_fragment_zone_issue_count=6") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "event=fragment_zone_validation_issue scene_entry_index=219 background_entry_index=219 zone_index=1 zone_num=0 grm_index=0 fragment_entry_index=159 axis=z min_value=4208 max_value=5744 unit=512 failure_reason=misaligned_min issue=invalid_z_axis_origin") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "event=fragment_zone_validation_issue scene_entry_index=219 background_entry_index=219 zone_index=11 zone_num=11 grm_index=1 fragment_entry_index=160 axis=x min_value=20048 max_value=20560 unit=512 failure_reason=misaligned_min issue=invalid_x_axis_origin") != null);
 }
 
 test "inspect-room rejects exterior scene entries" {

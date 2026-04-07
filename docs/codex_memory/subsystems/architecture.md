@@ -14,7 +14,8 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 ## Current Parity Status
 
 - `port/` stays canonical; runtime/viewer ownership remains split across `world_geometry`, `room_state`, `session`, `world_query`, `locomotion`, `viewer_shell`, `main`, and `render`.
-- `life_audit.zig` owns offline ranking of fully-decoded interior candidates, and `tools/cli.zig` exposes `rank-decoded-interior-candidates`.
+- `life_audit.zig` owns offline ranking of decoded interior candidates, and `tools/cli.zig` exposes `rank-decoded-interior-candidates`.
+- `inspect-room` failures now distinguish unsupported life from fragment-zone bounds; `219/219` prints per-zone `invalid_fragment_zone_bounds` diagnostics before the raw error.
 
 ## Known Traps
 
@@ -24,20 +25,20 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - Canonical Windows Zig checks should run from native PowerShell after `.\scripts\dev-shell.ps1`.
 - `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` are the daily loop, not the full gate.
 - `zig build test` is not a substitute for explicit `zig build run` or `zig build tool` acceptance.
-- `scripts/verify-viewer.ps1` mixes expected-failure probes with success-path assertions; helpers that inspect nonzero exits must clear `$LASTEXITCODE` before returning.
+- Tool-only CLI/report paths need a real `zig build tool -- ...` run; test targets alone can miss parse/run/format drift.
+- `scripts/verify-viewer.ps1` mixes expected-failure probes with success-path assertions; helpers that inspect nonzero exits must clear `$LASTEXITCODE`.
 - Interrupted `zig build run` launches can strand `port/zig-out/bin/lba2.exe`; clear the stale process before blaming the code.
-- Preserved legacy docs are evidence, not numeric ground truth; trust checked-in probes for exact values.
 - On guarded `19/19`, the exact containing-zone result for admitted `39/6` and the accepted south step is the empty set.
-- Do not confuse the guarded `19/19` diagnostic baseline with a playable-path candidate. The supported startup still lands on `raw_invalid_start` with `track_count=0`.
-- Do not confuse the offline ranking winner with runtime admission. `rank-decoded-interior-candidates` puts `219` first and `19` at `49/50`, but `inspect-room 219 219` still fails `InvalidFragmentZoneBounds`.
-- The `19/19` zone-summary contract is intentional: HUD uses `ZONES NONE` / `ZONES <indices>`, stderr uses `zones=none` / `zones=<indices>`, and both come from the same zone order.
+- Do not confuse the guarded `19/19` diagnostic baseline with a playable-path candidate; it still lands on `raw_invalid_start` with `track_count=0`.
+- Do not confuse the offline ranking winner with runtime admission. `219` ranks first and `19` ranks `49/50`, but `inspect-room 219 219` still fails `InvalidFragmentZoneBounds`.
+- Reuse the `219/219` blocker surfaces instead of inventing another blocker-only CLI.
+- The `19/19` zone-summary contract is intentional: HUD uses `ZONES NONE` / `ZONES <indices>`, stderr uses `zones=none` / `zones=<indices>`.
 - The positive `19/19` startup contract is intentional: stderr includes runtime-owned `event=neighbor_pattern_summary ...`; do not recompute it in viewer code.
-- The `19/19` move-option contract is intentional: HUD uses direction/cell/status lines, stderr keeps `direction:cell:status:coverage_relation:coverage_dx:coverage_dz`, and the schematic stays target-cue-only.
+- The `19/19` move-option contract is intentional: HUD uses direction/cell/status lines, stderr keeps `direction:cell:status:coverage_relation:coverage_dx:coverage_dz`.
 - Guarded negative `inspect-room` and viewer-startup loads keep `ViewerUnsupportedSceneLife` public, but precede it with the first blocking `event=room_load_rejected ... unsupported_life_*` line only.
 - The raw-invalid-start contract is intentional: HUD uses `DIAG` / `BOUNDS` / `NEAR`; stderr uses `diagnostic_status`, `occupied_coverage`, bounds, and `nearest_*`.
-- `19/19` admitted footing is intentional: HUD uses `SURF ...`, stderr uses `current_footing=...`, and both come from `local_topology`.
+- `19/19` admitted footing is intentional: HUD uses `SURF ...`, stderr uses `current_footing=...`.
 - `19/19` rejected-target coverage is intentional: stderr uses explicit `target_occupied_*` fields for admitted-position `target_rejected` only.
-- On admitted-position `target_rejected`, widened per-option `move_options=` coverage is contextual only; keep explicit `target_occupied_*` as the chosen-attempt surface.
 
 ## Canonical Entry Points
 
