@@ -23,7 +23,7 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - `docs/PROMPT.md` can lag; cross-check packs and history.
 - `sidequest/` and `LM_TASKS/` are independent workstreams, not part of canonical memory pickup unless a prompt explicitly widens scope.
 - The checked-in memory docs can lag the worktree; verify code and `git status`.
-- Canonical Windows Zig checks should run from native PowerShell after `.\scripts\dev-shell.ps1`.
+- Use native PowerShell for Windows verification and Python package installs: run `.\scripts\dev-shell.ps1` before Zig checks, and use `py -3 -m pip install -r requirements.txt` because the Bash-side `python3` lacks `pip` here.
 - `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` are the daily loop, not the full gate.
 - `zig build test` is not a substitute for explicit `zig build run` or `zig build tool` acceptance.
 - Tool-only CLI/report paths need a real `zig build tool -- ...` run; test targets alone can miss parse/run/format drift.
@@ -32,10 +32,10 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - On current PowerShell, expected-failure native stderr should be normalized line-by-line; `Out-String` over the whole captured collection can rewrap raw tool output as `NativeCommandError` noise.
 - Interrupted `zig build run` launches can strand `port/zig-out/bin/lba2.exe`; clear the stale process before blaming the code.
 - On guarded `19/19`, the exact containing-zone result for admitted `39/6` and the accepted south step is the empty set.
-- Do not confuse the guarded `19/19` diagnostic baseline with a playable-path candidate; it still lands on `raw_invalid_start` with `track_count=0`.
-- Do not confuse the offline ranking winner with runtime admission. `219` ranks first and `19` ranks `49/50`, but `inspect-room 219 219` still fails `InvalidFragmentZoneBounds`.
+- Guarded `19/19` is still diagnostic-only: it lands on `raw_invalid_start` with `track_count=0`.
+- Offline ranking is not runtime admission: `219` ranks first and `19` is `49/50`, but `inspect-room 219 219` still fails `InvalidFragmentZoneBounds`.
 - Reuse the `219/219` blocker surfaces instead of inventing another blocker-only CLI.
-- Do not confuse the highest-ranked compatible same-index pair with fragment-bearing evidence. `86/86` outranks the baseline under the checked-in fragment-zone rules, but it does so with zero fragments and zero GRM zones; `187/187` is the first compatible pair that actually exercises fragment-zone matching.
+- Same-index compatibility is not fragment-bearing evidence: `86/86` is the top compatible pair overall, but `187/187` is the first one that actually exercises fragment-zone matching.
 - Guarded negative `inspect-room` and viewer-startup loads keep `ViewerUnsupportedSceneLife` public, but precede it with the first blocking `event=room_load_rejected ... unsupported_life_*` line only.
 
 ## Canonical Entry Points

@@ -27,7 +27,7 @@ if (-not (Test-Path $driver)) {
     throw "Missing trace driver: $driver"
 }
 
-$python = Get-Command python -ErrorAction Stop
+$pythonLauncher = Get-Command py -ErrorAction Stop
 if (-not (Test-Path $FridaRepoRoot)) {
     throw "Frida repo root not found: $FridaRepoRoot"
 }
@@ -115,4 +115,4 @@ if ($Launch) {
 }
 
 Write-Host "Tracing life interpreter events to $OutputPath" -ForegroundColor Cyan
-& $python.Source @pythonArguments
+& $pythonLauncher.Source -3 @pythonArguments

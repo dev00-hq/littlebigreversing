@@ -16,6 +16,15 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
+try:
+    import msgspec
+    from msgspec import UNSET, UnsetType
+except ModuleNotFoundError as exc:
+    raise SystemExit(
+        "msgspec is required for tools/life_trace/trace_life.py; "
+        "install repo requirements with `python3 -m pip install -r requirements.txt`."
+    ) from exc
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TAVERN_POST_076_TIMEOUT_SEC = 2.0
@@ -95,6 +104,399 @@ SCENE11_PAIR_PRESET = TracePreset(
         / "scene11-pair.LBA"
     ),
 )
+
+
+NullableStrField = str | None | UnsetType
+NullableIntField = int | None | UnsetType
+NullableBoolField = bool | None | UnsetType
+StrField = str | UnsetType
+IntField = int | UnsetType
+BoolField = bool | UnsetType
+
+
+class TraceConfig(msgspec.Struct, kw_only=True, forbid_unknown_fields=True):
+    module_name: StrField = msgspec.field(name="moduleName", default=UNSET)
+    mode: StrField = UNSET
+    log_all: BoolField = msgspec.field(name="logAll", default=UNSET)
+    max_hits: IntField = msgspec.field(name="maxHits", default=UNSET)
+    target_object: IntField = msgspec.field(name="targetObject", default=UNSET)
+    target_opcode: IntField = msgspec.field(name="targetOpcode", default=UNSET)
+    target_offset: IntField = msgspec.field(name="targetOffset", default=UNSET)
+    window_before: IntField = msgspec.field(name="windowBefore", default=UNSET)
+    window_after: IntField = msgspec.field(name="windowAfter", default=UNSET)
+    focus_offset_start: NullableIntField = msgspec.field(name="focusOffsetStart", default=UNSET)
+    focus_offset_end: NullableIntField = msgspec.field(name="focusOffsetEnd", default=UNSET)
+    fingerprint_offset: NullableIntField = msgspec.field(name="fingerprintOffset", default=UNSET)
+    fingerprint_hex: NullableStrField = msgspec.field(name="fingerprintHex", default=UNSET)
+    fingerprint_bytes: list[int] | UnsetType = msgspec.field(name="fingerprintBytes", default=UNSET)
+    comparison_object: NullableIntField = msgspec.field(name="comparisonObject", default=UNSET)
+    comparison_opcode: NullableIntField = msgspec.field(name="comparisonOpcode", default=UNSET)
+    comparison_offset: NullableIntField = msgspec.field(name="comparisonOffset", default=UNSET)
+
+
+class PointerWindow(msgspec.Struct, kw_only=True, forbid_unknown_fields=True):
+    start: str
+    cursor_index: int
+    bytes_hex: str | None
+    error: StrField = UNSET
+
+
+class ExeSwitchState(msgspec.Struct, kw_only=True, forbid_unknown_fields=True):
+    func: int | None
+    type_answer: int | None
+    value: int | None
+
+
+class AgentEvent(msgspec.Struct, tag_field="kind", kw_only=True, forbid_unknown_fields=True):
+    pass
+
+
+class AgentStatusEvent(AgentEvent, tag="status"):
+    message: str
+    config: TraceConfig | UnsetType = UNSET
+    frida_lib: NullableStrField = UNSET
+    frida_module: NullableStrField = UNSET
+    frida_repo_root: NullableStrField = UNSET
+    frida_root: NullableStrField = UNSET
+    frida_site_packages: NullableStrField = UNSET
+    launch_path: NullableStrField = UNSET
+    launch_save: NullableStrField = UNSET
+    matched_hits: IntField = UNSET
+    mode: StrField = UNSET
+    module_base: StrField = UNSET
+    module_name: StrField = UNSET
+    output_path: StrField = UNSET
+    phase: NullableStrField = UNSET
+    pid: IntField = UNSET
+    process_name: StrField = UNSET
+    timed_out: BoolField = UNSET
+
+
+class AgentTraceEvent(AgentEvent, tag="trace"):
+    thread_id: int
+    object_index: int
+    owner_kind: str
+    current_object: str
+    ptr_life: str
+    offset_life: int | None
+    ptr_prg: str
+    ptr_prg_offset: int | None
+    opcode: int | None
+    opcode_hex: str | None
+    byte_at_ptr_prg: int | None
+    byte_at_ptr_prg_hex: str | None
+    ptr_window: PointerWindow
+    working_type_answer: int | None
+    working_value: int | None
+    exe_switch: ExeSwitchState
+    matches_target: bool
+    trace_role: StrField = UNSET
+
+
+class AgentTargetValidationEvent(AgentEvent, tag="target_validation"):
+    thread_id: int
+    object_index: int
+    owner_kind: str
+    ptr_life: str
+    fingerprint_start_offset: int
+    fingerprint_hex_actual: str
+    fingerprint_hex_expected: str
+    matches_fingerprint: bool
+
+
+class AgentBranchTraceEvent(AgentEvent, tag="branch_trace"):
+    thread_id: int
+    branch_kind: str
+    object_index: int
+    ptr_prg_offset_before: int | None
+    operand_offset: int | None
+    computed_target_offset: int | None
+    exe_switch_before: ExeSwitchState
+    exe_switch_after: ExeSwitchState
+    comparison_result: BoolField = UNSET
+
+
+class AgentWindowTraceEvent(AgentEvent, tag="window_trace"):
+    thread_id: int
+    object_index: int
+    owner_kind: str
+    current_object: str
+    ptr_life: str
+    offset_life: int | None
+    matches_target: BoolField = UNSET
+    ptr_prg: StrField = UNSET
+    ptr_prg_offset: NullableIntField = UNSET
+    opcode: NullableIntField = UNSET
+    opcode_hex: NullableStrField = UNSET
+    ptr_window: PointerWindow | UnsetType = UNSET
+    working_type_answer: NullableIntField = UNSET
+    working_value: NullableIntField = UNSET
+    exe_switch: ExeSwitchState | UnsetType = UNSET
+    post_076_outcome: StrField = UNSET
+    trace_role: StrField = UNSET
+    fetched_in_do_life_loop: BoolField = UNSET
+    ptr_prg_before: StrField = UNSET
+    ptr_prg_before_offset: NullableIntField = UNSET
+    byte_at_ptr_prg: NullableIntField = UNSET
+    byte_at_ptr_prg_hex: NullableStrField = UNSET
+    ptr_window_before: PointerWindow | UnsetType = UNSET
+    working_type_answer_before: NullableIntField = UNSET
+    working_value_before: NullableIntField = UNSET
+    exe_switch_before: ExeSwitchState | UnsetType = UNSET
+    ptr_prg_after: StrField = UNSET
+    ptr_prg_after_offset: NullableIntField = UNSET
+    next_opcode: NullableIntField = UNSET
+    next_opcode_hex: NullableStrField = UNSET
+    ptr_window_after: PointerWindow | UnsetType = UNSET
+    working_type_answer_after: NullableIntField = UNSET
+    working_value_after: NullableIntField = UNSET
+    exe_switch_after: ExeSwitchState | UnsetType = UNSET
+    entered_do_func_life: BoolField = UNSET
+    entered_do_test: BoolField = UNSET
+    post_hit_outcome: StrField = UNSET
+
+
+class AgentDoLifeReturnEvent(AgentEvent, tag="do_life_return"):
+    trace_role: str
+    thread_id: int
+    object_index: int
+    owner_kind: str
+    current_object: str
+    ptr_life: str
+    offset_life: int | None
+    fetched_in_do_life_loop: bool
+    ptr_prg_before: str
+    ptr_prg_before_offset: int | None
+    byte_at_ptr_prg: int | None
+    byte_at_ptr_prg_hex: str | None
+    ptr_window_before: PointerWindow
+    working_type_answer_before: int | None
+    working_value_before: int | None
+    exe_switch_before: ExeSwitchState
+    ptr_prg_after: str
+    ptr_prg_after_offset: int | None
+    next_opcode: int | None
+    next_opcode_hex: str | None
+    ptr_window_after: PointerWindow
+    working_type_answer_after: int | None
+    working_value_after: int | None
+    exe_switch_after: ExeSwitchState
+    entered_do_func_life: bool
+    entered_do_test: bool
+    post_hit_outcome: str
+
+
+class AgentErrorEvent(AgentEvent, tag="error"):
+    description: str
+    stack: str | None = None
+
+
+class PersistedStatusEvent(AgentStatusEvent):
+    event_id: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+
+
+class PersistedTraceEvent(AgentTraceEvent):
+    event_id: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+
+
+class PersistedTargetValidationEvent(AgentTargetValidationEvent):
+    event_id: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+
+
+class PersistedBranchTraceEvent(AgentBranchTraceEvent):
+    event_id: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+
+
+class PersistedWindowTraceEvent(AgentWindowTraceEvent):
+    event_id: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+
+
+class PersistedDoLifeReturnEvent(AgentDoLifeReturnEvent):
+    event_id: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+
+
+class PersistedErrorEvent(AgentErrorEvent):
+    event_id: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+
+
+class PersistedScreenshotEvent(msgspec.Struct, tag_field="kind", tag="screenshot", kw_only=True, forbid_unknown_fields=True):
+    event_id: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+    poi: str
+    screenshot_path: str
+    source_window_title: str
+    capture_status: str
+
+
+class PersistedScreenshotErrorEvent(
+    msgspec.Struct,
+    tag_field="kind",
+    tag="screenshot_error",
+    kw_only=True,
+    forbid_unknown_fields=True,
+):
+    event_id: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+    poi: str
+    reason: str
+    capture_status: str
+
+
+class PersistedVerdictEvent(msgspec.Struct, tag_field="kind", tag="verdict", kw_only=True, forbid_unknown_fields=True):
+    event_id: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+    phase: str
+    matched_fingerprint: bool
+    required_screenshots_complete: bool
+    result: str
+    reason: str
+    break_target_offset: NullableIntField = UNSET
+    break_target_proof_event_id: NullableStrField = UNSET
+    comparison_entered_do_func_life: NullableBoolField = UNSET
+    comparison_entered_do_test: NullableBoolField = UNSET
+    comparison_event_id: NullableStrField = UNSET
+    comparison_post_hit_outcome: NullableStrField = UNSET
+    expected_break_offset: NullableIntField = UNSET
+    expected_break_target_offset: NullableIntField = UNSET
+    fingerprint_event_id: NullableStrField = UNSET
+    hidden_076_case_seen: BoolField = UNSET
+    opcode_076_fetch_event_id: NullableStrField = UNSET
+    post_076_outcome: NullableStrField = UNSET
+    post_076_outcome_event_id: NullableStrField = UNSET
+    primary_entered_do_func_life: NullableBoolField = UNSET
+    primary_entered_do_test: NullableBoolField = UNSET
+    primary_event_id: NullableStrField = UNSET
+    primary_post_hit_outcome: NullableStrField = UNSET
+    returned_after_076: BoolField = UNSET
+    saw_076_fetch: BoolField = UNSET
+    saw_break_at_43: BoolField = UNSET
+    saw_expected_break: BoolField = UNSET
+    saw_post_076_loop: BoolField = UNSET
+
+
+AgentWireEventType = (
+    AgentStatusEvent
+    | AgentTraceEvent
+    | AgentTargetValidationEvent
+    | AgentBranchTraceEvent
+    | AgentWindowTraceEvent
+    | AgentDoLifeReturnEvent
+    | AgentErrorEvent
+)
+
+PersistedWireEventType = (
+    PersistedStatusEvent
+    | PersistedTraceEvent
+    | PersistedTargetValidationEvent
+    | PersistedBranchTraceEvent
+    | PersistedWindowTraceEvent
+    | PersistedDoLifeReturnEvent
+    | PersistedErrorEvent
+    | PersistedScreenshotEvent
+    | PersistedScreenshotErrorEvent
+    | PersistedVerdictEvent
+)
+
+AGENT_EVENT_TYPES = (
+    AgentStatusEvent,
+    AgentTraceEvent,
+    AgentTargetValidationEvent,
+    AgentBranchTraceEvent,
+    AgentWindowTraceEvent,
+    AgentDoLifeReturnEvent,
+    AgentErrorEvent,
+)
+
+PERSISTED_EVENT_TYPES = (
+    PersistedStatusEvent,
+    PersistedTraceEvent,
+    PersistedTargetValidationEvent,
+    PersistedBranchTraceEvent,
+    PersistedWindowTraceEvent,
+    PersistedDoLifeReturnEvent,
+    PersistedErrorEvent,
+    PersistedScreenshotEvent,
+    PersistedScreenshotErrorEvent,
+    PersistedVerdictEvent,
+)
+
+
+def build_trace_config(args: argparse.Namespace) -> TraceConfig:
+    return TraceConfig(
+        module_name=args.module,
+        mode=args.mode,
+        log_all=args.log_all,
+        max_hits=args.max_hits,
+        target_object=args.target_object,
+        target_opcode=args.target_opcode,
+        target_offset=args.target_offset,
+        window_before=args.window_before,
+        window_after=args.window_after,
+        focus_offset_start=args.focus_offset_start,
+        focus_offset_end=args.focus_offset_end,
+        fingerprint_offset=args.fingerprint_offset,
+        fingerprint_hex=args.fingerprint_hex,
+        fingerprint_bytes=list(args.fingerprint_bytes),
+        comparison_object=args.comparison_object,
+        comparison_opcode=args.comparison_opcode,
+        comparison_offset=args.comparison_offset,
+    )
+
+
+def convert_agent_event(payload: object) -> AgentWireEventType:
+    return msgspec.convert(payload, AgentWireEventType)
+
+
+def convert_persisted_event(payload: object) -> PersistedWireEventType:
+    return msgspec.convert(payload, PersistedWireEventType)
+
+
+def parse_persisted_event_line(line: str) -> PersistedWireEventType:
+    return convert_persisted_event(json.loads(line))
+
+
+def persist_agent_event(event: AgentWireEventType) -> PersistedWireEventType:
+    return convert_persisted_event(msgspec.to_builtins(event))
+
+
+def finalize_persisted_event(
+    event: PersistedWireEventType,
+    *,
+    event_id: str | None = None,
+    timestamp_utc: str | None = None,
+) -> PersistedWireEventType:
+    assigned_event_id = event_id
+    if assigned_event_id is None and event.event_id is not UNSET:
+        assigned_event_id = event.event_id
+    if assigned_event_id is None:
+        raise ValueError("event_id must be provided before serializing a persisted event")
+
+    assigned_timestamp = timestamp_utc
+    if assigned_timestamp is None and event.timestamp_utc is not UNSET:
+        assigned_timestamp = event.timestamp_utc
+    if assigned_timestamp is None:
+        assigned_timestamp = utc_now_iso()
+
+    return msgspec.structs.replace(
+        event,
+        event_id=assigned_event_id,
+        timestamp_utc=assigned_timestamp,
+    )
+
+
+def serialize_persisted_event(event: PersistedWireEventType) -> str:
+    return json.dumps(msgspec.to_builtins(event), ensure_ascii=True, sort_keys=True)
+
+
+def optional_value(value):
+    return None if value is UNSET else value
 
 
 def parse_args() -> argparse.Namespace:
@@ -237,27 +639,12 @@ def ensure_staged_frida(repo_root: Path) -> tuple[Path, Path, Path]:
 
 
 def load_agent_source(args: argparse.Namespace) -> str:
-    config = {
-        "moduleName": args.module,
-        "mode": args.mode,
-        "logAll": args.log_all,
-        "maxHits": args.max_hits,
-        "targetObject": args.target_object,
-        "targetOpcode": args.target_opcode,
-        "targetOffset": args.target_offset,
-        "windowBefore": args.window_before,
-        "windowAfter": args.window_after,
-        "focusOffsetStart": args.focus_offset_start,
-        "focusOffsetEnd": args.focus_offset_end,
-        "fingerprintOffset": args.fingerprint_offset,
-        "fingerprintHex": args.fingerprint_hex,
-        "fingerprintBytes": list(args.fingerprint_bytes),
-        "comparisonObject": args.comparison_object,
-        "comparisonOpcode": args.comparison_opcode,
-        "comparisonOffset": args.comparison_offset,
-    }
+    config = build_trace_config(args)
     template = (Path(__file__).with_name("agent.js")).read_text(encoding="utf-8")
-    return template.replace("__TRACE_CONFIG__", json.dumps(config, separators=(",", ":")))
+    return template.replace(
+        "__TRACE_CONFIG__",
+        json.dumps(msgspec.to_builtins(config), separators=(",", ":")),
+    )
 
 
 def find_process(device, process_name: str):
@@ -287,41 +674,58 @@ class JsonlWriter:
         self._event_counter += 1
         return f"evt-{self._event_counter:04d}"
 
-    def write_event(self, event: dict, *, event_id: str | None = None) -> str:
-        record = dict(event)
-        if event_id is None:
-            event_id = self.next_event_id()
-        record["event_id"] = event_id
-        record.setdefault("timestamp_utc", utc_now_iso())
-        line = json.dumps(record, ensure_ascii=True, sort_keys=True)
+    def write_event(
+        self,
+        event: AgentWireEventType | PersistedWireEventType,
+        *,
+        event_id: str | None = None,
+    ) -> str:
+        if isinstance(event, PERSISTED_EVENT_TYPES):
+            record = event
+        elif isinstance(event, AGENT_EVENT_TYPES):
+            record = persist_agent_event(event)
+        else:
+            raise TypeError(f"unsupported event type: {type(event)!r}")
+
+        assigned_event_id = event_id
+        if assigned_event_id is None and record.event_id is not UNSET:
+            assigned_event_id = record.event_id
+        if assigned_event_id is None:
+            assigned_event_id = self.next_event_id()
+
+        record = finalize_persisted_event(record, event_id=assigned_event_id)
+        line = serialize_persisted_event(record)
         self.handle.write(f"{line}\n")
         self.handle.flush()
         sys.stdout.write(f"{line}\n")
         sys.stdout.flush()
-        return event_id
+        return assigned_event_id
 
     def close(self) -> None:
         self.handle.close()
 
 
-def normalize_script_message(message: dict) -> tuple[dict | None, str | None]:
-    payload = message.get("payload") or {}
+def normalize_script_message(message: dict) -> AgentWireEventType | None:
     if message.get("type") == "send":
+        payload = message.get("payload")
+        if not isinstance(payload, dict):
+            raise RuntimeError(f"unexpected Frida payload type: {type(payload)!r}")
+
         event = dict(payload)
         nested_payload = event.pop("payload", None)
-        if isinstance(nested_payload, dict):
+        if nested_payload is not None:
+            if not isinstance(nested_payload, dict):
+                raise RuntimeError(f"unexpected Frida nested payload type: {type(nested_payload)!r}")
             event.update(nested_payload)
-        return event, None
+        return convert_agent_event(event)
 
     if message.get("type") == "error":
-        description = message.get("description") or "unknown script error"
-        return {
-            "kind": "error",
-            "description": description,
-            "stack": message.get("stack"),
-        }, description
+        return AgentErrorEvent(
+            description=message.get("description") or "unknown script error",
+            stack=message.get("stack"),
+        )
 
-    return None, None
+    return None
 
 
 @dataclass(frozen=True)
@@ -610,26 +1014,25 @@ class BasicTraceController:
     def begin(self) -> None:
         return
 
-    def handle_event(self, event: dict) -> None:
+    def handle_event(self, event: AgentWireEventType) -> None:
         self.writer.write_event(event)
-        if event.get("kind") == "trace" and event.get("matches_target"):
+        if isinstance(event, AgentTraceEvent) and event.matches_target:
             self.matched_hits += 1
             if self.matched_hits >= self.args.max_hits:
                 self.terminal = True
-        elif event.get("kind") == "error":
-            self.last_error = event.get("description") or "unknown error"
+        elif isinstance(event, AgentErrorEvent):
+            self.last_error = event.description or "unknown error"
             self.exit_code = 1
             self.terminal = True
 
     def handle_timeout(self) -> None:
         description = f"timed out without a matched hit after {self.args.timeout_sec:g} seconds"
         self.writer.write_event(
-            {
-                "kind": "status",
-                "matched_hits": self.matched_hits,
-                "message": description,
-                "timed_out": True,
-            }
+            PersistedStatusEvent(
+                message=description,
+                matched_hits=self.matched_hits,
+                timed_out=True,
+            )
         )
         self.last_error = description
         self.exit_code = 1
@@ -637,11 +1040,10 @@ class BasicTraceController:
 
     def handle_interrupt(self) -> None:
         self.writer.write_event(
-            {
-                "kind": "status",
-                "message": "interrupted",
-                "matched_hits": self.matched_hits,
-            }
+            PersistedStatusEvent(
+                message="interrupted",
+                matched_hits=self.matched_hits,
+            )
         )
         self.last_error = "interrupted"
         self.exit_code = 1
@@ -687,58 +1089,56 @@ class TavernTraceController:
     def begin(self) -> None:
         self._advance_phase("waiting_for_fingerprint", "waiting for the Tavern fingerprint")
 
-    def handle_event(self, event: dict) -> None:
+    def handle_event(self, event: AgentWireEventType) -> None:
         event_id = self.writer.write_event(event)
-        kind = event.get("kind")
-
-        if kind == "error":
-            self._finalize("unexpected_control_flow", event.get("description") or "agent error", take_final_screenshot=True)
+        if isinstance(event, AgentErrorEvent):
+            self._finalize("unexpected_control_flow", event.description or "agent error", take_final_screenshot=True)
             return
 
-        if kind == "target_validation" and event.get("matches_fingerprint"):
+        if isinstance(event, AgentTargetValidationEvent) and event.matches_fingerprint:
             if not self.matched_fingerprint:
                 self.matched_fingerprint = True
-                self.active_thread_id = event.get("thread_id")
+                self.active_thread_id = event.thread_id
                 self.fingerprint_event_id = event_id
                 self._advance_phase("armed_for_window", "fingerprint matched; waiting for the switch window")
                 self._capture_required_poi(
                     poi="fingerprint_match",
                     event_id=event_id,
-                    object_index=event.get("object_index", 0),
-                    offset_value=event.get("fingerprint_start_offset", self.args.fingerprint_offset),
+                    object_index=event.object_index,
+                    offset_value=event.fingerprint_start_offset,
                 )
             return
 
         if not self._is_tracked_event(event):
             return
 
-        if kind == "branch_trace":
+        if isinstance(event, AgentBranchTraceEvent):
             if self.phase == "armed_for_window":
                 self._advance_phase("capturing_tavern_trace", "capturing the Tavern switch window")
 
-            if event.get("branch_kind") == "break_jump":
-                self.break_target_offset = event.get("computed_target_offset")
+            if event.branch_kind == "break_jump":
+                self.break_target_offset = event.computed_target_offset
 
             if self.saw_076_fetch and self.post_076_outcome is None:
-                self.post_076_outcome = f"branch_trace:{event.get('branch_kind')}"
+                self.post_076_outcome = f"branch_trace:{event.branch_kind}"
                 self.post_076_outcome_event_id = event_id
                 self._finalize_tavern_verdict()
             return
 
-        if kind == "window_trace":
-            offset_value = event.get("ptr_prg_offset")
-            opcode_value = event.get("opcode")
+        if isinstance(event, AgentWindowTraceEvent):
+            offset_value = optional_value(event.ptr_prg_offset)
+            opcode_value = optional_value(event.opcode)
             if offset_value == self.args.target_offset and opcode_value == self.args.target_opcode:
                 if not self.saw_076_fetch:
                     self.saw_076_fetch = True
-                    self.post_076_thread_id = event.get("thread_id")
+                    self.post_076_thread_id = event.thread_id
                     self.post_076_deadline = time.monotonic() + TAVERN_POST_076_TIMEOUT_SEC
                     self.opcode_076_event_id = event_id
                     self._advance_phase("capturing_verdict", "captured the 0x76 fetch; waiting for the next outcome")
                     self._capture_required_poi(
                         poi="opcode_076_fetch",
                         event_id=event_id,
-                        object_index=event.get("object_index", 0),
+                        object_index=event.object_index,
                         offset_value=offset_value,
                     )
                 return
@@ -746,8 +1146,8 @@ class TavernTraceController:
             if (
                 self.saw_076_fetch
                 and self.post_076_outcome is None
-                and event.get("thread_id") == self.post_076_thread_id
-                and event.get("post_076_outcome") == "loop_reentry"
+                and event.thread_id == self.post_076_thread_id
+                and optional_value(event.post_076_outcome) == "loop_reentry"
             ):
                 self.saw_post_076_loop = True
                 self.post_076_outcome = "loop_reentry"
@@ -755,7 +1155,7 @@ class TavernTraceController:
                 self._finalize_tavern_verdict()
             return
 
-        if kind == "do_life_return" and self.saw_076_fetch and self.post_076_outcome is None:
+        if isinstance(event, AgentDoLifeReturnEvent) and self.saw_076_fetch and self.post_076_outcome is None:
             self.returned_after_076 = True
             self.post_076_outcome = "do_life_return"
             self.post_076_outcome_event_id = event_id
@@ -790,18 +1190,18 @@ class TavernTraceController:
                 take_final_screenshot=True,
             )
 
-    def _is_tracked_event(self, event: dict) -> bool:
+    def _is_tracked_event(self, event: AgentBranchTraceEvent | AgentWindowTraceEvent | AgentDoLifeReturnEvent) -> bool:
         return (
             self.active_thread_id is not None
-            and event.get("thread_id") == self.active_thread_id
-            and event.get("object_index") == self.args.target_object
+            and event.thread_id == self.active_thread_id
+            and event.object_index == self.args.target_object
         )
 
     def _advance_phase(self, phase: str, message: str) -> None:
         if self.phase == phase or self.terminal:
             return
         self.phase = phase
-        self.writer.write_event({"kind": "status", "phase": phase, "message": message})
+        self.writer.write_event(PersistedStatusEvent(phase=phase, message=message))
 
     def _capture_required_poi(self, poi: str, event_id: str, object_index: int, offset_value: int | None) -> None:
         if poi in self.required_screenshots or self.terminal:
@@ -811,12 +1211,11 @@ class TavernTraceController:
             screenshot_path, window = self._capture_window_file(poi, event_id, object_index, offset_value)
         except CaptureError as error:
             self.writer.write_event(
-                {
-                    "kind": "screenshot_error",
-                    "poi": poi,
-                    "reason": str(error),
-                    "capture_status": "failed",
-                },
+                PersistedScreenshotErrorEvent(
+                    poi=poi,
+                    reason=str(error),
+                    capture_status="failed",
+                ),
                 event_id=event_id,
             )
             self._finalize(
@@ -828,13 +1227,12 @@ class TavernTraceController:
 
         self.required_screenshots[poi] = screenshot_path
         self.writer.write_event(
-            {
-                "kind": "screenshot",
-                "poi": poi,
-                "screenshot_path": screenshot_path,
-                "source_window_title": window.title,
-                "capture_status": "captured",
-            },
+            PersistedScreenshotEvent(
+                poi=poi,
+                screenshot_path=screenshot_path,
+                source_window_title=window.title,
+                capture_status="captured",
+            ),
             event_id=event_id,
         )
 
@@ -893,12 +1291,11 @@ class TavernTraceController:
                 )
             except CaptureError as error:
                 self.writer.write_event(
-                    {
-                        "kind": "screenshot_error",
-                        "poi": "final_verdict",
-                        "reason": str(error),
-                        "capture_status": "failed",
-                    },
+                    PersistedScreenshotErrorEvent(
+                        poi="final_verdict",
+                        reason=str(error),
+                        capture_status="failed",
+                    ),
                     event_id=verdict_event_id,
                 )
                 result = "screenshot_capture_failed"
@@ -906,13 +1303,12 @@ class TavernTraceController:
             else:
                 self.required_screenshots["final_verdict"] = screenshot_path
                 self.writer.write_event(
-                    {
-                        "kind": "screenshot",
-                        "poi": "final_verdict",
-                        "screenshot_path": screenshot_path,
-                        "source_window_title": window.title,
-                        "capture_status": "captured",
-                    },
+                    PersistedScreenshotEvent(
+                        poi="final_verdict",
+                        screenshot_path=screenshot_path,
+                        source_window_title=window.title,
+                        capture_status="captured",
+                    ),
                     event_id=verdict_event_id,
                 )
 
@@ -922,23 +1318,22 @@ class TavernTraceController:
         )
 
         self.writer.write_event(
-            {
-                "kind": "verdict",
-                "phase": "completed",
-                "matched_fingerprint": self.matched_fingerprint,
-                "break_target_offset": self.break_target_offset,
-                "saw_076_fetch": self.saw_076_fetch,
-                "saw_post_076_loop": self.saw_post_076_loop,
-                "returned_after_076": self.returned_after_076,
-                "hidden_076_case_seen": self.hidden_076_case_seen,
-                "required_screenshots_complete": required_screenshots_complete,
-                "result": result,
-                "reason": reason,
-                "fingerprint_event_id": self.fingerprint_event_id,
-                "opcode_076_fetch_event_id": self.opcode_076_event_id,
-                "post_076_outcome": self.post_076_outcome,
-                "post_076_outcome_event_id": self.post_076_outcome_event_id,
-            },
+            PersistedVerdictEvent(
+                phase="completed",
+                matched_fingerprint=self.matched_fingerprint,
+                break_target_offset=self.break_target_offset,
+                saw_076_fetch=self.saw_076_fetch,
+                saw_post_076_loop=self.saw_post_076_loop,
+                returned_after_076=self.returned_after_076,
+                hidden_076_case_seen=self.hidden_076_case_seen,
+                required_screenshots_complete=required_screenshots_complete,
+                result=result,
+                reason=reason,
+                fingerprint_event_id=self.fingerprint_event_id,
+                opcode_076_fetch_event_id=self.opcode_076_event_id,
+                post_076_outcome=self.post_076_outcome,
+                post_076_outcome_event_id=self.post_076_outcome_event_id,
+            ),
             event_id=verdict_event_id,
         )
 
@@ -977,23 +1372,21 @@ class Scene11PairController:
         self.matched_fingerprint = False
         self.fingerprint_event_id: str | None = None
         self.primary_event_id: str | None = None
-        self.primary_event: dict | None = None
+        self.primary_event: AgentWindowTraceEvent | AgentDoLifeReturnEvent | None = None
         self.comparison_event_id: str | None = None
-        self.comparison_event: dict | None = None
+        self.comparison_event: AgentWindowTraceEvent | AgentDoLifeReturnEvent | None = None
         self.required_screenshots: dict[str, str] = {}
 
     def begin(self) -> None:
         self._advance_phase("waiting_for_fingerprint", "waiting for the canonical scene-11 fingerprint")
 
-    def handle_event(self, event: dict) -> None:
+    def handle_event(self, event: AgentWireEventType) -> None:
         event_id = self.writer.write_event(event)
-        kind = event.get("kind")
-
-        if kind == "error":
-            self._finalize("unexpected_control_flow", event.get("description") or "agent error", take_final_screenshot=True)
+        if isinstance(event, AgentErrorEvent):
+            self._finalize("unexpected_control_flow", event.description or "agent error", take_final_screenshot=True)
             return
 
-        if kind == "target_validation" and event.get("matches_fingerprint"):
+        if isinstance(event, AgentTargetValidationEvent) and event.matches_fingerprint:
             if not self.matched_fingerprint:
                 self.matched_fingerprint = True
                 self.fingerprint_event_id = event_id
@@ -1001,23 +1394,23 @@ class Scene11PairController:
                 self._capture_required_poi(
                     poi="fingerprint_match",
                     event_id=event_id,
-                    object_index=event.get("object_index", self.args.target_object),
-                    offset_value=event.get("fingerprint_start_offset", self.args.fingerprint_offset),
+                    object_index=event.object_index,
+                    offset_value=event.fingerprint_start_offset,
                 )
             return
 
-        if kind not in ("window_trace", "do_life_return"):
+        if not isinstance(event, (AgentWindowTraceEvent, AgentDoLifeReturnEvent)):
             return
 
-        trace_role = event.get("trace_role")
+        trace_role = optional_value(event.trace_role)
         if trace_role == "primary" and self.primary_event_id is None:
             self.primary_event_id = event_id
-            self.primary_event = dict(event)
+            self.primary_event = event
             self._capture_required_poi(
                 poi="primary_opcode_hit",
                 event_id=event_id,
-                object_index=event.get("object_index", self.args.target_object),
-                offset_value=event.get("ptr_prg_before_offset", self.args.target_offset),
+                object_index=event.object_index,
+                offset_value=optional_value(event.ptr_prg_before_offset) if isinstance(event, AgentWindowTraceEvent) else event.ptr_prg_before_offset,
             )
             self._advance_phase("capturing_comparison", "captured object 12 LM_DEFAULT; waiting for object 18 LM_END_SWITCH")
             if self.comparison_event_id is not None:
@@ -1026,12 +1419,12 @@ class Scene11PairController:
 
         if trace_role == "comparison" and self.comparison_event_id is None:
             self.comparison_event_id = event_id
-            self.comparison_event = dict(event)
+            self.comparison_event = event
             self._capture_required_poi(
                 poi="comparison_opcode_hit",
                 event_id=event_id,
-                object_index=event.get("object_index", self.args.comparison_object),
-                offset_value=event.get("ptr_prg_before_offset", self.args.comparison_offset),
+                object_index=event.object_index,
+                offset_value=optional_value(event.ptr_prg_before_offset) if isinstance(event, AgentWindowTraceEvent) else event.ptr_prg_before_offset,
             )
             if self.primary_event_id is None:
                 self._advance_phase("capturing_primary", "captured object 18 comparison early; still waiting for object 12 LM_DEFAULT")
@@ -1074,7 +1467,7 @@ class Scene11PairController:
         if self.phase == phase or self.terminal:
             return
         self.phase = phase
-        self.writer.write_event({"kind": "status", "phase": phase, "message": message})
+        self.writer.write_event(PersistedStatusEvent(phase=phase, message=message))
 
     def _capture_required_poi(self, poi: str, event_id: str, object_index: int, offset_value: int | None) -> None:
         if poi in self.required_screenshots or self.terminal:
@@ -1084,12 +1477,11 @@ class Scene11PairController:
             screenshot_path, window = self._capture_window_file(poi, event_id, object_index, offset_value)
         except CaptureError as error:
             self.writer.write_event(
-                {
-                    "kind": "screenshot_error",
-                    "poi": poi,
-                    "reason": str(error),
-                    "capture_status": "failed",
-                },
+                PersistedScreenshotErrorEvent(
+                    poi=poi,
+                    reason=str(error),
+                    capture_status="failed",
+                ),
                 event_id=event_id,
             )
             self._finalize(
@@ -1101,13 +1493,12 @@ class Scene11PairController:
 
         self.required_screenshots[poi] = screenshot_path
         self.writer.write_event(
-            {
-                "kind": "screenshot",
-                "poi": poi,
-                "screenshot_path": screenshot_path,
-                "source_window_title": window.title,
-                "capture_status": "captured",
-            },
+            PersistedScreenshotEvent(
+                poi=poi,
+                screenshot_path=screenshot_path,
+                source_window_title=window.title,
+                capture_status="captured",
+            ),
             event_id=event_id,
         )
 
@@ -1165,12 +1556,11 @@ class Scene11PairController:
                 )
             except CaptureError as error:
                 self.writer.write_event(
-                    {
-                        "kind": "screenshot_error",
-                        "poi": "final_verdict",
-                        "reason": str(error),
-                        "capture_status": "failed",
-                    },
+                    PersistedScreenshotErrorEvent(
+                        poi="final_verdict",
+                        reason=str(error),
+                        capture_status="failed",
+                    ),
                     event_id=verdict_event_id,
                 )
                 result = "screenshot_capture_failed"
@@ -1178,13 +1568,12 @@ class Scene11PairController:
             else:
                 self.required_screenshots["final_verdict"] = screenshot_path
                 self.writer.write_event(
-                    {
-                        "kind": "screenshot",
-                        "poi": "final_verdict",
-                        "screenshot_path": screenshot_path,
-                        "source_window_title": window.title,
-                        "capture_status": "captured",
-                    },
+                    PersistedScreenshotEvent(
+                        poi="final_verdict",
+                        screenshot_path=screenshot_path,
+                        source_window_title=window.title,
+                        capture_status="captured",
+                    ),
                     event_id=verdict_event_id,
                 )
 
@@ -1194,23 +1583,22 @@ class Scene11PairController:
         )
 
         self.writer.write_event(
-            {
-                "kind": "verdict",
-                "phase": "completed",
-                "matched_fingerprint": self.matched_fingerprint,
-                "required_screenshots_complete": required_screenshots_complete,
-                "result": result,
-                "reason": reason,
-                "fingerprint_event_id": self.fingerprint_event_id,
-                "primary_event_id": self.primary_event_id,
-                "primary_post_hit_outcome": None if self.primary_event is None else self.primary_event.get("post_hit_outcome"),
-                "primary_entered_do_func_life": None if self.primary_event is None else self.primary_event.get("entered_do_func_life"),
-                "primary_entered_do_test": None if self.primary_event is None else self.primary_event.get("entered_do_test"),
-                "comparison_event_id": self.comparison_event_id,
-                "comparison_post_hit_outcome": None if self.comparison_event is None else self.comparison_event.get("post_hit_outcome"),
-                "comparison_entered_do_func_life": None if self.comparison_event is None else self.comparison_event.get("entered_do_func_life"),
-                "comparison_entered_do_test": None if self.comparison_event is None else self.comparison_event.get("entered_do_test"),
-            },
+            PersistedVerdictEvent(
+                phase="completed",
+                matched_fingerprint=self.matched_fingerprint,
+                required_screenshots_complete=required_screenshots_complete,
+                result=result,
+                reason=reason,
+                fingerprint_event_id=self.fingerprint_event_id,
+                primary_event_id=self.primary_event_id,
+                primary_post_hit_outcome=None if self.primary_event is None else optional_value(self.primary_event.post_hit_outcome),
+                primary_entered_do_func_life=None if self.primary_event is None else optional_value(self.primary_event.entered_do_func_life),
+                primary_entered_do_test=None if self.primary_event is None else optional_value(self.primary_event.entered_do_test),
+                comparison_event_id=self.comparison_event_id,
+                comparison_post_hit_outcome=None if self.comparison_event is None else optional_value(self.comparison_event.post_hit_outcome),
+                comparison_entered_do_func_life=None if self.comparison_event is None else optional_value(self.comparison_event.entered_do_func_life),
+                comparison_entered_do_test=None if self.comparison_event is None else optional_value(self.comparison_event.entered_do_test),
+            ),
             event_id=verdict_event_id,
         )
 
@@ -1238,7 +1626,7 @@ def main() -> int:
     output_path = Path(args.output).resolve()
     writer = JsonlWriter(output_path)
     interrupted = threading.Event()
-    message_queue: queue.Queue[dict] = queue.Queue()
+    message_queue: queue.Queue[AgentWireEventType] = queue.Queue()
 
     repo_root = Path(args.frida_repo_root).resolve()
     frida_root, site_packages, frida_lib = ensure_staged_frida(repo_root)
@@ -1252,7 +1640,7 @@ def main() -> int:
     controller: BasicTraceController | TavernTraceController | Scene11PairController | None = None
 
     def on_message(message: dict, data) -> None:
-        event, _error = normalize_script_message(message)
+        event = normalize_script_message(message)
         if event is not None:
             message_queue.put(event)
 
@@ -1291,32 +1679,30 @@ def main() -> int:
         script.load()
 
         writer.write_event(
-            {
-                "kind": "status",
-                "phase": "attached" if args.mode == "tavern-trace" else None,
-                "frida_module": getattr(frida, "__file__", None),
-                "frida_repo_root": str(repo_root),
-                "frida_root": str(frida_root),
-                "frida_site_packages": str(site_packages),
-                "frida_lib": str(frida_lib),
-                "message": "attached",
-                "mode": args.mode,
-                "output_path": str(output_path),
-                "pid": pid,
-                "process_name": args.process,
-                "launch_path": args.launch,
-                "launch_save": args.launch_save,
-            }
+            PersistedStatusEvent(
+                phase="attached" if args.mode == "tavern-trace" else None,
+                frida_module=getattr(frida, "__file__", None),
+                frida_repo_root=str(repo_root),
+                frida_root=str(frida_root),
+                frida_site_packages=str(site_packages),
+                frida_lib=str(frida_lib),
+                message="attached",
+                mode=args.mode,
+                output_path=str(output_path),
+                pid=pid,
+                process_name=args.process,
+                launch_path=args.launch,
+                launch_save=args.launch_save,
+            )
         )
 
         if spawned_pid is not None:
             device.resume(spawned_pid)
             writer.write_event(
-                {
-                    "kind": "status",
-                    "message": "resumed spawned process",
-                    "pid": spawned_pid,
-                }
+                PersistedStatusEvent(
+                    message="resumed spawned process",
+                    pid=spawned_pid,
+                )
             )
 
         controller.begin()
@@ -1332,11 +1718,10 @@ def main() -> int:
 
             if not process_exists(device, pid):
                 writer.write_event(
-                    {
-                        "kind": "status",
-                        "message": "target process exited",
-                        "pid": pid,
-                    }
+                    PersistedStatusEvent(
+                        message="target process exited",
+                        pid=pid,
+                    )
                 )
                 if isinstance(controller, (TavernTraceController, Scene11PairController)):
                     controller._finalize(
@@ -1374,11 +1759,10 @@ def main() -> int:
             controller.handle_event(event)
     except Exception as error:  # noqa: BLE001
         writer.write_event(
-            {
-                "kind": "error",
-                "description": str(error),
-                "stack": None,
-            }
+            PersistedErrorEvent(
+                description=str(error),
+                stack=None,
+            )
         )
         if controller is not None and isinstance(controller, (TavernTraceController, Scene11PairController)) and not controller.terminal:
             controller._finalize("unexpected_control_flow", str(error), take_final_screenshot=True)
@@ -1407,21 +1791,19 @@ def main() -> int:
         if spawned_pid is not None:
             if args.keep_alive:
                 writer.write_event(
-                    {
-                        "kind": "status",
-                        "message": "leaving spawned process alive",
-                        "pid": spawned_pid,
-                    }
+                    PersistedStatusEvent(
+                        message="leaving spawned process alive",
+                        pid=spawned_pid,
+                    )
                 )
             else:
                 try:
                     device.kill(spawned_pid)
                     writer.write_event(
-                        {
-                            "kind": "status",
-                            "message": "killed spawned process",
-                            "pid": spawned_pid,
-                        }
+                        PersistedStatusEvent(
+                            message="killed spawned process",
+                            pid=spawned_pid,
+                        )
                     )
                 except Exception:  # noqa: BLE001
                     pass
