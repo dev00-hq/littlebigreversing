@@ -8,6 +8,7 @@ It exists because the relevant facts are currently split across:
 - the staged runtime `SAVE` folder
 - the Frida preset
 - the task docs
+- and the old IdaJS scene source files themselves
 
 ## Cross-Check Surfaces
 
@@ -24,6 +25,24 @@ This is the best current map for:
 - `raw_scene_entry_index`
 - `save_name`
 - semantic `scene_lookup`
+
+### Deterministic source crosswalk
+
+Generated crosswalk:
+
+- [idajs_scene_crosswalk.jsonl](/D:/repos/reverse/littlebigreversing/work/idajs_scene_crosswalk.jsonl)
+
+Builder:
+
+- [build_scene_crosswalk.py](/D:/repos/reverse/littlebigreversing/tools/build_scene_crosswalk.py)
+
+This is the best current map for:
+
+- old IdaJS source file
+- source line number
+- semantic `scene_id`
+- derived raw scene entry index
+- and matching sample-save rows
 
 ### Runtime save map
 
@@ -120,6 +139,7 @@ Why:
 
 Operational rule:
 
+- use `work/idajs_scene_crosswalk.jsonl` as the deterministic old-source-to-repo scene truth
 - use `work/idajs_samples_save_map.jsonl` as the source-save truth
 - use the staged `scene11-pair.LBA` file as the intended runtime copy
 - use `work/windbg/save-map.jsonl` only to inspect what the runtime actually had during a specific run
