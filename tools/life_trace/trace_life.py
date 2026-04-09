@@ -59,7 +59,7 @@ class FraProbeRuntime:
     target_id: str
     probe_id: str
     artifact_path: Path
-    read_offset: int = 0
+    consumed_records: int = 0
     terminal_event: str | None = None
     terminal_reason: str | None = None
 
@@ -547,12 +547,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--frida-repo-root",
         default=None,
-        help="Frida repository root containing build/install-root. Supported by basic and scene11-pair modes.",
+        help="Frida repository root containing build/install-root. Supported by basic mode only.",
     )
     parser.add_argument(
         "--fra-repo-root",
         default=None,
-        help="frida-agent-cli repository root containing .venv. Supported by tavern-trace mode.",
+        help="frida-agent-cli repository root containing .venv. Supported by tavern-trace and scene11-pair modes.",
     )
     parser.add_argument("--mode", choices=["basic", "tavern-trace", "scene11-pair"], default="basic")
     parser.add_argument("--target-object", type=parse_int, default=None, help="Object index to match.")
@@ -616,8 +616,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         preset = SCENE11_PAIR_PRESET
         if args.target_object is not None or args.target_opcode is not None or args.target_offset is not None:
             parser.error("--mode scene11-pair rejects --target-object, --target-opcode, and --target-offset")
-        if args.fra_repo_root is not None:
-            parser.error("--fra-repo-root requires --mode tavern-trace")
+        if args.frida_repo_root is not None:
+            parser.error("--mode scene11-pair rejects --frida-repo-root; use --fra-repo-root")
 
         args.target_object = preset.target_object
         args.target_opcode = preset.target_opcode
@@ -635,10 +635,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         args.launch_save = preset.launch_save if args.launch_save is None else args.launch_save
         if args.screenshot_dir is None:
             args.screenshot_dir = str(REPO_ROOT / "work" / "life_trace" / "shots")
-        args.frida_repo_root = str(DEFAULT_FRIDA_REPO_ROOT if args.frida_repo_root is None else Path(args.frida_repo_root))
+        args.fra_repo_root = str(DEFAULT_FRA_REPO_ROOT if args.fra_repo_root is None else Path(args.fra_repo_root))
     else:
         if args.fra_repo_root is not None:
-            parser.error("--fra-repo-root requires --mode tavern-trace")
+            parser.error("--fra-repo-root requires --mode tavern-trace or --mode scene11-pair")
         args.target_object = DEFAULT_BASIC_TARGET_OBJECT if args.target_object is None else args.target_object
         args.target_opcode = DEFAULT_BASIC_TARGET_OPCODE if args.target_opcode is None else args.target_opcode
         args.target_offset = DEFAULT_BASIC_TARGET_OFFSET if args.target_offset is None else args.target_offset
@@ -653,8 +653,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         args.timeout_sec = 0 if args.timeout_sec is None else args.timeout_sec
         args.frida_repo_root = str(DEFAULT_FRIDA_REPO_ROOT if args.frida_repo_root is None else Path(args.frida_repo_root))
 
-    if args.mode != "tavern-trace":
+    if args.mode == "basic":
         args.fra_repo_root = None
+    else:
+        args.frida_repo_root = None
 
     return args
 
@@ -729,12 +731,14 @@ def resolve_fra_launcher(repo_root: Path) -> list[str]:
 def run_fra_json(
     fra_launcher: list[str],
     *fra_args: str,
+    input_text: str | None = None,
 ) -> dict | list:
     completed = subprocess.run(
         [*fra_launcher, *fra_args],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
+        input=input_text,
         check=False,
     )
     if completed.returncode != 0:
@@ -773,47 +777,109 @@ def fra_status_fields(doctor_report: dict) -> dict[str, str | None]:
         "frida_lib": paths.get("dll_dir"),
     }
 
+def read_fra_probe_records(
+    fra_launcher: list[str],
+    runtime: FraProbeRuntime,
+) -> list[dict]:
+    payload = run_fra_json(
+        fra_launcher,
+        "probe",
+        "tail",
+        "--artifact",
+        str(runtime.artifact_path),
+        "--format",
+        "json",
+    )
+    if not isinstance(payload, list):
+        raise RuntimeError("fra probe tail returned an unexpected payload")
+    if runtime.consumed_records > len(payload):
+        raise RuntimeError("fra probe tail returned fewer records than the tracer already consumed")
 
-def write_fra_probe_source(output_path: Path, args: argparse.Namespace) -> Path:
-    probe_path = output_path.with_suffix(".probe.js")
-    probe_path.parent.mkdir(parents=True, exist_ok=True)
-    probe_path.write_text(load_agent_source(args), encoding="utf-8")
-    return probe_path
+    new_records = payload[runtime.consumed_records :]
+    runtime.consumed_records = len(payload)
 
-
-def drain_fra_probe_artifact(runtime: FraProbeRuntime, message_queue: queue.Queue[AgentWireEventType]) -> None:
-    if not runtime.artifact_path.exists():
-        return
-
-    with runtime.artifact_path.open("r", encoding="utf-8") as handle:
-        handle.seek(runtime.read_offset)
-        chunk = handle.read()
-        runtime.read_offset = handle.tell()
-
-    if not chunk:
-        return
-
-    for raw_line in chunk.splitlines():
-        line = raw_line.strip()
-        if not line:
-            continue
-        record = json.loads(line)
+    normalized: list[dict] = []
+    for record in new_records:
         if not isinstance(record, dict):
+            raise RuntimeError("fra probe tail returned a non-dict record")
+        normalized.append(record)
+    return normalized
+
+
+def queue_fra_probe_messages(
+    runtime: FraProbeRuntime,
+    records: list[dict],
+    message_queue: queue.Queue[AgentWireEventType],
+) -> None:
+    for record in records:
+        if record.get("kind") != "probe_message":
             continue
-        if record.get("kind") == "probe_message":
-            message = record.get("message")
-            if not isinstance(message, dict):
-                raise RuntimeError("fra probe artifact contained a non-dict message")
-            event = normalize_script_message(message)
-            if event is not None:
-                message_queue.put(event)
+        message = record.get("message")
+        if not isinstance(message, dict):
+            raise RuntimeError("fra probe tail returned a non-dict message")
+        event = normalize_script_message(message)
+        if event is not None:
+            message_queue.put(event)
+
+
+def try_wait_for_fra_probe_lifecycle(
+    fra_launcher: list[str],
+    runtime: FraProbeRuntime,
+    event: str,
+) -> dict | None:
+    completed = subprocess.run(
+        [
+            *fra_launcher,
+            "probe",
+            "wait",
+            "--artifact",
+            str(runtime.artifact_path),
+            "--lifecycle-event",
+            event,
+            "--timeout",
+            "0",
+            "--format",
+            "json",
+        ],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode == 0:
+        try:
+            payload = json.loads(completed.stdout)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(
+                f"fra probe wait returned invalid JSON for lifecycle {event}"
+            ) from exc
+        if not isinstance(payload, dict):
+            raise RuntimeError("fra probe wait returned an unexpected payload")
+        return payload
+
+    detail = (completed.stderr or completed.stdout).strip()
+    if "timed out waiting for a matching probe artifact record" in detail:
+        return None
+    raise RuntimeError(
+        f"fra probe wait failed ({completed.returncode}) for lifecycle {event}: {detail or '<no output>'}"
+    )
+
+
+def refresh_fra_probe_terminal_state(
+    fra_launcher: list[str],
+    runtime: FraProbeRuntime,
+) -> None:
+    if runtime.terminal_event is not None:
+        return
+
+    for event in ("terminated", "detached", "removed"):
+        record = try_wait_for_fra_probe_lifecycle(fra_launcher, runtime, event)
+        if record is None:
             continue
-        if record.get("kind") == "probe_lifecycle":
-            lifecycle_event = record.get("event")
-            if lifecycle_event in {"detached", "terminated", "removed"}:
-                runtime.terminal_event = str(lifecycle_event)
-                reason = record.get("reason")
-                runtime.terminal_reason = None if reason is None else str(reason)
+        runtime.terminal_event = event
+        reason = record.get("reason")
+        runtime.terminal_reason = None if reason is None else str(reason)
+        return
 
 
 class JsonlWriter:
@@ -1775,12 +1841,6 @@ class Scene11PairController:
         return required
 
 
-#
-# Temporary split for the LM proof lanes:
-# - TavernTrace is canonical on fra because the managed probe lane now gives Codex a stable control plane.
-# - Basic and Scene11Pair stay on direct Frida only because the current Scene11Pair late-attach proof has not
-#   been ported onto the fra probe lane yet.
-# Delete run_direct_frida_trace() once Scene11Pair is moved to fra as well; tracked under LM_TASKS/LM_CURRENT_TASK.md.
 def run_direct_frida_trace(
     args: argparse.Namespace,
     writer: JsonlWriter,
@@ -1962,12 +2022,12 @@ def run_direct_frida_trace(
     return controller, None
 
 
-def run_tavern_trace_via_fra(
+def run_structured_trace_via_fra(
     args: argparse.Namespace,
     writer: JsonlWriter,
     output_path: Path,
     interrupted: threading.Event,
-) -> tuple[TavernTraceController | None, int | None]:
+) -> tuple[TavernTraceController | Scene11PairController | None, int | None]:
     message_queue: queue.Queue[AgentWireEventType] = queue.Queue()
 
     fra_repo_root = Path(args.fra_repo_root).resolve()
@@ -1977,7 +2037,7 @@ def run_tavern_trace_via_fra(
 
     target_id: str | None = None
     probe_runtime: FraProbeRuntime | None = None
-    controller: TavernTraceController | None = None
+    controller: TavernTraceController | Scene11PairController | None = None
     spawned_pid: int | None = None
     pid: int | None = None
 
@@ -2018,8 +2078,10 @@ def run_tavern_trace_via_fra(
         if args.launch:
             spawned_pid = pid
 
-        controller = TavernTraceController(args, writer, pid)
-        probe_source = write_fra_probe_source(output_path, args)
+        if args.mode == "scene11-pair":
+            controller = Scene11PairController(args, writer, pid)
+        else:
+            controller = TavernTraceController(args, writer, pid)
         probe_record = run_fra_json(
             fra_launcher,
             "probe",
@@ -2028,8 +2090,8 @@ def run_tavern_trace_via_fra(
             target_id,
             "--format",
             "json",
-            "--source-file",
-            str(probe_source),
+            "--stdin",
+            input_text=load_agent_source(args),
         )
         if not isinstance(probe_record, dict):
             raise RuntimeError("fra probe add returned an unexpected payload")
@@ -2086,7 +2148,12 @@ def run_tavern_trace_via_fra(
                 break
 
             if probe_runtime is not None:
-                drain_fra_probe_artifact(probe_runtime, message_queue)
+                queue_fra_probe_messages(
+                    probe_runtime,
+                    read_fra_probe_records(fra_launcher, probe_runtime),
+                    message_queue,
+                )
+                refresh_fra_probe_terminal_state(fra_launcher, probe_runtime)
                 if probe_runtime.terminal_event in {"detached", "terminated", "removed"}:
                     reason_suffix = (
                         ""
@@ -2101,7 +2168,7 @@ def run_tavern_trace_via_fra(
                     )
                     controller._finalize(
                         "process_exited" if probe_runtime.terminal_event == "terminated" else "unexpected_control_flow",
-                        f"fra probe {probe_runtime.terminal_event} ended before the Tavern trace completed{reason_suffix}",
+                        f"fra probe {probe_runtime.terminal_event} ended before the structured trace completed{reason_suffix}",
                         take_final_screenshot=False,
                     )
                     break
@@ -2241,10 +2308,10 @@ def main() -> int:
     previous_sigint = signal.signal(signal.SIGINT, handle_interrupt)
 
     try:
-        if args.mode == "tavern-trace":
-            controller, exit_override = run_tavern_trace_via_fra(args, writer, output_path, interrupted)
-        else:
+        if args.mode == "basic":
             controller, exit_override = run_direct_frida_trace(args, writer, output_path, interrupted)
+        else:
+            controller, exit_override = run_structured_trace_via_fra(args, writer, output_path, interrupted)
     finally:
         signal.signal(signal.SIGINT, previous_sigint)
         writer.close()

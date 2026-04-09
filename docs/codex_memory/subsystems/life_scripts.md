@@ -14,7 +14,7 @@ Own the offline life-program decoder boundary, the audit surface for unsupported
 
 - `life_program.zig` is an unwired structural decoder.
 - `life_audit.zig` plus `audit-life-programs` is the canonical blocker report and scene-level validation surface.
-- `tavern-trace` now uses `frida-agent-cli`; `basic` and `scene11-pair` stay direct-Frida until the scene-11 proof lane is ported.
+- `tavern-trace` and `scene11-pair` now use `frida-agent-cli`; `basic` remains the only direct-Frida fallback lane.
 - `listDecodedInteriorSceneCandidates` confirms `50` decoded interior candidates; the earliest runtime candidate is `SCENE.HQR[19]`.
 - `rankDecodedInteriorSceneCandidates` ranks `219` first and `19` at `49/50`.
 - `triage-same-index-decoded-interior-candidates` puts `86/86` highest above baseline and `187/187` as the first fragment-bearing compatible pair.
@@ -30,7 +30,7 @@ Own the offline life-program decoder boundary, the audit surface for unsupported
 - A top-ranked decoded interior candidate is not automatically a guarded room/load candidate; `219/219` still fails `inspect-room` with `InvalidFragmentZoneBounds`, now with explicit per-zone diagnostics before the error.
 - A compatible same-index candidate is not automatically fragment evidence; `86/86` clears only because it has zero fragments and zero GRM zones, so keep it distinct from fragment-bearing pairs such as `187/187`.
 - Guarded negative-load diagnostics report the first blocking life blob only. For `11/10`, that is object `12` `LM_DEFAULT @ 38`, not the later object `18` `LM_END_SWITCH @ 84`.
-- On the original-runtime proof lane, use `--fra-repo-root` only with `tavern-trace`; `scene11-pair` still uses `--frida-repo-root` until it is ported.
+- On the original-runtime proof lane, use `--fra-repo-root` with both structured modes; `basic` is the only mode that still uses `--frida-repo-root`.
 
 ## Canonical Entry Points
 

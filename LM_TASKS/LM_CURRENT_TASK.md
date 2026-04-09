@@ -32,8 +32,8 @@ Verified current-state behavior:
 
 - `tools/life_trace/trace_life.py` now owns the canonical operator entrypoint for both structured modes.
 - `--mode tavern-trace` now uses `frida-agent-cli` as its canonical Frida control plane via `--fra-repo-root` and the repo-local `.venv` launcher.
-- `--mode basic` and `--mode scene11-pair` remain on the direct-Frida path temporarily because the scene-11 late-attach proof has not been ported to the managed probe lane yet.
-- Delete the remaining direct-Frida structured path from `trace_life.py` once `scene11-pair` is moved onto the same `fra` probe lane.
+- `--mode scene11-pair` now also uses `frida-agent-cli` as its canonical Frida control plane via `--fra-repo-root`.
+- `--mode basic` remains the only direct-Frida fallback path and the only mode that still accepts `--frida-repo-root`.
 - `tools/life_trace/trace_life.py` accepts `--mode scene11-pair`.
 - structured modes reject explicit `--target-object`, `--target-opcode`, and `--target-offset` overrides in the Python CLI.
 - `trace_life.py` now passes comparison-target metadata through to the Frida agent.

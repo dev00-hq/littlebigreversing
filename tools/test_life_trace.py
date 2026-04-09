@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import msgspec
 
@@ -259,6 +260,16 @@ class LifeTraceSchemaTest(unittest.TestCase):
         self.assertEqual(trace_life.DEFAULT_OUTPUT_DIR, Path(args.output).parent)
         self.assertEqual(".jsonl", Path(args.output).suffix)
 
+    def test_parse_args_defaults_scene11_to_fra_lane(self) -> None:
+        args = trace_life.parse_args(["--mode", "scene11-pair", "--launch"])
+        self.assertEqual(str(trace_life.DEFAULT_GAME_EXE), args.launch)
+        self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_object, args.target_object)
+        self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_opcode, args.target_opcode)
+        self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_offset, args.target_offset)
+        self.assertEqual(str(trace_life.REPO_ROOT / "work" / "life_trace" / "shots"), args.screenshot_dir)
+        self.assertEqual(str(trace_life.DEFAULT_FRA_REPO_ROOT), args.fra_repo_root)
+        self.assertIsNone(args.frida_repo_root)
+
     def test_parse_args_rejects_explicit_targets_in_structured_modes(self) -> None:
         stderr = io.StringIO()
         with self.assertRaises(SystemExit):
@@ -281,12 +292,24 @@ class LifeTraceSchemaTest(unittest.TestCase):
             stderr.getvalue(),
         )
 
+    def test_parse_args_rejects_frida_root_for_scene11(self) -> None:
+        stderr = io.StringIO()
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(stderr):
+                trace_life.parse_args(
+                    ["--mode", "scene11-pair", "--frida-repo-root", r"D:\repos\reverse\frida"]
+                )
+        self.assertIn(
+            "--mode scene11-pair rejects --frida-repo-root; use --fra-repo-root",
+            stderr.getvalue(),
+        )
+
     def test_parse_args_rejects_fra_root_for_basic(self) -> None:
         stderr = io.StringIO()
         with self.assertRaises(SystemExit):
             with contextlib.redirect_stderr(stderr):
                 trace_life.parse_args(["--fra-repo-root", r"D:\repos\frida-agent-cli"])
-        self.assertIn("--fra-repo-root requires --mode tavern-trace", stderr.getvalue())
+        self.assertIn("--fra-repo-root requires --mode tavern-trace or --mode scene11-pair", stderr.getvalue())
 
     def test_fra_status_fields_extracts_doctor_paths(self) -> None:
         doctor_report = {
@@ -311,37 +334,9 @@ class LifeTraceSchemaTest(unittest.TestCase):
             fields["frida_lib"],
         )
 
-    def test_drain_fra_probe_artifact_normalizes_messages_and_terminal_state(self) -> None:
+    def test_read_fra_probe_records_and_queue_messages_use_probe_tail(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             artifact_path = Path(temp_dir) / "probe.ndjson"
-            artifact_path.write_text(
-                "\n".join(
-                    [
-                        json.dumps(
-                            {
-                                "kind": "probe_message",
-                                "message": {
-                                    "type": "send",
-                                    "payload": {
-                                        "kind": "status",
-                                        "message": "life trace agent loaded",
-                                    },
-                                },
-                            }
-                        ),
-                        json.dumps(
-                            {
-                                "kind": "probe_lifecycle",
-                                "event": "terminated",
-                                "reason": "process-terminated",
-                            }
-                        ),
-                    ]
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-
             runtime = trace_life.FraProbeRuntime(
                 target_id="target-1",
                 probe_id="probe-1",
@@ -349,12 +344,79 @@ class LifeTraceSchemaTest(unittest.TestCase):
             )
             message_queue: trace_life.queue.Queue[trace_life.AgentWireEventType] = trace_life.queue.Queue()
 
-            trace_life.drain_fra_probe_artifact(runtime, message_queue)
+            with mock.patch.object(
+                trace_life,
+                "run_fra_json",
+                return_value=[
+                    {
+                        "kind": "probe_message",
+                        "message": {
+                            "type": "send",
+                            "payload": {
+                                "kind": "status",
+                                "message": "life trace agent loaded",
+                            },
+                        },
+                    },
+                    {"kind": "probe_lifecycle", "event": "loaded"},
+                ],
+            ) as mocked:
+                records = trace_life.read_fra_probe_records(["fra"], runtime)
+                trace_life.queue_fra_probe_messages(runtime, records, message_queue)
+
+            mocked.assert_called_once_with(
+                ["fra"],
+                "probe",
+                "tail",
+                "--artifact",
+                str(artifact_path),
+                "--format",
+                "json",
+            )
+            self.assertEqual(2, runtime.consumed_records)
 
             event = message_queue.get_nowait()
             self.assertIsInstance(event, trace_life.AgentStatusEvent)
-            self.assertEqual("terminated", runtime.terminal_event)
-            self.assertEqual("process-terminated", runtime.terminal_reason)
+            self.assertEqual("life trace agent loaded", event.message)
+
+    def test_refresh_fra_probe_terminal_state_uses_probe_wait(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            artifact_path = Path(temp_dir) / "probe.ndjson"
+            runtime = trace_life.FraProbeRuntime(
+                target_id="target-1",
+                probe_id="probe-1",
+                artifact_path=artifact_path,
+            )
+
+            timeout = subprocess.CompletedProcess(
+                args=["fra"],
+                returncode=1,
+                stdout="",
+                stderr="timed out waiting for a matching probe artifact record",
+            )
+            detached = subprocess.CompletedProcess(
+                args=["fra"],
+                returncode=0,
+                stdout=json.dumps(
+                    {
+                        "kind": "probe_lifecycle",
+                        "event": "detached",
+                        "reason": "target_detach",
+                    }
+                ),
+                stderr="",
+            )
+
+            with mock.patch.object(trace_life.subprocess, "run", side_effect=[timeout, detached]) as mocked:
+                trace_life.refresh_fra_probe_terminal_state(["fra"], runtime)
+
+            self.assertEqual("detached", runtime.terminal_event)
+            self.assertEqual("target_detach", runtime.terminal_reason)
+            first_call = mocked.call_args_list[0]
+            second_call = mocked.call_args_list[1]
+            self.assertIn("--lifecycle-event", first_call.args[0])
+            self.assertIn("terminated", first_call.args[0])
+            self.assertIn("detached", second_call.args[0])
 
 
 if __name__ == "__main__":

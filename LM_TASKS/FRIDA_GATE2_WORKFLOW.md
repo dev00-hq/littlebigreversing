@@ -111,10 +111,10 @@ work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE
 
 In `tavern-trace` and `scene11-pair`, `--target-object`, `--target-opcode`, and `--target-offset` are rejected on purpose.
 
-If the staged Frida repo is elsewhere:
+If the `frida-agent-cli` repo is elsewhere:
 
 ```powershell
-py -3 .\tools\life_trace\trace_life.py --mode scene11-pair --frida-repo-root D:\path\to\frida
+py -3 .\tools\life_trace\trace_life.py --mode scene11-pair --fra-repo-root D:\path\to\frida-agent-cli
 ```
 
 If you need a non-structured bounded probe, use Basic mode instead:
