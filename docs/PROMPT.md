@@ -62,17 +62,15 @@ Acceptance:
 
 Validation:
 
-- From native PowerShell, after `.\scripts\dev-shell.ps1`, run:
-  - `cd port`
-  - `zig build test-fast`
-  - `zig build tool -- rank-decoded-interior-candidates --json`
-  - `zig build tool -- triage-same-index-decoded-interior-candidates`
-  - `zig build tool -- triage-same-index-decoded-interior-candidates --json`
-  - `zig build tool -- inspect-room-fragment-zones 86 86 --json`
-  - `zig build tool -- inspect-room-fragment-zones 187 187 --json`
-  - `zig build tool -- inspect-room-fragment-zones 219 219 --json`
-  - `zig build tool -- inspect-room 219 219 --json`  `# expected InvalidFragmentZoneBounds plus fragment-zone diagnostics on stderr`
-  - `zig build test`
-  - `cd ..`
-  - `.\scripts\verify-viewer.ps1 -Fast`
-  - `.\scripts\verify-viewer.ps1`
+- From native PowerShell, either open `py -3 .\scripts\dev-shell.py shell` first or run:
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-fast`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- rank-decoded-interior-candidates --json`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- triage-same-index-decoded-interior-candidates`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- triage-same-index-decoded-interior-candidates --json`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-fragment-zones 86 86 --json`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-fragment-zones 187 187 --json`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-fragment-zones 219 219 --json`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room 219 219 --json`  `# expected InvalidFragmentZoneBounds plus fragment-zone diagnostics on stderr`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test`
+  - `py -3 .\scripts\verify_viewer.py --fast`
+  - `py -3 .\scripts\verify_viewer.py`

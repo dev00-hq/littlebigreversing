@@ -25,7 +25,7 @@ Those remain canonical in:
   - keep Tavern `0x76 @ 4883` as the first live attribution lane
   - add scene 11 object `12` `0x74 @ 38` as the primary `LM_DEFAULT` lane
   - add scene 11 object `18` `0x76 @ 84` as the same-scene `LM_END_SWITCH` comparison lane
-- `tools/life_trace/trace_life.py` and `scripts/trace-life.ps1` now expose `Scene11Pair`.
+- `tools/life_trace/trace_life.py` now exposes `scene11-pair` as the canonical structured entrypoint.
 - The canonical scene-11 save is staged at:
   - `work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\SAVE\scene11-pair.LBA`
 - Automatic spawn with that staged save still timed out before the scene-11 fingerprint matched in:

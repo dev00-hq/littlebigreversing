@@ -8,7 +8,7 @@
 - Keep switch-family life outside the supported boundary and fail-fast at the runtime/load seam.
 - Keep `life_audit.zig` owning offline decoded-interior ranking and `tools/cli.zig` owning `rank-decoded-interior-candidates` plus `triage-same-index-decoded-interior-candidates`.
 - Keep `runtime/room_state.zig` owning the guarded room/load seam plus unsupported-life and `invalid_fragment_zone_bounds` diagnostics.
-- Keep fast Windows validation additive: `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast`.
+- Keep fast Windows validation additive: `zig build test-fast` plus `scripts/verify_viewer.py --fast`.
 
 ## Active Streams
 
@@ -29,7 +29,7 @@
 ## Next Actions
 
 - Use the landed triage summaries for the next Phase 5 choice: preserve `86/86` as the highest-ranked compatible pair overall, but treat `187/187` as the first fragment-bearing compatible pair if the goal is new fragment-zone evidence.
-- Use `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` during iteration; keep bare `zig build test` plus `scripts/verify-viewer.ps1` for before-close validation.
+- Use `zig build test-fast` plus `scripts/verify_viewer.py --fast` during iteration; keep bare `zig build test` plus `scripts/verify_viewer.py` for before-close validation.
 - Keep future life work on unsupported-life diagnostics or new checked-in proof only.
 
 ## Relevant Subsystem Packs

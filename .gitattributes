@@ -1,0 +1,3 @@
+# Narrow Mergiraf pilot: enable syntax-aware merges only for Zig and JSON.
+*.zig merge=mergiraf
+*.json merge=mergiraf

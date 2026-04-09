@@ -31,8 +31,8 @@ Capture the current Linux Bash boundary so repo analysis work does not overclaim
 
 - `docs/PHASE1_IMPLEMENTATION_MEMO.md`
 - `docs/MEMSYS.md`
-- `scripts/check-env.ps1`
-- `scripts/dev-shell.ps1`
+- `scripts/check-env.py`
+- `scripts/dev-shell.py`
 
 ## Test / Probe Commands
 

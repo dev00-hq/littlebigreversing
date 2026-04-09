@@ -17,7 +17,7 @@ Primary anchors:
 - `port/src/app/viewer_shell.zig`
 - `port/src/app/viewer_shell_test.zig`
 - `port/build.zig`
-- `scripts/verify-viewer.ps1`
+- `scripts/verify_viewer.py`
 
 ## Executive Summary
 
@@ -34,7 +34,7 @@ The CLI, viewer shell, fixture generation, life audit, and verification scripts 
 Evidence:
 
 - `port/src/tools/cli.zig` exposes inspection and audit commands as stable entry points.
-- `scripts/verify-viewer.ps1` turns runtime expectations into a repeatable Windows acceptance gate.
+- `scripts/verify_viewer.py` turns runtime expectations into a repeatable Windows acceptance gate.
 - `port/src/app/viewer_shell.zig` presents the viewer as a debug and evidence surface, not a polished gameplay loop.
 
 Practical lesson:
@@ -121,7 +121,7 @@ Evidence:
 
 - `port/README.md`
 - `docs/LBA2_ZIG_PORT_PLAN.md`
-- `scripts/verify-viewer.ps1`
+- `scripts/verify_viewer.py`
 - `port/build.zig`
 
 Practical lesson:

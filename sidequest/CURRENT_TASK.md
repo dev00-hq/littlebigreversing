@@ -29,4 +29,4 @@ Keep these boundaries intact:
 - no further `world_query.zig` type extraction happens unless a real shared neutral type appears
 - `world_query.zig` keeps its room-dependent topology/query behavior
 - guarded runtime/viewer behavior stays unchanged
-- from native PowerShell, after `.\scripts\dev-shell.ps1`, `cd port` and run `zig build test`
+- from native PowerShell, run `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test`

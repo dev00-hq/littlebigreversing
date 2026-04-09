@@ -48,7 +48,7 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 - `cd port && zig build tool -- inspect-room 19 19 --json`
 - `cd port && zig build tool -- inspect-room-fragment-zones 219 219 --json`
 - `cd port && zig build tool -- triage-same-index-decoded-interior-candidates --json`
-- `pwsh -File .\scripts\verify-viewer.ps1`
+- `py -3 .\scripts\verify_viewer.py`
 - `cd port && zig build test`
 
 ## Open Unknowns

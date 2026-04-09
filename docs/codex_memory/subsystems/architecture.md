@@ -23,13 +23,13 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - `docs/PROMPT.md` can lag; cross-check packs and history.
 - `sidequest/` and `LM_TASKS/` are independent workstreams, not part of canonical memory pickup unless a prompt explicitly widens scope.
 - The checked-in memory docs can lag the worktree; verify code and `git status`.
-- Use native PowerShell for Windows verification and Python package installs: run `.\scripts\dev-shell.ps1` before Zig checks, and use `py -3 -m pip install -r requirements.txt` because the Bash-side `python3` lacks `pip` here.
-- `zig build test-fast` plus `scripts/verify-viewer.ps1 -Fast` are the daily loop, not the full gate.
+- Use native PowerShell for Windows verification and Python package installs: run Zig checks through `py -3 .\scripts\dev-shell.py`, and use `py -3 -m pip install -r requirements.txt` because the Bash-side `python3` lacks `pip` here.
+- `zig build test-fast` plus `scripts/verify_viewer.py --fast` are the daily loop, not the full gate.
 - `zig build test` is not a substitute for explicit `zig build run` or `zig build tool` acceptance.
 - Tool-only CLI/report paths need a real `zig build tool -- ...` run; test targets alone can miss parse/run/format drift.
 - Memory history lookup now treats repo-relative `evidence_refs` as retrieval edges too; if a hit is missing, recheck the query path string.
-- `scripts/verify-viewer.ps1` mixes expected-failure probes with success-path assertions; helpers that inspect nonzero exits must clear `$LASTEXITCODE`.
-- On current PowerShell, expected-failure native stderr should be normalized line-by-line; `Out-String` over the whole captured collection can rewrap raw tool output as `NativeCommandError` noise.
+- `scripts/verify_viewer.py` is the canonical Windows acceptance gate; if a failure reproduces only there, debug the underlying tool or viewer output before adding another verifier path.
+- `scripts/dev-shell.py` normalizes Windows environment keys case-insensitively because `vcvars` can emit `Path` instead of `PATH`.
 - Interrupted `zig build run` launches can strand `port/zig-out/bin/lba2.exe`; clear the stale process before blaming the code.
 - On guarded `19/19`, the exact containing-zone result for admitted `39/6` and the accepted south step is the empty set.
 - Guarded `19/19` is still diagnostic-only: it lands on `raw_invalid_start` with `track_count=0`.

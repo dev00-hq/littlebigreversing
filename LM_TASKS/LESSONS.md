@@ -7,7 +7,7 @@
   - the visible preset in `trace_life.py`
   - a separate hard-coded break-site assumption in `TavernTraceController`
   Updating only one of those is not a real retarget.
-- `scripts/trace-life.ps1` was also forwarding generic basic-mode target flags even in Tavern mode. Wrapper-level defaults can silently override the intended canonical path.
+- The old `scripts/trace-life.ps1` wrapper was also forwarding generic basic-mode target flags even in Tavern mode. Duplicate policy layers silently override the intended canonical path, so `trace_life.py` should stay the only owner.
 
 ## Evidence Lessons
 

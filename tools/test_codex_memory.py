@@ -174,7 +174,7 @@ Repo-scoped memory for tests.
 - `scene_decode`: `port/src/game_data/scene.zig`{", `port/src/game_data/background/`" if ambiguous else ""}
 - `life_scripts`: `port/src/game_data/scene/life_program.zig`
 - `backgrounds`: `port/src/game_data/background/`
-- `platform_windows`: `scripts/check-env.ps1`
+- `platform_windows`: `scripts/check-env.py`
 {platform_linux_rule}{architecture_rule}
 """,
         )
@@ -187,7 +187,7 @@ Repo-scoped memory for tests.
         self.write(paths.repo_root / "ISSUES.md", "# issues\n")
         self.write(paths.repo_root / "docs" / "PROMPT.md", "# prompt\n")
         self.write(paths.repo_root / "tools" / "codex_memory.py", "# tool\n")
-        self.write(paths.repo_root / "scripts" / "check-env.ps1", "# windows\n")
+        self.write(paths.repo_root / "scripts" / "check-env.py", "# windows\n")
         self.write(paths.repo_root / "docs" / "codex_memory" / "subsystems" / "platform_linux.md", self.pack_doc("Platform Linux"))
         self.write(paths.repo_root / "docs" / "mbn_reference" / "README.md", "# corpus\n")
         self.write(paths.repo_root / "docs" / "phase0" / "README.md", "# phase0\n")
@@ -260,7 +260,7 @@ Repo-scoped memory for tests.
             rationale="The checked-in runtime path is still Windows-first.",
             supersedes=[],
             evidence_refs=["docs/PHASE1_IMPLEMENTATION_MEMO.md"],
-            affected_paths=["scripts/check-env.ps1"],
+            affected_paths=["scripts/check-env.py"],
             author="tester",
             timestamp="2026-03-26T22:07:00Z",
         )

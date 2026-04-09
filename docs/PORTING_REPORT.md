@@ -481,24 +481,25 @@ Important current paths:
 
 ### Environment helpers already added
 
-Two PowerShell helper scripts were added:
+The current helper entrypoints are:
 
-- `D:\repos\reverse\littlebigreversing\scripts\dev-shell.ps1`
-- `D:\repos\reverse\littlebigreversing\scripts\check-env.ps1`
+- `D:\repos\reverse\littlebigreversing\scripts\dev-shell.py`
+- `D:\repos\reverse\littlebigreversing\scripts\check-env.py`
 
 Use:
 
-- `.\scripts\dev-shell.ps1`
-- `.\scripts\check-env.ps1`
+- `py -3 .\scripts\dev-shell.py shell`
+- `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test`
+- `py -3 .\scripts\check-env.py`
 
-`dev-shell.ps1` sets up the Visual Studio toolchain in the current PowerShell process and exports:
+`dev-shell.py` imports the Visual Studio toolchain environment for a child shell or command and exports:
 
 - `LBA2_REPO_ROOT`
 - `LBA2_ORIGINAL_CD_ROOT`
 - `LBA2_SOURCE_ROOT`
 - `LBA2_MBN_TOOLS_ROOT`
 
-`check-env.ps1` currently validates:
+`check-env.py` currently validates:
 
 - Visual Studio/MSVC/CMake/Ninja/MASM
 - Python/Java/Git/7-Zip
@@ -522,7 +523,7 @@ The modern build toolchain is available and working on this machine:
 - `MSBuild`
 - `ml`
 
-This is not fully on `PATH` by default in the shell, which is why `dev-shell.ps1` exists.
+This is not fully on `PATH` by default in the shell, which is why `dev-shell.py` exists.
 
 ### SDL2 status
 
@@ -538,7 +539,7 @@ Current manifest:
 - dependency: `sdl2`
 - baseline pinned in `vcpkg.json`
 
-SDL2 is now detected successfully by `check-env.ps1`.
+SDL2 is now detected successfully by `check-env.py`.
 
 Important paths:
 
@@ -568,7 +569,7 @@ The next engineering step should be:
 1. create the initial `port/` CMake skeleton,
 2. wire it to the existing `vcpkg.json`,
 3. add a tiny SDL2 smoke-test executable,
-4. confirm a clean native build from `dev-shell.ps1`.
+4. confirm a clean native build from `dev-shell.py`.
 
 After that, the first real implementation milestone should be:
 

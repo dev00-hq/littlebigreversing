@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Own the offline life-program decoder boundary, the canonical audit surface for unsupported real-asset life opcodes, and the scene-level branch-B validation used by the current runtime/load seam.
+Own the offline life-program decoder boundary, the audit surface for unsupported real-asset life opcodes, and the scene-level branch-B validation used by the current runtime/load seam.
 
 ## Invariants
 
@@ -14,9 +14,10 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 
 - `life_program.zig` is an unwired structural decoder.
 - `life_audit.zig` plus `audit-life-programs` is the canonical blocker report and scene-level validation surface.
-- `listDecodedInteriorSceneCandidates` proves there are `50` fully decoded interior candidates; the earliest canonical runtime candidate is `SCENE.HQR[19]` (`classic_loader_scene_number = 17`, `blob_count = 3`).
-- `rankDecodedInteriorSceneCandidates` plus `rank-decoded-interior-candidates` rank those `50` candidates by `track_count`, `object_count`, `zone_count`, `blob_count`, and `scene_entry_index`; `219` is first and `19` is `49/50`.
-- `triage-same-index-decoded-interior-candidates` reuses that ranking with `room_state`: `86/86` is the highest-ranked compatible pair above baseline; `187/187` is the first fragment-bearing compatible pair.
+- `tavern-trace` now uses `frida-agent-cli`; `basic` and `scene11-pair` stay direct-Frida until the scene-11 proof lane is ported.
+- `listDecodedInteriorSceneCandidates` confirms `50` decoded interior candidates; the earliest runtime candidate is `SCENE.HQR[19]`.
+- `rankDecodedInteriorSceneCandidates` ranks `219` first and `19` at `49/50`.
+- `triage-same-index-decoded-interior-candidates` puts `86/86` highest above baseline and `187/187` as the first fragment-bearing compatible pair.
 - Only `LM_DEFAULT` and `LM_END_SWITCH` are active unsupported real-asset blockers in the current archive.
 - The guarded runtime/load seam still rejects `2/2`, `44/2`, and `11/10`, and both `inspect-room` and viewer startup report the first blocking opcode/id/offset before `ViewerUnsupportedSceneLife`.
 
@@ -29,6 +30,7 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 - A top-ranked decoded interior candidate is not automatically a guarded room/load candidate; `219/219` still fails `inspect-room` with `InvalidFragmentZoneBounds`, now with explicit per-zone diagnostics before the error.
 - A compatible same-index candidate is not automatically fragment evidence; `86/86` clears only because it has zero fragments and zero GRM zones, so keep it distinct from fragment-bearing pairs such as `187/187`.
 - Guarded negative-load diagnostics report the first blocking life blob only. For `11/10`, that is object `12` `LM_DEFAULT @ 38`, not the later object `18` `LM_END_SWITCH @ 84`.
+- On the original-runtime proof lane, use `--fra-repo-root` only with `tavern-trace`; `scene11-pair` still uses `--frida-repo-root` until it is ported.
 
 ## Canonical Entry Points
 
@@ -44,7 +46,6 @@ Own the offline life-program decoder boundary, the canonical audit surface for u
 - `port/src/tools/cli.zig`
 - `tools/life_trace/trace_life.py`
 - `tools/life_trace/agent.js`
-- `scripts/trace-life.ps1`
 
 ## Test / Probe Commands
 

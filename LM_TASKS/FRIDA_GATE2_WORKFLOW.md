@@ -78,52 +78,52 @@ The tracer follows the local Frida skill contract:
 Attach to an already-running game:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -Mode TavernTrace
-pwsh -File scripts\trace-life.ps1 -Mode Scene11Pair
+py -3 .\tools\life_trace\trace_life.py --mode tavern-trace
+py -3 .\tools\life_trace\trace_life.py --mode scene11-pair
 ```
 
 Launch the canonical checked-in runtime under the tracer:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -Launch
-pwsh -File scripts\trace-life.ps1 -Mode Scene11Pair -Launch
+py -3 .\tools\life_trace\trace_life.py --mode tavern-trace --launch
+py -3 .\tools\life_trace\trace_life.py --mode scene11-pair --launch
 ```
 
 Use a fail-fast setup check first if needed:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -Launch -TimeoutSeconds 30
-pwsh -File scripts\trace-life.ps1 -Mode Scene11Pair -Launch -TimeoutSeconds 30
+py -3 .\tools\life_trace\trace_life.py --mode tavern-trace --launch --timeout-sec 30
+py -3 .\tools\life_trace\trace_life.py --mode scene11-pair --launch --timeout-sec 30
 ```
 
 Leave the launched game alive for the debugger handoff only when that is the goal:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -Launch -TimeoutSeconds 120 -KeepAlive
-pwsh -File scripts\trace-life.ps1 -Mode Scene11Pair -Launch -TimeoutSeconds 120 -KeepAlive
+py -3 .\tools\life_trace\trace_life.py --mode tavern-trace --launch --timeout-sec 120 --keep-alive
+py -3 .\tools\life_trace\trace_life.py --mode scene11-pair --launch --timeout-sec 120 --keep-alive
 ```
 
-That launch path defaults to the DLL-complete checked-in runtime under:
+Passing `--launch` without a path defaults to the DLL-complete checked-in runtime under:
 
 ```text
 work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE
 ```
 
-In `TavernTrace` and `Scene11Pair`, `-TargetObject`, `-TargetOpcode`, and `-TargetOffset` are rejected on purpose.
+In `tavern-trace` and `scene11-pair`, `--target-object`, `--target-opcode`, and `--target-offset` are rejected on purpose.
 
 If the staged Frida repo is elsewhere:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -Mode Scene11Pair -FridaRepoRoot D:\path\to\frida
+py -3 .\tools\life_trace\trace_life.py --mode scene11-pair --frida-repo-root D:\path\to\frida
 ```
 
 If you need a non-structured bounded probe, use Basic mode instead:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 `
-  -TargetObject 12 `
-  -TargetOpcode 0x74 `
-  -TargetOffset 38
+py -3 .\tools\life_trace\trace_life.py `
+  --target-object 12 `
+  --target-opcode 0x74 `
+  --target-offset 38
 ```
 
 ## User Role During The Probe

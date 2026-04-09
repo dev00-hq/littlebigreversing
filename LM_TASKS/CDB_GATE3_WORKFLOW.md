@@ -3,7 +3,7 @@
 This note is the canonical Gate 3 debugger workflow for the branch-A proof gate sprint on the original Windows `LBA2.EXE`.
 
 Use it after the Frida-side lane is already live.
-Do not use it as a replacement for `scripts\trace-life.ps1`.
+Do not use it as a replacement for `tools\life_trace\trace_life.py`.
 
 ## Scope
 
@@ -57,7 +57,7 @@ Current best interpretation:
 
 1. Start from a Frida-proved live process.
 2. For this sprint, attach before the live trigger window is missed:
-   - Frida launches with `-KeepAlive`
+   - Frida launches with `--keep-alive`
    - the user loads the canonical save and lets it settle
    - WinDbg attaches before the trigger input or animation window that should hit the target opcode
 3. Bootstrap a WinDbg/CDB remote session outside Codex on that already-running process.

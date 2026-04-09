@@ -20,8 +20,8 @@ Current live goal:
 
 Primary entrypoints:
 
-- `pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -Launch -TimeoutSeconds 120 -KeepAlive`
-- `pwsh -File scripts\trace-life.ps1 -Mode Scene11Pair -Launch -TimeoutSeconds 120 -KeepAlive`
+- `py -3 .\tools\life_trace\trace_life.py --mode tavern-trace --launch --timeout-sec 120 --keep-alive`
+- `py -3 .\tools\life_trace\trace_life.py --mode scene11-pair --launch --timeout-sec 120 --keep-alive`
 - then control an existing WinDbg remote session through the configured `windbg` MCP server
 
 ## What Landed
@@ -30,14 +30,17 @@ The proof-gate sprint plumbing is now in the tree.
 
 Verified current-state behavior:
 
-- `scripts/trace-life.ps1` now accepts `-Mode Scene11Pair`.
-- `tools/life_trace/trace_life.py` now accepts `--mode scene11-pair`.
-- structured modes reject explicit `-TargetObject`, `-TargetOpcode`, and `-TargetOffset` overrides at the wrapper and parser layers.
+- `tools/life_trace/trace_life.py` now owns the canonical operator entrypoint for both structured modes.
+- `--mode tavern-trace` now uses `frida-agent-cli` as its canonical Frida control plane via `--fra-repo-root` and the repo-local `.venv` launcher.
+- `--mode basic` and `--mode scene11-pair` remain on the direct-Frida path temporarily because the scene-11 late-attach proof has not been ported to the managed probe lane yet.
+- Delete the remaining direct-Frida structured path from `trace_life.py` once `scene11-pair` is moved onto the same `fra` probe lane.
+- `tools/life_trace/trace_life.py` accepts `--mode scene11-pair`.
+- structured modes reject explicit `--target-object`, `--target-opcode`, and `--target-offset` overrides in the Python CLI.
 - `trace_life.py` now passes comparison-target metadata through to the Frida agent.
 - `tools/life_trace/agent.js` now fingerprints scene 11 object `12`, tracks resolved primary/comparison hits, and records the before/after evidence bundle for each live hit.
 - the canonical scene-11 runtime save is staged at:
   - `work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\SAVE\scene11-pair.LBA`
-- wrapper conflict errors now fail fast correctly for both structured modes.
+- `trace_life.py` now owns the default checked-in launch path and JSONL output path for both structured modes.
 
 ## Verified Runtime Facts
 
@@ -105,7 +108,7 @@ Codex next session:
 
 - reuse [life-trace-20260405-033836.jsonl](/D:/repos/reverse/littlebigreversing/work/life_trace/life-trace-20260405-033836.jsonl) as the canonical Tavern acceptance artifact
 - reuse [life-trace-20260407-011725.jsonl](/D:/repos/reverse/littlebigreversing/work/life_trace/life-trace-20260407-011725.jsonl) as proof that staged scene-11 spawn still needs a manual load/settle step
-- leave the Frida-launched process alive with `-KeepAlive`, then open the debugger through the configured `windbg` MCP server
+- leave the Frida-launched process alive with `--keep-alive`, then open the debugger through the configured `windbg` MCP server
 - attach before the trigger window and arm:
   - `bp 0x00420574`
   - then `bp 0x004205BC`
@@ -118,7 +121,7 @@ Codex next session:
 
 Recommended path:
 
-1. Re-run `Scene11Pair` with `-KeepAlive`.
+1. Re-run `scene11-pair` with `--keep-alive`.
 2. Manually load the canonical scene-11 save and let it settle in the intended live state.
 3. Wait for Frida to record the scene-11 fingerprint and the object-12 primary hit.
 4. Keep the process alive for WinDbg attach before the comparison trigger window is missed.
@@ -127,7 +130,7 @@ Recommended path:
 Canonical command sequence:
 
 1. Re-run:
-   - `pwsh -File scripts\trace-life.ps1 -Mode Scene11Pair -Launch -TimeoutSeconds 120 -KeepAlive`
+   - `py -3 .\tools\life_trace\trace_life.py --mode scene11-pair --launch --timeout-sec 120 --keep-alive`
 2. Manually load:
    - `scene11-pair.LBA`
 3. Let the lane settle before further interaction.

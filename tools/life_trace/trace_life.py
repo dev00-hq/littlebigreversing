@@ -7,6 +7,7 @@ import os
 import queue
 import signal
 import struct
+import subprocess
 import sys
 import threading
 import time
@@ -27,6 +28,12 @@ except ModuleNotFoundError as exc:
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_OUTPUT_DIR = REPO_ROOT / "work" / "life_trace"
+DEFAULT_GAME_EXE = (
+    REPO_ROOT / "work" / "_innoextract_full" / "Speedrun" / "Windows" / "LBA2_cdrom" / "LBA2" / "LBA2.EXE"
+)
+DEFAULT_FRIDA_REPO_ROOT = Path(r"D:\repos\reverse\frida")
+DEFAULT_FRA_REPO_ROOT = Path(r"D:\repos\frida-agent-cli")
 TAVERN_POST_076_TIMEOUT_SEC = 2.0
 
 
@@ -40,6 +47,21 @@ def utc_now_iso() -> str:
 
 def parse_hex_bytes(value: str) -> tuple[int, ...]:
     return tuple(int(part, 16) for part in value.split())
+
+
+def default_output_path() -> str:
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return str(DEFAULT_OUTPUT_DIR / f"life-trace-{timestamp}.jsonl")
+
+
+@dataclass
+class FraProbeRuntime:
+    target_id: str
+    probe_id: str
+    artifact_path: Path
+    read_offset: int = 0
+    terminal_event: str | None = None
+    terminal_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -499,23 +521,38 @@ def optional_value(value):
     return None if value is UNSET else value
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    argv_list = list(sys.argv[1:] if argv is None else argv)
     parser = argparse.ArgumentParser(
         description="Bounded Frida probe for the original Windows LBA2 life interpreter."
     )
     parser.add_argument("--process", default="LBA2.EXE", help="Process name to attach to.")
-    parser.add_argument("--launch", help="Launch the executable and attach before resuming it.")
+    parser.add_argument(
+        "--launch",
+        nargs="?",
+        const=str(DEFAULT_GAME_EXE),
+        help="Launch the executable and attach before resuming it. Defaults to the checked-in runtime when passed without a path.",
+    )
     parser.add_argument(
         "--keep-alive",
         action="store_true",
         help="Leave a spawned process running after the tracer exits.",
     )
-    parser.add_argument("--output", required=True, help="JSONL output path.")
+    parser.add_argument(
+        "--output",
+        default=None,
+        help="JSONL output path. Defaults under work/life_trace/ when omitted.",
+    )
     parser.add_argument("--module", default="LBA2.EXE", help="Main module name.")
     parser.add_argument(
         "--frida-repo-root",
-        default=r"D:\repos\reverse\frida",
-        help="Frida repository root containing build/install-root.",
+        default=None,
+        help="Frida repository root containing build/install-root. Supported by basic and scene11-pair modes.",
+    )
+    parser.add_argument(
+        "--fra-repo-root",
+        default=None,
+        help="frida-agent-cli repository root containing .venv. Supported by tavern-trace mode.",
     )
     parser.add_argument("--mode", choices=["basic", "tavern-trace", "scene11-pair"], default="basic")
     parser.add_argument("--target-object", type=parse_int, default=None, help="Object index to match.")
@@ -539,24 +576,24 @@ def parse_args() -> argparse.Namespace:
         "--launch-save",
         help="Optional save file path to pass as ArgV[1] when spawning the original runtime.",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv_list)
 
     if args.max_hits < 1:
         parser.error("--max-hits must be at least 1")
     if args.timeout_sec is not None and args.timeout_sec < 0:
         parser.error("--timeout-sec must be at least 0")
+    if args.output is None:
+        args.output = default_output_path()
 
     if args.mode not in ("tavern-trace", "scene11-pair") and args.screenshot_dir is not None:
         parser.error("--screenshot-dir requires --mode tavern-trace or --mode scene11-pair")
 
     if args.mode == "tavern-trace":
         preset = TAVERN_TRACE_PRESET
-        if args.target_object is not None and args.target_object != preset.target_object:
-            parser.error(f"--mode tavern-trace requires --target-object {preset.target_object}")
-        if args.target_opcode is not None and args.target_opcode != preset.target_opcode:
-            parser.error(f"--mode tavern-trace requires --target-opcode 0x{preset.target_opcode:02X}")
-        if args.target_offset is not None and args.target_offset != preset.target_offset:
-            parser.error(f"--mode tavern-trace requires --target-offset {preset.target_offset}")
+        if args.target_object is not None or args.target_opcode is not None or args.target_offset is not None:
+            parser.error("--mode tavern-trace rejects --target-object, --target-opcode, and --target-offset")
+        if args.frida_repo_root is not None:
+            parser.error("--mode tavern-trace rejects --frida-repo-root; use --fra-repo-root")
 
         args.target_object = preset.target_object
         args.target_opcode = preset.target_opcode
@@ -574,14 +611,13 @@ def parse_args() -> argparse.Namespace:
         args.launch_save = preset.launch_save if args.launch_save is None else args.launch_save
         if args.screenshot_dir is None:
             args.screenshot_dir = str(REPO_ROOT / "work" / "life_trace" / "shots")
+        args.fra_repo_root = str(DEFAULT_FRA_REPO_ROOT if args.fra_repo_root is None else Path(args.fra_repo_root))
     elif args.mode == "scene11-pair":
         preset = SCENE11_PAIR_PRESET
-        if args.target_object is not None and args.target_object != preset.target_object:
-            parser.error(f"--mode scene11-pair requires --target-object {preset.target_object}")
-        if args.target_opcode is not None and args.target_opcode != preset.target_opcode:
-            parser.error(f"--mode scene11-pair requires --target-opcode 0x{preset.target_opcode:02X}")
-        if args.target_offset is not None and args.target_offset != preset.target_offset:
-            parser.error(f"--mode scene11-pair requires --target-offset {preset.target_offset}")
+        if args.target_object is not None or args.target_opcode is not None or args.target_offset is not None:
+            parser.error("--mode scene11-pair rejects --target-object, --target-opcode, and --target-offset")
+        if args.fra_repo_root is not None:
+            parser.error("--fra-repo-root requires --mode tavern-trace")
 
         args.target_object = preset.target_object
         args.target_opcode = preset.target_opcode
@@ -599,7 +635,10 @@ def parse_args() -> argparse.Namespace:
         args.launch_save = preset.launch_save if args.launch_save is None else args.launch_save
         if args.screenshot_dir is None:
             args.screenshot_dir = str(REPO_ROOT / "work" / "life_trace" / "shots")
+        args.frida_repo_root = str(DEFAULT_FRIDA_REPO_ROOT if args.frida_repo_root is None else Path(args.frida_repo_root))
     else:
+        if args.fra_repo_root is not None:
+            parser.error("--fra-repo-root requires --mode tavern-trace")
         args.target_object = DEFAULT_BASIC_TARGET_OBJECT if args.target_object is None else args.target_object
         args.target_opcode = DEFAULT_BASIC_TARGET_OPCODE if args.target_opcode is None else args.target_opcode
         args.target_offset = DEFAULT_BASIC_TARGET_OFFSET if args.target_offset is None else args.target_offset
@@ -612,6 +651,10 @@ def parse_args() -> argparse.Namespace:
         args.comparison_opcode = None
         args.comparison_offset = None
         args.timeout_sec = 0 if args.timeout_sec is None else args.timeout_sec
+        args.frida_repo_root = str(DEFAULT_FRIDA_REPO_ROOT if args.frida_repo_root is None else Path(args.frida_repo_root))
+
+    if args.mode != "tavern-trace":
+        args.fra_repo_root = None
 
     return args
 
@@ -660,6 +703,117 @@ def process_exists(device, pid: int) -> bool:
         return any(process.pid == pid for process in device.enumerate_processes())
     except Exception:  # noqa: BLE001
         return False
+
+
+def process_exists_pid(pid: int) -> bool:
+    PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+    kernel32 = ctypes.windll.kernel32
+    handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+    if handle == 0:
+        return False
+    kernel32.CloseHandle(handle)
+    return True
+
+
+def resolve_fra_launcher(repo_root: Path) -> list[str]:
+    python_exe = repo_root / ".venv" / "Scripts" / "python.exe"
+    if not python_exe.exists():
+        raise RuntimeError(
+            "missing fra launcher: "
+            f"{python_exe}\n"
+            "build or restore the frida-agent-cli virtual environment first"
+        )
+    return [str(python_exe), "-m", "fra"]
+
+
+def run_fra_json(
+    fra_launcher: list[str],
+    *fra_args: str,
+) -> dict | list:
+    completed = subprocess.run(
+        [*fra_launcher, *fra_args],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        stderr = completed.stderr.strip()
+        stdout = completed.stdout.strip()
+        detail = stderr or stdout or "<no output>"
+        raise RuntimeError(
+            f"fra command failed ({completed.returncode}): {' '.join(fra_args)}\n{detail}"
+        )
+    try:
+        return json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            f"fra command returned invalid JSON: {' '.join(fra_args)}"
+        ) from exc
+
+
+def fra_status_fields(doctor_report: dict) -> dict[str, str | None]:
+    if not doctor_report.get("ok"):
+        failing_checks = [
+            f"{check.get('name')}: {check.get('detail')}"
+            for check in doctor_report.get("checks", [])
+            if isinstance(check, dict) and not check.get("ok")
+        ]
+        details = "\n".join(failing_checks) if failing_checks else json.dumps(doctor_report, indent=2)
+        raise RuntimeError(f"fra doctor failed:\n{details}")
+
+    bootstrap = doctor_report.get("bootstrap") if isinstance(doctor_report.get("bootstrap"), dict) else {}
+    paths = bootstrap.get("paths") if isinstance(bootstrap.get("paths"), dict) else {}
+    frida = doctor_report.get("frida") if isinstance(doctor_report.get("frida"), dict) else {}
+    return {
+        "frida_module": frida.get("module_path"),
+        "frida_repo_root": paths.get("repo_root"),
+        "frida_root": paths.get("staged_root"),
+        "frida_site_packages": paths.get("site_packages"),
+        "frida_lib": paths.get("dll_dir"),
+    }
+
+
+def write_fra_probe_source(output_path: Path, args: argparse.Namespace) -> Path:
+    probe_path = output_path.with_suffix(".probe.js")
+    probe_path.parent.mkdir(parents=True, exist_ok=True)
+    probe_path.write_text(load_agent_source(args), encoding="utf-8")
+    return probe_path
+
+
+def drain_fra_probe_artifact(runtime: FraProbeRuntime, message_queue: queue.Queue[AgentWireEventType]) -> None:
+    if not runtime.artifact_path.exists():
+        return
+
+    with runtime.artifact_path.open("r", encoding="utf-8") as handle:
+        handle.seek(runtime.read_offset)
+        chunk = handle.read()
+        runtime.read_offset = handle.tell()
+
+    if not chunk:
+        return
+
+    for raw_line in chunk.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        record = json.loads(line)
+        if not isinstance(record, dict):
+            continue
+        if record.get("kind") == "probe_message":
+            message = record.get("message")
+            if not isinstance(message, dict):
+                raise RuntimeError("fra probe artifact contained a non-dict message")
+            event = normalize_script_message(message)
+            if event is not None:
+                message_queue.put(event)
+            continue
+        if record.get("kind") == "probe_lifecycle":
+            lifecycle_event = record.get("event")
+            if lifecycle_event in {"detached", "terminated", "removed"}:
+                runtime.terminal_event = str(lifecycle_event)
+                reason = record.get("reason")
+                runtime.terminal_reason = None if reason is None else str(reason)
 
 
 class JsonlWriter:
@@ -1621,11 +1775,18 @@ class Scene11PairController:
         return required
 
 
-def main() -> int:
-    args = parse_args()
-    output_path = Path(args.output).resolve()
-    writer = JsonlWriter(output_path)
-    interrupted = threading.Event()
+#
+# Temporary split for the LM proof lanes:
+# - TavernTrace is canonical on fra because the managed probe lane now gives Codex a stable control plane.
+# - Basic and Scene11Pair stay on direct Frida only because the current Scene11Pair late-attach proof has not
+#   been ported onto the fra probe lane yet.
+# Delete run_direct_frida_trace() once Scene11Pair is moved to fra as well; tracked under LM_TASKS/LM_CURRENT_TASK.md.
+def run_direct_frida_trace(
+    args: argparse.Namespace,
+    writer: JsonlWriter,
+    output_path: Path,
+    interrupted: threading.Event,
+) -> tuple[BasicTraceController | TavernTraceController | Scene11PairController | None, int | None]:
     message_queue: queue.Queue[AgentWireEventType] = queue.Queue()
 
     repo_root = Path(args.frida_repo_root).resolve()
@@ -1644,11 +1805,6 @@ def main() -> int:
         if event is not None:
             message_queue.put(event)
 
-    def handle_interrupt(signum, frame) -> None:
-        interrupted.set()
-
-    previous_sigint = signal.signal(signal.SIGINT, handle_interrupt)
-
     try:
         if args.launch:
             launch_path = Path(args.launch)
@@ -1666,9 +1822,7 @@ def main() -> int:
             process = find_process(device, args.process)
             pid = process.pid
 
-        if args.mode == "tavern-trace":
-            controller = TavernTraceController(args, writer, pid)
-        elif args.mode == "scene11-pair":
+        if args.mode == "scene11-pair":
             controller = Scene11PairController(args, writer, pid)
         else:
             controller = BasicTraceController(args, writer)
@@ -1680,7 +1834,6 @@ def main() -> int:
 
         writer.write_event(
             PersistedStatusEvent(
-                phase="attached" if args.mode == "tavern-trace" else None,
                 frida_module=getattr(frida, "__file__", None),
                 frida_repo_root=str(repo_root),
                 frida_root=str(frida_root),
@@ -1723,7 +1876,7 @@ def main() -> int:
                         pid=pid,
                     )
                 )
-                if isinstance(controller, (TavernTraceController, Scene11PairController)):
+                if isinstance(controller, Scene11PairController):
                     controller._finalize(
                         "process_exited",
                         f"process {pid} exited before the structured trace completed",
@@ -1764,7 +1917,7 @@ def main() -> int:
                 stack=None,
             )
         )
-        if controller is not None and isinstance(controller, (TavernTraceController, Scene11PairController)) and not controller.terminal:
+        if controller is not None and isinstance(controller, Scene11PairController) and not controller.terminal:
             controller._finalize("unexpected_control_flow", str(error), take_final_screenshot=True)
         elif controller is not None:
             controller.last_error = str(error)
@@ -1772,10 +1925,8 @@ def main() -> int:
             controller.terminal = True
         elif controller is None:
             print(str(error), file=sys.stderr)
-            return 1
+            return None, 1
     finally:
-        signal.signal(signal.SIGINT, previous_sigint)
-
         if script is not None:
             try:
                 script.unload()
@@ -1808,8 +1959,298 @@ def main() -> int:
                 except Exception:  # noqa: BLE001
                     pass
 
+    return controller, None
+
+
+def run_tavern_trace_via_fra(
+    args: argparse.Namespace,
+    writer: JsonlWriter,
+    output_path: Path,
+    interrupted: threading.Event,
+) -> tuple[TavernTraceController | None, int | None]:
+    message_queue: queue.Queue[AgentWireEventType] = queue.Queue()
+
+    fra_repo_root = Path(args.fra_repo_root).resolve()
+    fra_launcher = resolve_fra_launcher(fra_repo_root)
+    doctor_report = run_fra_json(fra_launcher, "doctor", "--format", "json")
+    status_fields = fra_status_fields(doctor_report if isinstance(doctor_report, dict) else {})
+
+    target_id: str | None = None
+    probe_runtime: FraProbeRuntime | None = None
+    controller: TavernTraceController | None = None
+    spawned_pid: int | None = None
+    pid: int | None = None
+
+    try:
+        if args.launch:
+            launch_path = Path(args.launch)
+            if not launch_path.exists():
+                raise RuntimeError(f"launch path does not exist: {launch_path}")
+            spawn_args = [
+                "target",
+                "spawn",
+                "--format",
+                "json",
+                "--cwd",
+                str(launch_path.parent),
+                str(launch_path),
+            ]
+            if args.launch_save is not None:
+                launch_save_path = Path(args.launch_save)
+                if not launch_save_path.exists():
+                    raise RuntimeError(f"launch save path does not exist: {launch_save_path}")
+                spawn_args.append(str(launch_save_path))
+            target_record = run_fra_json(fra_launcher, *spawn_args)
+        else:
+            target_record = run_fra_json(
+                fra_launcher,
+                "target",
+                "attach",
+                "--format",
+                "json",
+                args.process,
+            )
+        if not isinstance(target_record, dict):
+            raise RuntimeError("fra target command returned an unexpected payload")
+
+        target_id = str(target_record["target_id"])
+        pid = int(target_record["pid"])
+        if args.launch:
+            spawned_pid = pid
+
+        controller = TavernTraceController(args, writer, pid)
+        probe_source = write_fra_probe_source(output_path, args)
+        probe_record = run_fra_json(
+            fra_launcher,
+            "probe",
+            "add",
+            "--target",
+            target_id,
+            "--format",
+            "json",
+            "--source-file",
+            str(probe_source),
+        )
+        if not isinstance(probe_record, dict):
+            raise RuntimeError("fra probe add returned an unexpected payload")
+        probe_runtime = FraProbeRuntime(
+            target_id=target_id,
+            probe_id=str(probe_record["probe_id"]),
+            artifact_path=Path(str(probe_record["event_artifact"])),
+        )
+
+        writer.write_event(
+            PersistedStatusEvent(
+                phase="attached",
+                frida_module=status_fields["frida_module"],
+                frida_repo_root=status_fields["frida_repo_root"],
+                frida_root=status_fields["frida_root"],
+                frida_site_packages=status_fields["frida_site_packages"],
+                frida_lib=status_fields["frida_lib"],
+                message="attached",
+                mode=args.mode,
+                output_path=str(output_path),
+                pid=pid,
+                process_name=args.process,
+                launch_path=args.launch,
+                launch_save=args.launch_save,
+            )
+        )
+
+        if spawned_pid is not None:
+            run_fra_json(
+                fra_launcher,
+                "target",
+                "resume",
+                "--target",
+                target_id,
+                "--format",
+                "json",
+            )
+            writer.write_event(
+                PersistedStatusEvent(
+                    message="resumed spawned process",
+                    pid=spawned_pid,
+                )
+            )
+
+        controller.begin()
+
+        deadline = None
+        if args.timeout_sec is not None and args.timeout_sec > 0:
+            deadline = time.monotonic() + args.timeout_sec
+
+        while controller is not None and not controller.terminal:
+            if interrupted.is_set():
+                controller.handle_interrupt()
+                break
+
+            if probe_runtime is not None:
+                drain_fra_probe_artifact(probe_runtime, message_queue)
+                if probe_runtime.terminal_event in {"detached", "terminated", "removed"}:
+                    reason_suffix = (
+                        ""
+                        if not probe_runtime.terminal_reason
+                        else f" ({probe_runtime.terminal_reason})"
+                    )
+                    writer.write_event(
+                        PersistedStatusEvent(
+                            message=f"fra probe {probe_runtime.terminal_event}{reason_suffix}",
+                            pid=pid,
+                        )
+                    )
+                    controller._finalize(
+                        "process_exited" if probe_runtime.terminal_event == "terminated" else "unexpected_control_flow",
+                        f"fra probe {probe_runtime.terminal_event} ended before the Tavern trace completed{reason_suffix}",
+                        take_final_screenshot=False,
+                    )
+                    break
+
+            if pid is not None and not process_exists_pid(pid):
+                writer.write_event(
+                    PersistedStatusEvent(
+                        message="target process exited",
+                        pid=pid,
+                    )
+                )
+                controller._finalize(
+                    "process_exited",
+                    f"process {pid} exited before the structured trace completed",
+                    take_final_screenshot=False,
+                )
+                break
+
+            now = time.monotonic()
+            controller.poll(now)
+            if controller.terminal:
+                break
+
+            if deadline is not None and now >= deadline:
+                controller.handle_timeout()
+                break
+
+            wakeups = [0.25]
+            next_deadline = controller.next_deadline()
+            if deadline is not None:
+                wakeups.append(max(0.0, deadline - now))
+            if next_deadline is not None:
+                wakeups.append(max(0.0, next_deadline - now))
+            timeout = max(0.01, min(wakeups))
+
+            try:
+                event = message_queue.get(timeout=timeout)
+            except queue.Empty:
+                continue
+            controller.handle_event(event)
+    except Exception as error:  # noqa: BLE001
+        writer.write_event(
+            PersistedErrorEvent(
+                description=str(error),
+                stack=None,
+            )
+        )
+        if controller is not None and not controller.terminal:
+            controller._finalize("unexpected_control_flow", str(error), take_final_screenshot=True)
+        elif controller is None:
+            print(str(error), file=sys.stderr)
+            return None, 1
+    finally:
+        if probe_runtime is not None:
+            try:
+                run_fra_json(
+                    fra_launcher,
+                    "probe",
+                    "remove",
+                    "--format",
+                    "json",
+                    probe_runtime.probe_id,
+                )
+            except Exception:  # noqa: BLE001
+                pass
+
+        if target_id is not None:
+            if spawned_pid is not None:
+                if args.keep_alive:
+                    try:
+                        run_fra_json(
+                            fra_launcher,
+                            "target",
+                            "detach",
+                            "--target",
+                            target_id,
+                            "--format",
+                            "json",
+                        )
+                        writer.write_event(
+                            PersistedStatusEvent(
+                                message="leaving spawned process alive",
+                                pid=spawned_pid,
+                            )
+                        )
+                    except Exception:  # noqa: BLE001
+                        pass
+                else:
+                    try:
+                        run_fra_json(
+                            fra_launcher,
+                            "target",
+                            "terminate",
+                            "--target",
+                            target_id,
+                            "--format",
+                            "json",
+                        )
+                        writer.write_event(
+                            PersistedStatusEvent(
+                                message="killed spawned process",
+                                pid=spawned_pid,
+                            )
+                        )
+                    except Exception:  # noqa: BLE001
+                        pass
+            else:
+                try:
+                    run_fra_json(
+                        fra_launcher,
+                        "target",
+                        "detach",
+                        "--target",
+                        target_id,
+                        "--format",
+                        "json",
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+
+    return controller, None
+
+
+def main() -> int:
+    args = parse_args()
+    output_path = Path(args.output).resolve()
+    writer = JsonlWriter(output_path)
+    interrupted = threading.Event()
+    controller: BasicTraceController | TavernTraceController | Scene11PairController | None = None
+    exit_override: int | None = None
+
+    def handle_interrupt(signum, frame) -> None:
+        _ = signum
+        _ = frame
+        interrupted.set()
+
+    previous_sigint = signal.signal(signal.SIGINT, handle_interrupt)
+
+    try:
+        if args.mode == "tavern-trace":
+            controller, exit_override = run_tavern_trace_via_fra(args, writer, output_path, interrupted)
+        else:
+            controller, exit_override = run_direct_frida_trace(args, writer, output_path, interrupted)
+    finally:
+        signal.signal(signal.SIGINT, previous_sigint)
         writer.close()
 
+    if exit_override is not None:
+        return exit_override
     if controller is not None and controller.last_error:
         print(controller.last_error, file=sys.stderr)
     return 0 if controller is not None and controller.exit_code == 0 else 1

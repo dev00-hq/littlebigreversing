@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import subprocess
 import sys
@@ -244,6 +246,115 @@ class LifeTraceSchemaTest(unittest.TestCase):
         )
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn("Bounded Frida probe for the original Windows LBA2 life interpreter.", result.stdout)
+
+    def test_parse_args_defaults_output_and_launch_path(self) -> None:
+        args = trace_life.parse_args(["--mode", "tavern-trace", "--launch"])
+        self.assertEqual(str(trace_life.DEFAULT_GAME_EXE), args.launch)
+        self.assertEqual(trace_life.TAVERN_TRACE_PRESET.target_object, args.target_object)
+        self.assertEqual(trace_life.TAVERN_TRACE_PRESET.target_opcode, args.target_opcode)
+        self.assertEqual(trace_life.TAVERN_TRACE_PRESET.target_offset, args.target_offset)
+        self.assertEqual(str(trace_life.REPO_ROOT / "work" / "life_trace" / "shots"), args.screenshot_dir)
+        self.assertEqual(str(trace_life.DEFAULT_FRA_REPO_ROOT), args.fra_repo_root)
+        self.assertIsNone(args.frida_repo_root)
+        self.assertEqual(trace_life.DEFAULT_OUTPUT_DIR, Path(args.output).parent)
+        self.assertEqual(".jsonl", Path(args.output).suffix)
+
+    def test_parse_args_rejects_explicit_targets_in_structured_modes(self) -> None:
+        stderr = io.StringIO()
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(stderr):
+                trace_life.parse_args(["--mode", "scene11-pair", "--target-object", "12"])
+        self.assertIn(
+            "--mode scene11-pair rejects --target-object, --target-opcode, and --target-offset",
+            stderr.getvalue(),
+        )
+
+    def test_parse_args_rejects_frida_root_for_tavern(self) -> None:
+        stderr = io.StringIO()
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(stderr):
+                trace_life.parse_args(
+                    ["--mode", "tavern-trace", "--frida-repo-root", r"D:\repos\reverse\frida"]
+                )
+        self.assertIn(
+            "--mode tavern-trace rejects --frida-repo-root; use --fra-repo-root",
+            stderr.getvalue(),
+        )
+
+    def test_parse_args_rejects_fra_root_for_basic(self) -> None:
+        stderr = io.StringIO()
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(stderr):
+                trace_life.parse_args(["--fra-repo-root", r"D:\repos\frida-agent-cli"])
+        self.assertIn("--fra-repo-root requires --mode tavern-trace", stderr.getvalue())
+
+    def test_fra_status_fields_extracts_doctor_paths(self) -> None:
+        doctor_report = {
+            "ok": True,
+            "bootstrap": {
+                "paths": {
+                    "repo_root": r"D:\repos\reverse\frida",
+                    "staged_root": r"D:\repos\reverse\frida\build\install-root\Program Files\Frida",
+                    "site_packages": r"D:\repos\reverse\frida\build\install-root\Program Files\Frida\lib\site-packages",
+                    "dll_dir": r"D:\repos\reverse\frida\build\install-root\Program Files\Frida\lib\frida\x86_64",
+                }
+            },
+            "frida": {"module_path": r"D:\repos\reverse\frida\build\install-root\Program Files\Frida\lib\site-packages\frida\__init__.py"},
+            "checks": [],
+        }
+
+        fields = trace_life.fra_status_fields(doctor_report)
+
+        self.assertEqual(r"D:\repos\reverse\frida", fields["frida_repo_root"])
+        self.assertEqual(
+            r"D:\repos\reverse\frida\build\install-root\Program Files\Frida\lib\frida\x86_64",
+            fields["frida_lib"],
+        )
+
+    def test_drain_fra_probe_artifact_normalizes_messages_and_terminal_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            artifact_path = Path(temp_dir) / "probe.ndjson"
+            artifact_path.write_text(
+                "\n".join(
+                    [
+                        json.dumps(
+                            {
+                                "kind": "probe_message",
+                                "message": {
+                                    "type": "send",
+                                    "payload": {
+                                        "kind": "status",
+                                        "message": "life trace agent loaded",
+                                    },
+                                },
+                            }
+                        ),
+                        json.dumps(
+                            {
+                                "kind": "probe_lifecycle",
+                                "event": "terminated",
+                                "reason": "process-terminated",
+                            }
+                        ),
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            runtime = trace_life.FraProbeRuntime(
+                target_id="target-1",
+                probe_id="probe-1",
+                artifact_path=artifact_path,
+            )
+            message_queue: trace_life.queue.Queue[trace_life.AgentWireEventType] = trace_life.queue.Queue()
+
+            trace_life.drain_fra_probe_artifact(runtime, message_queue)
+
+            event = message_queue.get_nowait()
+            self.assertIsInstance(event, trace_life.AgentStatusEvent)
+            self.assertEqual("terminated", runtime.terminal_event)
+            self.assertEqual("process-terminated", runtime.terminal_reason)
 
 
 if __name__ == "__main__":

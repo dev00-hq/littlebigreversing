@@ -26,9 +26,18 @@ EXPECTED_SUBSYSTEMS = (
 )
 MARKDOWN_SPECS = {
     "README.md": (("Workflow", "Commands", "Write Rules", "Budgets"), None),
-    "project_brief.md": (("Purpose", "Repo Map", "Canonical Sources", "Invariants", "Non-Goals"), 2048),
+    "project_brief.md": (
+        ("Purpose", "Repo Map", "Canonical Sources", "Invariants", "Non-Goals"),
+        2048,
+    ),
     "current_focus.md": (
-        ("Current Priorities", "Active Streams", "Blocked Items", "Next Actions", "Relevant Subsystem Packs"),
+        (
+            "Current Priorities",
+            "Active Streams",
+            "Blocked Items",
+            "Next Actions",
+            "Relevant Subsystem Packs",
+        ),
         3072,
     ),
 }
@@ -96,7 +105,14 @@ FIELD_RULES = {
         "list": ("supersedes",),
     },
     "investigations": {
-        "required": ("subsystem", "status", "question", "current_best_answer", "confidence", "next_probe"),
+        "required": (
+            "subsystem",
+            "status",
+            "question",
+            "current_best_answer",
+            "confidence",
+            "next_probe",
+        ),
         "short": ("question", "next_probe"),
         "long": ("current_best_answer",),
         "list": (),
@@ -114,7 +130,14 @@ FIELD_RULES = {
         "list": ("next_actions",),
     },
 }
-COMMON_FIELDS = ("schema_version", "record_id", "timestamp_utc", "author", "affected_paths", "evidence_refs")
+COMMON_FIELDS = (
+    "schema_version",
+    "record_id",
+    "timestamp_utc",
+    "author",
+    "affected_paths",
+    "evidence_refs",
+)
 HISTORY_MODES = ("recent", "relevant")
 ARCHITECTURE_DOC_CHURN_PATHS = frozenset(
     {
@@ -137,7 +160,11 @@ class MemoryPaths:
     def defaults(cls, repo_root: Path = DEFAULT_REPO_ROOT) -> "MemoryPaths":
         repo_root = repo_root.resolve()
         docs_dir = repo_root / "docs" / "codex_memory"
-        return cls(repo_root=repo_root, docs_dir=docs_dir, subsystem_dir=docs_dir / "subsystems")
+        return cls(
+            repo_root=repo_root,
+            docs_dir=docs_dir,
+            subsystem_dir=docs_dir / "subsystems",
+        )
 
     def history_path(self, filename: str) -> Path:
         return self.docs_dir / filename
@@ -155,7 +182,11 @@ class Rule:
         return self.path.endswith("/")
 
     def matches(self, repo_path: str) -> bool:
-        return repo_path.startswith(self.path) if self.is_prefix() else repo_path == self.path
+        return (
+            repo_path.startswith(self.path)
+            if self.is_prefix()
+            else repo_path == self.path
+        )
 
 
 @dataclass(frozen=True)
@@ -210,11 +241,23 @@ def parse_timestamp(value: str) -> str:
         raise ValueError(f"invalid ISO timestamp: {value}") from exc
     if parsed.tzinfo is None:
         raise ValueError(f"timestamp must include timezone: {value}")
-    return parsed.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return (
+        parsed.astimezone(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 def utc_now(value: str | None) -> str:
-    return parse_timestamp(value) if value else datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return (
+        parse_timestamp(value)
+        if value
+        else datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 def stable_hash(payload) -> str:
@@ -283,7 +326,9 @@ def sections(content: str) -> dict[str, str]:
     return {name: "\n".join(lines).strip() for name, lines in result.items()}
 
 
-def validate_markdown_content(path: Path, content: str | None, required: tuple[str, ...], budget: int | None) -> list[str]:
+def validate_markdown_content(
+    path: Path, content: str | None, required: tuple[str, ...], budget: int | None
+) -> list[str]:
     if content is None:
         return [f"missing file: {path}"]
     errors = [] if content.startswith("# ") else [f"{path}: missing top-level heading"]
@@ -350,7 +395,9 @@ def rule_overlap(left: Rule, right: Rule) -> bool:
     return False
 
 
-def resolve_subsystems(repo_path: str, rules: list[Rule] | tuple[Rule, ...]) -> list[str]:
+def resolve_subsystems(
+    repo_path: str, rules: list[Rule] | tuple[Rule, ...]
+) -> list[str]:
     repo_path = normalize_path(repo_path)
     return sorted({rule.subsystem for rule in rules if rule.matches(repo_path)})
 
@@ -374,7 +421,9 @@ def load_jsonl(path: Path) -> list[tuple[int, dict]]:
     return rows
 
 
-def validate_record(kind: str, record: dict, path: Path, line_no: int, subsystems: set[str]) -> list[str]:
+def validate_record(
+    kind: str, record: dict, path: Path, line_no: int, subsystems: set[str]
+) -> list[str]:
     errors = []
     for field in COMMON_FIELDS + FIELD_RULES[kind]["required"]:
         if field not in record:
@@ -382,7 +431,9 @@ def validate_record(kind: str, record: dict, path: Path, line_no: int, subsystem
     if errors:
         return errors
     if record["schema_version"] != SCHEMA_VERSION:
-        errors.append(f"{path}:{line_no}: unsupported schema_version {record['schema_version']}")
+        errors.append(
+            f"{path}:{line_no}: unsupported schema_version {record['schema_version']}"
+        )
     try:
         parse_timestamp(record["timestamp_utc"])
     except ValueError as exc:
@@ -427,15 +478,25 @@ def validate_record(kind: str, record: dict, path: Path, line_no: int, subsystem
             except ValueError as exc:
                 errors.append(f"{path}:{line_no}: {exc}")
     if record["status"] not in STATUSES[kind]:
-        errors.append(f"{path}:{line_no}: unsupported {kind[:-1]} status {record['status']}")
+        errors.append(
+            f"{path}:{line_no}: unsupported {kind[:-1]} status {record['status']}"
+        )
     if "subsystem" in record and record["subsystem"] not in subsystems:
         errors.append(f"{path}:{line_no}: unknown subsystem {record['subsystem']}")
-    if kind == "investigations" and record["confidence"] not in {"low", "medium", "high"}:
-        errors.append(f"{path}:{line_no}: unsupported confidence {record['confidence']}")
+    if kind == "investigations" and record["confidence"] not in {
+        "low",
+        "medium",
+        "high",
+    }:
+        errors.append(
+            f"{path}:{line_no}: unsupported confidence {record['confidence']}"
+        )
     stable_fields = {field: record[field] for field in ID_FIELDS[kind]}
     expected = make_id(kind, record["timestamp_utc"], stable_fields)
     if record["record_id"] != expected:
-        errors.append(f"{path}:{line_no}: record_id does not match canonical form {expected}")
+        errors.append(
+            f"{path}:{line_no}: record_id does not match canonical form {expected}"
+        )
     return errors
 
 
@@ -447,7 +508,9 @@ def parse_focus_subsystems_content(content: str) -> list[str]:
         if not line:
             continue
         if not line.startswith("- "):
-            raise ValueError(f"current_focus relevant subsystem line must be a bullet: {raw}")
+            raise ValueError(
+                f"current_focus relevant subsystem line must be a bullet: {raw}"
+            )
         name = line[2:].strip().strip("`")
         if not re.fullmatch(r"[a-z0-9_]+", name):
             raise ValueError(f"invalid subsystem name in current_focus: {name}")
@@ -456,7 +519,9 @@ def parse_focus_subsystems_content(content: str) -> list[str]:
 
 
 def parse_focus_subsystems(paths: MemoryPaths) -> list[str]:
-    return parse_focus_subsystems_content(read_text(paths.docs_dir / "current_focus.md"))
+    return parse_focus_subsystems_content(
+        read_text(paths.docs_dir / "current_focus.md")
+    )
 
 
 def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
@@ -474,23 +539,39 @@ def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
 
     index_path = paths.subsystem_dir / "INDEX.md"
     index_text = read_optional_text(index_path)
-    errors.extend(validate_markdown_content(index_path, index_text, INDEX_SECTIONS, None))
+    errors.extend(
+        validate_markdown_content(index_path, index_text, INDEX_SECTIONS, None)
+    )
 
-    subsystem_names = sorted(path.stem for path in paths.subsystem_dir.glob("*.md") if path.name != "INDEX.md")
+    subsystem_names = sorted(
+        path.stem
+        for path in paths.subsystem_dir.glob("*.md")
+        if path.name != "INDEX.md"
+    )
     subsystem_texts: dict[str, str | None] = {}
     subsystem_set = set(subsystem_names)
-    if subsystem_set != set(EXPECTED_SUBSYSTEMS):
-        missing = sorted(set(EXPECTED_SUBSYSTEMS) - subsystem_set)
-        extra = sorted(subsystem_set - set(EXPECTED_SUBSYSTEMS))
+    expected_subsystems: set[str] = set(EXPECTED_SUBSYSTEMS)
+    if subsystem_set != expected_subsystems:
+        missing = sorted(expected_subsystems - subsystem_set)
+        extra = sorted(subsystem_set - expected_subsystems)
+
         if missing:
-            errors.append(f"{paths.subsystem_dir}: missing required subsystem packs: {', '.join(missing)}")
+            errors.append(
+                f"{paths.subsystem_dir}: missing required subsystem packs: {', '.join(missing)}"
+            )
         if extra:
-            errors.append(f"{paths.subsystem_dir}: unexpected subsystem packs: {', '.join(extra)}")
+            errors.append(
+                f"{paths.subsystem_dir}: unexpected subsystem packs: {', '.join(extra)}"
+            )
     for name in subsystem_names:
         path = paths.subsystem_path(name)
         content = read_optional_text(path)
         subsystem_texts[name] = content
-        errors.extend(validate_markdown_content(path, content, SUBSYSTEM_SECTIONS, SUBSYSTEM_BUDGET))
+        errors.extend(
+            validate_markdown_content(
+                path, content, SUBSYSTEM_SECTIONS, SUBSYSTEM_BUDGET
+            )
+        )
 
     pack_names: list[str] = []
     rules: list[Rule] = []
@@ -510,21 +591,31 @@ def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
 
     if pack_names:
         if set(pack_names) != subsystem_set:
-            errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: pack list must match subsystem files exactly")
+            errors.append(
+                f"{paths.subsystem_dir / 'INDEX.md'}: pack list must match subsystem files exactly"
+            )
         mapped_subsystems = {rule.subsystem for rule in rules}
         missing_mappings = sorted(subsystem_set - mapped_subsystems)
         if missing_mappings:
-            errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: missing path mappings for subsystem packs: {', '.join(missing_mappings)}")
+            errors.append(
+                f"{paths.subsystem_dir / 'INDEX.md'}: missing path mappings for subsystem packs: {', '.join(missing_mappings)}"
+            )
         for rule in rules:
             if not (paths.repo_root / rule.path.rstrip("/")).exists():
-                errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: mapping target does not exist: {rule.path}")
+                errors.append(
+                    f"{paths.subsystem_dir / 'INDEX.md'}: mapping target does not exist: {rule.path}"
+                )
         for i, left in enumerate(rules):
             for right in rules[i + 1 :]:
                 if rule_overlap(left, right):
-                    errors.append(f"{paths.subsystem_dir / 'INDEX.md'}: ambiguous mapping between {left.subsystem}:{left.path} and {right.subsystem}:{right.path}")
+                    errors.append(
+                        f"{paths.subsystem_dir / 'INDEX.md'}: ambiguous mapping between {left.subsystem}:{left.path} and {right.subsystem}:{right.path}"
+                    )
         for name in focus_subsystems:
             if name not in subsystem_set:
-                errors.append(f"{paths.docs_dir / 'current_focus.md'}: unknown subsystem in Relevant Subsystem Packs: {name}")
+                errors.append(
+                    f"{paths.docs_dir / 'current_focus.md'}: unknown subsystem in Relevant Subsystem Packs: {name}"
+                )
 
     history_rows: dict[str, tuple[tuple[int, dict], ...]] = {}
     for filename in HISTORY_FILES:
@@ -546,8 +637,14 @@ def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
 
     return ValidatedMemoryData(
         paths=paths,
-        doc_texts={name: content for name, content in doc_texts.items() if content is not None},
-        subsystem_texts={name: content for name, content in subsystem_texts.items() if content is not None},
+        doc_texts={
+            name: content for name, content in doc_texts.items() if content is not None
+        },
+        subsystem_texts={
+            name: content
+            for name, content in subsystem_texts.items()
+            if content is not None
+        },
         pack_names=tuple(pack_names),
         rules=tuple(rules),
         focus_subsystems=tuple(focus_subsystems),
@@ -583,7 +680,10 @@ def exclude_from_default_context(kind: str, record: dict) -> bool:
     for field in ("affected_paths", "evidence_refs"):
         for value in record.get(field, []):
             normalized = normalize_path(value)
-            if any(normalized.startswith(prefix) for prefix in CONTEXT_EXCLUDED_PATH_PREFIXES):
+            if any(
+                normalized.startswith(prefix)
+                for prefix in CONTEXT_EXCLUDED_PATH_PREFIXES
+            ):
                 return True
     if kind != "task_events":
         return False
@@ -592,7 +692,9 @@ def exclude_from_default_context(kind: str, record: dict) -> bool:
     stream = record.get("stream", "")
     if stream in CONTEXT_EXCLUDED_TASK_STREAMS:
         return True
-    return any(stream.startswith(prefix) for prefix in CONTEXT_EXCLUDED_TASK_STREAM_PREFIXES)
+    return any(
+        stream.startswith(prefix) for prefix in CONTEXT_EXCLUDED_TASK_STREAM_PREFIXES
+    )
 
 
 def history_superseded_ids(paths: MemoryPaths) -> set[str]:
@@ -604,7 +706,9 @@ def history_superseded_ids(paths: MemoryPaths) -> set[str]:
     return ids
 
 
-def build_history_entry(kind: str, record: dict, rules: tuple[Rule, ...]) -> HistoryEntry:
+def build_history_entry(
+    kind: str, record: dict, rules: tuple[Rule, ...]
+) -> HistoryEntry:
     affected_paths = tuple(record.get("affected_paths", ()))
     evidence_refs = tuple(record.get("evidence_refs", ()))
     mapped_subsystems = set()
@@ -670,14 +774,28 @@ def build_snapshot(paths: MemoryPaths) -> MemorySnapshot:
         focus_subsystems=validated.focus_subsystems,
         project_brief=validated.doc_texts["project_brief.md"].strip(),
         current_focus=validated.doc_texts["current_focus.md"].strip(),
-        subsystem_docs={name: text.strip() for name, text in validated.subsystem_texts.items()},
+        subsystem_docs={
+            name: text.strip() for name, text in validated.subsystem_texts.items()
+        },
         history_entries=tuple(history_entries),
-        exact_affected_path_index={path: tuple(indices) for path, indices in exact_affected_path_index.items()},
-        exact_evidence_ref_index={path: tuple(indices) for path, indices in exact_evidence_ref_index.items()},
-        path_prefix_index={path: tuple(indices) for path, indices in path_prefix_index.items()},
-        evidence_prefix_index={path: tuple(indices) for path, indices in evidence_prefix_index.items()},
-        subsystem_index={name: tuple(indices) for name, indices in subsystem_index.items()},
-        inferred_subsystem_index={name: tuple(indices) for name, indices in inferred_subsystem_index.items()},
+        exact_affected_path_index={
+            path: tuple(indices) for path, indices in exact_affected_path_index.items()
+        },
+        exact_evidence_ref_index={
+            path: tuple(indices) for path, indices in exact_evidence_ref_index.items()
+        },
+        path_prefix_index={
+            path: tuple(indices) for path, indices in path_prefix_index.items()
+        },
+        evidence_prefix_index={
+            path: tuple(indices) for path, indices in evidence_prefix_index.items()
+        },
+        subsystem_index={
+            name: tuple(indices) for name, indices in subsystem_index.items()
+        },
+        inferred_subsystem_index={
+            name: tuple(indices) for name, indices in inferred_subsystem_index.items()
+        },
     )
 
 
@@ -687,7 +805,9 @@ def ensure_snapshot(source: MemoryPaths | MemorySnapshot) -> MemorySnapshot:
     return build_snapshot(source)
 
 
-def select_subsystems(source: MemoryPaths | MemorySnapshot, names: list[str], repo_paths: list[str]) -> list[str]:
+def select_subsystems(
+    source: MemoryPaths | MemorySnapshot, names: list[str], repo_paths: list[str]
+) -> list[str]:
     snapshot = ensure_snapshot(source)
     allowed = set(snapshot.pack_names)
     selected = []
@@ -702,13 +822,17 @@ def select_subsystems(source: MemoryPaths | MemorySnapshot, names: list[str], re
         if not matches:
             raise ValueError(f"no subsystem mapping for path: {repo_path}")
         if len(matches) > 1:
-            raise ValueError(f"ambiguous subsystem mapping for path {repo_path}: {', '.join(matches)}")
+            raise ValueError(
+                f"ambiguous subsystem mapping for path {repo_path}: {', '.join(matches)}"
+            )
         if matches[0] not in selected:
             selected.append(matches[0])
     return selected
 
 
-def candidate_history_indices(snapshot: MemorySnapshot, selected: set[str], repo_paths: list[str]) -> list[int]:
+def candidate_history_indices(
+    snapshot: MemorySnapshot, selected: set[str], repo_paths: list[str]
+) -> list[int]:
     indices = set()
     for subsystem in selected:
         indices.update(snapshot.subsystem_index.get(subsystem, ()))
@@ -741,13 +865,20 @@ def lexical_overlap_score(entry: HistoryEntry, query_tokens: frozenset[str]) -> 
     return len(query_tokens & (entry.text_tokens | entry.path_tokens))
 
 
-def relevant_history_sort_key(entry: HistoryEntry, selected: set[str], repo_paths: list[str], rules: tuple[Rule, ...]) -> tuple[int, int, int, int, int, int, int, str]:
+def relevant_history_sort_key(
+    entry: HistoryEntry,
+    selected: set[str],
+    repo_paths: list[str],
+    rules: tuple[Rule, ...],
+) -> tuple[int, int, int, int, int, int, int, str]:
     query_tokens = tokenize(" ".join(repo_paths))
     exact_affected = int(any(path in entry.affected_paths for path in repo_paths))
     exact_evidence = int(any(path in entry.evidence_refs for path in repo_paths))
     prefix_length = prefix_match_length(entry, repo_paths)
     direct_subsystem = int(entry.subsystem in selected)
-    mapped_subsystem = int(entry.subsystem is None and bool(entry.mapped_subsystems & selected))
+    mapped_subsystem = int(
+        entry.subsystem is None and bool(entry.mapped_subsystems & selected)
+    )
     lexical_overlap = lexical_overlap_score(entry, query_tokens)
 
     penalized = False
@@ -758,7 +889,9 @@ def relevant_history_sort_key(entry: HistoryEntry, selected: set[str], repo_path
                 for path in [*entry.affected_paths, *entry.evidence_refs]
                 if any(name in selected for name in resolve_subsystems(path, rules))
             ]
-            penalized = bool(selected_paths) and all(path in ARCHITECTURE_DOC_CHURN_PATHS for path in selected_paths)
+            penalized = bool(selected_paths) and all(
+                path in ARCHITECTURE_DOC_CHURN_PATHS for path in selected_paths
+            )
 
     return (
         exact_affected,
@@ -794,7 +927,9 @@ def history_entries(
         entries.sort(key=lambda item: item.timestamp_utc)
     else:
         entries.sort(
-            key=lambda item: relevant_history_sort_key(item, selected, normalized_repo_paths, snapshot.rules),
+            key=lambda item: relevant_history_sort_key(
+                item, selected, normalized_repo_paths, snapshot.rules
+            ),
             reverse=True,
         )
     return [entry.rendered_line for entry in entries]
@@ -864,7 +999,9 @@ def build_record(
 def write_record(paths: MemoryPaths, filename: str, record: dict) -> dict:
     snapshot = build_snapshot(paths)
     kind = filename.replace(".jsonl", "")
-    record_errors = validate_record(kind, record, paths.history_path(filename), 1, set(snapshot.pack_names))
+    record_errors = validate_record(
+        kind, record, paths.history_path(filename), 1, set(snapshot.pack_names)
+    )
     if record_errors:
         raise ValueError("\n".join(record_errors))
     append_record(paths.history_path(filename), record)
@@ -961,7 +1098,9 @@ def add_investigation(
         subsystem=normalize_text(subsystem, "subsystem"),
         status=status,
         question=normalize_text(question, "question"),
-        current_best_answer=normalize_text(current_best_answer, "current_best_answer", 600),
+        current_best_answer=normalize_text(
+            current_best_answer, "current_best_answer", 600
+        ),
         confidence=confidence,
         next_probe=normalize_text(next_probe, "next_probe"),
     )
@@ -1030,7 +1169,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Repo-scoped Codex memory utilities")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("validate", help="Validate the v2 Codex memory tree")
-    context = sub.add_parser("context", help="Render project/current focus plus selected subsystem packs")
+    context = sub.add_parser(
+        "context", help="Render project/current focus plus selected subsystem packs"
+    )
     context.add_argument("--subsystem", action="append", default=[])
     context.add_argument("--path", action="append", default=[])
     context.add_argument("--include-history", type=int, default=0)
@@ -1059,7 +1200,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
     fact = sub.add_parser("add-fact", help="Append a subsystem fact record")
     fact.add_argument("--subsystem", required=True)
-    fact.add_argument("--status", required=True, choices=sorted(STATUSES["subsystem_facts"]))
+    fact.add_argument(
+        "--status", required=True, choices=sorted(STATUSES["subsystem_facts"])
+    )
     fact.add_argument("--fact", required=True)
     fact.add_argument("--rationale", required=True)
     fact.add_argument("--supersedes", action="append", default=[])
@@ -1068,21 +1211,31 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     fact.add_argument("--author", default="codex")
     fact.add_argument("--timestamp")
 
-    investigation = sub.add_parser("add-investigation", help="Append an investigation record")
+    investigation = sub.add_parser(
+        "add-investigation", help="Append an investigation record"
+    )
     investigation.add_argument("--subsystem", required=True)
-    investigation.add_argument("--status", required=True, choices=sorted(STATUSES["investigations"]))
+    investigation.add_argument(
+        "--status", required=True, choices=sorted(STATUSES["investigations"])
+    )
     investigation.add_argument("--question", required=True)
     investigation.add_argument("--current-best-answer", required=True)
-    investigation.add_argument("--confidence", required=True, choices=["high", "low", "medium"])
+    investigation.add_argument(
+        "--confidence", required=True, choices=["high", "low", "medium"]
+    )
     investigation.add_argument("--next-probe", required=True)
     investigation.add_argument("--evidence-ref", action="append", default=[])
     investigation.add_argument("--affected-path", action="append", default=[])
     investigation.add_argument("--author", default="codex")
     investigation.add_argument("--timestamp")
 
-    compat = sub.add_parser("add-compat-event", help="Append a compatibility event record")
+    compat = sub.add_parser(
+        "add-compat-event", help="Append a compatibility event record"
+    )
     compat.add_argument("--subsystem", required=True)
-    compat.add_argument("--status", required=True, choices=sorted(STATUSES["compat_events"]))
+    compat.add_argument(
+        "--status", required=True, choices=sorted(STATUSES["compat_events"])
+    )
     compat.add_argument("--title", required=True)
     compat.add_argument("--summary", required=True)
     compat.add_argument("--evidence-ref", action="append", default=[])
@@ -1092,7 +1245,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
     task = sub.add_parser("add-task-event", help="Append a task event record")
     task.add_argument("--stream", required=True)
-    task.add_argument("--status", required=True, choices=sorted(STATUSES["task_events"]))
+    task.add_argument(
+        "--status", required=True, choices=sorted(STATUSES["task_events"])
+    )
     task.add_argument("--summary", required=True)
     task.add_argument("--next-action", action="append", default=[])
     task.add_argument("--evidence-ref", action="append", default=[])
@@ -1129,15 +1284,69 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
         if args.command == "add-policy":
-            record = add_policy(paths, topic=args.topic, status=args.status, statement=args.statement, rationale=args.rationale, supersedes=args.supersedes, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)
+            record = add_policy(
+                paths,
+                topic=args.topic,
+                status=args.status,
+                statement=args.statement,
+                rationale=args.rationale,
+                supersedes=args.supersedes,
+                evidence_refs=args.evidence_ref,
+                affected_paths=args.affected_path,
+                author=args.author,
+                timestamp=args.timestamp,
+            )
         elif args.command == "add-fact":
-            record = add_fact(paths, subsystem=args.subsystem, status=args.status, fact=args.fact, rationale=args.rationale, supersedes=args.supersedes, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)
+            record = add_fact(
+                paths,
+                subsystem=args.subsystem,
+                status=args.status,
+                fact=args.fact,
+                rationale=args.rationale,
+                supersedes=args.supersedes,
+                evidence_refs=args.evidence_ref,
+                affected_paths=args.affected_path,
+                author=args.author,
+                timestamp=args.timestamp,
+            )
         elif args.command == "add-investigation":
-            record = add_investigation(paths, subsystem=args.subsystem, status=args.status, question=args.question, current_best_answer=args.current_best_answer, confidence=args.confidence, next_probe=args.next_probe, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)
+            record = add_investigation(
+                paths,
+                subsystem=args.subsystem,
+                status=args.status,
+                question=args.question,
+                current_best_answer=args.current_best_answer,
+                confidence=args.confidence,
+                next_probe=args.next_probe,
+                evidence_refs=args.evidence_ref,
+                affected_paths=args.affected_path,
+                author=args.author,
+                timestamp=args.timestamp,
+            )
         elif args.command == "add-compat-event":
-            record = add_compat_event(paths, subsystem=args.subsystem, status=args.status, title=args.title, summary=args.summary, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)
+            record = add_compat_event(
+                paths,
+                subsystem=args.subsystem,
+                status=args.status,
+                title=args.title,
+                summary=args.summary,
+                evidence_refs=args.evidence_ref,
+                affected_paths=args.affected_path,
+                author=args.author,
+                timestamp=args.timestamp,
+            )
         else:
-            record = add_task_event(paths, stream=args.stream, status=args.status, summary=args.summary, next_actions=args.next_action, evidence_refs=args.evidence_ref, affected_paths=args.affected_path, author=args.author, timestamp=args.timestamp)
+            record = add_task_event(
+                paths,
+                stream=args.stream,
+                status=args.status,
+                summary=args.summary,
+                next_actions=args.next_action,
+                evidence_refs=args.evidence_ref,
+                affected_paths=args.affected_path,
+                author=args.author,
+                timestamp=args.timestamp,
+            )
         print(record["record_id"])
         return 0
     except ValueError as exc:

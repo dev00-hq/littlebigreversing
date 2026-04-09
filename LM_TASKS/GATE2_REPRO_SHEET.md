@@ -95,14 +95,14 @@ At the opcode-loop breakpoint `0x004205BC`:
 1. Run the bounded tracer:
 
 ```powershell
-pwsh -File scripts\trace-life.ps1 -Mode TavernTrace -Launch -TimeoutSeconds 120
+py -3 .\tools\life_trace\trace_life.py --mode tavern-trace --launch --timeout-sec 120
 ```
 
 2. Load the same live Tavern save used for the proof artifacts.
 3. Let the save settle before adding movement or talk input.
 4. Confirm the fingerprint match at `PtrLife + 40`.
 5. Confirm the proof path reaches `0x76 @ 4883` and `loop_reentry @ 4884`.
-6. Only if Gate 3 attribution is the next goal, rerun with `-KeepAlive` and hand off to [CDB_GATE3_WORKFLOW.md](/D:/repos/reverse/littlebigreversing/LM_TASKS/CDB_GATE3_WORKFLOW.md).
+6. Only if Gate 3 attribution is the next goal, rerun with `--keep-alive` and hand off to [CDB_GATE3_WORKFLOW.md](/D:/repos/reverse/littlebigreversing/LM_TASKS/CDB_GATE3_WORKFLOW.md).
 
 ## Resolved Capture Sheet
 

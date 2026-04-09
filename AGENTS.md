@@ -47,7 +47,7 @@
 
 ## On Powershell
 - Prefer bundled bash helpers (`bash -lc`), always set the `workdir` parameter. Fallback to native Powershell.
-- Prefer native PowerShell ONLY for canonical build/test/tool commands. Run `.\scripts\dev-shell.ps1` before modern Zig/MSVC verification when needed.
+- Prefer native PowerShell ONLY for canonical build/test/tool commands. Use `py -3 .\scripts\dev-shell.py shell` for an interactive configured shell, or `py -3 .\scripts\dev-shell.py exec --cwd port -- ...` for scripted Zig/MSVC verification.
 - Use rg/rg --files for searches; fall back only if unavailable.
 - Use the `apply_patch` to edit files, fallback to sed.
 - Use jq for json processing

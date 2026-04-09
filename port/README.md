@@ -17,7 +17,7 @@ Current landed baseline:
 - HQR base reader and inspection CLI
 - machine-readable asset inventory and golden-fixture pipeline
 - `BRK`-backed viewer evidence surfaces for the supported guarded `19/19` baseline plus the explicit test-only unchecked `11/10` fragment evidence path
-- native PowerShell viewer verification through `scripts/verify-viewer.ps1`, with bare mode kept as the canonical gate and `-Fast` available for the daily local loop
+- Windows viewer verification through `scripts/verify_viewer.py`, with bare mode kept as the canonical gate and `--fast` available for the daily local loop
 - guarded success for `19/19` and expected guarded `ViewerUnsupportedSceneLife` rejection for `2/2`, `44/2`, and `11/10`
 - explicit runtime session seeding from world-position input, with `runtime/room_state.zig` remaining the `RoomSnapshot` adaptation boundary
 
