@@ -46,6 +46,7 @@ Relevant current files:
 
 - [DoLife_Report.md](/D:/repos/reverse/littlebigreversing/LM_TASKS/DoLife_Report.md)
 - [ListXrefsTo.java](/D:/repos/reverse/littlebigreversing/work/ghidra_scripts/ListXrefsTo.java)
+- [ghb_export_lm_callsites.py](/D:/repos/reverse/littlebigreversing/tools/ghb_export_lm_callsites.py)
 - [agent.js](/D:/repos/reverse/littlebigreversing/tools/life_trace/agent.js)
 - [trace_life.py](/D:/repos/reverse/littlebigreversing/tools/life_trace/trace_life.py)
 - [lba2_frida_cdb_bootstrap.py](/D:/repos/reverse/littlebigreversing/tools/lba2_frida_cdb_bootstrap.py)
@@ -92,18 +93,20 @@ The static export should preserve both fields so the naming stays unambiguous.
 
 ### Phase 1: Static Callsite Export
 
-Add a focused Ghidra exporter, likely:
+Current canonical wrapper:
 
-- `work/ghidra_scripts/ExportCallsitesToJson.java`
+- `py -3 .\tools\ghb_export_lm_callsites.py`
 
 Inputs:
 
-- one or more callee addresses
-- optional `within` filter
+- fixed current targets: `DoFuncLife @ 0x0041F0A8` and `DoTest @ 0x0041FE30`
+- optional `--within-entry` filter
+- disposable Ghidra project root and launch settings when needed
 
 Outputs:
 
-- JSONL under `work/ghidra_projects/callsites/`
+- canonical JSONL at `work/ghidra_projects/callsites/lm_helper_callsites.jsonl`
+- disposable project logs under the generated project root while the wrapper runs
 
 Initial export set:
 
@@ -116,6 +119,13 @@ Requirements:
 - sort by containing function and call address for stable output
 - compute `call_index` within each containing function and callee pair
 - fail fast if the requested callee address has no containing symbol or no call references
+
+Current wrapper behavior:
+
+- launches a fresh disposable project outside the Codex worktree
+- waits for a healthy `ghb` bridge and the expected active-program selector
+- runs the bounded inline Java export through `ghb script exec --stdin`
+- normalizes and writes the final JSONL in Python
 
 ### Phase 2: Live Caller Capture In Frida
 

@@ -16,7 +16,8 @@ Own the canonical host assumptions for end-to-end Zig build, test, and runtime v
 - The Windows build graph now also exposes `zig build test-fast`, `zig build test-life-audit-all`, and `zig build stage-viewer`.
 - `scripts/verify_viewer.py --fast` is the additive daily local loop; bare `scripts/verify_viewer.py` remains canonical.
 - `scripts/verify_viewer.py` keeps expected-failure CLI probes on the pass path while preserving the raw rejection lines needed by its assertions.
-- Python and PowerShell helper scripts exist for environment setup and checks.
+- Python helper scripts now own the canonical environment setup and checks.
+- The canonical live-workflow Python migration is done for now: repo-relative script paths stay canonical, while `pyproject.toml` package entrypoints remain optional scaffolding.
 - Supporting original-runtime trace and debugger helpers still exist for evidence work, but they are not part of the default canonical port pickup path.
 - The build graph still hard-codes Windows SDL2 paths.
 
@@ -28,6 +29,8 @@ Own the canonical host assumptions for end-to-end Zig build, test, and runtime v
 - In native PowerShell, piping `zig build ...` through `Out-String` can turn a successful build into an observed exit code of `-1`, and ad hoc native-command capture can still rewrap raw stderr; keep `scripts/verify_viewer.py` plus `scripts/dev-shell.py exec` as the canonical scripted path when exit status matters.
 - `scripts/verify_viewer.py --fast` is not the canonical acceptance gate; it intentionally skips only the isolated slow all-scene life-audit shard.
 - Original-runtime probes and debugger runbooks are supporting evidence work, not default canonical memory pickup. Do not treat `LM_TASKS/` or older shell-managed debugger wrappers as execution owners for the port path.
+- In a `.codex/worktrees/...` checkout, original-runtime helpers may need binaries from `D:\repos\reverse\littlebigreversing\work\...`; do not assume extracted runtime assets are mirrored under the current worktree's `work/` tree.
+- The checked-in Ghidra project under `.codex/worktrees/...` is not a stable automation target for `ghb` on this setup. If Ghidra reports `project locked` or `Path element starting with ':' is not permitted`, relaunch against a disposable project outside the Codex worktree instead of retrying the locked one.
 - Interrupted viewer launches can leave `port/zig-out/bin/lba2.exe` locked and cause `AccessDenied` on the next install step; clear the stale `lba2.exe` process before blaming the code.
 
 ## Canonical Entry Points

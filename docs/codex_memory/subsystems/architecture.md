@@ -13,21 +13,23 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 
 ## Current Parity Status
 
-- `port/` stays canonical; runtime/viewer ownership remains split across `world_geometry`, `room_state`, `session`, `world_query`, `locomotion`, `viewer_shell`, `main`, and `render`.
-- `life_audit.zig` owns offline ranking of decoded interior candidates, and `tools/cli.zig` exposes `rank-decoded-interior-candidates` plus `triage-same-index-decoded-interior-candidates`.
-- `inspect-room` failures now distinguish unsupported life from fragment-zone bounds; `219/219` prints per-zone `invalid_fragment_zone_bounds` diagnostics before the raw error.
-- Same-index triage now exposes both top-level answers: `86/86` is the highest-ranked compatible same-index pair above the guarded baseline, but it clears trivially with `fragment_count=0` and `grm_zone_count=0`; `187/187` is the first fragment-bearing compatible pair.
+- `port/` stays canonical; runtime/viewer ownership is still split across the current `world_geometry` through `render` modules.
+- `life_audit.zig` owns offline decoded-interior ranking, surfaced through `tools/cli.zig`.
+- `inspect-room` failures distinguish unsupported life from fragment-zone bounds; `219/219` prints per-zone diagnostics before the raw error.
+- Same-index triage still splits compatibility from fragment evidence: `86/86` is the top compatible pair above baseline, while `187/187` is the first fragment-bearing pair.
 
 ## Known Traps
 
 - `docs/PROMPT.md` can lag; cross-check packs and history.
 - `sidequest/` and `LM_TASKS/` are independent workstreams, not part of canonical memory pickup unless a prompt explicitly widens scope.
-- The checked-in memory docs can lag the worktree; verify code and `git status`.
-- Use native PowerShell for Windows verification and Python package installs: run Zig checks through `py -3 .\scripts\dev-shell.py`, and use `py -3 -m pip install -r requirements.txt` because the Bash-side `python3` lacks `pip` here.
+- The checked-in memory docs and bulky `work/` artifacts can lag this worktree; verify code, `git status`, and external asset paths.
+- A usable `.codex/worktrees/...` checkout can still have stale git metadata; if `git status` says `not a git repository`, confirm the filesystem tree directly before treating the checkout as missing or clean.
+- In the PowerShell-hosted workflow, `bash -lc "..."` can still be mangled before Bash sees it. Prefer single-quoted Bash payloads in tool calls.
+- Use native PowerShell for Windows verification and Python package installs: run Zig checks through `py -3 .\scripts\dev-shell.py`, and use `py -3 -m pip install ...` because the Bash-side `python3` lacks `pip`.
 - `zig build test-fast` plus `scripts/verify_viewer.py --fast` are the daily loop, not the full gate.
 - `zig build test` is not a substitute for explicit `zig build run` or `zig build tool` acceptance.
 - Tool-only CLI/report paths need a real `zig build tool -- ...` run; test targets alone can miss parse/run/format drift.
-- Memory history lookup now treats repo-relative `evidence_refs` as retrieval edges too; if a hit is missing, recheck the query path string.
+- Memory history lookup treats repo-relative `evidence_refs` as retrieval edges too; if a hit is missing, recheck the query path string.
 - `scripts/verify_viewer.py` is the canonical Windows acceptance gate; if a failure reproduces only there, debug the underlying tool or viewer output before adding another verifier path.
 - `scripts/dev-shell.py` normalizes Windows environment keys case-insensitively because `vcvars` can emit `Path` instead of `PATH`.
 - Interrupted `zig build run` launches can strand `port/zig-out/bin/lba2.exe`; clear the stale process before blaming the code.
