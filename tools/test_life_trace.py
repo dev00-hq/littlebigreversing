@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import argparse
 import contextlib
 import io
 import json
+import signal
 import subprocess
 import sys
 import tempfile
@@ -607,6 +609,161 @@ class TavernStartupAutomationTest(unittest.TestCase):
             self.assertIn("sent Enter to continue past the Adeline splash", messages)
             self.assertIn("sent Enter to activate Resume Game", messages)
             self.assertIn("waited for Resume Game to settle before attaching fra probe", messages)
+
+
+class TavernFinalizeStatusTest(unittest.TestCase):
+    def test_tavern_finalize_writes_explicit_completed_status_after_verdict(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "trace.jsonl"
+            writer = trace_life.JsonlWriter(output_path)
+            args = argparse.Namespace(
+                screenshot_dir=temp_dir,
+                target_object=0,
+                target_offset=4883,
+            )
+            controller = trace_life.TavernTraceController(args, writer, pid=30140)
+            controller.matched_fingerprint = True
+            controller.saw_076_fetch = True
+            controller.saw_post_076_loop = True
+            controller.post_076_outcome = "loop_reentry"
+            controller.required_screenshots["fingerprint_match"] = "work/life_trace/fingerprint.png"
+            controller.required_screenshots["opcode_076_fetch"] = "work/life_trace/opcode_076_fetch.png"
+
+            fake_window = trace_life.WindowInfo(
+                hwnd=0x1234,
+                title="LBA2",
+                left=0,
+                top=0,
+                right=800,
+                bottom=600,
+            )
+
+            try:
+                with mock.patch.object(
+                    controller,
+                    "_capture_window_file",
+                    return_value=("work/life_trace/final_verdict.png", fake_window),
+                ):
+                    controller._finalize(
+                        "tavern_trace_complete",
+                        "captured Tavern proof through loop_reentry",
+                        take_final_screenshot=True,
+                    )
+            finally:
+                writer.close()
+
+            lines = [
+                json.loads(line)
+                for line in output_path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertEqual("verdict", lines[-2]["kind"])
+            self.assertEqual("status", lines[-1]["kind"])
+            self.assertEqual("completed", lines[-1]["phase"])
+            self.assertEqual(trace_life.TRACE_COMPLETE_STATUS_MESSAGE, lines[-1]["message"])
+            self.assertEqual(30140, lines[-1]["pid"])
+
+
+class SpawnedProcessTerminationTest(unittest.TestCase):
+    def test_terminate_spawned_process_accepts_fra_terminate_when_process_exits(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "trace.jsonl"
+            writer = trace_life.JsonlWriter(output_path)
+            try:
+                with (
+                    mock.patch.object(trace_life, "run_fra_json", return_value={"ok": True}) as mocked_run,
+                    mock.patch.object(trace_life, "wait_for_process_exit", return_value=True) as mocked_wait,
+                    mock.patch.object(trace_life.os, "kill") as mocked_kill,
+                ):
+                    trace_life.terminate_spawned_process(
+                        writer,
+                        ["fra"],
+                        "target-1",
+                        1234,
+                    )
+            finally:
+                writer.close()
+
+            mocked_run.assert_called_once()
+            mocked_wait.assert_called_once_with(1234, trace_life.SPAWNED_PROCESS_TERMINATE_GRACE_SEC)
+            mocked_kill.assert_not_called()
+
+            lines = [
+                json.loads(line)
+                for line in output_path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertEqual(["killed spawned process"], [line["message"] for line in lines])
+
+    def test_terminate_spawned_process_falls_back_to_direct_kill_when_process_lingers(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "trace.jsonl"
+            writer = trace_life.JsonlWriter(output_path)
+            try:
+                with (
+                    mock.patch.object(trace_life, "run_fra_json", return_value={"ok": True}),
+                    mock.patch.object(trace_life, "wait_for_process_exit", side_effect=[False, True]) as mocked_wait,
+                    mock.patch.object(trace_life.os, "kill") as mocked_kill,
+                ):
+                    trace_life.terminate_spawned_process(
+                        writer,
+                        ["fra"],
+                        "target-1",
+                        1234,
+                    )
+            finally:
+                writer.close()
+
+            mocked_wait.assert_has_calls(
+                [
+                    mock.call(1234, trace_life.SPAWNED_PROCESS_TERMINATE_GRACE_SEC),
+                    mock.call(1234, trace_life.SPAWNED_PROCESS_TERMINATE_GRACE_SEC),
+                ]
+            )
+            mocked_kill.assert_called_once_with(1234, signal.SIGTERM)
+
+            lines = [
+                json.loads(line)
+                for line in output_path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertEqual(
+                [
+                    "spawned process still alive after fra target terminate; forcing direct kill",
+                    "force-killed spawned process",
+                ],
+                [line["message"] for line in lines],
+            )
+
+
+class ProcessExistsPidTest(unittest.TestCase):
+    def test_process_exists_pid_returns_false_when_exit_code_is_not_still_active(self) -> None:
+        fake_kernel32 = mock.Mock()
+        fake_kernel32.OpenProcess.return_value = 123
+        fake_kernel32.CloseHandle.return_value = True
+
+        def fake_get_exit_code(handle, pointer) -> bool:
+            pointer._obj.value = 0
+            return True
+
+        fake_kernel32.GetExitCodeProcess.side_effect = fake_get_exit_code
+
+        with mock.patch.object(trace_life.ctypes, "windll", mock.Mock(kernel32=fake_kernel32)):
+            self.assertFalse(trace_life.process_exists_pid(1234))
+
+    def test_process_exists_pid_returns_true_when_exit_code_is_still_active(self) -> None:
+        fake_kernel32 = mock.Mock()
+        fake_kernel32.OpenProcess.return_value = 123
+        fake_kernel32.CloseHandle.return_value = True
+
+        def fake_get_exit_code(handle, pointer) -> bool:
+            pointer._obj.value = 259
+            return True
+
+        fake_kernel32.GetExitCodeProcess.side_effect = fake_get_exit_code
+
+        with mock.patch.object(trace_life.ctypes, "windll", mock.Mock(kernel32=fake_kernel32)):
+            self.assertTrue(trace_life.process_exists_pid(1234))
 
 
 if __name__ == "__main__":

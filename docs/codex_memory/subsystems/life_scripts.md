@@ -31,8 +31,8 @@ Own the offline life-program decoder boundary, the audit surface for unsupported
 - `86/86` is only a zero-fragment/zero-GRM compatible pass; keep it distinct from fragment-bearing pairs like `187/187`.
 - Guarded negative-load diagnostics report the first blocking life blob only. For `11/10`, that is object `12` `LM_DEFAULT @ 38`, not the later object `18` `LM_END_SWITCH @ 84`.
 - On the original-runtime proof lane, use `--fra-repo-root` with both structured modes; `basic` is the only mode that still uses `--frida-repo-root`.
-- On the structured `fra` proof lane, spawned `LBA2.EXE` teardown can lag behind tracer return even without `--keep-alive`; recheck after a short delay before assuming cleanup failed.
-- On the Tavern late-attach proof lane, keep the hot-path probe slim. Re-adding `ptr_window`, `working_*`, or `exe_switch` reads can bring back intermittent `Application Error` crashes after the fingerprint match.
+- On the structured `fra` proof lane, owned `--launch` runs fall back from `fra target terminate` to a direct kill after a short grace window. A launched Tavern run that still leaves `LBA2.EXE` behind is abnormal.
+- On the Tavern late-attach proof lane, keep the hot-path probe slim. Re-adding `ptr_window`, `working_*`, or `exe_switch` reads can bring back intermittent `Application Error` crashes.
 
 ## Canonical Entry Points
 

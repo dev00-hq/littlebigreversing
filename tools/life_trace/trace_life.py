@@ -40,6 +40,10 @@ TAVERN_ADELINE_ENTER_DELAY_SEC = 4.5
 TAVERN_RESUME_ENTER_DELAY_SEC = 1.5
 TAVERN_RESUME_SETTLE_DELAY_SEC = 2.0
 TAVERN_STARTUP_WINDOW_TIMEOUT_SEC = 5.0
+TRACE_COMPLETE_STATUS_MESSAGE = "trace complete; no further probe events expected; process teardown may lag briefly"
+TRACE_FINISHED_STATUS_MESSAGE = "trace finished; no further probe events expected"
+SPAWNED_PROCESS_TERMINATE_GRACE_SEC = 3.0
+SPAWNED_PROCESS_TERMINATE_POLL_SEC = 0.1
 
 
 def parse_int(value: str) -> int:
@@ -714,12 +718,115 @@ def process_exists(device, pid: int) -> bool:
 
 def process_exists_pid(pid: int) -> bool:
     PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+    STILL_ACTIVE = 259
     kernel32 = ctypes.windll.kernel32
+    kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.GetExitCodeProcess.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
+    kernel32.GetExitCodeProcess.restype = wintypes.BOOL
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel32.CloseHandle.restype = wintypes.BOOL
     handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
     if handle == 0:
         return False
-    kernel32.CloseHandle(handle)
-    return True
+    try:
+        exit_code = wintypes.DWORD(0)
+        if not kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code)):
+            return False
+        return exit_code.value == STILL_ACTIVE
+    finally:
+        kernel32.CloseHandle(handle)
+
+
+def wait_for_process_exit(pid: int, timeout_sec: float, poll_sec: float = SPAWNED_PROCESS_TERMINATE_POLL_SEC) -> bool:
+    deadline = time.monotonic() + max(0.0, timeout_sec)
+    while time.monotonic() < deadline:
+        if not process_exists_pid(pid):
+            return True
+        time.sleep(max(0.01, poll_sec))
+    return not process_exists_pid(pid)
+
+
+def terminate_spawned_process(
+    writer: "JsonlWriter",
+    fra_launcher: list[str],
+    target_id: str,
+    pid: int,
+) -> None:
+    fra_terminate_failed = False
+    try:
+        run_fra_json(
+            fra_launcher,
+            "target",
+            "terminate",
+            "--target",
+            target_id,
+            "--format",
+            "json",
+        )
+    except Exception as error:  # noqa: BLE001
+        fra_terminate_failed = True
+        writer.write_event(
+            PersistedStatusEvent(
+                message=f"fra target terminate failed; falling back to direct kill: {error}",
+                pid=pid,
+            )
+        )
+
+    if wait_for_process_exit(pid, SPAWNED_PROCESS_TERMINATE_GRACE_SEC):
+        writer.write_event(
+            PersistedStatusEvent(
+                message="killed spawned process",
+                pid=pid,
+            )
+        )
+        return
+
+    writer.write_event(
+        PersistedStatusEvent(
+            message=(
+                "spawned process still alive after fra target terminate; forcing direct kill"
+                if not fra_terminate_failed
+                else "spawned process still alive after fra terminate failure; forcing direct kill"
+            ),
+            pid=pid,
+        )
+    )
+
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        writer.write_event(
+            PersistedStatusEvent(
+                message="spawned process exited before direct kill",
+                pid=pid,
+            )
+        )
+        return
+    except Exception as error:  # noqa: BLE001
+        writer.write_event(
+            PersistedStatusEvent(
+                message=f"direct kill failed: {error}",
+                pid=pid,
+            )
+        )
+        return
+
+    if wait_for_process_exit(pid, SPAWNED_PROCESS_TERMINATE_GRACE_SEC):
+        writer.write_event(
+            PersistedStatusEvent(
+                message="force-killed spawned process",
+                pid=pid,
+            )
+        )
+        return
+
+    writer.write_event(
+        PersistedStatusEvent(
+            message="spawned process still alive after direct kill",
+            pid=pid,
+        )
+    )
 
 
 def resolve_fra_launcher(repo_root: Path) -> list[str]:
@@ -1716,6 +1823,13 @@ class TavernTraceController:
             ),
             event_id=verdict_event_id,
         )
+        self.writer.write_event(
+            PersistedStatusEvent(
+                phase="completed",
+                message=TRACE_COMPLETE_STATUS_MESSAGE if result == "tavern_trace_complete" else TRACE_FINISHED_STATUS_MESSAGE,
+                pid=self.pid,
+            )
+        )
 
         if self.phase != "completed":
             self.phase = "completed"
@@ -1980,6 +2094,13 @@ class Scene11PairController:
                 comparison_entered_do_test=None if self.comparison_event is None else optional_value(self.comparison_event.entered_do_test),
             ),
             event_id=verdict_event_id,
+        )
+        self.writer.write_event(
+            PersistedStatusEvent(
+                phase="completed",
+                message=TRACE_COMPLETE_STATUS_MESSAGE if result == "scene11_pair_complete" else TRACE_FINISHED_STATUS_MESSAGE,
+                pid=self.pid,
+            )
         )
 
         if self.phase != "completed":
@@ -2447,20 +2568,11 @@ def run_structured_trace_via_fra(
                         pass
                 else:
                     try:
-                        run_fra_json(
+                        terminate_spawned_process(
+                            writer,
                             fra_launcher,
-                            "target",
-                            "terminate",
-                            "--target",
                             target_id,
-                            "--format",
-                            "json",
-                        )
-                        writer.write_event(
-                            PersistedStatusEvent(
-                                message="killed spawned process",
-                                pid=spawned_pid,
-                            )
+                            spawned_pid,
                         )
                     except Exception:  # noqa: BLE001
                         pass
