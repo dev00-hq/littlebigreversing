@@ -19,17 +19,33 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "life_trace"))
 import trace_life
 
 
-STATUS_LINE = """{"event_id": "evt-0001", "frida_lib": "D:\\\\repos\\\\reverse\\\\frida\\\\build\\\\install-root\\\\Program Files\\\\Frida\\\\lib\\\\frida\\\\x86_64", "frida_module": "D:\\\\repos\\\\reverse\\\\frida\\\\build\\\\install-root\\\\Program Files\\\\Frida\\\\lib\\\\site-packages\\\\frida\\\\__init__.py", "frida_repo_root": "D:\\\\repos\\\\reverse\\\\frida", "frida_root": "D:\\\\repos\\\\reverse\\\\frida\\\\build\\\\install-root\\\\Program Files\\\\Frida", "frida_site_packages": "D:\\\\repos\\\\reverse\\\\frida\\\\build\\\\install-root\\\\Program Files\\\\Frida\\\\lib\\\\site-packages", "kind": "status", "launch_path": "D:\\\\repos\\\\reverse\\\\littlebigreversing\\\\work\\\\_innoextract_full\\\\Speedrun\\\\Windows\\\\LBA2_cdrom\\\\LBA2\\\\LBA2.EXE", "message": "attached", "mode": "tavern-trace", "output_path": "D:\\\\repos\\\\reverse\\\\littlebigreversing\\\\work\\\\life_trace\\\\life-trace-20260405-011732.jsonl", "phase": "attached", "pid": 25148, "process_name": "LBA2.EXE", "timestamp_utc": "2026-04-05T05:17:33Z"}"""
-TARGET_VALIDATION_LINE = """{"event_id": "evt-0005", "fingerprint_hex_actual": "28 14 00 21 2F 00 23 0D 0E 00", "fingerprint_hex_expected": "28 14 00 21 2F 00 23 0D 0E 00", "fingerprint_start_offset": 40, "kind": "target_validation", "matches_fingerprint": true, "object_index": 0, "owner_kind": "hero", "ptr_life": "0x33a21fb", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
-BRANCH_TRACE_LINE = """{"branch_kind": "break_jump", "computed_target_offset": 103, "event_id": "evt-0014", "exe_switch_after": {"func": 0, "type_answer": 0, "value": 0}, "exe_switch_before": {"func": 0, "type_answer": 0, "value": 0}, "kind": "branch_trace", "object_index": 0, "operand_offset": 103, "ptr_prg_offset_before": 4805, "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
-WINDOW_TRACE_LINE = """{"current_object": "0x49a19c", "event_id": "evt-0015", "exe_switch": {"func": 0, "type_answer": 0, "value": 0}, "kind": "window_trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "ptr_window": {"bytes_hex": "00 22 08 4e 01 75 67 00 76 37 09 00 0b 7a 00 37 09", "cursor_index": 8, "start": "0x33a3506"}, "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z", "working_type_answer": 4, "working_value": 0}"""
-MINIMAL_TAVERN_WINDOW_TRACE_LINE = """{"byte_at_ptr_prg": 118, "byte_at_ptr_prg_hex": "0x76", "current_object": "0x49a19c", "event_id": "evt-0015", "kind": "window_trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
-SCREENSHOT_LINE = """{"capture_status": "captured", "event_id": "evt-0015", "kind": "screenshot", "poi": "opcode_076_fetch", "screenshot_path": "work/life_trace/shots/life-trace-20260405-011732/evt-0015__opcode_076_fetch__obj0__off4883.png", "source_window_title": "LBA2", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
-VERDICT_LINE = """{"break_target_offset": 103, "event_id": "evt-0018", "fingerprint_event_id": "evt-0005", "hidden_076_case_seen": false, "kind": "verdict", "matched_fingerprint": true, "opcode_076_fetch_event_id": "evt-0015", "phase": "completed", "post_076_outcome": "loop_reentry", "post_076_outcome_event_id": "evt-0017", "reason": "captured Tavern proof through loop_reentry", "required_screenshots_complete": true, "result": "tavern_trace_complete", "returned_after_076": false, "saw_076_fetch": true, "saw_post_076_loop": true, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
-ERROR_LINE = """{"event_id": "evt-0099", "kind": "error", "description": "boom", "stack": null, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
-SCREENSHOT_ERROR_LINE = """{"capture_status": "failed", "event_id": "evt-0005", "kind": "screenshot_error", "poi": "final_verdict", "reason": "window for pid 1 did not become capturable within 10 seconds", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
-TRACE_LINE = """{"byte_at_ptr_prg": 118, "byte_at_ptr_prg_hex": "0x76", "current_object": "0x49a19c", "event_id": "evt-0040", "exe_switch": {"func": 0, "type_answer": 0, "value": 0}, "kind": "trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "ptr_window": {"bytes_hex": "00 22 08 4e 01 75 67 00 76 37 09 00 0b 7a 00 37 09", "cursor_index": 8, "start": "0x33a3506"}, "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z", "trace_role": "primary", "working_type_answer": 4, "working_value": 0}"""
-DO_LIFE_RETURN_LINE = """{"byte_at_ptr_prg": 116, "byte_at_ptr_prg_hex": "0x74", "current_object": "0x49b0f0", "entered_do_func_life": false, "entered_do_test": true, "event_id": "evt-0041", "exe_switch_after": {"func": 0, "type_answer": 0, "value": 0}, "exe_switch_before": {"func": 0, "type_answer": 0, "value": 0}, "fetched_in_do_life_loop": true, "kind": "do_life_return", "next_opcode": 13, "next_opcode_hex": "0x0d", "object_index": 12, "offset_life": 38, "owner_kind": "object", "post_hit_outcome": "do_life_return", "ptr_life": "0x4120000", "ptr_prg_after": "0x41200f1", "ptr_prg_after_offset": 39, "ptr_prg_before": "0x41200f0", "ptr_prg_before_offset": 38, "ptr_window_after": {"bytes_hex": "74 17 01 0d 00 02", "cursor_index": 1, "start": "0x41200f0"}, "ptr_window_before": {"bytes_hex": "42 00 75 2d 00 74 17 01 0d", "cursor_index": 5, "start": "0x41200eb"}, "thread_id": 9876, "timestamp_utc": "2026-04-05T05:17:42Z", "trace_role": "primary", "working_type_answer_after": 4, "working_type_answer_before": 4, "working_value_after": 0, "working_value_before": 0}"""
+RUN_ID = "life-trace-20260405-011732"
+
+STATUS_LINE = """{"event_id": "evt-0001", "frida_lib": "D:\\\\repos\\\\reverse\\\\frida\\\\build\\\\install-root\\\\Program Files\\\\Frida\\\\lib\\\\frida\\\\x86_64", "frida_module": "D:\\\\repos\\\\reverse\\\\frida\\\\build\\\\install-root\\\\Program Files\\\\Frida\\\\lib\\\\site-packages\\\\frida\\\\__init__.py", "frida_repo_root": "D:\\\\repos\\\\reverse\\\\frida", "frida_root": "D:\\\\repos\\\\reverse\\\\frida\\\\build\\\\install-root\\\\Program Files\\\\Frida", "frida_site_packages": "D:\\\\repos\\\\reverse\\\\frida\\\\build\\\\install-root\\\\Program Files\\\\Frida\\\\lib\\\\site-packages", "kind": "status", "launch_path": "D:\\\\repos\\\\reverse\\\\littlebigreversing\\\\work\\\\_innoextract_full\\\\Speedrun\\\\Windows\\\\LBA2_cdrom\\\\LBA2\\\\LBA2.EXE", "message": "attached", "mode": "tavern-trace", "output_path": "D:\\\\repos\\\\reverse\\\\littlebigreversing\\\\work\\\\life_trace\\\\runs\\\\life-trace-20260405-011732", "phase": "attached", "pid": 25148, "process_name": "LBA2.EXE", "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "timestamp_utc": "2026-04-05T05:17:33Z"}"""
+TARGET_VALIDATION_LINE = """{"event_id": "evt-0005", "fingerprint_hex_actual": "28 14 00 21 2F 00 23 0D 0E 00", "fingerprint_hex_expected": "28 14 00 21 2F 00 23 0D 0E 00", "fingerprint_start_offset": 40, "kind": "target_validation", "matches_fingerprint": true, "object_index": 0, "owner_kind": "hero", "ptr_life": "0x33a21fb", "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
+BRANCH_TRACE_LINE = """{"branch_kind": "break_jump", "computed_target_offset": 103, "event_id": "evt-0014", "exe_switch_after": {"func": 0, "type_answer": 0, "value": 0}, "exe_switch_before": {"func": 0, "type_answer": 0, "value": 0}, "kind": "branch_trace", "object_index": 0, "operand_offset": 103, "ptr_prg_offset_before": 4805, "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
+WINDOW_TRACE_LINE = """{"current_object": "0x49a19c", "event_id": "evt-0015", "exe_switch": {"func": 0, "type_answer": 0, "value": 0}, "kind": "window_trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "ptr_window": {"bytes_hex": "00 22 08 4e 01 75 67 00 76 37 09 00 0b 7a 00 37 09", "cursor_index": 8, "start": "0x33a3506"}, "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z", "working_type_answer": 4, "working_value": 0}"""
+MINIMAL_TAVERN_WINDOW_TRACE_LINE = """{"byte_at_ptr_prg": 118, "byte_at_ptr_prg_hex": "0x76", "current_object": "0x49a19c", "event_id": "evt-0015", "kind": "window_trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
+SCREENSHOT_LINE = """{"capture_status": "captured", "event_id": "evt-0015", "kind": "screenshot", "poi": "opcode_076_fetch", "run_id": "life-trace-20260405-011732", "screenshot_path": "work/life_trace/runs/life-trace-20260405-011732/screenshots/evt-0015__opcode_076_fetch__obj0__off4883.png", "source_stream": "enriched", "source_window_title": "LBA2", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
+VERDICT_LINE = """{"break_target_offset": 103, "event_id": "evt-0018", "fingerprint_event_id": "evt-0005", "hidden_076_case_seen": false, "kind": "verdict", "matched_fingerprint": true, "opcode_076_fetch_event_id": "evt-0015", "phase": "completed", "post_076_outcome": "loop_reentry", "post_076_outcome_event_id": "evt-0017", "reason": "captured Tavern proof through loop_reentry", "required_screenshots_complete": true, "result": "tavern_trace_complete", "returned_after_076": false, "run_id": "life-trace-20260405-011732", "saw_076_fetch": true, "saw_post_076_loop": true, "source_stream": "enriched", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
+ERROR_LINE = """{"description": "boom", "event_id": "evt-0099", "kind": "error", "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "stack": null, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
+SCREENSHOT_ERROR_LINE = """{"capture_status": "failed", "event_id": "evt-0005", "kind": "screenshot_error", "poi": "final_verdict", "reason": "window for pid 1 did not become capturable within 10 seconds", "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
+TRACE_LINE = """{"byte_at_ptr_prg": 118, "byte_at_ptr_prg_hex": "0x76", "current_object": "0x49a19c", "event_id": "evt-0040", "exe_switch": {"func": 0, "type_answer": 0, "value": 0}, "kind": "trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "ptr_window": {"bytes_hex": "00 22 08 4e 01 75 67 00 76 37 09 00 0b 7a 00 37 09", "cursor_index": 8, "start": "0x33a3506"}, "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z", "trace_role": "primary", "working_type_answer": 4, "working_value": 0}"""
+DO_LIFE_RETURN_LINE = """{"byte_at_ptr_prg": 116, "byte_at_ptr_prg_hex": "0x74", "current_object": "0x49b0f0", "entered_do_func_life": false, "entered_do_test": true, "event_id": "evt-0041", "exe_switch_after": {"func": 0, "type_answer": 0, "value": 0}, "exe_switch_before": {"func": 0, "type_answer": 0, "value": 0}, "fetched_in_do_life_loop": true, "kind": "do_life_return", "next_opcode": 13, "next_opcode_hex": "0x0d", "object_index": 12, "offset_life": 38, "owner_kind": "object", "post_hit_outcome": "do_life_return", "ptr_life": "0x4120000", "ptr_prg_after": "0x41200f1", "ptr_prg_after_offset": 39, "ptr_prg_before": "0x41200f0", "ptr_prg_before_offset": 38, "ptr_window_after": {"bytes_hex": "74 17 01 0d 00 02", "cursor_index": 1, "start": "0x41200f0"}, "ptr_window_before": {"bytes_hex": "42 00 75 2d 00 74 17 01 0d", "cursor_index": 5, "start": "0x41200eb"}, "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 9876, "timestamp_utc": "2026-04-05T05:17:42Z", "trace_role": "primary", "working_type_answer_after": 4, "working_type_answer_before": 4, "working_value_after": 0, "working_value_before": 0}"""
+HELPER_CALLSITE_LINE = """{"call_index": 0, "call_instruction": "ram:00420f4b", "callsite_status": "mapped", "callee_name": "DoTest", "caller_static_live": "0x420f50", "caller_static_rel": "0x00020F50", "event_id": "evt-0042", "kind": "helper_callsite", "object_index": 12, "opcode": 116, "opcode_hex": "0x74", "owner_kind": "object", "ptr_life": "0x4120000", "ptr_prg": "0x41200f0", "ptr_prg_offset": 38, "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 9876, "timestamp_utc": "2026-04-05T05:17:42Z", "trace_role": "primary", "within_entry": "ram:00420574", "within_function": "FUN_00420574"}"""
+
+
+def read_jsonl_lines(path: Path) -> list[dict[str, object]]:
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def persisted_to_agent_payload(line: str) -> dict[str, object]:
+    payload = json.loads(line)
+    payload.pop("event_id", None)
+    payload.pop("run_id", None)
+    payload.pop("source_stream", None)
+    payload.pop("timestamp_utc", None)
+    return payload
 
 
 class LifeTraceSchemaTest(unittest.TestCase):
@@ -45,6 +61,7 @@ class LifeTraceSchemaTest(unittest.TestCase):
             trace_life.PersistedScreenshotErrorEvent: SCREENSHOT_ERROR_LINE,
             trace_life.PersistedTraceEvent: TRACE_LINE,
             trace_life.PersistedDoLifeReturnEvent: DO_LIFE_RETURN_LINE,
+            trace_life.PersistedHelperCallsiteEvent: HELPER_CALLSITE_LINE,
         }
 
         for expected_type, line in samples.items():
@@ -90,10 +107,11 @@ class LifeTraceSchemaTest(unittest.TestCase):
                 "fingerprint_hex_expected": "28 14 00 21 2F 00 23 0D 0E 00",
                 "matches_fingerprint": True,
             },
-            trace_life.AgentBranchTraceEvent: json.loads(BRANCH_TRACE_LINE.replace('"event_id": "evt-0014", ', "").replace(', "timestamp_utc": "2026-04-05T05:17:42Z"', "")),
-            trace_life.AgentWindowTraceEvent: json.loads(WINDOW_TRACE_LINE.replace('"event_id": "evt-0015", ', "").replace(', "timestamp_utc": "2026-04-05T05:17:42Z"', "")),
-            trace_life.AgentTraceEvent: json.loads(TRACE_LINE.replace('"event_id": "evt-0040", ', "").replace(', "timestamp_utc": "2026-04-05T05:17:42Z"', "")),
-            trace_life.AgentDoLifeReturnEvent: json.loads(DO_LIFE_RETURN_LINE.replace('"event_id": "evt-0041", ', "").replace(', "timestamp_utc": "2026-04-05T05:17:42Z"', "")),
+            trace_life.AgentBranchTraceEvent: persisted_to_agent_payload(BRANCH_TRACE_LINE),
+            trace_life.AgentWindowTraceEvent: persisted_to_agent_payload(WINDOW_TRACE_LINE),
+            trace_life.AgentTraceEvent: persisted_to_agent_payload(TRACE_LINE),
+            trace_life.AgentDoLifeReturnEvent: persisted_to_agent_payload(DO_LIFE_RETURN_LINE),
+            trace_life.AgentHelperCallsiteEvent: persisted_to_agent_payload(HELPER_CALLSITE_LINE),
             trace_life.AgentErrorEvent: {
                 "kind": "error",
                 "description": "boom",
@@ -110,11 +128,7 @@ class LifeTraceSchemaTest(unittest.TestCase):
         persisted = trace_life.parse_persisted_event_line(MINIMAL_TAVERN_WINDOW_TRACE_LINE)
         self.assertIsInstance(persisted, trace_life.PersistedWindowTraceEvent)
 
-        payload = json.loads(
-            MINIMAL_TAVERN_WINDOW_TRACE_LINE.replace('"event_id": "evt-0015", ', "").replace(
-                ', "timestamp_utc": "2026-04-05T05:17:42Z"', ""
-            )
-        )
+        payload = persisted_to_agent_payload(MINIMAL_TAVERN_WINDOW_TRACE_LINE)
         event = trace_life.convert_agent_event(payload)
         self.assertIsInstance(event, trace_life.AgentWindowTraceEvent)
 
@@ -184,7 +198,7 @@ class LifeTraceSchemaTest(unittest.TestCase):
 
     def test_writer_allows_event_id_reuse(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            writer = trace_life.JsonlWriter(Path(temp_dir) / "trace.jsonl")
+            writer = trace_life.JsonlWriter(Path(temp_dir))
             try:
                 writer.write_event(
                     trace_life.PersistedScreenshotEvent(
@@ -208,12 +222,9 @@ class LifeTraceSchemaTest(unittest.TestCase):
             finally:
                 writer.close()
 
-            lines = [
-                json.loads(line)
-                for line in (Path(temp_dir) / "trace.jsonl").read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
+            lines = read_jsonl_lines(writer.enriched_output_path)
             self.assertEqual(["evt-0042", "evt-0042"], [line["event_id"] for line in lines])
+            self.assertEqual(["enriched", "enriched"], [line["source_stream"] for line in lines])
 
     def test_negative_unknown_field_is_rejected(self) -> None:
         payload = {
@@ -263,17 +274,47 @@ class LifeTraceSchemaTest(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn("Bounded Frida probe for the original Windows LBA2 life interpreter.", result.stdout)
 
-    def test_parse_args_defaults_output_and_launch_path(self) -> None:
+    def test_load_agent_source_assembles_scene_fragments(self) -> None:
+        args = trace_life.parse_args(["--mode", "scene11-pair"])
+        script = trace_life.runtime.load_agent_source(args)
+
+        self.assertNotIn("__TRACE_", script)
+        self.assertIn('registerScene("basic"', script)
+        self.assertIn('registerScene("tavern-trace"', script)
+        self.assertIn('registerScene("scene11-pair"', script)
+        self.assertIn('sendEvent("helper_callsite"', script)
+        self.assertIn("const scene = createScene(config.mode);", script)
+        self.assertIn('"mode":"scene11-pair"', script)
+        self.assertIn('"helperCaptureEnabled":true', script)
+
+    def test_load_agent_source_fails_when_a_required_fragment_is_missing(self) -> None:
+        args = trace_life.parse_args(["--mode", "scene11-pair"])
+        missing_path = (Path(trace_life.runtime.__file__).with_name("agent") / "scene_scene11.js").resolve()
+        original_exists = trace_life.runtime.Path.exists
+
+        def fake_exists(path_obj) -> bool:
+            if path_obj.resolve() == missing_path:
+                return False
+            return original_exists(path_obj)
+
+        with mock.patch.object(trace_life.runtime.Path, "exists", autospec=True, side_effect=fake_exists):
+            with self.assertRaises(RuntimeError) as raised:
+                trace_life.runtime.load_agent_source(args)
+
+        self.assertIn("life_trace agent fragment is missing", str(raised.exception))
+
+    def test_parse_args_defaults_run_root_and_launch_path(self) -> None:
         args = trace_life.parse_args(["--mode", "tavern-trace", "--launch"])
         self.assertEqual(str(trace_life.DEFAULT_GAME_EXE), args.launch)
         self.assertEqual(trace_life.TAVERN_TRACE_PRESET.target_object, args.target_object)
         self.assertEqual(trace_life.TAVERN_TRACE_PRESET.target_opcode, args.target_opcode)
         self.assertEqual(trace_life.TAVERN_TRACE_PRESET.target_offset, args.target_offset)
-        self.assertEqual(str(trace_life.REPO_ROOT / "work" / "life_trace" / "shots"), args.screenshot_dir)
         self.assertEqual(str(trace_life.DEFAULT_FRA_REPO_ROOT), args.fra_repo_root)
         self.assertIsNone(args.frida_repo_root)
-        self.assertEqual(trace_life.DEFAULT_OUTPUT_DIR, Path(args.output).parent)
-        self.assertEqual(".jsonl", Path(args.output).suffix)
+        self.assertEqual(str(trace_life.DEFAULT_CALLSITES_JSONL), args.callsites_jsonl)
+        self.assertEqual(str(trace_life.DEFAULT_RUN_ROOT), args.run_root)
+        self.assertTrue(args.requires_callsite_map is False)
+        self.assertTrue(args.helper_capture_enabled is False)
 
     def test_parse_args_defaults_scene11_to_fra_lane(self) -> None:
         args = trace_life.parse_args(["--mode", "scene11-pair", "--launch"])
@@ -281,9 +322,11 @@ class LifeTraceSchemaTest(unittest.TestCase):
         self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_object, args.target_object)
         self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_opcode, args.target_opcode)
         self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_offset, args.target_offset)
-        self.assertEqual(str(trace_life.REPO_ROOT / "work" / "life_trace" / "shots"), args.screenshot_dir)
         self.assertEqual(str(trace_life.DEFAULT_FRA_REPO_ROOT), args.fra_repo_root)
         self.assertIsNone(args.frida_repo_root)
+        self.assertEqual(str(trace_life.DEFAULT_CALLSITES_JSONL), args.callsites_jsonl)
+        self.assertTrue(args.requires_callsite_map)
+        self.assertTrue(args.helper_capture_enabled)
 
     def test_parse_args_rejects_explicit_targets_in_structured_modes(self) -> None:
         stderr = io.StringIO()
@@ -360,7 +403,7 @@ class LifeTraceSchemaTest(unittest.TestCase):
             message_queue: trace_life.queue.Queue[trace_life.AgentWireEventType] = trace_life.queue.Queue()
 
             with mock.patch.object(
-                trace_life,
+                trace_life.runtime,
                 "run_fra_json",
                 return_value=[
                     {
@@ -422,7 +465,7 @@ class LifeTraceSchemaTest(unittest.TestCase):
             )
 
             with mock.patch.object(
-                trace_life,
+                trace_life.runtime,
                 "run_fra_json",
                 return_value={
                     "ok": True,
@@ -527,7 +570,7 @@ class TavernStartupAutomationTest(unittest.TestCase):
             destination_path = save_dir / "current.lba"
             destination_path.write_bytes(b"old-current-save")
 
-            writer = trace_life.JsonlWriter(Path(temp_dir) / "trace.jsonl")
+            writer = trace_life.JsonlWriter(Path(temp_dir))
             try:
                 staged_source, staged_destination = trace_life.stage_tavern_resume_save(writer, launch_path)
             finally:
@@ -537,11 +580,7 @@ class TavernStartupAutomationTest(unittest.TestCase):
             self.assertEqual(destination_path, staged_destination)
             self.assertEqual(b"inside-tavern-save", destination_path.read_bytes())
 
-            lines = [
-                json.loads(line)
-                for line in (Path(temp_dir) / "trace.jsonl").read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
+            lines = read_jsonl_lines(writer.enriched_output_path)
             self.assertEqual("staged inside-tavern.LBA into current.lba", lines[0]["message"])
 
     def test_drive_tavern_launch_startup_drives_adeline_and_resume_enters(self) -> None:
@@ -568,7 +607,7 @@ class TavernStartupAutomationTest(unittest.TestCase):
                 self.hwnds.append(hwnd)
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            writer = trace_life.JsonlWriter(Path(temp_dir) / "trace.jsonl")
+            writer = trace_life.JsonlWriter(Path(temp_dir))
             capture = FakeWindowCapture()
             window_input = FakeWindowInput()
             try:
@@ -599,11 +638,7 @@ class TavernStartupAutomationTest(unittest.TestCase):
                 mocked_sleep.call_args_list,
             )
 
-            lines = [
-                json.loads(line)
-                for line in (Path(temp_dir) / "trace.jsonl").read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
+            lines = read_jsonl_lines(writer.enriched_output_path)
             messages = [line["message"] for line in lines if line.get("kind") == "status" and "message" in line]
             self.assertIn("driving Tavern startup through Adeline and Resume Game", messages)
             self.assertIn("sent Enter to continue past the Adeline splash", messages)
@@ -614,10 +649,8 @@ class TavernStartupAutomationTest(unittest.TestCase):
 class TavernFinalizeStatusTest(unittest.TestCase):
     def test_tavern_finalize_writes_explicit_completed_status_after_verdict(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            output_path = Path(temp_dir) / "trace.jsonl"
-            writer = trace_life.JsonlWriter(output_path)
+            writer = trace_life.JsonlWriter(Path(temp_dir))
             args = argparse.Namespace(
-                screenshot_dir=temp_dir,
                 target_object=0,
                 target_offset=4883,
             )
@@ -652,27 +685,205 @@ class TavernFinalizeStatusTest(unittest.TestCase):
             finally:
                 writer.close()
 
-            lines = [
-                json.loads(line)
-                for line in output_path.read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
+            lines = read_jsonl_lines(writer.enriched_output_path)
             self.assertEqual("verdict", lines[-2]["kind"])
             self.assertEqual("status", lines[-1]["kind"])
             self.assertEqual("completed", lines[-1]["phase"])
             self.assertEqual(trace_life.TRACE_COMPLETE_STATUS_MESSAGE, lines[-1]["message"])
             self.assertEqual(30140, lines[-1]["pid"])
+            screenshot_lines = [line for line in lines if line["kind"] == "screenshot"]
+            self.assertEqual(1, len(screenshot_lines))
+            self.assertTrue(screenshot_lines[0]["screenshot_path"].endswith("final_verdict.png"))
+
+
+class HelperCallsiteEnrichmentTest(unittest.TestCase):
+    def test_writer_enriches_helper_callsite_events_from_callsite_map(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            callsite_path = Path(temp_dir) / "callsites.jsonl"
+            callsite_path.write_text(
+                '{"callee_name":"DoTest","caller_static_rel":"0x00020F50","within_function":"FUN_00420574","within_entry":"ram:00420574","call_instruction":"ram:00420f4b","call_index":0}\n',
+                encoding="utf-8",
+            )
+            writer = trace_life.JsonlWriter(
+                Path(temp_dir),
+                callsite_artifact_path=callsite_path,
+                callsite_index=trace_life.load_callsite_index(callsite_path),
+            )
+            try:
+                writer.write_event(
+                    trace_life.AgentHelperCallsiteEvent(
+                        callee_name="DoTest",
+                        caller_static_live="0x420f50",
+                        caller_static_rel="0x20f50",
+                        thread_id=9876,
+                        object_index=12,
+                        owner_kind="object",
+                        ptr_life="0x4120000",
+                        ptr_prg="0x41200f0",
+                        ptr_prg_offset=38,
+                        opcode=116,
+                        opcode_hex="0x74",
+                        trace_role="primary",
+                    )
+                )
+            finally:
+                writer.close()
+
+            raw_line = read_jsonl_lines(writer.raw_output_path)[0]
+            enriched_line = read_jsonl_lines(writer.enriched_output_path)[0]
+            self.assertEqual("helper_callsite", raw_line["kind"])
+            self.assertEqual("raw", raw_line["source_stream"])
+            self.assertEqual("0x00020F50", raw_line["caller_static_rel"])
+            self.assertNotIn("within_function", raw_line)
+            self.assertEqual("helper_callsite", enriched_line["kind"])
+            self.assertEqual("mapped", enriched_line["callsite_status"])
+            self.assertEqual("FUN_00420574", enriched_line["within_function"])
+            self.assertEqual("ram:00420574", enriched_line["within_entry"])
+            self.assertEqual("ram:00420f4b", enriched_line["call_instruction"])
+            self.assertEqual(0, enriched_line["call_index"])
+            self.assertEqual("0x00020F50", enriched_line["caller_static_rel"])
+            self.assertEqual(raw_line["event_id"], enriched_line["event_id"])
+            self.assertEqual(raw_line["run_id"], enriched_line["run_id"])
+
+    def test_writer_marks_unmapped_helper_callsite_events(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(Path(temp_dir), callsite_index={})
+            try:
+                writer.write_event(
+                    trace_life.AgentHelperCallsiteEvent(
+                        callee_name="DoFuncLife",
+                        caller_static_live="0x421139",
+                        caller_static_rel="0x00021139",
+                        thread_id=9876,
+                        object_index=12,
+                        owner_kind="object",
+                        ptr_life="0x4120000",
+                        ptr_prg="0x41200f0",
+                        ptr_prg_offset=38,
+                        opcode=116,
+                        opcode_hex="0x74",
+                        trace_role="primary",
+                    )
+                )
+            finally:
+                writer.close()
+
+            line = read_jsonl_lines(writer.enriched_output_path)[0]
+            self.assertEqual("helper_callsite", line["kind"])
+            self.assertEqual("unmapped", line["callsite_status"])
+            self.assertEqual("0x00021139", line["caller_static_rel"])
+            self.assertNotIn("within_function", line)
+
+    def test_writer_creates_manifest_and_bundle_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(
+                Path(temp_dir),
+                mode="scene11-pair",
+                process_name="LBA2.EXE",
+                launch_path=r"D:\games\LBA2.EXE",
+                launch_save=r"D:\games\SAVE\scene11-pair.LBA",
+                callsite_artifact_path=trace_life.DEFAULT_CALLSITES_JSONL,
+                callsite_index={},
+                requires_callsite_map=True,
+                run_id="bundle-test",
+            )
+            try:
+                event_id = writer.write_event(
+                    trace_life.PersistedStatusEvent(
+                        message="attached",
+                        mode="scene11-pair",
+                        pid=1234,
+                        process_name="LBA2.EXE",
+                    )
+                )
+            finally:
+                writer.close()
+
+            manifest = json.loads(writer.manifest_path.read_text(encoding="utf-8"))
+            raw_line = read_jsonl_lines(writer.raw_output_path)[0]
+            enriched_line = read_jsonl_lines(writer.enriched_output_path)[0]
+            self.assertEqual("bundle-test", manifest["run_id"])
+            self.assertEqual("raw.jsonl", manifest["artifacts"]["raw_jsonl"])
+            self.assertEqual("enriched.jsonl", manifest["artifacts"]["enriched_jsonl"])
+            self.assertEqual("screenshots", manifest["artifacts"]["screenshots_dir"])
+            self.assertEqual("scene11-pair", manifest["mode"])
+            self.assertEqual(1234, manifest["pid"])
+            self.assertIsNotNone(manifest["finished_at_utc"])
+            self.assertEqual(event_id, raw_line["event_id"])
+            self.assertEqual(event_id, enriched_line["event_id"])
+            self.assertEqual("raw", raw_line["source_stream"])
+            self.assertEqual("enriched", enriched_line["source_stream"])
+
+    def test_scene11_controller_fails_fast_on_unmapped_helper_callsite(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(
+                Path(temp_dir),
+                callsite_index={},
+                requires_callsite_map=True,
+            )
+            args = argparse.Namespace(
+                target_object=12,
+                target_opcode=0x74,
+                target_offset=38,
+                comparison_object=18,
+                comparison_opcode=0x76,
+                comparison_offset=84,
+                timeout_sec=60.0,
+            )
+            controller = trace_life.Scene11PairController(args, writer, pid=1234)
+            fake_window = trace_life.WindowInfo(
+                hwnd=0x1234,
+                title="LBA2",
+                left=0,
+                top=0,
+                right=800,
+                bottom=600,
+            )
+
+            try:
+                with mock.patch.object(
+                    controller,
+                    "_capture_window_file",
+                    return_value=("work/life_trace/runs/test/screenshots/final_verdict.png", fake_window),
+                ):
+                    controller.handle_event(
+                        trace_life.AgentHelperCallsiteEvent(
+                            callee_name="DoTest",
+                            caller_static_live="0x420f50",
+                            caller_static_rel="0x20f50",
+                            thread_id=9876,
+                            object_index=12,
+                            owner_kind="object",
+                            ptr_life="0x4120000",
+                            ptr_prg="0x41200f0",
+                            ptr_prg_offset=38,
+                            opcode=116,
+                            opcode_hex="0x74",
+                            trace_role="primary",
+                        )
+                    )
+            finally:
+                writer.close()
+
+            lines = read_jsonl_lines(writer.enriched_output_path)
+            self.assertEqual("helper_callsite", lines[0]["kind"])
+            self.assertEqual("unmapped", lines[0]["callsite_status"])
+            self.assertEqual("verdict", lines[-2]["kind"])
+            self.assertEqual("unmapped_callsite", lines[-2]["result"])
+            self.assertIn("was not present in the configured static map", lines[-2]["reason"])
+            self.assertEqual("status", lines[-1]["kind"])
+            self.assertTrue(controller.terminal)
+            self.assertEqual(1, controller.exit_code)
 
 
 class SpawnedProcessTerminationTest(unittest.TestCase):
     def test_terminate_spawned_process_accepts_fra_terminate_when_process_exits(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            output_path = Path(temp_dir) / "trace.jsonl"
-            writer = trace_life.JsonlWriter(output_path)
+            writer = trace_life.JsonlWriter(Path(temp_dir))
             try:
                 with (
-                    mock.patch.object(trace_life, "run_fra_json", return_value={"ok": True}) as mocked_run,
-                    mock.patch.object(trace_life, "wait_for_process_exit", return_value=True) as mocked_wait,
+                    mock.patch.object(trace_life.runtime, "run_fra_json", return_value={"ok": True}) as mocked_run,
+                    mock.patch.object(trace_life.runtime, "wait_for_process_exit", return_value=True) as mocked_wait,
                     mock.patch.object(trace_life.os, "kill") as mocked_kill,
                 ):
                     trace_life.terminate_spawned_process(
@@ -688,21 +899,16 @@ class SpawnedProcessTerminationTest(unittest.TestCase):
             mocked_wait.assert_called_once_with(1234, trace_life.SPAWNED_PROCESS_TERMINATE_GRACE_SEC)
             mocked_kill.assert_not_called()
 
-            lines = [
-                json.loads(line)
-                for line in output_path.read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
+            lines = read_jsonl_lines(writer.enriched_output_path)
             self.assertEqual(["killed spawned process"], [line["message"] for line in lines])
 
     def test_terminate_spawned_process_falls_back_to_direct_kill_when_process_lingers(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            output_path = Path(temp_dir) / "trace.jsonl"
-            writer = trace_life.JsonlWriter(output_path)
+            writer = trace_life.JsonlWriter(Path(temp_dir))
             try:
                 with (
-                    mock.patch.object(trace_life, "run_fra_json", return_value={"ok": True}),
-                    mock.patch.object(trace_life, "wait_for_process_exit", side_effect=[False, True]) as mocked_wait,
+                    mock.patch.object(trace_life.runtime, "run_fra_json", return_value={"ok": True}),
+                    mock.patch.object(trace_life.runtime, "wait_for_process_exit", side_effect=[False, True]) as mocked_wait,
                     mock.patch.object(trace_life.os, "kill") as mocked_kill,
                 ):
                     trace_life.terminate_spawned_process(
@@ -722,11 +928,7 @@ class SpawnedProcessTerminationTest(unittest.TestCase):
             )
             mocked_kill.assert_called_once_with(1234, signal.SIGTERM)
 
-            lines = [
-                json.loads(line)
-                for line in output_path.read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
+            lines = read_jsonl_lines(writer.enriched_output_path)
             self.assertEqual(
                 [
                     "spawned process still alive after fra target terminate; forcing direct kill",
