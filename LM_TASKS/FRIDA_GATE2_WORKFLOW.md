@@ -30,6 +30,8 @@ Current non-goals:
 ### TavernTrace
 
 - owner: hero object `0`
+- canonical staged save on `--launch`:
+  - `inside-tavern.LBA -> current.lba`
 - fingerprint offset: `PtrLife + 40`
 - fingerprint bytes:
   - `28 14 00 21 2F 00 23 0D 0E 00`
@@ -109,6 +111,12 @@ Passing `--launch` without a path defaults to the DLL-complete checked-in runtim
 work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE
 ```
 
+On `--mode tavern-trace --launch`, the tracer now also:
+
+- re-stages `inside-tavern.LBA` into `current.lba`
+- sends one `Enter` through the Adeline splash
+- sends one `Enter` on the main menu `Resume Game` default
+
 In `tavern-trace` and `scene11-pair`, `--target-object`, `--target-opcode`, and `--target-offset` are rejected on purpose.
 
 If the `frida-agent-cli` repo is elsewhere:
@@ -130,9 +138,10 @@ py -3 .\tools\life_trace\trace_life.py `
 
 ### TavernTrace
 
-1. load the canonical Tavern save
-2. let the save settle before adding movement or extra interaction
-3. stop once the tracer records the terminal Tavern verdict
+1. with `--launch`, let the tracer drive the Adeline splash and `Resume Game`
+2. with attach mode, enter the canonical Tavern state before starting the tracer
+3. let the Tavern save settle before adding movement or extra interaction
+4. stop once the tracer records the terminal Tavern verdict
 
 ### Scene11Pair
 

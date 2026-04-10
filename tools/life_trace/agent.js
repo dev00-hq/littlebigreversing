@@ -63,7 +63,11 @@ const branchPendingByThread = Object.create(null);
 const trackedRun = {
     matchedFingerprint: false,
     threadId: null,
+    objectIndex: null,
+    ownerKind: null,
+    currentObject: null,
     ptrLifePtr: ptr(0),
+    offsetLife: null,
     saw076: false,
     post076ThreadId: null,
     post076OutcomeCaptured: false,
@@ -229,6 +233,23 @@ function matchesTarget(trace) {
     return true;
 }
 
+function buildTrackedTavernTrace(ptrPrg, ptrPrgOffset, opcode, threadId) {
+    return {
+        thread_id: threadId,
+        object_index: trackedRun.objectIndex,
+        owner_kind: trackedRun.ownerKind,
+        current_object: trackedRun.currentObject,
+        ptr_life: pointerString(trackedRun.ptrLifePtr),
+        offset_life: trackedRun.offsetLife,
+        ptr_prg: pointerString(ptrPrg),
+        ptr_prg_offset: ptrPrgOffset,
+        opcode,
+        opcode_hex: opcode === null ? null : `0x${opcode.toString(16).padStart(2, "0")}`,
+        byte_at_ptr_prg: opcode,
+        byte_at_ptr_prg_hex: opcode === null ? null : `0x${opcode.toString(16).padStart(2, "0")}`,
+    };
+}
+
 function isFocusOffset(offsetValue) {
     if (offsetValue === null || config.focusOffsetStart === null || config.focusOffsetEnd === null) {
         return false;
@@ -294,8 +315,13 @@ function maybeEmitTargetValidation(threadId, state) {
 
     trackedRun.matchedFingerprint = true;
     trackedRun.threadId = threadId;
+    trackedRun.objectIndex = state.object_index;
+    trackedRun.ownerKind = state.object_index === 0 ? "hero" : "object";
+    trackedRun.currentObject = state.current_object;
     trackedRun.ptrLifePtr = state.ptrLifePtr;
-    attachBranchHooks();
+    trackedRun.offsetLife = state.offset_life;
+    // Keep Tavern on the late-attach DoLife loop lane; the extra branch hook layer is not required for proof
+    // and has been unstable in live post-load runs.
 
     sendEvent("target_validation", {
         thread_id: threadId,
@@ -664,15 +690,17 @@ Interceptor.attach(absolute(offsets.doLifeLoop), {
             return;
         }
 
-        const state = snapshotObjectState(config.targetObject);
-        if (state.ptrLifePtr.isNull()) {
-            return;
-        }
-
         if (!trackedRun.matchedFingerprint) {
+            const state = snapshotObjectState(config.targetObject);
+            if (state.ptrLifePtr.isNull()) {
+                return;
+            }
             maybeEmitTargetValidation(this.threadId, state);
         }
         if (!trackedRun.matchedFingerprint) {
+            return;
+        }
+        if (trackedRun.ptrLifePtr.isNull()) {
             return;
         }
 
@@ -682,23 +710,43 @@ Interceptor.attach(absolute(offsets.doLifeLoop), {
 
         if (!isTrackedThread(this.threadId)) {
             if (config.logAll) {
-                const trace = buildTrace(state, ptrPrg, this.threadId);
+                const ptrPrgOffset = pointerDelta(ptrPrg, trackedRun.ptrLifePtr);
+                const opcode = readU8Safe(ptrPrg);
+                const trace = buildTrackedTavernTrace(ptrPrg, ptrPrgOffset, opcode, this.threadId);
                 trace.matches_target = matchesTarget(trace);
                 sendEvent("trace", trace);
             }
             return;
         }
 
-        const trace = buildTrace(state, ptrPrg, this.threadId);
+        const ptrPrgOffset = pointerDelta(ptrPrg, trackedRun.ptrLifePtr);
+        const post076ExpectedOffset =
+            config.targetOffset === null ? null : (config.targetOffset | 0) + 1;
+
+        if (!trackedRun.saw076 && !config.logAll && ptrPrgOffset !== config.targetOffset) {
+            return;
+        }
+
+        if (
+            trackedRun.saw076 &&
+            !config.logAll &&
+            trackedRun.post076ThreadId === this.threadId &&
+            !trackedRun.post076OutcomeCaptured &&
+            ptrPrgOffset !== post076ExpectedOffset
+        ) {
+            return;
+        }
+
+        const opcode = readU8Safe(ptrPrg);
+        const trace = buildTrackedTavernTrace(ptrPrg, ptrPrgOffset, opcode, this.threadId);
         trace.matches_target = matchesTarget(trace);
-        recordRecent(state, trace);
 
         const is076Trace = trace.ptr_prg_offset === config.targetOffset && trace.opcode === config.targetOpcode;
         const wantsLoopReentryProof =
             trackedRun.saw076 &&
             trackedRun.post076ThreadId === this.threadId &&
             !trackedRun.post076OutcomeCaptured &&
-            !is076Trace;
+            trace.ptr_prg_offset === post076ExpectedOffset;
 
         if (is076Trace && !trackedRun.saw076) {
             trackedRun.saw076 = true;
@@ -712,7 +760,7 @@ Interceptor.attach(absolute(offsets.doLifeLoop), {
             return;
         }
 
-        if (isFocusOffset(trace.ptr_prg_offset)) {
+        if (is076Trace || wantsLoopReentryProof) {
             sendEvent("window_trace", trace);
             return;
         }

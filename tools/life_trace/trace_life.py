@@ -5,6 +5,7 @@ import ctypes
 import json
 import os
 import queue
+import shutil
 import signal
 import struct
 import subprocess
@@ -35,6 +36,10 @@ DEFAULT_GAME_EXE = (
 DEFAULT_FRIDA_REPO_ROOT = Path(r"D:\repos\reverse\frida")
 DEFAULT_FRA_REPO_ROOT = Path(r"D:\repos\frida-agent-cli")
 TAVERN_POST_076_TIMEOUT_SEC = 2.0
+TAVERN_ADELINE_ENTER_DELAY_SEC = 4.5
+TAVERN_RESUME_ENTER_DELAY_SEC = 1.5
+TAVERN_RESUME_SETTLE_DELAY_SEC = 2.0
+TAVERN_STARTUP_WINDOW_TIMEOUT_SEC = 5.0
 
 
 def parse_int(value: str) -> int:
@@ -756,6 +761,41 @@ def run_fra_json(
         ) from exc
 
 
+def resolve_fra_output_payload(payload: object) -> object:
+    if not isinstance(payload, dict) or "artifact_path" not in payload:
+        return payload
+
+    artifact_path = payload.get("artifact_path")
+    artifact_format = payload.get("format")
+    if not isinstance(artifact_path, str) or not artifact_path:
+        raise RuntimeError("fra output artifact envelope is missing artifact_path")
+    if artifact_format not in {"json", "ndjson", "text"}:
+        raise RuntimeError(f"fra output artifact envelope has unsupported format: {artifact_format!r}")
+
+    artifact_file = Path(artifact_path)
+    if not artifact_file.exists():
+        raise RuntimeError(f"fra output artifact path does not exist: {artifact_file}")
+    text = artifact_file.read_text(encoding="utf-8")
+
+    if artifact_format == "json":
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"fra output artifact is not valid JSON: {artifact_file}") from exc
+    if artifact_format == "ndjson":
+        records: list[object] = []
+        for line in text.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+            try:
+                records.append(json.loads(stripped))
+            except json.JSONDecodeError as exc:
+                raise RuntimeError(f"fra output artifact is not valid NDJSON: {artifact_file}") from exc
+        return records
+    return text
+
+
 def fra_status_fields(doctor_report: dict) -> dict[str, str | None]:
     if not doctor_report.get("ok"):
         failing_checks = [
@@ -781,14 +821,16 @@ def read_fra_probe_records(
     fra_launcher: list[str],
     runtime: FraProbeRuntime,
 ) -> list[dict]:
-    payload = run_fra_json(
-        fra_launcher,
-        "probe",
-        "tail",
-        "--artifact",
-        str(runtime.artifact_path),
-        "--format",
-        "json",
+    payload = resolve_fra_output_payload(
+        run_fra_json(
+            fra_launcher,
+            "probe",
+            "tail",
+            "--artifact",
+            str(runtime.artifact_path),
+            "--format",
+            "json",
+        )
     )
     if not isinstance(payload, list):
         raise RuntimeError("fra probe tail returned an unexpected payload")
@@ -848,7 +890,7 @@ def try_wait_for_fra_probe_lifecycle(
     )
     if completed.returncode == 0:
         try:
-            payload = json.loads(completed.stdout)
+            payload = resolve_fra_output_payload(json.loads(completed.stdout))
         except json.JSONDecodeError as exc:
             raise RuntimeError(
                 f"fra probe wait returned invalid JSON for lifecycle {event}"
@@ -967,6 +1009,10 @@ class WindowInfo:
 
 
 class CaptureError(RuntimeError):
+    pass
+
+
+class InputError(RuntimeError):
     pass
 
 
@@ -1222,6 +1268,113 @@ class WindowCapture:
         return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", image_data) + chunk(b"IEND", b"")
 
 
+class WindowInput:
+    KEYEVENTF_KEYUP = 0x0002
+    SW_RESTORE = 9
+    VK_RETURN = 0x0D
+
+    def __init__(self) -> None:
+        if os.name != "nt":
+            raise RuntimeError("window input is only supported on Windows")
+
+        self.user32 = ctypes.windll.user32
+        self.user32.IsIconic.argtypes = [wintypes.HWND]
+        self.user32.IsIconic.restype = wintypes.BOOL
+        self.user32.ShowWindow.argtypes = [wintypes.HWND, ctypes.c_int]
+        self.user32.ShowWindow.restype = wintypes.BOOL
+        self.user32.BringWindowToTop.argtypes = [wintypes.HWND]
+        self.user32.BringWindowToTop.restype = wintypes.BOOL
+        self.user32.SetForegroundWindow.argtypes = [wintypes.HWND]
+        self.user32.SetForegroundWindow.restype = wintypes.BOOL
+        self.user32.MapVirtualKeyW.argtypes = [wintypes.UINT, wintypes.UINT]
+        self.user32.MapVirtualKeyW.restype = wintypes.UINT
+
+    def send_enter(self, hwnd: int) -> None:
+        self._activate_window(hwnd)
+        scan_code = int(self.user32.MapVirtualKeyW(self.VK_RETURN, 0))
+        self.user32.keybd_event(self.VK_RETURN, scan_code, 0, 0)
+        time.sleep(0.05)
+        self.user32.keybd_event(self.VK_RETURN, scan_code, self.KEYEVENTF_KEYUP, 0)
+
+    def _activate_window(self, hwnd: int) -> None:
+        if self.user32.IsIconic(hwnd):
+            self.user32.ShowWindow(hwnd, self.SW_RESTORE)
+        self.user32.BringWindowToTop(hwnd)
+        self.user32.SetForegroundWindow(hwnd)
+        time.sleep(0.05)
+
+
+def tavern_resume_save_paths(launch_path: Path) -> tuple[Path, Path]:
+    save_dir = launch_path.parent / "SAVE"
+    return save_dir / "inside-tavern.LBA", save_dir / "current.lba"
+
+
+def stage_tavern_resume_save(writer: JsonlWriter, launch_path: Path) -> tuple[Path, Path]:
+    source_path, destination_path = tavern_resume_save_paths(launch_path)
+    if not source_path.exists():
+        raise RuntimeError(f"Tavern resume save path does not exist: {source_path}")
+    destination_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source_path, destination_path)
+    writer.write_event(
+        PersistedStatusEvent(
+            message=f"staged {source_path.name} into {destination_path.name}",
+        )
+    )
+    return source_path, destination_path
+
+
+def drive_tavern_launch_startup(
+    writer: JsonlWriter,
+    pid: int,
+    *,
+    capture: WindowCapture | None = None,
+    window_input: WindowInput | None = None,
+) -> None:
+    capture = WindowCapture() if capture is None else capture
+    window_input = WindowInput() if window_input is None else window_input
+    writer.write_event(
+        PersistedStatusEvent(
+            message="driving Tavern startup through Adeline and Resume Game",
+            pid=pid,
+        )
+    )
+
+    for delay_sec, startup_step, status_message in (
+        (
+            TAVERN_ADELINE_ENTER_DELAY_SEC,
+            "Adeline splash",
+            "sent Enter to continue past the Adeline splash",
+        ),
+        (
+            TAVERN_RESUME_ENTER_DELAY_SEC,
+            "Resume Game",
+            "sent Enter to activate Resume Game",
+        ),
+    ):
+        time.sleep(delay_sec)
+        try:
+            window = capture.wait_for_window(pid, timeout_sec=TAVERN_STARTUP_WINDOW_TIMEOUT_SEC)
+            window_input.send_enter(window.hwnd)
+        except (CaptureError, InputError) as error:
+            raise RuntimeError(
+                f"Tavern startup automation failed during {startup_step}: {error}"
+            ) from error
+        writer.write_event(
+            PersistedStatusEvent(
+                message=status_message,
+                pid=pid,
+            )
+        )
+
+    time.sleep(TAVERN_RESUME_SETTLE_DELAY_SEC)
+    writer.write_event(
+        PersistedStatusEvent(
+            message="waited for Resume Game to settle before attaching fra probe",
+            pid=pid,
+        )
+    )
+
+
 class BasicTraceController:
     def __init__(self, args: argparse.Namespace, writer: JsonlWriter) -> None:
         self.args = args
@@ -1277,7 +1430,14 @@ class BasicTraceController:
 
 
 class TavernTraceController:
-    def __init__(self, args: argparse.Namespace, writer: JsonlWriter, pid: int) -> None:
+    def __init__(
+        self,
+        args: argparse.Namespace,
+        writer: JsonlWriter,
+        pid: int,
+        *,
+        capture: WindowCapture | None = None,
+    ) -> None:
         self.args = args
         self.writer = writer
         self.pid = pid
@@ -1286,7 +1446,7 @@ class TavernTraceController:
         self.terminal = False
         self.last_error: str | None = None
 
-        self.capture = WindowCapture()
+        self.capture = WindowCapture() if capture is None else capture
         self.screenshot_root = Path(args.screenshot_dir).resolve()
         self.run_screenshot_dir = self.screenshot_root / writer.run_id
         self.run_screenshot_dir.mkdir(parents=True, exist_ok=True)
@@ -2040,9 +2200,37 @@ def run_structured_trace_via_fra(
     controller: TavernTraceController | Scene11PairController | None = None
     spawned_pid: int | None = None
     pid: int | None = None
+    fra_spawned_target = False
 
     try:
-        if args.launch:
+        if args.launch and args.mode == "tavern-trace":
+            launch_path = Path(args.launch)
+            if not launch_path.exists():
+                raise RuntimeError(f"launch path does not exist: {launch_path}")
+            stage_tavern_resume_save(writer, launch_path)
+            launched_process = subprocess.Popen(
+                [str(launch_path)],
+                cwd=str(launch_path.parent),
+            )
+            pid = int(launched_process.pid)
+            spawned_pid = pid
+            writer.write_event(
+                PersistedStatusEvent(
+                    message="launched process before late fra attach",
+                    pid=pid,
+                    launch_path=str(launch_path),
+                )
+            )
+            drive_tavern_launch_startup(writer, pid)
+            target_record = run_fra_json(
+                fra_launcher,
+                "target",
+                "attach",
+                "--format",
+                "json",
+                str(pid),
+            )
+        elif args.launch:
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
@@ -2061,6 +2249,7 @@ def run_structured_trace_via_fra(
                     raise RuntimeError(f"launch save path does not exist: {launch_save_path}")
                 spawn_args.append(str(launch_save_path))
             target_record = run_fra_json(fra_launcher, *spawn_args)
+            fra_spawned_target = True
         else:
             target_record = run_fra_json(
                 fra_launcher,
@@ -2075,8 +2264,43 @@ def run_structured_trace_via_fra(
 
         target_id = str(target_record["target_id"])
         pid = int(target_record["pid"])
-        if args.launch:
+        if args.launch and spawned_pid is None:
             spawned_pid = pid
+
+        writer.write_event(
+            PersistedStatusEvent(
+                phase="attached",
+                frida_module=status_fields["frida_module"],
+                frida_repo_root=status_fields["frida_repo_root"],
+                frida_root=status_fields["frida_root"],
+                frida_site_packages=status_fields["frida_site_packages"],
+                frida_lib=status_fields["frida_lib"],
+                message="attached",
+                mode=args.mode,
+                output_path=str(output_path),
+                pid=pid,
+                process_name=args.process,
+                launch_path=args.launch,
+                launch_save=args.launch_save,
+            )
+        )
+
+        if fra_spawned_target and spawned_pid is not None:
+            run_fra_json(
+                fra_launcher,
+                "target",
+                "resume",
+                "--target",
+                target_id,
+                "--format",
+                "json",
+            )
+            writer.write_event(
+                PersistedStatusEvent(
+                    message="resumed spawned process",
+                    pid=spawned_pid,
+                )
+            )
 
         if args.mode == "scene11-pair":
             controller = Scene11PairController(args, writer, pid)
@@ -2100,41 +2324,6 @@ def run_structured_trace_via_fra(
             probe_id=str(probe_record["probe_id"]),
             artifact_path=Path(str(probe_record["event_artifact"])),
         )
-
-        writer.write_event(
-            PersistedStatusEvent(
-                phase="attached",
-                frida_module=status_fields["frida_module"],
-                frida_repo_root=status_fields["frida_repo_root"],
-                frida_root=status_fields["frida_root"],
-                frida_site_packages=status_fields["frida_site_packages"],
-                frida_lib=status_fields["frida_lib"],
-                message="attached",
-                mode=args.mode,
-                output_path=str(output_path),
-                pid=pid,
-                process_name=args.process,
-                launch_path=args.launch,
-                launch_save=args.launch_save,
-            )
-        )
-
-        if spawned_pid is not None:
-            run_fra_json(
-                fra_launcher,
-                "target",
-                "resume",
-                "--target",
-                target_id,
-                "--format",
-                "json",
-            )
-            writer.write_event(
-                PersistedStatusEvent(
-                    message="resumed spawned process",
-                    pid=spawned_pid,
-                )
-            )
 
         controller.begin()
 

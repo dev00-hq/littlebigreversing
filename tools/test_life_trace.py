@@ -21,6 +21,7 @@ STATUS_LINE = """{"event_id": "evt-0001", "frida_lib": "D:\\\\repos\\\\reverse\\
 TARGET_VALIDATION_LINE = """{"event_id": "evt-0005", "fingerprint_hex_actual": "28 14 00 21 2F 00 23 0D 0E 00", "fingerprint_hex_expected": "28 14 00 21 2F 00 23 0D 0E 00", "fingerprint_start_offset": 40, "kind": "target_validation", "matches_fingerprint": true, "object_index": 0, "owner_kind": "hero", "ptr_life": "0x33a21fb", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 BRANCH_TRACE_LINE = """{"branch_kind": "break_jump", "computed_target_offset": 103, "event_id": "evt-0014", "exe_switch_after": {"func": 0, "type_answer": 0, "value": 0}, "exe_switch_before": {"func": 0, "type_answer": 0, "value": 0}, "kind": "branch_trace", "object_index": 0, "operand_offset": 103, "ptr_prg_offset_before": 4805, "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 WINDOW_TRACE_LINE = """{"current_object": "0x49a19c", "event_id": "evt-0015", "exe_switch": {"func": 0, "type_answer": 0, "value": 0}, "kind": "window_trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "ptr_window": {"bytes_hex": "00 22 08 4e 01 75 67 00 76 37 09 00 0b 7a 00 37 09", "cursor_index": 8, "start": "0x33a3506"}, "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z", "working_type_answer": 4, "working_value": 0}"""
+MINIMAL_TAVERN_WINDOW_TRACE_LINE = """{"byte_at_ptr_prg": 118, "byte_at_ptr_prg_hex": "0x76", "current_object": "0x49a19c", "event_id": "evt-0015", "kind": "window_trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 SCREENSHOT_LINE = """{"capture_status": "captured", "event_id": "evt-0015", "kind": "screenshot", "poi": "opcode_076_fetch", "screenshot_path": "work/life_trace/shots/life-trace-20260405-011732/evt-0015__opcode_076_fetch__obj0__off4883.png", "source_window_title": "LBA2", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 VERDICT_LINE = """{"break_target_offset": 103, "event_id": "evt-0018", "fingerprint_event_id": "evt-0005", "hidden_076_case_seen": false, "kind": "verdict", "matched_fingerprint": true, "opcode_076_fetch_event_id": "evt-0015", "phase": "completed", "post_076_outcome": "loop_reentry", "post_076_outcome_event_id": "evt-0017", "reason": "captured Tavern proof through loop_reentry", "required_screenshots_complete": true, "result": "tavern_trace_complete", "returned_after_076": false, "saw_076_fetch": true, "saw_post_076_loop": true, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 ERROR_LINE = """{"event_id": "evt-0099", "kind": "error", "description": "boom", "stack": null, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
@@ -102,6 +103,18 @@ class LifeTraceSchemaTest(unittest.TestCase):
             with self.subTest(expected_type=expected_type.__name__):
                 event = trace_life.convert_agent_event(payload)
                 self.assertIsInstance(event, expected_type)
+
+    def test_minimal_tavern_window_trace_samples_decode(self) -> None:
+        persisted = trace_life.parse_persisted_event_line(MINIMAL_TAVERN_WINDOW_TRACE_LINE)
+        self.assertIsInstance(persisted, trace_life.PersistedWindowTraceEvent)
+
+        payload = json.loads(
+            MINIMAL_TAVERN_WINDOW_TRACE_LINE.replace('"event_id": "evt-0015", ', "").replace(
+                ', "timestamp_utc": "2026-04-05T05:17:42Z"', ""
+            )
+        )
+        event = trace_life.convert_agent_event(payload)
+        self.assertIsInstance(event, trace_life.AgentWindowTraceEvent)
 
     def test_round_trip_preserves_status_config_field_names(self) -> None:
         event = trace_life.PersistedStatusEvent(
@@ -379,6 +392,47 @@ class LifeTraceSchemaTest(unittest.TestCase):
             self.assertIsInstance(event, trace_life.AgentStatusEvent)
             self.assertEqual("life trace agent loaded", event.message)
 
+    def test_read_fra_probe_records_accepts_spilled_json_artifact_envelope(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            artifact_path = Path(temp_dir) / "probe.ndjson"
+            spilled_path = Path(temp_dir) / "probe-tail.json"
+            spilled_path.write_text(
+                json.dumps(
+                    [
+                        {
+                            "kind": "probe_message",
+                            "message": {
+                                "type": "send",
+                                "payload": {
+                                    "kind": "status",
+                                    "message": "life trace agent loaded",
+                                },
+                            },
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            runtime = trace_life.FraProbeRuntime(
+                target_id="target-1",
+                probe_id="probe-1",
+                artifact_path=artifact_path,
+            )
+
+            with mock.patch.object(
+                trace_life,
+                "run_fra_json",
+                return_value={
+                    "ok": True,
+                    "artifact_path": str(spilled_path),
+                    "format": "json",
+                },
+            ):
+                records = trace_life.read_fra_probe_records(["fra"], runtime)
+
+            self.assertEqual(1, len(records))
+            self.assertEqual("probe_message", records[0]["kind"])
+
     def test_refresh_fra_probe_terminal_state_uses_probe_wait(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             artifact_path = Path(temp_dir) / "probe.ndjson"
@@ -417,6 +471,142 @@ class LifeTraceSchemaTest(unittest.TestCase):
             self.assertIn("--lifecycle-event", first_call.args[0])
             self.assertIn("terminated", first_call.args[0])
             self.assertIn("detached", second_call.args[0])
+
+    def test_refresh_fra_probe_terminal_state_accepts_spilled_probe_wait_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            artifact_path = Path(temp_dir) / "probe.ndjson"
+            spilled_path = Path(temp_dir) / "probe-wait.json"
+            spilled_path.write_text(
+                json.dumps(
+                    {
+                        "kind": "probe_lifecycle",
+                        "event": "terminated",
+                        "reason": "target_exit",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            runtime = trace_life.FraProbeRuntime(
+                target_id="target-1",
+                probe_id="probe-1",
+                artifact_path=artifact_path,
+            )
+
+            completed = subprocess.CompletedProcess(
+                args=["fra"],
+                returncode=0,
+                stdout=json.dumps(
+                    {
+                        "ok": True,
+                        "artifact_path": str(spilled_path),
+                        "format": "json",
+                    }
+                ),
+                stderr="",
+            )
+
+            with mock.patch.object(trace_life.subprocess, "run", return_value=completed):
+                trace_life.refresh_fra_probe_terminal_state(["fra"], runtime)
+
+            self.assertEqual("terminated", runtime.terminal_event)
+            self.assertEqual("target_exit", runtime.terminal_reason)
+
+
+class TavernStartupAutomationTest(unittest.TestCase):
+    def test_stage_tavern_resume_save_replaces_current_lba(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            launch_dir = Path(temp_dir) / "LBA2"
+            save_dir = launch_dir / "SAVE"
+            save_dir.mkdir(parents=True)
+            launch_path = launch_dir / "LBA2.EXE"
+            launch_path.write_bytes(b"exe")
+            source_path = save_dir / "inside-tavern.LBA"
+            source_path.write_bytes(b"inside-tavern-save")
+            destination_path = save_dir / "current.lba"
+            destination_path.write_bytes(b"old-current-save")
+
+            writer = trace_life.JsonlWriter(Path(temp_dir) / "trace.jsonl")
+            try:
+                staged_source, staged_destination = trace_life.stage_tavern_resume_save(writer, launch_path)
+            finally:
+                writer.close()
+
+            self.assertEqual(source_path, staged_source)
+            self.assertEqual(destination_path, staged_destination)
+            self.assertEqual(b"inside-tavern-save", destination_path.read_bytes())
+
+            lines = [
+                json.loads(line)
+                for line in (Path(temp_dir) / "trace.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertEqual("staged inside-tavern.LBA into current.lba", lines[0]["message"])
+
+    def test_drive_tavern_launch_startup_drives_adeline_and_resume_enters(self) -> None:
+        class FakeWindowCapture:
+            def __init__(self) -> None:
+                self.wait_calls: list[tuple[int, float]] = []
+
+            def wait_for_window(self, pid: int, timeout_sec: float = 10.0) -> trace_life.WindowInfo:
+                self.wait_calls.append((pid, timeout_sec))
+                return trace_life.WindowInfo(
+                    hwnd=0x1234,
+                    title="LBA2",
+                    left=0,
+                    top=0,
+                    right=800,
+                    bottom=600,
+                )
+
+        class FakeWindowInput:
+            def __init__(self) -> None:
+                self.hwnds: list[int] = []
+
+            def send_enter(self, hwnd: int) -> None:
+                self.hwnds.append(hwnd)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(Path(temp_dir) / "trace.jsonl")
+            capture = FakeWindowCapture()
+            window_input = FakeWindowInput()
+            try:
+                with mock.patch.object(trace_life.time, "sleep") as mocked_sleep:
+                    trace_life.drive_tavern_launch_startup(
+                        writer,
+                        4321,
+                        capture=capture,
+                        window_input=window_input,
+                    )
+            finally:
+                writer.close()
+
+            self.assertEqual([0x1234, 0x1234], window_input.hwnds)
+            self.assertEqual(
+                [
+                    (4321, trace_life.TAVERN_STARTUP_WINDOW_TIMEOUT_SEC),
+                    (4321, trace_life.TAVERN_STARTUP_WINDOW_TIMEOUT_SEC),
+                ],
+                capture.wait_calls,
+            )
+            self.assertEqual(
+                [
+                    mock.call(trace_life.TAVERN_ADELINE_ENTER_DELAY_SEC),
+                    mock.call(trace_life.TAVERN_RESUME_ENTER_DELAY_SEC),
+                    mock.call(trace_life.TAVERN_RESUME_SETTLE_DELAY_SEC),
+                ],
+                mocked_sleep.call_args_list,
+            )
+
+            lines = [
+                json.loads(line)
+                for line in (Path(temp_dir) / "trace.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            messages = [line["message"] for line in lines if line.get("kind") == "status" and "message" in line]
+            self.assertIn("driving Tavern startup through Adeline and Resume Game", messages)
+            self.assertIn("sent Enter to continue past the Adeline splash", messages)
+            self.assertIn("sent Enter to activate Resume Game", messages)
+            self.assertIn("waited for Resume Game to settle before attaching fra probe", messages)
 
 
 if __name__ == "__main__":

@@ -98,7 +98,7 @@ At the opcode-loop breakpoint `0x004205BC`:
 py -3 .\tools\life_trace\trace_life.py --mode tavern-trace --launch --timeout-sec 120
 ```
 
-2. Load the same live Tavern save used for the proof artifacts.
+2. In `--launch`, let the tracer re-stage `inside-tavern.LBA` into `current.lba`, send `Enter` past Adeline, and send `Enter` on the default `Resume Game`.
 3. Let the save settle before adding movement or talk input.
 4. Confirm the fingerprint match at `PtrLife + 40`.
 5. Confirm the proof path reaches `0x76 @ 4883` and `loop_reentry @ 4884`.
