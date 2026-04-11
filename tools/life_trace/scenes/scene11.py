@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 from life_trace_shared import (
     AgentDoLifeReturnEvent,
@@ -14,14 +15,21 @@ from life_trace_shared import (
     PersistedScreenshotEvent,
     PersistedStatusEvent,
     PersistedVerdictEvent,
-    REPO_ROOT,
+    SCENE11_ADELINE_ENTER_DELAY_SEC,
+    SCENE11_STARTUP_WINDOW_TIMEOUT_SEC,
     TRACE_COMPLETE_STATUS_MESSAGE,
     TRACE_FINISHED_STATUS_MESSAGE,
     TracePreset,
     optional_value,
 )
-from life_trace_windows import CaptureError, WindowCapture
+from life_trace_windows import WindowCapture, WindowInput
 from scenes.base import StructuredSceneControllerBase, StructuredSceneSpec
+from scenes.load_game import (
+    cleanup_staged_load_game_save,
+    default_source_save_path,
+    drive_single_save_load_game_startup,
+    stage_single_load_game_save,
+)
 
 
 SCENE11_PAIR_PRESET = TracePreset(
@@ -38,18 +46,60 @@ SCENE11_PAIR_PRESET = TracePreset(
     comparison_object=18,
     comparison_opcode=0x76,
     comparison_offset=84,
-    launch_save=str(
-        REPO_ROOT
-        / "work"
-        / "_innoextract_full"
-        / "Speedrun"
-        / "Windows"
-        / "LBA2_cdrom"
-        / "LBA2"
-        / "SAVE"
-        / "scene11-pair.LBA"
-    ),
+    launch_save=str(default_source_save_path("S8741.LBA")),
 )
+
+
+def scene11_load_game_save_paths(launch_path: Path, launch_save: str | None) -> tuple[Path, Path]:
+    save_dir = launch_path.parent / "SAVE"
+    source_path = default_source_save_path("S8741.LBA") if launch_save is None else Path(launch_save)
+    return source_path, save_dir / source_path.name
+
+
+def stage_scene11_load_game_save(
+    args: argparse.Namespace,
+    writer: JsonlWriter,
+    launch_path: Path,
+) -> tuple[Path, Path]:
+    return stage_single_load_game_save(
+        args,
+        writer,
+        launch_path,
+        lane_name="scene11-pair",
+        default_source=default_source_save_path("S8741.LBA"),
+    )
+
+
+def drive_scene11_launch_startup(
+    writer: JsonlWriter,
+    pid: int,
+    *,
+    capture: WindowCapture | None = None,
+    window_input: WindowInput | None = None,
+) -> None:
+    drive_single_save_load_game_startup(
+        writer,
+        pid,
+        scene_label="Scene11",
+        adeline_enter_delay_sec=SCENE11_ADELINE_ENTER_DELAY_SEC,
+        startup_window_timeout_sec=SCENE11_STARTUP_WINDOW_TIMEOUT_SEC,
+        capture=capture,
+        window_input=window_input,
+    )
+
+
+def prepare_scene11_launch(
+    args: argparse.Namespace,
+    writer: JsonlWriter,
+    launch_path: Path,
+    pid: int,
+) -> None:
+    stage_scene11_load_game_save(args, writer, launch_path)
+    drive_scene11_launch_startup(writer, pid)
+
+
+def cleanup_scene11_launch(args: argparse.Namespace, writer: JsonlWriter, launch_path: Path) -> None:
+    cleanup_staged_load_game_save(args, writer, launch_path)
 
 
 class Scene11PairController(StructuredSceneControllerBase):
@@ -287,6 +337,9 @@ class Scene11PairController(StructuredSceneControllerBase):
 SCENE_SPEC = StructuredSceneSpec(
     preset=SCENE11_PAIR_PRESET,
     controller_factory=Scene11PairController,
+    prepare_launch=prepare_scene11_launch,
+    cleanup_launch=cleanup_scene11_launch,
+    launch_strategy="native_launch_then_fra_attach",
     requires_callsite_map=True,
     helper_capture_enabled=True,
 )

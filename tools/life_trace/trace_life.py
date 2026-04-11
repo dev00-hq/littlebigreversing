@@ -26,9 +26,14 @@ from life_trace_shared import (
     DEFAULT_FRIDA_REPO_ROOT,
     DEFAULT_GAME_EXE,
     DEFAULT_RUN_ROOT,
+    DEFAULT_SAVE_SOURCE_ROOT,
     ExeSwitchState,
     FraProbeRuntime,
     JsonlWriter,
+    LOAD_GAME_MAIN_MENU_MOVE_DELAY_SEC,
+    LOAD_GAME_MENU_SETTLE_DELAY_SEC,
+    LOAD_GAME_POST_ADELINE_MENU_DELAY_SEC,
+    LOAD_GAME_SOLE_SAVE_SETTLE_DELAY_SEC,
     PersistedBranchTraceEvent,
     PersistedDoLifeReturnEvent,
     PersistedErrorEvent,
@@ -42,10 +47,10 @@ from life_trace_shared import (
     PersistedWindowTraceEvent,
     PointerWindow,
     REPO_ROOT,
+    SCENE11_ADELINE_ENTER_DELAY_SEC,
+    SCENE11_STARTUP_WINDOW_TIMEOUT_SEC,
     SPAWNED_PROCESS_TERMINATE_GRACE_SEC,
     TAVERN_ADELINE_ENTER_DELAY_SEC,
-    TAVERN_RESUME_ENTER_DELAY_SEC,
-    TAVERN_RESUME_SETTLE_DELAY_SEC,
     TAVERN_STARTUP_WINDOW_TIMEOUT_SEC,
     TRACE_COMPLETE_STATUS_MESSAGE,
     TraceConfig,
@@ -62,8 +67,21 @@ from life_trace_windows import WindowInfo
 import life_trace_runtime as runtime
 import scenes.tavern as tavern_scene
 from scenes.registry import get_structured_scene_spec, structured_scene_modes
-from scenes.scene11 import SCENE11_PAIR_PRESET, Scene11PairController
-from scenes.tavern import TAVERN_TRACE_PRESET, TavernTraceController, drive_tavern_launch_startup, stage_tavern_resume_save
+from scenes.scene11 import (
+    SCENE11_PAIR_PRESET,
+    Scene11PairController,
+    drive_scene11_launch_startup,
+    scene11_load_game_save_paths,
+    stage_scene11_load_game_save,
+)
+from scenes.tavern import (
+    TAVERN_TRACE_PRESET,
+    TavernTraceController,
+    cleanup_tavern_launch,
+    drive_tavern_launch_startup,
+    stage_tavern_load_game_save,
+    tavern_load_game_save_paths,
+)
 
 
 DEFAULT_BASIC_TARGET_OBJECT = 0

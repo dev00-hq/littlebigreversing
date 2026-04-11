@@ -3,9 +3,30 @@ registerScene("scene11-pair", function createScene11PairScene() {
         matchedFingerprint: false,
         fingerprintThreadId: null,
         fingerprintPtrLifePtr: ptr(0),
+        helperHooksInstalled: false,
         pendingByThread: Object.create(null),
         resolvedRoles: Object.create(null),
     };
+
+    function maybeInstallScene11HelperHooks() {
+        if (!config.helperCaptureEnabled || scene11Run.helperHooksInstalled) {
+            return;
+        }
+
+        Interceptor.attach(absolute(offsets.doFuncLife), {
+            onEnter(args) {
+                markScene11Helper.call(this, this.threadId, "do_func_life");
+            },
+        });
+
+        Interceptor.attach(absolute(offsets.doTest), {
+            onEnter(args) {
+                markScene11Helper.call(this, this.threadId, "do_test");
+            },
+        });
+
+        scene11Run.helperHooksInstalled = true;
+    }
 
     function maybeEmitScene11Validation(threadId, state) {
         if (scene11Run.matchedFingerprint || state.object_index !== config.targetObject) {
@@ -24,6 +45,7 @@ registerScene("scene11-pair", function createScene11PairScene() {
         scene11Run.matchedFingerprint = true;
         scene11Run.fingerprintThreadId = threadId;
         scene11Run.fingerprintPtrLifePtr = state.ptrLifePtr;
+        maybeInstallScene11HelperHooks();
 
         sendEvent("target_validation", {
             thread_id: threadId,
@@ -73,6 +95,13 @@ registerScene("scene11-pair", function createScene11PairScene() {
         scene11Run.pendingByThread[threadId] = {
             role,
             trace,
+            state: {
+                object_index: trace.object_index,
+                current_object: trace.current_object,
+                ptrLifePtr: ptr(trace.ptr_life),
+                ptr_life: trace.ptr_life,
+                offset_life: trace.offset_life,
+            },
             enteredDoFuncLife: false,
             enteredDoTest: false,
         };
@@ -124,6 +153,16 @@ registerScene("scene11-pair", function createScene11PairScene() {
         return true;
     }
 
+    function resolveScene11PendingAtLoop(threadId, ptrPrg) {
+        const pending = scene11Run.pendingByThread[threadId];
+        if (pending === undefined) {
+            return false;
+        }
+
+        const afterTrace = buildTrace(pending.state, ptrPrg, threadId);
+        return resolveScene11Pending(threadId, afterTrace, "loop_reentry");
+    }
+
     function markScene11Helper(threadId, helperName) {
         const pending = scene11Run.pendingByThread[threadId];
         if (pending === undefined) {
@@ -154,64 +193,59 @@ registerScene("scene11-pair", function createScene11PairScene() {
     }
 
     return {
-        usesDoLifeEntryState: true,
-
-        installAuxiliaryHooks() {
-            if (!config.helperCaptureEnabled) {
-                return;
-            }
-
-            Interceptor.attach(absolute(offsets.doFuncLife), {
+        installHooks() {
+            Interceptor.attach(absolute(offsets.doLifeLoop), {
                 onEnter(args) {
-                    markScene11Helper.call(this, this.threadId, "do_func_life");
+                    const ptrPrg = readPointerSafe(absolute(offsets.ptrPrg));
+                    if (ptrPrg.isNull()) {
+                        return;
+                    }
+
+                    const targetState = snapshotObjectState(config.targetObject);
+                    if (!scene11Run.matchedFingerprint) {
+                        if (!targetState.ptrLifePtr.isNull()) {
+                            maybeEmitScene11Validation(this.threadId, targetState);
+                        }
+                        if (!scene11Run.matchedFingerprint) {
+                            return;
+                        }
+                    }
+
+                    resolveScene11PendingAtLoop(this.threadId, ptrPrg);
+
+                    let matchedTrace = null;
+                    let matchedRole = null;
+
+                    if (!targetState.ptrLifePtr.isNull()) {
+                        const primaryTrace = buildTrace(targetState, ptrPrg, this.threadId);
+                        primaryTrace.matches_target = matchesTarget(primaryTrace);
+                        if (scene11RoleForTrace(primaryTrace) === "primary") {
+                            matchedTrace = primaryTrace;
+                            matchedRole = "primary";
+                        }
+                    }
+
+                    if (matchedRole === null && config.comparisonObject !== null) {
+                        const comparisonState = snapshotObjectState(config.comparisonObject);
+                        if (!comparisonState.ptrLifePtr.isNull()) {
+                            const comparisonTrace = buildTrace(comparisonState, ptrPrg, this.threadId);
+                            comparisonTrace.matches_target = matchesTarget(comparisonTrace);
+                            if (scene11RoleForTrace(comparisonTrace) === "comparison") {
+                                matchedTrace = comparisonTrace;
+                                matchedRole = "comparison";
+                            }
+                        }
+                    }
+
+                    if (matchedTrace === null) {
+                        return;
+                    }
+
+                    matchedTrace.trace_role = matchedRole;
+                    queueScene11Match(this.threadId, matchedTrace, matchedRole);
+                    sendEvent("trace", matchedTrace);
                 },
             });
-
-            Interceptor.attach(absolute(offsets.doTest), {
-                onEnter(args) {
-                    markScene11Helper.call(this, this.threadId, "do_test");
-                },
-            });
-        },
-
-        onDoLifeLeave(threadId, state) {
-            const finalPtrPrg = readPointerSafe(absolute(offsets.ptrPrg));
-            if (!finalPtrPrg.isNull()) {
-                const afterTrace = buildTrace(state, finalPtrPrg, threadId);
-                resolveScene11Pending(threadId, afterTrace, "do_life_return");
-            }
-        },
-
-        onDoLifeLoop(threadId, ptrPrg) {
-            const state = currentStateForThread(threadId);
-            if (state === undefined) {
-                return;
-            }
-
-            const trace = buildTrace(state, ptrPrg, threadId);
-            trace.matches_target = matchesTarget(trace);
-
-            if (!scene11Run.matchedFingerprint) {
-                maybeEmitScene11Validation(threadId, state);
-            }
-            if (!scene11Run.matchedFingerprint) {
-                if (config.logAll) {
-                    sendEvent("trace", trace);
-                }
-                return;
-            }
-
-            resolveScene11Pending(threadId, trace, "loop_reentry");
-
-            const role = scene11RoleForTrace(trace);
-            if (role !== null) {
-                queueScene11Match(threadId, trace, role);
-            }
-
-            if (config.logAll || role !== null) {
-                trace.trace_role = role;
-                sendEvent("trace", trace);
-            }
         },
     };
 });

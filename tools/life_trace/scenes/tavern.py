@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import shutil
 import time
 from pathlib import Path
 
@@ -17,19 +16,22 @@ from life_trace_shared import (
     PersistedScreenshotEvent,
     PersistedStatusEvent,
     PersistedVerdictEvent,
-    REPO_ROOT,
     TAVERN_ADELINE_ENTER_DELAY_SEC,
     TAVERN_POST_076_TIMEOUT_SEC,
-    TAVERN_RESUME_ENTER_DELAY_SEC,
-    TAVERN_RESUME_SETTLE_DELAY_SEC,
     TAVERN_STARTUP_WINDOW_TIMEOUT_SEC,
     TRACE_COMPLETE_STATUS_MESSAGE,
     TRACE_FINISHED_STATUS_MESSAGE,
     TracePreset,
     optional_value,
 )
-from life_trace_windows import CaptureError, InputError, WindowCapture, WindowInfo, WindowInput
+from life_trace_windows import WindowCapture, WindowInfo, WindowInput
 from scenes.base import StructuredSceneControllerBase, StructuredSceneSpec
+from scenes.load_game import (
+    cleanup_staged_load_game_save,
+    default_source_save_path,
+    drive_single_save_load_game_startup,
+    stage_single_load_game_save,
+)
 
 
 TAVERN_TRACE_PRESET = TracePreset(
@@ -43,26 +45,28 @@ TAVERN_TRACE_PRESET = TracePreset(
     fingerprint_hex="28 14 00 21 2F 00 23 0D 0E 00",
     max_hits=1,
     default_timeout_sec=60.0,
+    launch_save=str(default_source_save_path("inside-tavern.LBA")),
 )
 
 
-def tavern_resume_save_paths(launch_path: Path) -> tuple[Path, Path]:
+def tavern_load_game_save_paths(launch_path: Path, launch_save: str | None) -> tuple[Path, Path]:
     save_dir = launch_path.parent / "SAVE"
-    return save_dir / "inside-tavern.LBA", save_dir / "current.lba"
+    source_path = default_source_save_path("inside-tavern.LBA") if launch_save is None else Path(launch_save)
+    return source_path, save_dir / source_path.name
 
 
-def stage_tavern_resume_save(writer: JsonlWriter, launch_path: Path) -> tuple[Path, Path]:
-    source_path, destination_path = tavern_resume_save_paths(launch_path)
-    if not source_path.exists():
-        raise RuntimeError(f"Tavern resume save path does not exist: {source_path}")
-    destination_path.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source_path, destination_path)
-    writer.write_event(
-        PersistedStatusEvent(
-            message=f"staged {source_path.name} into {destination_path.name}",
-        )
+def stage_tavern_load_game_save(
+    args: argparse.Namespace,
+    writer: JsonlWriter,
+    launch_path: Path,
+) -> tuple[Path, Path]:
+    return stage_single_load_game_save(
+        args,
+        writer,
+        launch_path,
+        lane_name="tavern-trace",
+        default_source=default_source_save_path("inside-tavern.LBA"),
     )
-    return source_path, destination_path
 
 
 def drive_tavern_launch_startup(
@@ -72,54 +76,24 @@ def drive_tavern_launch_startup(
     capture: WindowCapture | None = None,
     window_input: WindowInput | None = None,
 ) -> None:
-    capture = WindowCapture() if capture is None else capture
-    window_input = WindowInput() if window_input is None else window_input
-    writer.write_event(
-        PersistedStatusEvent(
-            message="driving Tavern startup through Adeline and Resume Game",
-            pid=pid,
-        )
-    )
-
-    for delay_sec, startup_step, status_message in (
-        (
-            TAVERN_ADELINE_ENTER_DELAY_SEC,
-            "Adeline splash",
-            "sent Enter to continue past the Adeline splash",
-        ),
-        (
-            TAVERN_RESUME_ENTER_DELAY_SEC,
-            "Resume Game",
-            "sent Enter to activate Resume Game",
-        ),
-    ):
-        time.sleep(delay_sec)
-        try:
-            window = capture.wait_for_window(pid, timeout_sec=TAVERN_STARTUP_WINDOW_TIMEOUT_SEC)
-            window_input.send_enter(window.hwnd)
-        except (CaptureError, InputError) as error:
-            raise RuntimeError(
-                f"Tavern startup automation failed during {startup_step}: {error}"
-            ) from error
-        writer.write_event(
-            PersistedStatusEvent(
-                message=status_message,
-                pid=pid,
-            )
-        )
-
-    time.sleep(TAVERN_RESUME_SETTLE_DELAY_SEC)
-    writer.write_event(
-        PersistedStatusEvent(
-            message="waited for Resume Game to settle before attaching fra probe",
-            pid=pid,
-        )
+    drive_single_save_load_game_startup(
+        writer,
+        pid,
+        scene_label="Tavern",
+        adeline_enter_delay_sec=TAVERN_ADELINE_ENTER_DELAY_SEC,
+        startup_window_timeout_sec=TAVERN_STARTUP_WINDOW_TIMEOUT_SEC,
+        capture=capture,
+        window_input=window_input,
     )
 
 
-def prepare_tavern_launch(writer: JsonlWriter, launch_path: Path, pid: int) -> None:
-    stage_tavern_resume_save(writer, launch_path)
+def prepare_tavern_launch(args: argparse.Namespace, writer: JsonlWriter, launch_path: Path, pid: int) -> None:
+    stage_tavern_load_game_save(args, writer, launch_path)
     drive_tavern_launch_startup(writer, pid)
+
+
+def cleanup_tavern_launch(args: argparse.Namespace, writer: JsonlWriter, launch_path: Path) -> None:
+    cleanup_staged_load_game_save(args, writer, launch_path)
 
 
 class TavernTraceController(StructuredSceneControllerBase):
@@ -368,6 +342,7 @@ SCENE_SPEC = StructuredSceneSpec(
     preset=TAVERN_TRACE_PRESET,
     controller_factory=TavernTraceController,
     prepare_launch=prepare_tavern_launch,
+    cleanup_launch=cleanup_tavern_launch,
     launch_strategy="native_launch_then_fra_attach",
     requires_callsite_map=False,
     helper_capture_enabled=False,

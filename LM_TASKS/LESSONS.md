@@ -80,6 +80,16 @@
   - The scene-11 fingerprint still never matched on the stable late-attach runs.
   - That means the remaining uncertainty is runtime navigation and save ownership, not just breakpoint timing.
 
+- `Load Game` is now mapped well enough to stop guessing the slot flow.
+  - The `Load Game` menu opens with `AUTOSAVE` selected on the current runtime, not `CURRENT`.
+  - Reaching the staged `current.lba` slot currently takes four `Up` inputs from that default selection.
+  - `scene11-pair --launch` should own that exact `Load Game -> CURRENT` path instead of relying on operator memory.
+
+- Explicit `Load Game -> CURRENT` narrowed the blocker further but did not clear it.
+  - A no-Frida control run on `2026-04-10` kept the loaded bar room alive for at least `65` seconds.
+  - The matching late-attach Scene11 trace still timed out before fingerprint and showed `Application Error`.
+  - That means the next blocker is now attach sensitivity or a stale Scene11 fingerprint, not menu ambiguity.
+
 - The safest debugging rule discovered so far is:
   - navigate the fragile splash and menu transitions without Frida first
   - use OCR-backed screenshots to name the active UI state

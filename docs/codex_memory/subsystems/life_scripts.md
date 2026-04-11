@@ -18,6 +18,7 @@ Own the offline life-program decoder boundary, unsupported-opcode audit surface,
 - `tools/life_trace/trace_life.py` now writes run bundles under `work/life_trace/runs/<run-id>/` with `manifest.json`, `raw.jsonl`, `enriched.jsonl`, and `screenshots/`.
 - `tools/life_trace/agent.js` is assembled from tracked scene fragments; let scenes own hook topology when live proof is sensitive to wrappers.
 - `scene11-pair` now treats `work/ghidra_projects/callsites/lm_helper_callsites.jsonl` as a required static artifact and emits additive `helper_callsite` evidence that the host enriches by `(callee_name, caller_static_rel)`.
+- `scene11-pair --launch` is now the canonical late-attach bootstrap for the original Windows lane: keep `SAVE` at `current.lba` plus `SHOOT/`, stage exactly one extra `.lba` from `work/saves`, drive `Load Game` on the sole visible slot, wait for the room to settle, and only then attach the probe.
 - `listDecodedInteriorSceneCandidates` confirms `50` decoded interior candidates; the earliest runtime candidate is `SCENE.HQR[19]`.
 - Only `LM_DEFAULT` and `LM_END_SWITCH` are active unsupported real-asset blockers in the current archive.
 - The guarded runtime/load seam still rejects `2/2`, `44/2`, and `11/10`; both `inspect-room` and viewer startup report the first blocking opcode/id/offset.
@@ -37,6 +38,10 @@ Own the offline life-program decoder boundary, unsupported-opcode audit surface,
 - Keep the Tavern late-attach hot path slim. Re-adding `ptr_window`, `working_*`, or `exe_switch` reads can bring back intermittent `Application Error` crashes.
 - The `agent.js` split is only safe when live Tavern still reaches `tavern_trace_complete`; the generic `DoLife` loop wrapper regressed the post-`0x76` proof until Tavern owned its own hook install.
 - `raw.jsonl` is the runtime-truth stream and `enriched.jsonl` is the host-analysis companion. If helper attribution looks wrong, inspect `raw.jsonl` before treating the joined fields in `enriched.jsonl` as a runtime regression.
+- The canonical runtime `SAVE` folder is now `current.lba` plus `SHOOT/` only. For controlled Tavern and Scene11 launches, stage one extra save from `work/saves`, load it through the sole visible `Load Game` slot, and then delete it after the run.
+- On `2026-04-11`, a no-Frida single-slot `Load Game` control run proved `S8741.LBA` stays responsive in Scene11 for at least 30 seconds after load. Treat later freezes as probe-boundary evidence first, not as proof that the save failed to load.
+- The current Scene11 freeze boundary is probe-seam specific: a no-op late attach is safe, and a bare `DoLifeLoop` hook is safe, but an empty `DoLifeEntry` hook freezes the scene and loop-time reads of object `12` state freeze it too. Do not widen Scene11 around `DoLifeEntry` interception or hot-path object reads until a new seam has live proof.
+- The completed timeout-based falsification rerun on `2026-04-11` did rescue one narrowed Frida-adjacent path: a no-hook Frida attach followed by one non-invasive paused `cdb` read of object `12` state stayed responsive for the full 40-second observation window. That makes off-path one-shot reads a viable candidate seam for Scene11, even though `DoLifeEntry` interception and hot-path object-state reads still freeze it.
 
 ## Canonical Entry Points
 

@@ -292,6 +292,8 @@ class WindowInput:
     KEYEVENTF_KEYUP = 0x0002
     SW_RESTORE = 9
     VK_RETURN = 0x0D
+    VK_UP = 0x26
+    VK_DOWN = 0x28
 
     def __init__(self) -> None:
         if os.name != "nt":
@@ -310,11 +312,20 @@ class WindowInput:
         self.user32.MapVirtualKeyW.restype = wintypes.UINT
 
     def send_enter(self, hwnd: int) -> None:
+        self.send_virtual_key(hwnd, self.VK_RETURN)
+
+    def send_up(self, hwnd: int) -> None:
+        self.send_virtual_key(hwnd, self.VK_UP)
+
+    def send_down(self, hwnd: int) -> None:
+        self.send_virtual_key(hwnd, self.VK_DOWN)
+
+    def send_virtual_key(self, hwnd: int, virtual_key: int) -> None:
         self._activate_window(hwnd)
-        scan_code = int(self.user32.MapVirtualKeyW(self.VK_RETURN, 0))
-        self.user32.keybd_event(self.VK_RETURN, scan_code, 0, 0)
+        scan_code = int(self.user32.MapVirtualKeyW(virtual_key, 0))
+        self.user32.keybd_event(virtual_key, scan_code, 0, 0)
         time.sleep(0.05)
-        self.user32.keybd_event(self.VK_RETURN, scan_code, self.KEYEVENTF_KEYUP, 0)
+        self.user32.keybd_event(virtual_key, scan_code, self.KEYEVENTF_KEYUP, 0)
 
     def _activate_window(self, hwnd: int) -> None:
         if self.user32.IsIconic(hwnd):

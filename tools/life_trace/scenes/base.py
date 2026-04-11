@@ -123,7 +123,8 @@ class StructuredSceneControllerBase:
 class StructuredSceneSpec:
     preset: TracePreset
     controller_factory: Callable[[argparse.Namespace, JsonlWriter, int], StructuredSceneController]
-    prepare_launch: Callable[[JsonlWriter, Path, int], None] | None = None
+    prepare_launch: Callable[[argparse.Namespace, JsonlWriter, Path, int], None] | None = None
+    cleanup_launch: Callable[[argparse.Namespace, JsonlWriter, Path], None] | None = None
     launch_strategy: LaunchStrategy = "fra_spawn"
     requires_callsite_map: bool = False
     helper_capture_enabled: bool = False

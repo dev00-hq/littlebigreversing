@@ -672,6 +672,7 @@ def run_structured_trace_via_fra(
     spawned_pid: int | None = None
     pid: int | None = None
     fra_spawned_target = False
+    launch_path: Path | None = None
 
     try:
         if args.launch and scene_spec.launch_strategy == "native_launch_then_fra_attach":
@@ -692,7 +693,7 @@ def run_structured_trace_via_fra(
                 )
             )
             if scene_spec.prepare_launch is not None:
-                scene_spec.prepare_launch(writer, launch_path, pid)
+                scene_spec.prepare_launch(args, writer, launch_path, pid)
             target_record = run_fra_json(
                 fra_launcher,
                 "target",
@@ -932,5 +933,24 @@ def run_structured_trace_via_fra(
                     )
                 except Exception:
                     pass
+
+        if launch_path is not None and scene_spec.cleanup_launch is not None:
+            if args.keep_alive and spawned_pid is not None:
+                writer.write_event(
+                    PersistedStatusEvent(
+                        message="leaving staged load-game save in place because the spawned process is still alive",
+                        pid=spawned_pid,
+                    )
+                )
+            else:
+                try:
+                    scene_spec.cleanup_launch(args, writer, launch_path)
+                except Exception as error:
+                    writer.write_event(
+                        PersistedErrorEvent(
+                            description=f"launch cleanup failed: {error}",
+                            stack=None,
+                        )
+                    )
 
     return controller, None

@@ -190,6 +190,20 @@ Important limit:
 
 So treat the visual state as proven, but treat the menu semantics as still under investigation.
 
+### Load-menu progression now proved
+
+Later `2026-04-10` no-Frida discovery runs tightened the menu semantics further:
+
+1. From the main menu, `Down`, `Down`, `Enter` opens `Load game`.
+2. The `Load game` screen currently opens with `AUTOSAVE` selected.
+3. The staged `current.lba` slot is `CURRENT`, which is four `Up` inputs away from that default selection.
+4. Selecting `CURRENT` loads the same bar-like room reproducibly in no-Frida control runs.
+
+Operational rule:
+
+- treat `Load Game -> CURRENT` as the canonical scene-11 bootstrap path
+- do not reopen `Resume Game` guesses unless a new checked-in run proves that path changed
+
 ### Safe input style
 
 Do this:
@@ -263,11 +277,17 @@ Observed failure:
 Matching control result:
 
 - the same three-step no-Frida path stayed alive
+- a later no-Frida `Load Game -> CURRENT` control also stayed alive for at least `65` seconds in the loaded bar room
 
 Operational rule:
 
 - for scene-11, navigate first
 - attach later
+
+Additional current-state note:
+
+- even after `trace_life.py --mode scene11-pair --launch` adopted the canonical `Load Game -> CURRENT` bootstrap on `2026-04-10`, the late-attach run still timed out before fingerprint and surfaced `Application Error` in that same loaded room
+- treat the remaining blocker as an attach-sensitive boundary or stale-fingerprint question, not as menu ambiguity
 
 Do not treat early attach as the default path on this lane.
 
