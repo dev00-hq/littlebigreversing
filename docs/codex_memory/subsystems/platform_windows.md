@@ -18,7 +18,7 @@ Own the canonical host assumptions for end-to-end Zig build, test, and runtime v
 - `scripts/verify_viewer.py` keeps expected-failure CLI probes on the pass path while preserving the raw rejection lines needed by its assertions.
 - Python helper scripts now own the canonical environment setup and checks.
 - The canonical live-workflow Python migration is done for now: repo-relative script paths stay canonical, while `pyproject.toml` package entrypoints remain optional scaffolding.
-- Supporting original-runtime trace and debugger helpers still exist for evidence work, but they are not part of the default canonical port pickup path.
+- Supporting original-runtime trace and debugger helpers still exist for evidence work. They are not part of the default port pickup path; use `docs/codex_memory/subsystems/life_scripts.md` when the task is about Tavern, Scene11, Frida, or `cdb-agent`.
 - The build graph still hard-codes Windows SDL2 paths.
 
 ## Known Traps

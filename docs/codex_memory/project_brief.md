@@ -2,12 +2,13 @@
 
 ## Purpose
 
-Reverse-engineering and port-planning workspace for Twinsen's Little Big Adventure 2, with the canonical implementation path moving through the Zig `port/` workspace.
+Reverse-engineering and port-planning workspace for Twinsen's Little Big Adventure 2. The canonical implementation path moves through the Zig `port/` workspace, while original-runtime evidence tooling remains a separate supporting track.
 
 ## Repo Map
 
 - `docs/`: checked-in research, plans, subsystem memory packs, and reference memos
 - `tools/`: repo-local utilities for memory, phase0, and MBN corpus work
+- `tools/life_trace/`: original-runtime Tavern and Scene11 evidence lanes
 - `reference/`: imported classic source, preserved tooling, and external source material
 - `work/`: rebuildable generated outputs and extracted assets
 - `port/`: canonical modern port implementation

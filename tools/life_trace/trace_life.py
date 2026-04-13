@@ -82,7 +82,6 @@ from scenes.scene11 import (
     discover_scene11_runtime_candidates,
     determine_scene11_snapshot_verdict,
     drive_scene11_launch_startup,
-    scene11_load_game_save_paths,
     stage_scene11_load_game_save,
     summarize_scene11_runtime_mismatch,
 )
@@ -93,7 +92,6 @@ from scenes.tavern import (
     cleanup_tavern_launch,
     drive_tavern_launch_startup,
     stage_tavern_load_game_save,
-    tavern_load_game_save_paths,
 )
 
 

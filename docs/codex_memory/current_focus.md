@@ -13,8 +13,9 @@
 ## Active Streams
 
 - Guarded `19/19` and negative-load diagnostics stay explicit.
-- Phase 5 branch-B triage: `219` is first and `19` is `49/50` under `rank-decoded-interior-candidates`, while `triage-same-index-decoded-interior-candidates` reports `86/86` as the highest-ranked compatible same-index pair above baseline.
-- Fragment-bearing triage is now explicit: `86/86` stays the zero-fragment/zero-GRM pass, while `187/187` is the first fragment-bearing compatible pair at `rank=16` with `fragment_count=2`, `grm_zone_count=2`, and `compatible_zone_count=2`.
+- Original-runtime evidence stays separate: Tavern uses the live Frida/FRA lane, and Scene11 uses the `cdb-agent` snapshot lane.
+- Phase 5 branch-B triage: `219` is first and `19` is `49/50`, while `triage-same-index-decoded-interior-candidates` reports `86/86` as the top compatible same-index pair above baseline.
+- Fragment-bearing triage is explicit: `86/86` stays the zero-fragment/zero-GRM pass, while `187/187` is the first fragment-bearing compatible pair at `rank=16` with `fragment_count=2`, `grm_zone_count=2`, and `compatible_zone_count=2`.
 - Top-candidate blocker: `inspect-room 219 219 --json` now emits six fragment-zone issues; the first is zone `1` `z=4208..5744`.
 
 ## Blocked Items

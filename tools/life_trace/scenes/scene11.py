@@ -129,12 +129,6 @@ COMPARISON_SNAPSHOT = Scene11ObjectSnapshotSpec(
 )
 
 
-def scene11_load_game_save_paths(launch_path: Path, launch_save: str | None) -> tuple[Path, Path]:
-    save_dir = launch_path.parent / "SAVE"
-    source_path = default_source_save_path("S8741.LBA") if launch_save is None else Path(launch_save)
-    return source_path, save_dir / source_path.name
-
-
 def stage_scene11_load_game_save(
     args: argparse.Namespace,
     writer: JsonlWriter,

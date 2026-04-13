@@ -49,12 +49,6 @@ TAVERN_TRACE_PRESET = TracePreset(
 )
 
 
-def tavern_load_game_save_paths(launch_path: Path, launch_save: str | None) -> tuple[Path, Path]:
-    save_dir = launch_path.parent / "SAVE"
-    source_path = default_source_save_path("inside-tavern.LBA") if launch_save is None else Path(launch_save)
-    return source_path, save_dir / source_path.name
-
-
 def stage_tavern_load_game_save(
     args: argparse.Namespace,
     writer: JsonlWriter,
