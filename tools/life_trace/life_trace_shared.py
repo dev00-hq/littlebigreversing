@@ -383,6 +383,30 @@ class PersistedScreenshotErrorEvent(
     capture_status: str
 
 
+class PersistedMemorySnapshotEvent(
+    msgspec.Struct,
+    tag_field="kind",
+    tag="memory_snapshot",
+    kw_only=True,
+    forbid_unknown_fields=True,
+):
+    event_id: StrField = UNSET
+    run_id: StrField = UNSET
+    source_stream: StrField = UNSET
+    timestamp_utc: StrField = UNSET
+    snapshot_name: str
+    debugger: str
+    address: str
+    object_index: NullableIntField = UNSET
+    current_object: NullableStrField = UNSET
+    relative_to: NullableStrField = UNSET
+    relative_offset: NullableIntField = UNSET
+    value_hex: NullableStrField = UNSET
+    value_u16: NullableIntField = UNSET
+    value_u32: NullableIntField = UNSET
+    window: PointerWindow | UnsetType = UNSET
+
+
 class PersistedVerdictEvent(msgspec.Struct, tag_field="kind", tag="verdict", kw_only=True, forbid_unknown_fields=True):
     event_id: StrField = UNSET
     run_id: StrField = UNSET
@@ -439,6 +463,7 @@ PersistedWireEventType = (
     | PersistedErrorEvent
     | PersistedScreenshotEvent
     | PersistedScreenshotErrorEvent
+    | PersistedMemorySnapshotEvent
     | PersistedVerdictEvent
 )
 
@@ -464,6 +489,7 @@ PERSISTED_EVENT_TYPES = (
     PersistedErrorEvent,
     PersistedScreenshotEvent,
     PersistedScreenshotErrorEvent,
+    PersistedMemorySnapshotEvent,
     PersistedVerdictEvent,
 )
 

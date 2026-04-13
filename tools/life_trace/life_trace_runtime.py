@@ -28,6 +28,7 @@ from life_trace_shared import (
     build_trace_config,
     normalize_script_message,
 )
+from life_trace_windows import WindowCapture
 from scenes.base import StructuredSceneController
 from scenes.registry import get_structured_scene_spec
 
@@ -96,6 +97,15 @@ class BasicTraceController:
         return
 
 
+OWNED_LAUNCH_PREKILL_PROCESS_NAMES = ("cdb.exe",)
+TASKKILL_NOT_FOUND_MARKERS = (
+    "not found",
+    "no se encontr",
+    "no tasks are running",
+    "no hay tareas en ejec",
+)
+
+
 def ensure_staged_frida(repo_root: Path) -> tuple[Path, Path, Path]:
     frida_root = repo_root / "build" / "install-root" / "Program Files" / "Frida"
     site_packages = frida_root / "lib" / "site-packages"
@@ -119,6 +129,11 @@ def ensure_staged_frida(repo_root: Path) -> tuple[Path, Path, Path]:
 
 
 def load_agent_source(args: argparse.Namespace) -> str:
+    if args.mode != "basic":
+        scene_spec = get_structured_scene_spec(args.mode)
+        if scene_spec.runtime_backend not in {"fra_probe", "frida_probe"}:
+            raise RuntimeError(f"--mode {args.mode} does not use the Frida agent backend")
+
     config = build_trace_config(args)
     template_path = Path(__file__).with_name("agent.js")
     agent_root = template_path.with_name("agent")
@@ -127,7 +142,7 @@ def load_agent_source(args: argparse.Namespace) -> str:
         "shared.js",
         "scene_basic.js",
         "scene_tavern.js",
-        "scene_scene11.js",
+        "scene_scene11_live.js",
         "bootstrap.js",
     )
     fragments: dict[str, str] = {}
@@ -147,7 +162,7 @@ def load_agent_source(args: argparse.Namespace) -> str:
             [
                 fragments["scene_basic.js"],
                 fragments["scene_tavern.js"],
-                fragments["scene_scene11.js"],
+                fragments["scene_scene11_live.js"],
             ]
         ),
         "__TRACE_AGENT_BOOTSTRAP__": fragments["bootstrap.js"],
@@ -194,6 +209,101 @@ def process_exists_pid(pid: int) -> bool:
         return exit_code.value == still_active
     finally:
         kernel32.CloseHandle(handle)
+
+
+def preflight_owned_launch_processes(
+    writer: JsonlWriter,
+    process_name: str,
+    *,
+    extra_process_names: tuple[str, ...] = OWNED_LAUNCH_PREKILL_PROCESS_NAMES,
+) -> None:
+    targets: list[str] = []
+    for candidate in (process_name, *extra_process_names):
+        normalized = candidate.strip()
+        if not normalized:
+            continue
+        if normalized.lower() in {name.lower() for name in targets}:
+            continue
+        targets.append(normalized)
+
+    for target in targets:
+        completed = subprocess.run(
+            ["taskkill", "/IM", target, "/F"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if completed.returncode == 0:
+            writer.write_event(
+                PersistedStatusEvent(
+                    message=f"preflight killed existing {target}",
+                )
+            )
+            continue
+
+        detail = f"{completed.stdout or ''}\n{completed.stderr or ''}".strip().lower()
+        if any(marker in detail for marker in TASKKILL_NOT_FOUND_MARKERS):
+            continue
+
+        raise RuntimeError(
+            f"preflight taskkill failed for {target} ({completed.returncode}): "
+            f"{(completed.stderr or completed.stdout).strip() or '<no output>'}"
+        )
+
+
+def application_error_dialog_title(
+    pid: int,
+    *,
+    capture: WindowCapture | None = None,
+    process_name: str | None = None,
+    launch_path: str | None = None,
+) -> str | None:
+    active_capture = WindowCapture() if capture is None else capture
+    try:
+        window = active_capture.find_window(pid)
+    except Exception:
+        window = None
+    if window is not None and "application error" in window.title.lower():
+        return window.title
+
+    fragments = ["application error"]
+    if process_name:
+        fragments.append(process_name.lower())
+    if launch_path:
+        fragments.append(Path(launch_path).name.lower())
+    try:
+        matched = active_capture.find_window_title_fragments(*fragments)
+    except Exception:
+        return None
+    title = None if matched is None else getattr(matched, "title", None)
+    if not isinstance(title, str) or not title:
+        return None
+    return title
+
+
+def detect_application_error_dialog(
+    writer: JsonlWriter,
+    pid: int,
+    *,
+    capture: WindowCapture | None = None,
+    process_name: str | None = None,
+    launch_path: str | None = None,
+) -> str | None:
+    title = application_error_dialog_title(
+        pid,
+        capture=capture,
+        process_name=process_name,
+        launch_path=launch_path,
+    )
+    if title is None:
+        return None
+    writer.write_event(
+        PersistedStatusEvent(
+            message=f"detected Application Error dialog: {title}",
+            pid=pid,
+        )
+    )
+    return title
 
 
 def wait_for_process_exit(pid: int, timeout_sec: float, poll_sec: float = SPAWNED_PROCESS_TERMINATE_POLL_SEC) -> bool:
@@ -515,6 +625,7 @@ def run_direct_frida_trace(
 
     try:
         if args.launch:
+            preflight_owned_launch_processes(writer, args.process)
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
@@ -571,6 +682,16 @@ def run_direct_frida_trace(
         while not controller.terminal:
             if interrupted.is_set():
                 controller.handle_interrupt()
+                break
+
+            crash_title = detect_application_error_dialog(
+                writer,
+                pid,
+                process_name=args.process,
+                launch_path=args.launch,
+            )
+            if crash_title is not None:
+                controller.handle_process_exit(f"Application Error dialog detected: {crash_title}")
                 break
 
             if not process_exists(device, pid):
@@ -653,6 +774,282 @@ def run_direct_frida_trace(
     return controller, None
 
 
+def run_structured_trace_via_frida(
+    args: argparse.Namespace,
+    writer: JsonlWriter,
+    interrupted: threading.Event,
+) -> tuple[StructuredSceneController | None, int | None]:
+    message_queue: queue.Queue[AgentWireEventType] = queue.Queue()
+    scene_spec = get_structured_scene_spec(args.mode)
+
+    repo_root = Path(args.frida_repo_root).resolve()
+    frida_root, site_packages, frida_lib = ensure_staged_frida(repo_root)
+
+    import frida
+
+    device = frida.get_local_device()
+    session = None
+    script = None
+    controller: StructuredSceneController | None = None
+    spawned_pid: int | None = None
+    pid: int | None = None
+    launch_path: Path | None = None
+    launched_process: subprocess.Popen[str] | subprocess.Popen[bytes] | None = None
+
+    def on_message(message: dict, data) -> None:
+        del data
+        event = normalize_script_message(message)
+        if event is not None:
+            message_queue.put(event)
+
+    try:
+        if scene_spec.controller_factory is None:
+            raise RuntimeError(f"--mode {args.mode} does not define a Frida controller")
+
+        if args.launch and scene_spec.launch_strategy == "native_launch_then_attach":
+            preflight_owned_launch_processes(writer, args.process)
+            launch_path = Path(args.launch)
+            if not launch_path.exists():
+                raise RuntimeError(f"launch path does not exist: {launch_path}")
+            launched_process = subprocess.Popen(
+                [str(launch_path)],
+                cwd=str(launch_path.parent),
+            )
+            pid = int(launched_process.pid)
+            spawned_pid = pid
+            writer.write_event(
+                PersistedStatusEvent(
+                    message="launched process before late Frida attach",
+                    pid=pid,
+                    launch_path=str(launch_path),
+                )
+            )
+            if scene_spec.prepare_launch is not None:
+                scene_spec.prepare_launch(args, writer, launch_path, pid)
+        elif args.launch:
+            preflight_owned_launch_processes(writer, args.process)
+            launch_path = Path(args.launch)
+            if not launch_path.exists():
+                raise RuntimeError(f"launch path does not exist: {launch_path}")
+            spawn_argv = [str(launch_path)]
+            if args.launch_save is not None:
+                launch_save_path = Path(args.launch_save)
+                if not launch_save_path.exists():
+                    raise RuntimeError(f"launch save path does not exist: {launch_save_path}")
+                spawn_argv.append(str(launch_save_path))
+            spawned_pid = device.spawn(spawn_argv, cwd=str(launch_path.parent))
+            pid = spawned_pid
+        else:
+            process = find_process(device, args.process)
+            pid = process.pid
+
+        if pid is None:
+            raise RuntimeError("structured Frida trace did not resolve a target pid")
+
+        controller = scene_spec.controller_factory(args, writer, pid)
+        session = device.attach(pid)
+        script = session.create_script(load_agent_source(args))
+        script.on("message", on_message)
+        script.load()
+
+        writer.write_event(
+            PersistedStatusEvent(
+                phase="attached",
+                frida_module=getattr(frida, "__file__", None),
+                frida_repo_root=str(repo_root),
+                frida_root=str(frida_root),
+                frida_site_packages=str(site_packages),
+                frida_lib=str(frida_lib),
+                message="attached",
+                mode=args.mode,
+                output_path=str(writer.bundle_root),
+                pid=pid,
+                process_name=args.process,
+                launch_path=args.launch,
+                launch_save=args.launch_save,
+            )
+        )
+
+        if args.launch and scene_spec.launch_strategy != "native_launch_then_attach" and spawned_pid is not None:
+            device.resume(spawned_pid)
+            writer.write_event(
+                PersistedStatusEvent(
+                    message="resumed spawned process",
+                    pid=spawned_pid,
+                )
+            )
+
+        controller.begin()
+
+        deadline = None
+        if args.timeout_sec is not None and args.timeout_sec > 0:
+            deadline = time.monotonic() + args.timeout_sec
+
+        while controller is not None and not controller.terminal:
+            if interrupted.is_set():
+                controller.handle_interrupt()
+                break
+
+            crash_title = detect_application_error_dialog(
+                writer,
+                pid,
+                process_name=args.process,
+                launch_path=str(launch_path) if launch_path is not None else args.launch,
+            )
+            if crash_title is not None:
+                controller.handle_process_exit(
+                    f"Application Error dialog detected before the structured trace completed: {crash_title}"
+                )
+                break
+
+            if not process_exists(device, pid):
+                writer.write_event(
+                    PersistedStatusEvent(
+                        message="target process exited",
+                        pid=pid,
+                    )
+                )
+                controller.handle_process_exit(
+                    f"process {pid} exited before the structured trace completed"
+                )
+                break
+
+            now = time.monotonic()
+            controller.poll(now)
+            if controller.terminal:
+                break
+
+            if deadline is not None and now >= deadline:
+                controller.handle_timeout()
+                break
+
+            wakeups = [0.25]
+            next_deadline = controller.next_deadline()
+            if deadline is not None:
+                wakeups.append(max(0.0, deadline - now))
+            if next_deadline is not None:
+                wakeups.append(max(0.0, next_deadline - now))
+            timeout = max(0.01, min(wakeups))
+
+            try:
+                event = message_queue.get(timeout=timeout)
+            except queue.Empty:
+                continue
+            controller.handle_event(event)
+    except Exception as error:
+        writer.write_event(
+            PersistedErrorEvent(
+                description=str(error),
+                stack=None,
+            )
+        )
+        if controller is not None and not controller.terminal:
+            controller.handle_runtime_error(str(error))
+        elif controller is None:
+            print(str(error), file=sys.stderr)
+            return None, 1
+    finally:
+        if script is not None:
+            try:
+                script.unload()
+            except Exception:
+                pass
+
+        if session is not None:
+            try:
+                session.detach()
+            except Exception:
+                pass
+
+        if spawned_pid is not None:
+            if args.keep_alive:
+                writer.write_event(
+                    PersistedStatusEvent(
+                        message="leaving spawned process alive",
+                        pid=spawned_pid,
+                    )
+                )
+            else:
+                try:
+                    if launched_process is not None:
+                        launched_process.terminate()
+                    else:
+                        device.kill(spawned_pid)
+                except ProcessLookupError:
+                    writer.write_event(
+                        PersistedStatusEvent(
+                            message="spawned process exited before direct kill",
+                            pid=spawned_pid,
+                        )
+                    )
+                except PermissionError:
+                    if process_exists_pid(spawned_pid):
+                        try:
+                            if launched_process is not None:
+                                launched_process.kill()
+                            else:
+                                raise
+                        except Exception:
+                            pass
+                    else:
+                        writer.write_event(
+                            PersistedStatusEvent(
+                                message="spawned process exited before direct kill",
+                                pid=spawned_pid,
+                            )
+                        )
+                except Exception:
+                    pass
+                else:
+                    if wait_for_process_exit(spawned_pid, SPAWNED_PROCESS_TERMINATE_GRACE_SEC):
+                        writer.write_event(
+                            PersistedStatusEvent(
+                                message="killed spawned process",
+                                pid=spawned_pid,
+                            )
+                        )
+                    elif launched_process is not None:
+                        try:
+                            launched_process.kill()
+                        except Exception:
+                            pass
+                        if wait_for_process_exit(spawned_pid, SPAWNED_PROCESS_TERMINATE_GRACE_SEC):
+                            writer.write_event(
+                                PersistedStatusEvent(
+                                    message="force-killed spawned process",
+                                    pid=spawned_pid,
+                                )
+                            )
+                        else:
+                            writer.write_event(
+                                PersistedStatusEvent(
+                                    message="spawned process still alive after direct kill",
+                                    pid=spawned_pid,
+                                )
+                            )
+
+        if launch_path is not None and scene_spec.cleanup_launch is not None:
+            if args.keep_alive and spawned_pid is not None:
+                writer.write_event(
+                    PersistedStatusEvent(
+                        message="leaving staged load-game save in place because the spawned process is still alive",
+                        pid=spawned_pid,
+                    )
+                )
+            else:
+                try:
+                    scene_spec.cleanup_launch(args, writer, launch_path)
+                except Exception as error:
+                    writer.write_event(
+                        PersistedErrorEvent(
+                            description=f"launch cleanup failed: {error}",
+                            stack=None,
+                        )
+                    )
+
+    return controller, None
+
+
 def run_structured_trace_via_fra(
     args: argparse.Namespace,
     writer: JsonlWriter,
@@ -675,7 +1072,11 @@ def run_structured_trace_via_fra(
     launch_path: Path | None = None
 
     try:
-        if args.launch and scene_spec.launch_strategy == "native_launch_then_fra_attach":
+        if scene_spec.controller_factory is None:
+            raise RuntimeError(f"--mode {args.mode} does not define an FRA controller")
+
+        if args.launch and scene_spec.launch_strategy == "native_launch_then_attach":
+            preflight_owned_launch_processes(writer, args.process)
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
@@ -703,6 +1104,7 @@ def run_structured_trace_via_fra(
                 str(pid),
             )
         elif args.launch:
+            preflight_owned_launch_processes(writer, args.process)
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
@@ -811,6 +1213,17 @@ def run_structured_trace_via_fra(
                     read_fra_probe_records(fra_launcher, probe_runtime),
                     message_queue,
                 )
+                crash_title = detect_application_error_dialog(
+                    writer,
+                    pid,
+                    process_name=args.process,
+                    launch_path=str(launch_path) if launch_path is not None else args.launch,
+                )
+                if crash_title is not None:
+                    controller.handle_process_exit(
+                        f"Application Error dialog detected before the structured trace completed: {crash_title}"
+                    )
+                    break
                 refresh_fra_probe_terminal_state(fra_launcher, probe_runtime)
                 if probe_runtime.terminal_event in {"detached", "terminated", "removed"}:
                     reason_suffix = (
@@ -954,3 +1367,191 @@ def run_structured_trace_via_fra(
                     )
 
     return controller, None
+
+
+def run_structured_debugger_snapshot(
+    args: argparse.Namespace,
+    writer: JsonlWriter,
+    interrupted: threading.Event,
+) -> tuple[StructuredSceneController | None, int | None]:
+    scene_spec = get_structured_scene_spec(args.mode)
+    if scene_spec.snapshot_runner is None:
+        raise RuntimeError(f"--mode {args.mode} does not define a debugger snapshot runner")
+    if not args.launch:
+        raise RuntimeError(f"--mode {args.mode} requires --launch")
+
+    launch_path = Path(args.launch)
+    if not launch_path.exists():
+        raise RuntimeError(f"launch path does not exist: {launch_path}")
+
+    launched_process: subprocess.Popen[str] | subprocess.Popen[bytes] | None = None
+    spawned_pid: int | None = None
+    exit_code = 1
+    last_error: str | None = None
+
+    try:
+        preflight_owned_launch_processes(writer, args.process)
+        launched_process = subprocess.Popen(
+            [str(launch_path)],
+            cwd=str(launch_path.parent),
+        )
+        spawned_pid = int(launched_process.pid)
+        writer.write_event(
+            PersistedStatusEvent(
+                message="launched process before the debugger snapshot lane",
+                pid=spawned_pid,
+                launch_path=str(launch_path),
+            )
+        )
+
+        if scene_spec.prepare_launch is not None:
+            scene_spec.prepare_launch(args, writer, launch_path, spawned_pid)
+
+        if interrupted.is_set():
+            writer.write_event(
+                PersistedStatusEvent(
+                    message="interrupted before the debugger snapshot lane started",
+                    pid=spawned_pid,
+                )
+            )
+            last_error = "interrupted before debugger snapshot"
+        else:
+            crash_title = detect_application_error_dialog(
+                writer,
+                spawned_pid,
+                process_name=args.process,
+                launch_path=args.launch,
+            )
+            if crash_title is not None:
+                last_error = f"Application Error dialog detected before debugger snapshot: {crash_title}"
+                writer.write_event(
+                    PersistedStatusEvent(
+                        phase="completed",
+                        message=last_error,
+                        pid=spawned_pid,
+                    )
+                )
+                exit_code = 1
+            else:
+                writer.write_event(
+                    PersistedStatusEvent(
+                        phase="attached",
+                        message="ready to capture the debugger snapshot lane",
+                        mode=args.mode,
+                        output_path=str(writer.bundle_root),
+                        pid=spawned_pid,
+                        process_name=args.process,
+                        launch_path=args.launch,
+                        launch_save=args.launch_save,
+                    )
+                )
+                exit_code, last_error = scene_spec.snapshot_runner(args, writer, spawned_pid)
+    except Exception as error:
+        writer.write_event(
+            PersistedErrorEvent(
+                description=str(error),
+                stack=None,
+            )
+        )
+        print(str(error), file=sys.stderr)
+        return None, 1
+    finally:
+        if spawned_pid is not None:
+            if args.keep_alive:
+                writer.write_event(
+                    PersistedStatusEvent(
+                        message="leaving spawned process alive",
+                        pid=spawned_pid,
+                    )
+                )
+            else:
+                try:
+                    if launched_process is not None:
+                        launched_process.terminate()
+                    else:
+                        os.kill(spawned_pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    writer.write_event(
+                        PersistedStatusEvent(
+                            message="spawned process exited before direct kill",
+                            pid=spawned_pid,
+                        )
+                    )
+                except PermissionError:
+                    if process_exists_pid(spawned_pid):
+                        try:
+                            if launched_process is not None:
+                                launched_process.kill()
+                            else:
+                                raise
+                        except Exception as error:
+                            writer.write_event(
+                                PersistedErrorEvent(
+                                    description=f"direct kill failed: {error}",
+                                    stack=None,
+                                )
+                            )
+                            spawned_pid = None
+                    else:
+                        writer.write_event(
+                            PersistedStatusEvent(
+                                message="spawned process exited before direct kill",
+                                pid=spawned_pid,
+                            )
+                        )
+                else:
+                    if wait_for_process_exit(spawned_pid, SPAWNED_PROCESS_TERMINATE_GRACE_SEC):
+                        writer.write_event(
+                            PersistedStatusEvent(
+                                message="killed spawned process",
+                                pid=spawned_pid,
+                            )
+                        )
+                    else:
+                        try:
+                            if launched_process is not None:
+                                launched_process.kill()
+                        except Exception as error:
+                            writer.write_event(
+                                PersistedErrorEvent(
+                                    description=f"direct kill failed: {error}",
+                                    stack=None,
+                                )
+                            )
+                        if wait_for_process_exit(spawned_pid, SPAWNED_PROCESS_TERMINATE_GRACE_SEC):
+                            writer.write_event(
+                                PersistedStatusEvent(
+                                    message="force-killed spawned process",
+                                    pid=spawned_pid,
+                                )
+                            )
+                        else:
+                            writer.write_event(
+                                PersistedStatusEvent(
+                                    message="spawned process still alive after direct kill",
+                                    pid=spawned_pid,
+                                )
+                            )
+
+        if scene_spec.cleanup_launch is not None:
+            if args.keep_alive and spawned_pid is not None:
+                writer.write_event(
+                    PersistedStatusEvent(
+                        message="leaving staged load-game save in place because the spawned process is still alive",
+                        pid=spawned_pid,
+                    )
+                )
+            else:
+                try:
+                    scene_spec.cleanup_launch(args, writer, launch_path)
+                except Exception as error:
+                    writer.write_event(
+                        PersistedErrorEvent(
+                            description=f"launch cleanup failed: {error}",
+                            stack=None,
+                        )
+                    )
+
+    if last_error:
+        print(last_error, file=sys.stderr)
+    return None, exit_code

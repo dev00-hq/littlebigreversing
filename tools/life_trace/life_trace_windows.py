@@ -152,13 +152,42 @@ class WindowCapture:
             time.sleep(0.1)
 
     def find_window(self, pid: int) -> WindowInfo | None:
+        candidates = self._enumerate_visible_windows(pid)
+        if not candidates:
+            return None
+
+        def sort_key(window: WindowInfo) -> tuple[int, int, int]:
+            owner = self.user32.GetWindow(window.hwnd, self.GW_OWNER)
+            area = window.width * window.height
+            return (1 if not owner else 0, area, len(window.title))
+
+        candidates.sort(key=sort_key, reverse=True)
+        return candidates[0]
+
+    def find_window_title_fragments(self, *fragments: str) -> WindowInfo | None:
+        normalized = tuple(fragment.lower() for fragment in fragments if fragment)
+        if not normalized:
+            return None
+
+        candidates = [
+            window
+            for window in self._enumerate_visible_windows(None)
+            if all(fragment in window.title.lower() for fragment in normalized)
+        ]
+        if not candidates:
+            return None
+
+        candidates.sort(key=lambda window: (window.width * window.height, len(window.title)), reverse=True)
+        return candidates[0]
+
+    def _enumerate_visible_windows(self, pid: int | None) -> list[WindowInfo]:
         candidates: list[WindowInfo] = []
 
         @ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
         def enum_proc(hwnd, _lparam):
             process_id = wintypes.DWORD()
             self.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(process_id))
-            if process_id.value != pid:
+            if pid is not None and process_id.value != pid:
                 return True
             if not self.user32.IsWindowVisible(hwnd):
                 return True
@@ -187,16 +216,7 @@ class WindowCapture:
             return True
 
         self.user32.EnumWindows(enum_proc, 0)
-        if not candidates:
-            return None
-
-        def sort_key(window: WindowInfo) -> tuple[int, int, int]:
-            owner = self.user32.GetWindow(window.hwnd, self.GW_OWNER)
-            area = window.width * window.height
-            return (1 if not owner else 0, area, len(window.title))
-
-        candidates.sort(key=sort_key, reverse=True)
-        return candidates[0]
+        return candidates
 
     def capture(self, pid: int, output_path: Path, timeout_sec: float = 10.0) -> WindowInfo:
         window = self.wait_for_window(pid, timeout_sec=timeout_sec)

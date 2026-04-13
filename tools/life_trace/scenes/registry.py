@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from scenes.base import StructuredSceneSpec
 from scenes.scene11 import SCENE_SPEC as SCENE11_PAIR_SCENE_SPEC
+from scenes.scene11_live import SCENE_SPEC as SCENE11_LIVE_PAIR_SCENE_SPEC
 from scenes.tavern import SCENE_SPEC as TAVERN_SCENE_SPEC
 
 
 STRUCTURED_SCENE_SPECS: dict[str, StructuredSceneSpec] = {
     TAVERN_SCENE_SPEC.preset.name: TAVERN_SCENE_SPEC,
     SCENE11_PAIR_SCENE_SPEC.preset.name: SCENE11_PAIR_SCENE_SPEC,
+    SCENE11_LIVE_PAIR_SCENE_SPEC.preset.name: SCENE11_LIVE_PAIR_SCENE_SPEC,
 }
 
 
@@ -21,3 +23,19 @@ def get_structured_scene_spec(mode: str) -> StructuredSceneSpec:
 
 def structured_scene_modes() -> tuple[str, ...]:
     return tuple(STRUCTURED_SCENE_SPECS)
+
+
+def fra_structured_scene_modes() -> tuple[str, ...]:
+    return tuple(
+        mode
+        for mode, spec in STRUCTURED_SCENE_SPECS.items()
+        if spec.runtime_backend == "fra_probe"
+    )
+
+
+def frida_structured_scene_modes() -> tuple[str, ...]:
+    return tuple(
+        mode
+        for mode, spec in STRUCTURED_SCENE_SPECS.items()
+        if spec.runtime_backend == "frida_probe"
+    )

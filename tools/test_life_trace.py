@@ -27,6 +27,7 @@ BRANCH_TRACE_LINE = """{"branch_kind": "break_jump", "computed_target_offset": 1
 WINDOW_TRACE_LINE = """{"current_object": "0x49a19c", "event_id": "evt-0015", "exe_switch": {"func": 0, "type_answer": 0, "value": 0}, "kind": "window_trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "ptr_window": {"bytes_hex": "00 22 08 4e 01 75 67 00 76 37 09 00 0b 7a 00 37 09", "cursor_index": 8, "start": "0x33a3506"}, "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z", "working_type_answer": 4, "working_value": 0}"""
 MINIMAL_TAVERN_WINDOW_TRACE_LINE = """{"byte_at_ptr_prg": 118, "byte_at_ptr_prg_hex": "0x76", "current_object": "0x49a19c", "event_id": "evt-0015", "kind": "window_trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 SCREENSHOT_LINE = """{"capture_status": "captured", "event_id": "evt-0015", "kind": "screenshot", "poi": "opcode_076_fetch", "run_id": "life-trace-20260405-011732", "screenshot_path": "work/life_trace/runs/life-trace-20260405-011732/screenshots/evt-0015__opcode_076_fetch__obj0__off4883.png", "source_stream": "enriched", "source_window_title": "LBA2", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
+MEMORY_SNAPSHOT_LINE = """{"address": "0x0049BCCE", "current_object": "0x0049BAE0", "debugger": "cdb", "event_id": "evt-0020", "kind": "memory_snapshot", "object_index": 12, "relative_offset": 38, "relative_to": "ptr_life", "run_id": "life-trace-20260405-011732", "snapshot_name": "primary_target_window", "source_stream": "enriched", "timestamp_utc": "2026-04-05T05:17:42Z", "window": {"bytes_hex": "00 01 17 42 00 75 2D 00 74 17", "cursor_index": 8, "start": "0x0049BCC6"}}"""
 VERDICT_LINE = """{"break_target_offset": 103, "event_id": "evt-0018", "fingerprint_event_id": "evt-0005", "hidden_076_case_seen": false, "kind": "verdict", "matched_fingerprint": true, "opcode_076_fetch_event_id": "evt-0015", "phase": "completed", "post_076_outcome": "loop_reentry", "post_076_outcome_event_id": "evt-0017", "reason": "captured Tavern proof through loop_reentry", "required_screenshots_complete": true, "result": "tavern_trace_complete", "returned_after_076": false, "run_id": "life-trace-20260405-011732", "saw_076_fetch": true, "saw_post_076_loop": true, "source_stream": "enriched", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 ERROR_LINE = """{"description": "boom", "event_id": "evt-0099", "kind": "error", "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "stack": null, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 SCREENSHOT_ERROR_LINE = """{"capture_status": "failed", "event_id": "evt-0005", "kind": "screenshot_error", "poi": "final_verdict", "reason": "window for pid 1 did not become capturable within 10 seconds", "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
@@ -55,6 +56,7 @@ class LifeTraceSchemaTest(unittest.TestCase):
             trace_life.PersistedTargetValidationEvent: TARGET_VALIDATION_LINE,
             trace_life.PersistedBranchTraceEvent: BRANCH_TRACE_LINE,
             trace_life.PersistedWindowTraceEvent: WINDOW_TRACE_LINE,
+            trace_life.PersistedMemorySnapshotEvent: MEMORY_SNAPSHOT_LINE,
             trace_life.PersistedScreenshotEvent: SCREENSHOT_LINE,
             trace_life.PersistedVerdictEvent: VERDICT_LINE,
             trace_life.PersistedErrorEvent: ERROR_LINE,
@@ -272,26 +274,24 @@ class LifeTraceSchemaTest(unittest.TestCase):
             check=False,
         )
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn("Bounded Frida probe for the original Windows LBA2 life interpreter.", result.stdout)
+        self.assertIn("Bounded runtime evidence probe for the original Windows LBA2 life interpreter.", result.stdout)
 
     def test_load_agent_source_assembles_scene_fragments(self) -> None:
-        args = trace_life.parse_args(["--mode", "scene11-pair"])
+        args = trace_life.parse_args(["--mode", "tavern-trace"])
         script = trace_life.runtime.load_agent_source(args)
 
         self.assertNotIn("__TRACE_", script)
         self.assertIn('registerScene("basic"', script)
         self.assertIn('registerScene("tavern-trace"', script)
-        self.assertIn('registerScene("scene11-pair"', script)
-        self.assertIn('sendEvent("helper_callsite"', script)
+        self.assertIn('registerScene("scene11-live-pair"', script)
+        self.assertNotIn('registerScene("scene11-pair"', script)
         self.assertIn("const scene = createScene(config.mode);", script)
-        self.assertIn('"mode":"scene11-pair"', script)
-        self.assertIn('"helperCaptureEnabled":true', script)
-        self.assertIn("maybeInstallScene11HelperHooks()", script)
-        self.assertIn("helperHooksInstalled", script)
+        self.assertIn('"mode":"tavern-trace"', script)
+        self.assertIn('"helperCaptureEnabled":false', script)
 
     def test_load_agent_source_fails_when_a_required_fragment_is_missing(self) -> None:
-        args = trace_life.parse_args(["--mode", "scene11-pair"])
-        missing_path = (Path(trace_life.runtime.__file__).with_name("agent") / "scene_scene11.js").resolve()
+        args = trace_life.parse_args(["--mode", "tavern-trace"])
+        missing_path = (Path(trace_life.runtime.__file__).with_name("agent") / "scene_tavern.js").resolve()
         original_exists = trace_life.runtime.Path.exists
 
         def fake_exists(path_obj) -> bool:
@@ -319,18 +319,33 @@ class LifeTraceSchemaTest(unittest.TestCase):
         self.assertTrue(args.requires_callsite_map is False)
         self.assertTrue(args.helper_capture_enabled is False)
 
-    def test_parse_args_defaults_scene11_to_fra_lane(self) -> None:
+    def test_parse_args_defaults_scene11_to_debugger_snapshot_lane(self) -> None:
         args = trace_life.parse_args(["--mode", "scene11-pair", "--launch"])
         self.assertEqual(str(trace_life.DEFAULT_GAME_EXE), args.launch)
         self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_object, args.target_object)
         self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_opcode, args.target_opcode)
         self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_offset, args.target_offset)
         self.assertEqual(str(trace_life.DEFAULT_SAVE_SOURCE_ROOT / "S8741.LBA"), args.launch_save)
-        self.assertEqual(str(trace_life.DEFAULT_FRA_REPO_ROOT), args.fra_repo_root)
+        self.assertIsNone(args.fra_repo_root)
         self.assertIsNone(args.frida_repo_root)
         self.assertEqual(str(trace_life.DEFAULT_CALLSITES_JSONL), args.callsites_jsonl)
-        self.assertTrue(args.requires_callsite_map)
-        self.assertTrue(args.helper_capture_enabled)
+        self.assertTrue(args.requires_callsite_map is False)
+        self.assertTrue(args.helper_capture_enabled is False)
+
+    def test_parse_args_defaults_scene11_live_pair_to_frida_lane(self) -> None:
+        args = trace_life.parse_args(["--mode", "scene11-live-pair", "--launch"])
+        self.assertEqual(str(trace_life.DEFAULT_GAME_EXE), args.launch)
+        self.assertEqual(trace_life.SCENE11_LIVE_PAIR_PRESET.target_object, args.target_object)
+        self.assertEqual(trace_life.SCENE11_LIVE_PAIR_PRESET.target_opcode, args.target_opcode)
+        self.assertEqual(trace_life.SCENE11_LIVE_PAIR_PRESET.target_offset, args.target_offset)
+        self.assertEqual(trace_life.SCENE11_LIVE_PAIR_PRESET.comparison_object, args.comparison_object)
+        self.assertEqual(trace_life.SCENE11_LIVE_PAIR_PRESET.comparison_opcode, args.comparison_opcode)
+        self.assertEqual(trace_life.SCENE11_LIVE_PAIR_PRESET.comparison_offset, args.comparison_offset)
+        self.assertEqual(str(trace_life.DEFAULT_SAVE_SOURCE_ROOT / "S8741.LBA"), args.launch_save)
+        self.assertEqual(str(trace_life.DEFAULT_FRIDA_REPO_ROOT), args.frida_repo_root)
+        self.assertIsNone(args.fra_repo_root)
+        self.assertTrue(args.requires_callsite_map is False)
+        self.assertTrue(args.helper_capture_enabled is False)
 
     def test_parse_args_rejects_explicit_targets_in_structured_modes(self) -> None:
         stderr = io.StringIO()
@@ -362,7 +377,31 @@ class LifeTraceSchemaTest(unittest.TestCase):
                     ["--mode", "scene11-pair", "--frida-repo-root", r"D:\repos\reverse\frida"]
                 )
         self.assertIn(
-            "--mode scene11-pair rejects --frida-repo-root; use --fra-repo-root",
+            "--mode scene11-pair rejects --frida-repo-root; its canonical backend is debugger-owned",
+            stderr.getvalue(),
+        )
+
+    def test_parse_args_rejects_fra_root_for_scene11(self) -> None:
+        stderr = io.StringIO()
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(stderr):
+                trace_life.parse_args(
+                    ["--mode", "scene11-pair", "--fra-repo-root", r"D:\repos\frida-agent-cli"]
+                )
+        self.assertIn(
+            "--mode scene11-pair rejects --fra-repo-root; its canonical backend is debugger-owned",
+            stderr.getvalue(),
+        )
+
+    def test_parse_args_rejects_fra_root_for_scene11_live_pair(self) -> None:
+        stderr = io.StringIO()
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(stderr):
+                trace_life.parse_args(
+                    ["--mode", "scene11-live-pair", "--fra-repo-root", r"D:\repos\frida-agent-cli"]
+                )
+        self.assertIn(
+            "--mode scene11-live-pair rejects --fra-repo-root; use --frida-repo-root",
             stderr.getvalue(),
         )
 
@@ -371,7 +410,7 @@ class LifeTraceSchemaTest(unittest.TestCase):
         with self.assertRaises(SystemExit):
             with contextlib.redirect_stderr(stderr):
                 trace_life.parse_args(["--fra-repo-root", r"D:\repos\frida-agent-cli"])
-        self.assertIn("--fra-repo-root requires --mode tavern-trace or --mode scene11-pair", stderr.getvalue())
+        self.assertIn("--fra-repo-root requires --mode tavern-trace", stderr.getvalue())
 
     def test_fra_status_fields_extracts_doctor_paths(self) -> None:
         doctor_report = {
@@ -822,7 +861,7 @@ class Scene11StartupAutomationTest(unittest.TestCase):
             self.assertIn("sent Enter to open Load Game", messages)
             self.assertIn("waited for the Load Game menu to settle", messages)
             self.assertIn("sent Enter to load the sole staged save", messages)
-            self.assertIn("waited for the sole staged save to settle before attaching fra probe", messages)
+            self.assertIn("waited for the sole staged save to settle before capturing the debugger snapshot lane", messages)
 
 
 class TavernFinalizeStatusTest(unittest.TestCase):
@@ -993,66 +1032,167 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
             self.assertEqual("raw", raw_line["source_stream"])
             self.assertEqual("enriched", enriched_line["source_stream"])
 
-    def test_scene11_controller_fails_fast_on_unmapped_helper_callsite(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            writer = trace_life.JsonlWriter(
-                Path(temp_dir),
-                callsite_index={},
-                requires_callsite_map=True,
-            )
-            args = argparse.Namespace(
-                target_object=12,
-                target_opcode=0x74,
-                target_offset=38,
-                comparison_object=18,
-                comparison_opcode=0x76,
-                comparison_offset=84,
-                timeout_sec=60.0,
-            )
-            controller = trace_life.Scene11PairController(args, writer, pid=1234)
-            fake_window = trace_life.WindowInfo(
-                hwnd=0x1234,
-                title="LBA2",
-                left=0,
-                top=0,
-                right=800,
-                bottom=600,
-            )
+    def test_collect_scene11_debugger_snapshot_records_expected_target_bytes(self) -> None:
+        object_base = 0x0049A19C
+        object_stride = 0x21B
+        ptr_life_offset = 0x1EE
+        offset_life_offset = 0x1F2
+        primary_object = 12
+        comparison_object = 18
+        primary_ptr_life = 0x00412000
+        comparison_ptr_life = 0x00413000
 
-            try:
-                with mock.patch.object(
-                    controller,
-                    "_capture_window_file",
-                    return_value=("work/life_trace/runs/test/screenshots/final_verdict.png", fake_window),
-                ):
-                    controller.handle_event(
-                        trace_life.AgentHelperCallsiteEvent(
-                            callee_name="DoTest",
-                            caller_static_live="0x420f50",
-                            caller_static_rel="0x20f50",
-                            thread_id=9876,
-                            object_index=12,
-                            owner_kind="object",
-                            ptr_life="0x4120000",
-                            ptr_prg="0x41200f0",
-                            ptr_prg_offset=38,
-                            opcode=116,
-                            opcode_hex="0x74",
-                            trace_role="primary",
-                        )
-                    )
-            finally:
-                writer.close()
+        class FakeSnapshotReader:
+            def read_scalars(self, *, dword_addresses: tuple[int, ...], word_addresses: tuple[int, ...]):
+                del dword_addresses, word_addresses
+                return (
+                    {
+                        0x004976D0: 0x00420000,
+                        object_base + (primary_object * object_stride) + ptr_life_offset: primary_ptr_life,
+                        object_base + (comparison_object * object_stride) + ptr_life_offset: comparison_ptr_life,
+                    },
+                    {
+                        object_base + (primary_object * object_stride) + offset_life_offset: 7,
+                        object_base + (comparison_object * object_stride) + offset_life_offset: 11,
+                    },
+                )
 
-            lines = read_jsonl_lines(writer.enriched_output_path)
-            self.assertEqual("helper_callsite", lines[0]["kind"])
-            self.assertEqual("unmapped", lines[0]["callsite_status"])
-            self.assertEqual("verdict", lines[-2]["kind"])
-            self.assertEqual("unmapped_callsite", lines[-2]["result"])
-            self.assertIn("was not present in the configured static map", lines[-2]["reason"])
-            self.assertEqual("status", lines[-1]["kind"])
-            self.assertTrue(controller.terminal)
-            self.assertEqual(1, controller.exit_code)
+            def read_bytes(self, address: int, count: int) -> bytes:
+                assert count == 17
+                if address == primary_ptr_life + 30:
+                    return bytes([0x00, 0x01, 0x17, 0x42, 0x00, 0x75, 0x2D, 0x00, 0x74, 0x17, 0x01, 0x0D, 0x00, 0x02, 0x03, 0x04, 0x05])
+                if address == comparison_ptr_life + 76:
+                    return bytes([0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x76, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20])
+                raise AssertionError(f"unexpected address: 0x{address:08X}")
+
+        snapshot = trace_life.collect_scene11_debugger_snapshot(FakeSnapshotReader())
+
+        self.assertEqual(0x00420000, snapshot.ptr_prg)
+        self.assertEqual(0x74, snapshot.primary.target_byte)
+        self.assertEqual(0x76, snapshot.comparison.target_byte)
+        self.assertEqual("0x0041201E", snapshot.primary.target_window.start)
+        self.assertEqual("0x0041304C", snapshot.comparison.target_window.start)
+        self.assertEqual("00 01 17 42 00 75 2D 00 74 17 01 0D 00 02 03 04 05", snapshot.primary.target_window.bytes_hex)
+        self.assertEqual(
+            (
+                "scene11_snapshot_complete",
+                "captured debugger-owned Scene11 snapshot evidence for object 12 LM_DEFAULT and object 18 LM_END_SWITCH",
+            ),
+            trace_life.determine_scene11_snapshot_verdict(snapshot),
+        )
+
+    def test_scene11_snapshot_verdict_fails_when_ptr_life_is_missing(self) -> None:
+        object_base = 0x0049A19C
+        object_stride = 0x21B
+        ptr_life_offset = 0x1EE
+        offset_life_offset = 0x1F2
+
+        class FakeSnapshotReader:
+            def read_scalars(self, *, dword_addresses: tuple[int, ...], word_addresses: tuple[int, ...]):
+                del dword_addresses, word_addresses
+                return (
+                    {
+                        0x004976D0: 0x00000000,
+                        object_base + (12 * object_stride) + ptr_life_offset: 0x00000000,
+                        object_base + (18 * object_stride) + ptr_life_offset: 0x00413000,
+                    },
+                    {
+                        object_base + (12 * object_stride) + offset_life_offset: 0,
+                        object_base + (18 * object_stride) + offset_life_offset: 0,
+                    },
+                )
+
+            def read_bytes(self, address: int, count: int) -> bytes:
+                del count
+                if address == 0x0041304C:
+                    return bytes([0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x76, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20])
+                raise AssertionError(f"unexpected address: 0x{address:08X}")
+
+        snapshot = trace_life.collect_scene11_debugger_snapshot(FakeSnapshotReader())
+        self.assertEqual(
+            (
+                "scene11_primary_ptr_life_missing",
+                "object 12 PtrLife was null after the Scene11 load snapshot",
+            ),
+            trace_life.determine_scene11_snapshot_verdict(snapshot),
+        )
+
+    def test_discover_scene11_runtime_candidates_finds_live_opcode_mismatch(self) -> None:
+        object_base = 0x0049A19C
+        object_stride = 0x21B
+        ptr_life_offset = 0x1EE
+        offset_life_offset = 0x1F2
+        object_two_ptr_life = 0x00E823A1
+
+        class FakeSnapshotReader:
+            def read_scalars(self, *, dword_addresses: tuple[int, ...], word_addresses: tuple[int, ...]):
+                dwords = {address: 0 for address in dword_addresses}
+                words = {address: 0 for address in word_addresses}
+                dwords[object_base + (2 * object_stride) + ptr_life_offset] = object_two_ptr_life
+                words[object_base + (2 * object_stride) + offset_life_offset] = 33
+
+                blob_start = object_two_ptr_life
+                blob = bytearray(160)
+                blob[96] = 0x74
+                blob[97:104] = bytes([0x17, 0x43, 0x00, 0x75, 0x67, 0x00, 0x76])
+                blob[103] = 0x76
+                for address in dword_addresses:
+                    if blob_start <= address < blob_start + len(blob):
+                        offset = address - blob_start
+                        chunk = blob[offset : offset + 4]
+                        dwords[address] = int.from_bytes(chunk.ljust(4, b"\x00"), "little")
+                return dwords, words
+
+            def read_bytes(self, address: int, count: int) -> bytes:
+                raise AssertionError(f"unexpected byte read: 0x{address:08X} count={count}")
+
+        candidates = trace_life.discover_scene11_runtime_candidates(FakeSnapshotReader())
+        self.assertEqual([(2, 0x74, 96), (2, 0x76, 103)], [(c.object_index, c.opcode, c.opcode_offset) for c in candidates])
+        mismatch = trace_life.summarize_scene11_runtime_mismatch(
+            trace_life.Scene11DebuggerSnapshot(
+                ptr_prg=0,
+                primary=trace_life.Scene11ObjectSnapshot(
+                    spec=trace_life.PRIMARY_SNAPSHOT,
+                    current_object=object_base + (12 * object_stride),
+                    ptr_life_field=object_base + (12 * object_stride) + ptr_life_offset,
+                    ptr_life=0,
+                    offset_life_field=object_base + (12 * object_stride) + offset_life_offset,
+                    offset_life=0,
+                    target_address=None,
+                    target_window=trace_life.PointerWindow(
+                        start="0x00000000",
+                        cursor_index=8,
+                        bytes_hex=None,
+                        error="PtrLife for object 12 was null",
+                    ),
+                    target_byte=None,
+                ),
+                comparison=trace_life.Scene11ObjectSnapshot(
+                    spec=trace_life.COMPARISON_SNAPSHOT,
+                    current_object=object_base + (18 * object_stride),
+                    ptr_life_field=object_base + (18 * object_stride) + ptr_life_offset,
+                    ptr_life=0,
+                    offset_life_field=object_base + (18 * object_stride) + offset_life_offset,
+                    offset_life=0,
+                    target_address=None,
+                    target_window=trace_life.PointerWindow(
+                        start="0x00000000",
+                        cursor_index=8,
+                        bytes_hex=None,
+                        error="PtrLife for object 18 was null",
+                    ),
+                    target_byte=None,
+                ),
+            ),
+            candidates,
+        )
+        self.assertEqual(
+            (
+                "scene11_static_runtime_mismatch",
+                "canonical object 12 PtrLife was null; canonical object 18 PtrLife was null; live object 2 exposed LM_DEFAULT at offset 96; live object 2 exposed LM_END_SWITCH at offset 103",
+            ),
+            mismatch,
+        )
 
 
 class SpawnedProcessTerminationTest(unittest.TestCase):
@@ -1145,6 +1285,154 @@ class ProcessExistsPidTest(unittest.TestCase):
 
         with mock.patch.object(trace_life.ctypes, "windll", mock.Mock(kernel32=fake_kernel32)):
             self.assertTrue(trace_life.process_exists_pid(1234))
+
+
+class LaunchPreflightTest(unittest.TestCase):
+    def test_preflight_kills_existing_owned_launch_processes(self) -> None:
+        completed = subprocess.CompletedProcess(["taskkill"], 0, stdout="SUCCESS", stderr="")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(Path(temp_dir))
+            try:
+                with mock.patch.object(
+                    trace_life.runtime.subprocess,
+                    "run",
+                    side_effect=[completed, completed],
+                ) as mocked_run:
+                    trace_life.runtime.preflight_owned_launch_processes(writer, "LBA2.EXE")
+            finally:
+                writer.close()
+
+            mocked_run.assert_has_calls(
+                [
+                    mock.call(
+                        ["taskkill", "/IM", "LBA2.EXE", "/F"],
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    ),
+                    mock.call(
+                        ["taskkill", "/IM", "cdb.exe", "/F"],
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    ),
+                ]
+            )
+            messages = [line["message"] for line in read_jsonl_lines(writer.enriched_output_path)]
+            self.assertEqual(
+                [
+                    "preflight killed existing LBA2.EXE",
+                    "preflight killed existing cdb.exe",
+                ],
+                messages,
+            )
+
+    def test_preflight_ignores_not_found_taskkill_results(self) -> None:
+        not_found = subprocess.CompletedProcess(["taskkill"], 128, stdout="", stderr='ERROR: no se encontró el proceso "LBA2.EXE".')
+        no_cdb = subprocess.CompletedProcess(["taskkill"], 128, stdout="", stderr='ERROR: no se encontró el proceso "cdb.exe".')
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(Path(temp_dir))
+            try:
+                with mock.patch.object(
+                    trace_life.runtime.subprocess,
+                    "run",
+                    side_effect=[not_found, no_cdb],
+                ):
+                    trace_life.runtime.preflight_owned_launch_processes(writer, "LBA2.EXE")
+            finally:
+                writer.close()
+
+            self.assertEqual([], read_jsonl_lines(writer.enriched_output_path))
+
+
+class ApplicationErrorDialogDetectionTest(unittest.TestCase):
+    def test_detect_application_error_dialog_records_status(self) -> None:
+        fake_capture = mock.Mock()
+        fake_capture.find_window.return_value = trace_life.WindowInfo(
+            hwnd=1,
+            title="Application Error: D:\\games\\LBA2.EXE",
+            left=0,
+            top=0,
+            right=640,
+            bottom=480,
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(Path(temp_dir))
+            try:
+                title = trace_life.runtime.detect_application_error_dialog(
+                    writer,
+                    1234,
+                    capture=fake_capture,
+                )
+            finally:
+                writer.close()
+
+            self.assertEqual("Application Error: D:\\games\\LBA2.EXE", title)
+            messages = [line["message"] for line in read_jsonl_lines(writer.enriched_output_path)]
+            self.assertEqual(
+                ["detected Application Error dialog: Application Error: D:\\games\\LBA2.EXE"],
+                messages,
+            )
+
+    def test_detect_application_error_dialog_returns_none_for_normal_window(self) -> None:
+        fake_capture = mock.Mock()
+        fake_capture.find_window.return_value = trace_life.WindowInfo(
+            hwnd=1,
+            title="LBA2",
+            left=0,
+            top=0,
+            right=640,
+            bottom=480,
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(Path(temp_dir))
+            try:
+                title = trace_life.runtime.detect_application_error_dialog(
+                    writer,
+                    1234,
+                    capture=fake_capture,
+                )
+            finally:
+                writer.close()
+
+            self.assertIsNone(title)
+            self.assertEqual([], read_jsonl_lines(writer.enriched_output_path))
+
+    def test_detect_application_error_dialog_falls_back_to_global_title_match(self) -> None:
+        fake_capture = mock.Mock()
+        fake_capture.find_window.return_value = None
+        fake_capture.find_window_title_fragments.return_value = trace_life.WindowInfo(
+            hwnd=2,
+            title="Application Error: D:\\games\\LBA2.EXE",
+            left=0,
+            top=0,
+            right=640,
+            bottom=480,
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(Path(temp_dir))
+            try:
+                title = trace_life.runtime.detect_application_error_dialog(
+                    writer,
+                    1234,
+                    capture=fake_capture,
+                    process_name="LBA2.EXE",
+                    launch_path=r"D:\games\LBA2.EXE",
+                )
+            finally:
+                writer.close()
+
+            self.assertEqual("Application Error: D:\\games\\LBA2.EXE", title)
+            messages = [line["message"] for line in read_jsonl_lines(writer.enriched_output_path)]
+            self.assertEqual(
+                ["detected Application Error dialog: Application Error: D:\\games\\LBA2.EXE"],
+                messages,
+            )
 
 
 if __name__ == "__main__":

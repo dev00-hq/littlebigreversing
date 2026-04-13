@@ -38,6 +38,7 @@ from life_trace_shared import (
     PersistedDoLifeReturnEvent,
     PersistedErrorEvent,
     PersistedHelperCallsiteEvent,
+    PersistedMemorySnapshotEvent,
     PersistedScreenshotErrorEvent,
     PersistedScreenshotEvent,
     PersistedStatusEvent,
@@ -66,14 +67,26 @@ from life_trace_shared import (
 from life_trace_windows import WindowInfo
 import life_trace_runtime as runtime
 import scenes.tavern as tavern_scene
-from scenes.registry import get_structured_scene_spec, structured_scene_modes
+from scenes.registry import (
+    fra_structured_scene_modes,
+    get_structured_scene_spec,
+    structured_scene_modes,
+)
 from scenes.scene11 import (
+    COMPARISON_SNAPSHOT,
+    PRIMARY_SNAPSHOT,
     SCENE11_PAIR_PRESET,
-    Scene11PairController,
+    Scene11DebuggerSnapshot,
+    Scene11ObjectSnapshot,
+    collect_scene11_debugger_snapshot,
+    discover_scene11_runtime_candidates,
+    determine_scene11_snapshot_verdict,
     drive_scene11_launch_startup,
     scene11_load_game_save_paths,
     stage_scene11_load_game_save,
+    summarize_scene11_runtime_mismatch,
 )
+from scenes.scene11_live import SCENE11_LIVE_PAIR_PRESET
 from scenes.tavern import (
     TAVERN_TRACE_PRESET,
     TavernTraceController,
@@ -89,6 +102,8 @@ DEFAULT_BASIC_TARGET_OPCODE = 0x76
 DEFAULT_BASIC_TARGET_OFFSET = 46
 
 run_direct_frida_trace = runtime.run_direct_frida_trace
+run_structured_trace_via_frida = runtime.run_structured_trace_via_frida
+run_structured_debugger_snapshot = runtime.run_structured_debugger_snapshot
 run_structured_trace_via_fra = runtime.run_structured_trace_via_fra
 run_fra_json = runtime.run_fra_json
 fra_status_fields = runtime.fra_status_fields
@@ -104,7 +119,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     argv_list = list(sys.argv[1:] if argv is None else argv)
     callsites_jsonl_explicit = "--callsites-jsonl" in argv_list
     parser = argparse.ArgumentParser(
-        description="Bounded Frida probe for the original Windows LBA2 life interpreter."
+        description="Bounded runtime evidence probe for the original Windows LBA2 life interpreter."
     )
     parser.add_argument("--process", default="LBA2.EXE", help="Process name to attach to.")
     parser.add_argument(
@@ -136,7 +151,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--fra-repo-root",
         default=None,
-        help="frida-agent-cli repository root containing .venv. Supported by structured scene modes.",
+        help="frida-agent-cli repository root containing .venv. Supported by FRA-backed structured scene modes.",
+    )
+    parser.add_argument(
+        "--cdb-path",
+        default=None,
+        help="Optional explicit path to cdb.exe. Supported by debugger-backed structured scene modes.",
     )
     parser.add_argument("--mode", choices=["basic", *structured_scene_modes()], default="basic")
     parser.add_argument("--target-object", type=parse_int, default=None, help="Object index to match.")
@@ -167,7 +187,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     if args.mode == "basic":
         if args.fra_repo_root is not None:
-            parser.error(f"--fra-repo-root requires --mode {' or --mode '.join(structured_scene_modes())}")
+            parser.error(f"--fra-repo-root requires --mode {' or --mode '.join(fra_structured_scene_modes())}")
 
         args.target_object = DEFAULT_BASIC_TARGET_OBJECT if args.target_object is None else args.target_object
         args.target_opcode = DEFAULT_BASIC_TARGET_OPCODE if args.target_opcode is None else args.target_opcode
@@ -192,8 +212,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     if args.target_object is not None or args.target_opcode is not None or args.target_offset is not None:
         parser.error(f"--mode {args.mode} rejects --target-object, --target-opcode, and --target-offset")
-    if args.frida_repo_root is not None:
-        parser.error(f"--mode {args.mode} rejects --frida-repo-root; use --fra-repo-root")
 
     args.target_object = preset.target_object
     args.target_opcode = preset.target_opcode
@@ -209,8 +227,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     args.comparison_opcode = preset.comparison_opcode
     args.comparison_offset = preset.comparison_offset
     args.launch_save = preset.launch_save if args.launch_save is None else args.launch_save
-    args.fra_repo_root = str(DEFAULT_FRA_REPO_ROOT if args.fra_repo_root is None else Path(args.fra_repo_root))
-    args.frida_repo_root = None
+    if scene_spec.runtime_backend == "fra_probe":
+        if args.frida_repo_root is not None:
+            parser.error(f"--mode {args.mode} rejects --frida-repo-root; use --fra-repo-root")
+        args.fra_repo_root = str(DEFAULT_FRA_REPO_ROOT if args.fra_repo_root is None else Path(args.fra_repo_root))
+        args.frida_repo_root = None
+    elif scene_spec.runtime_backend == "frida_probe":
+        if args.fra_repo_root is not None:
+            parser.error(f"--mode {args.mode} rejects --fra-repo-root; use --frida-repo-root")
+        args.frida_repo_root = str(DEFAULT_FRIDA_REPO_ROOT if args.frida_repo_root is None else Path(args.frida_repo_root))
+        args.fra_repo_root = None
+    else:
+        if args.frida_repo_root is not None:
+            parser.error(f"--mode {args.mode} rejects --frida-repo-root; its canonical backend is debugger-owned")
+        if args.fra_repo_root is not None:
+            parser.error(f"--mode {args.mode} rejects --fra-repo-root; its canonical backend is debugger-owned")
+        args.fra_repo_root = None
+        args.frida_repo_root = None
     args.requires_callsite_map = scene_spec.requires_callsite_map
     args.helper_capture_enabled = scene_spec.helper_capture_enabled
     return args
@@ -222,11 +255,7 @@ def main() -> int:
     callsite_path = Path(args.callsites_jsonl).resolve() if args.callsites_jsonl else None
     callsite_index = None
     if callsite_path is not None:
-        should_load_callsite_map = bool(
-            args.requires_callsite_map
-            or args.callsites_jsonl_explicit
-            or callsite_path.exists()
-        )
+        should_load_callsite_map = bool(args.requires_callsite_map or args.callsites_jsonl_explicit)
         if should_load_callsite_map:
             callsite_index = load_callsite_index(callsite_path)
     writer = JsonlWriter(
@@ -261,7 +290,13 @@ def main() -> int:
         if args.mode == "basic":
             controller, exit_code = run_direct_frida_trace(args, writer, interrupted)
         else:
-            controller, exit_code = run_structured_trace_via_fra(args, writer, interrupted)
+            scene_spec = get_structured_scene_spec(args.mode)
+            if scene_spec.runtime_backend == "fra_probe":
+                controller, exit_code = run_structured_trace_via_fra(args, writer, interrupted)
+            elif scene_spec.runtime_backend == "frida_probe":
+                controller, exit_code = run_structured_trace_via_frida(args, writer, interrupted)
+            else:
+                controller, exit_code = run_structured_debugger_snapshot(args, writer, interrupted)
     finally:
         writer.close()
         for sig, previous in previous_handlers.items():

@@ -1,35 +1,43 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol
 
+from life_trace_debugger import CdbMemoryReader, DebuggerReadError, resolve_cdb_path
 from life_trace_shared import (
-    AgentDoLifeReturnEvent,
-    AgentErrorEvent,
-    AgentHelperCallsiteEvent,
-    AgentTargetValidationEvent,
-    AgentWindowTraceEvent,
-    AgentWireEventType,
     JsonlWriter,
+    PersistedMemorySnapshotEvent,
     PersistedScreenshotErrorEvent,
     PersistedScreenshotEvent,
     PersistedStatusEvent,
     PersistedVerdictEvent,
+    PointerWindow,
+    REPO_ROOT,
     SCENE11_ADELINE_ENTER_DELAY_SEC,
     SCENE11_STARTUP_WINDOW_TIMEOUT_SEC,
     TRACE_COMPLETE_STATUS_MESSAGE,
     TRACE_FINISHED_STATUS_MESSAGE,
     TracePreset,
-    optional_value,
 )
-from life_trace_windows import WindowCapture, WindowInput
-from scenes.base import StructuredSceneControllerBase, StructuredSceneSpec
+from life_trace_windows import CaptureError, WindowCapture, WindowInfo, WindowInput
+from scenes.base import StructuredSceneSpec
 from scenes.load_game import (
     cleanup_staged_load_game_save,
     default_source_save_path,
     drive_single_save_load_game_startup,
     stage_single_load_game_save,
 )
+
+
+OBJECT_BASE = 0x0049A19C
+OBJECT_STRIDE = 0x21B
+PTR_LIFE_OFFSET = 0x1EE
+OFFSET_LIFE_OFFSET = 0x1F2
+PTR_PRG_GLOBAL = 0x004976D0
+WINDOW_BEFORE = 8
+WINDOW_AFTER = 8
 
 
 SCENE11_PAIR_PRESET = TracePreset(
@@ -47,6 +55,77 @@ SCENE11_PAIR_PRESET = TracePreset(
     comparison_opcode=0x76,
     comparison_offset=84,
     launch_save=str(default_source_save_path("S8741.LBA")),
+)
+
+
+@dataclass(frozen=True)
+class Scene11ObjectSnapshotSpec:
+    label: str
+    object_index: int
+    target_offset: int
+    expected_opcode: int
+
+
+@dataclass(frozen=True)
+class Scene11ObjectSnapshot:
+    spec: Scene11ObjectSnapshotSpec
+    current_object: int
+    ptr_life_field: int
+    ptr_life: int
+    offset_life_field: int
+    offset_life: int
+    target_address: int | None
+    target_window: PointerWindow
+    target_byte: int | None
+
+
+@dataclass(frozen=True)
+class Scene11DebuggerSnapshot:
+    ptr_prg: int
+    primary: Scene11ObjectSnapshot
+    comparison: Scene11ObjectSnapshot
+
+
+@dataclass(frozen=True)
+class Scene11RuntimeCandidate:
+    object_index: int
+    ptr_life: int
+    offset_life: int
+    opcode: int
+    opcode_offset: int
+    target_window: PointerWindow
+
+
+DISCOVERY_SCAN_OBJECT_LIMIT = 48
+DISCOVERY_SCAN_BYTE_LIMIT = 160
+DISCOVERY_OPCODES = {
+    0x74: "LM_DEFAULT",
+    0x76: "LM_END_SWITCH",
+}
+
+
+class Scene11SnapshotReader(Protocol):
+    def read_scalars(
+        self,
+        *,
+        dword_addresses: tuple[int, ...],
+        word_addresses: tuple[int, ...],
+    ) -> tuple[dict[int, int], dict[int, int]]: ...
+
+    def read_bytes(self, address: int, count: int) -> bytes: ...
+
+
+PRIMARY_SNAPSHOT = Scene11ObjectSnapshotSpec(
+    label="primary",
+    object_index=SCENE11_PAIR_PRESET.target_object,
+    target_offset=SCENE11_PAIR_PRESET.target_offset,
+    expected_opcode=SCENE11_PAIR_PRESET.target_opcode,
+)
+COMPARISON_SNAPSHOT = Scene11ObjectSnapshotSpec(
+    label="comparison",
+    object_index=SCENE11_PAIR_PRESET.comparison_object or 18,
+    target_offset=SCENE11_PAIR_PRESET.comparison_offset or 84,
+    expected_opcode=SCENE11_PAIR_PRESET.comparison_opcode or 0x76,
 )
 
 
@@ -74,6 +153,8 @@ def drive_scene11_launch_startup(
     writer: JsonlWriter,
     pid: int,
     *,
+    post_load_settle_delay_sec: float = 5.0,
+    post_load_status_message: str = "waited for the sole staged save to settle before capturing the debugger snapshot lane",
     capture: WindowCapture | None = None,
     window_input: WindowInput | None = None,
 ) -> None:
@@ -83,6 +164,8 @@ def drive_scene11_launch_startup(
         scene_label="Scene11",
         adeline_enter_delay_sec=SCENE11_ADELINE_ENTER_DELAY_SEC,
         startup_window_timeout_sec=SCENE11_STARTUP_WINDOW_TIMEOUT_SEC,
+        post_load_settle_delay_sec=post_load_settle_delay_sec,
+        post_load_status_message=post_load_status_message,
         capture=capture,
         window_input=window_input,
     )
@@ -102,244 +185,581 @@ def cleanup_scene11_launch(args: argparse.Namespace, writer: JsonlWriter, launch
     cleanup_staged_load_game_save(args, writer, launch_path)
 
 
-class Scene11PairController(StructuredSceneControllerBase):
-    def __init__(
-        self,
-        args: argparse.Namespace,
-        writer: JsonlWriter,
-        pid: int,
-        *,
-        capture: WindowCapture | None = None,
-    ) -> None:
-        super().__init__(args, writer, pid, capture=capture)
-        self.matched_fingerprint = False
-        self.fingerprint_event_id: str | None = None
-        self.primary_event_id: str | None = None
-        self.primary_event: AgentWindowTraceEvent | AgentDoLifeReturnEvent | None = None
-        self.comparison_event_id: str | None = None
-        self.comparison_event: AgentWindowTraceEvent | AgentDoLifeReturnEvent | None = None
+def object_record_address(object_index: int) -> int:
+    return OBJECT_BASE + (object_index * OBJECT_STRIDE)
 
-    def begin(self) -> None:
-        self._advance_phase("waiting_for_fingerprint", "waiting for the canonical scene-11 fingerprint")
 
-    def handle_event(self, event: AgentWireEventType) -> None:
-        event_id = self.writer.write_event(event)
-        if isinstance(event, AgentErrorEvent):
-            self._finalize("unexpected_control_flow", event.description or "agent error", take_final_screenshot=True)
-            return
+def ptr_life_field_address(object_index: int) -> int:
+    return object_record_address(object_index) + PTR_LIFE_OFFSET
 
-        if (
-            isinstance(event, AgentHelperCallsiteEvent)
-            and self.writer.requires_callsite_map
-            and self.writer.last_helper_callsite_status == "unmapped"
-            and self.writer.last_helper_callsite_event_id == event_id
-        ):
-            helper_rel = self.writer.last_helper_callsite_rel or event.caller_static_rel
-            self._finalize(
-                "unmapped_callsite",
-                f"helper callsite {event.callee_name} at {helper_rel} was not present in the configured static map",
-                take_final_screenshot=True,
-            )
-            return
 
-        if isinstance(event, AgentTargetValidationEvent) and event.matches_fingerprint:
-            if not self.matched_fingerprint:
-                self.matched_fingerprint = True
-                self.fingerprint_event_id = event_id
-                self._advance_phase("capturing_primary", "scene-11 fingerprint matched; waiting for object 12 LM_DEFAULT")
-                self._capture_required_poi(
-                    poi="fingerprint_match",
-                    event_id=event_id,
-                    object_index=event.object_index,
-                    offset_value=event.fingerprint_start_offset,
-                )
-            return
+def offset_life_field_address(object_index: int) -> int:
+    return object_record_address(object_index) + OFFSET_LIFE_OFFSET
 
-        if not isinstance(event, (AgentWindowTraceEvent, AgentDoLifeReturnEvent)):
-            return
 
-        trace_role = optional_value(event.trace_role)
-        if trace_role == "primary" and self.primary_event_id is None:
-            self.primary_event_id = event_id
-            self.primary_event = event
-            self._capture_required_poi(
-                poi="primary_opcode_hit",
-                event_id=event_id,
-                object_index=event.object_index,
-                offset_value=optional_value(event.ptr_prg_before_offset)
-                if isinstance(event, AgentWindowTraceEvent)
-                else event.ptr_prg_before_offset,
-            )
-            self._advance_phase("capturing_comparison", "captured object 12 LM_DEFAULT; waiting for object 18 LM_END_SWITCH")
-            if self.comparison_event_id is not None:
-                self._finalize_scene11_verdict()
-            return
+def format_hex_u32(value: int | None) -> str | None:
+    if value is None:
+        return None
+    return f"0x{value & 0xFFFFFFFF:08X}"
 
-        if trace_role == "comparison" and self.comparison_event_id is None:
-            self.comparison_event_id = event_id
-            self.comparison_event = event
-            self._capture_required_poi(
-                poi="comparison_opcode_hit",
-                event_id=event_id,
-                object_index=event.object_index,
-                offset_value=optional_value(event.ptr_prg_before_offset)
-                if isinstance(event, AgentWindowTraceEvent)
-                else event.ptr_prg_before_offset,
-            )
-            if self.primary_event_id is None:
-                self._advance_phase(
-                    "capturing_primary",
-                    "captured object 18 comparison early; still waiting for object 12 LM_DEFAULT",
-                )
-            else:
-                self._finalize_scene11_verdict()
 
-    def handle_timeout(self) -> None:
-        if not self.matched_fingerprint:
-            self._finalize(
-                "timed_out_before_fingerprint",
-                f"timed out after {self.args.timeout_sec:g} seconds before the canonical scene-11 fingerprint matched",
-                take_final_screenshot=True,
-            )
-            return
+def format_hex_u16(value: int | None) -> str | None:
+    if value is None:
+        return None
+    return f"0x{value & 0xFFFF:04X}"
 
-        if self.primary_event_id is None:
-            self._finalize(
-                "timed_out_before_primary",
-                f"timed out after {self.args.timeout_sec:g} seconds before capturing object {self.args.target_object} opcode 0x{self.args.target_opcode:02X} at offset {self.args.target_offset}",
-                take_final_screenshot=True,
-            )
-            return
 
-        self._finalize(
-            "timed_out_before_comparison",
-            f"timed out after {self.args.timeout_sec:g} seconds before capturing object {self.args.comparison_object} opcode 0x{self.args.comparison_opcode:02X} at offset {self.args.comparison_offset}",
-            take_final_screenshot=True,
+def bytes_to_hex(data: bytes) -> str:
+    return " ".join(f"{value:02X}" for value in data)
+
+
+def aligned_dword_addresses(start_address: int, byte_count: int) -> tuple[int, ...]:
+    if byte_count < 1:
+        raise ValueError("byte_count must be at least 1")
+    aligned_start = start_address & ~0x3
+    aligned_end = (start_address + byte_count + 3) & ~0x3
+    return tuple(range(aligned_start, aligned_end, 4))
+
+
+def bytes_from_dwords(
+    dwords: dict[int, int],
+    *,
+    start_address: int,
+    byte_count: int,
+) -> bytes:
+    aligned_start = start_address & ~0x3
+    raw = bytearray()
+    for address in aligned_dword_addresses(start_address, byte_count):
+        raw.extend(dwords[address].to_bytes(4, "little", signed=False))
+    start_offset = start_address - aligned_start
+    return bytes(raw[start_offset : start_offset + byte_count])
+
+
+def read_byte_range_from_dwords(
+    reader: Scene11SnapshotReader,
+    *,
+    start_address: int,
+    byte_count: int,
+) -> bytes:
+    dwords, _ = reader.read_scalars(
+        dword_addresses=aligned_dword_addresses(start_address, byte_count),
+        word_addresses=tuple(),
+    )
+    expected_addresses = aligned_dword_addresses(start_address, byte_count)
+    if any(address not in dwords for address in expected_addresses):
+        return reader.read_bytes(start_address, byte_count)
+    return bytes_from_dwords(
+        dwords,
+        start_address=start_address,
+        byte_count=byte_count,
+    )
+
+
+def snapshot_window(
+    reader: Scene11SnapshotReader,
+    *,
+    ptr_life: int,
+    target_offset: int,
+    window_before: int,
+    window_after: int,
+) -> tuple[int | None, PointerWindow]:
+    start_offset = max(0, target_offset - window_before)
+    cursor_index = target_offset - start_offset
+    byte_count = cursor_index + 1 + window_after
+    start_address = ptr_life + start_offset
+
+    try:
+        raw = read_byte_range_from_dwords(
+            reader,
+            start_address=start_address,
+            byte_count=byte_count,
+        )
+    except DebuggerReadError as error:
+        return None, PointerWindow(
+            start=format_hex_u32(start_address) or "0x00000000",
+            cursor_index=cursor_index,
+            bytes_hex=None,
+            error=str(error),
         )
 
-    def handle_interrupt(self) -> None:
-        self._finalize("unexpected_control_flow", "interrupted before the scene-11 pair trace completed", take_final_screenshot=True)
+    return raw[cursor_index], PointerWindow(
+        start=format_hex_u32(start_address) or "0x00000000",
+        cursor_index=cursor_index,
+        bytes_hex=bytes_to_hex(raw),
+    )
 
-    def handle_process_exit(self, reason: str) -> None:
-        self._finalize("process_exited", reason, take_final_screenshot=False)
 
-    def handle_runtime_error(self, reason: str) -> None:
-        self._finalize("unexpected_control_flow", reason, take_final_screenshot=True)
+def collect_object_snapshot(
+    reader: Scene11SnapshotReader,
+    spec: Scene11ObjectSnapshotSpec,
+    dwords: dict[int, int],
+    words: dict[int, int],
+    *,
+    window_before: int,
+    window_after: int,
+) -> Scene11ObjectSnapshot:
+    current_object = object_record_address(spec.object_index)
+    ptr_life_field = ptr_life_field_address(spec.object_index)
+    offset_life_field = offset_life_field_address(spec.object_index)
+    ptr_life = dwords[ptr_life_field]
+    offset_life = words[offset_life_field]
 
-    def next_deadline(self) -> float | None:
+    if ptr_life == 0:
+        return Scene11ObjectSnapshot(
+            spec=spec,
+            current_object=current_object,
+            ptr_life_field=ptr_life_field,
+            ptr_life=ptr_life,
+            offset_life_field=offset_life_field,
+            offset_life=offset_life,
+            target_address=None,
+            target_window=PointerWindow(
+                start="0x00000000",
+                cursor_index=max(0, min(spec.target_offset, window_before)),
+                bytes_hex=None,
+                error=f"PtrLife for object {spec.object_index} was null",
+            ),
+            target_byte=None,
+        )
+
+    target_byte, target_window = snapshot_window(
+        reader,
+        ptr_life=ptr_life,
+        target_offset=spec.target_offset,
+        window_before=window_before,
+        window_after=window_after,
+    )
+    return Scene11ObjectSnapshot(
+        spec=spec,
+        current_object=current_object,
+        ptr_life_field=ptr_life_field,
+        ptr_life=ptr_life,
+        offset_life_field=offset_life_field,
+        offset_life=offset_life,
+        target_address=ptr_life + spec.target_offset,
+        target_window=target_window,
+        target_byte=target_byte,
+    )
+
+
+def collect_scene11_debugger_snapshot(
+    reader: Scene11SnapshotReader,
+    *,
+    window_before: int = WINDOW_BEFORE,
+    window_after: int = WINDOW_AFTER,
+) -> Scene11DebuggerSnapshot:
+    dwords, words = reader.read_scalars(
+        dword_addresses=(
+            PTR_PRG_GLOBAL,
+            ptr_life_field_address(PRIMARY_SNAPSHOT.object_index),
+            ptr_life_field_address(COMPARISON_SNAPSHOT.object_index),
+        ),
+        word_addresses=(
+            offset_life_field_address(PRIMARY_SNAPSHOT.object_index),
+            offset_life_field_address(COMPARISON_SNAPSHOT.object_index),
+        ),
+    )
+    return Scene11DebuggerSnapshot(
+        ptr_prg=dwords[PTR_PRG_GLOBAL],
+        primary=collect_object_snapshot(
+            reader,
+            PRIMARY_SNAPSHOT,
+            dwords,
+            words,
+            window_before=window_before,
+            window_after=window_after,
+        ),
+        comparison=collect_object_snapshot(
+            reader,
+            COMPARISON_SNAPSHOT,
+            dwords,
+            words,
+            window_before=window_before,
+            window_after=window_after,
+        ),
+    )
+
+
+def determine_scene11_snapshot_verdict(snapshot: Scene11DebuggerSnapshot) -> tuple[str, str]:
+    for object_snapshot in (snapshot.primary, snapshot.comparison):
+        if object_snapshot.ptr_life == 0:
+            return (
+                f"scene11_{object_snapshot.spec.label}_ptr_life_missing",
+                f"object {object_snapshot.spec.object_index} PtrLife was null after the Scene11 load snapshot",
+            )
+        if object_snapshot.target_byte is None:
+            return (
+                f"scene11_{object_snapshot.spec.label}_window_unavailable",
+                f"could not read the object {object_snapshot.spec.object_index} target window at offset {object_snapshot.spec.target_offset}",
+            )
+        if object_snapshot.target_byte != object_snapshot.spec.expected_opcode:
+            return (
+                f"scene11_{object_snapshot.spec.label}_target_mismatch",
+                f"object {object_snapshot.spec.object_index} byte at offset {object_snapshot.spec.target_offset} was 0x{object_snapshot.target_byte:02X}, expected 0x{object_snapshot.spec.expected_opcode:02X}",
+            )
+
+    return (
+        "scene11_snapshot_complete",
+        "captured debugger-owned Scene11 snapshot evidence for object 12 LM_DEFAULT and object 18 LM_END_SWITCH",
+    )
+
+
+def discover_scene11_runtime_candidates(
+    reader: Scene11SnapshotReader,
+    *,
+    scan_object_limit: int = DISCOVERY_SCAN_OBJECT_LIMIT,
+    scan_byte_limit: int = DISCOVERY_SCAN_BYTE_LIMIT,
+    window_before: int = WINDOW_BEFORE,
+    window_after: int = WINDOW_AFTER,
+) -> tuple[Scene11RuntimeCandidate, ...]:
+    dwords, words = reader.read_scalars(
+        dword_addresses=tuple(ptr_life_field_address(i) for i in range(scan_object_limit)),
+        word_addresses=tuple(offset_life_field_address(i) for i in range(scan_object_limit)),
+    )
+
+    candidates: list[Scene11RuntimeCandidate] = []
+    for object_index in range(scan_object_limit):
+        ptr_life_field = ptr_life_field_address(object_index)
+        ptr_life = dwords[ptr_life_field]
+        if ptr_life == 0:
+            continue
+
+        blob = read_byte_range_from_dwords(
+            reader,
+            start_address=ptr_life,
+            byte_count=scan_byte_limit,
+        )
+        offset_life = words[offset_life_field_address(object_index)]
+        for offset, opcode in enumerate(blob):
+            if opcode not in DISCOVERY_OPCODES:
+                continue
+            start_offset = max(0, offset - window_before)
+            cursor_index = offset - start_offset
+            end_offset = min(len(blob), offset + window_after + 1)
+            candidates.append(
+                Scene11RuntimeCandidate(
+                    object_index=object_index,
+                    ptr_life=ptr_life,
+                    offset_life=offset_life,
+                    opcode=opcode,
+                    opcode_offset=offset,
+                    target_window=PointerWindow(
+                        start=format_hex_u32(ptr_life + start_offset) or "0x00000000",
+                        cursor_index=cursor_index,
+                        bytes_hex=bytes_to_hex(blob[start_offset:end_offset]),
+                    ),
+                )
+            )
+
+    return tuple(candidates)
+
+
+def summarize_scene11_runtime_mismatch(
+    snapshot: Scene11DebuggerSnapshot,
+    candidates: tuple[Scene11RuntimeCandidate, ...],
+) -> tuple[str, str] | None:
+    default_candidate = next((candidate for candidate in candidates if candidate.opcode == 0x74), None)
+    end_switch_candidate = next((candidate for candidate in candidates if candidate.opcode == 0x76), None)
+    if default_candidate is None and end_switch_candidate is None:
         return None
 
-    def poll(self, now: float) -> None:
-        return
-
-    def _finalize_scene11_verdict(self) -> None:
-        if self.matched_fingerprint and self.primary_event_id is not None and self.comparison_event_id is not None:
-            self._finalize(
-                "scene11_pair_complete",
-                "captured scene-11 LM_DEFAULT and LM_END_SWITCH evidence on live paths",
-                take_final_screenshot=True,
-            )
-            return
-
-        self._finalize(
-            "unexpected_control_flow",
-            "captured an incomplete scene-11 pair evidence set",
-            take_final_screenshot=True,
+    problems: list[str] = []
+    if snapshot.primary.ptr_life == 0:
+        problems.append("canonical object 12 PtrLife was null")
+    elif snapshot.primary.target_byte != snapshot.primary.spec.expected_opcode:
+        problems.append(
+            f"canonical object 12 byte at offset 38 was 0x{snapshot.primary.target_byte:02X}"
+            if snapshot.primary.target_byte is not None
+            else "canonical object 12 target window was unavailable"
+        )
+    if snapshot.comparison.ptr_life == 0:
+        problems.append("canonical object 18 PtrLife was null")
+    elif snapshot.comparison.target_byte != snapshot.comparison.spec.expected_opcode:
+        problems.append(
+            f"canonical object 18 byte at offset 84 was 0x{snapshot.comparison.target_byte:02X}"
+            if snapshot.comparison.target_byte is not None
+            else "canonical object 18 target window was unavailable"
         )
 
-    def _finalize(self, result: str, reason: str, *, take_final_screenshot: bool) -> None:
-        if self.terminal:
-            return
-
-        verdict_event_id = self.writer.next_event_id()
-        if take_final_screenshot:
-            try:
-                screenshot_path, window = self._capture_window_file(
-                    poi="final_verdict",
-                    event_id=verdict_event_id,
-                    object_index=self.args.target_object,
-                    offset_value=self.args.target_offset,
-                )
-            except CaptureError as error:
-                self.writer.write_event(
-                    PersistedScreenshotErrorEvent(
-                        poi="final_verdict",
-                        reason=str(error),
-                        capture_status="failed",
-                    ),
-                    event_id=verdict_event_id,
-                )
-                result = "screenshot_capture_failed"
-                reason = f"required screenshot failed for final_verdict: {error}"
-            else:
-                self.required_screenshots["final_verdict"] = screenshot_path
-                self.writer.write_event(
-                    PersistedScreenshotEvent(
-                        poi="final_verdict",
-                        screenshot_path=screenshot_path,
-                        source_window_title=window.title,
-                        capture_status="captured",
-                    ),
-                    event_id=verdict_event_id,
-                )
-
-        required_screenshots_complete = (
-            result != "screenshot_capture_failed"
-            and self._required_pois() <= set(self.required_screenshots)
+    discoveries: list[str] = []
+    if default_candidate is not None:
+        discoveries.append(
+            f"live object {default_candidate.object_index} exposed LM_DEFAULT at offset {default_candidate.opcode_offset}"
+        )
+    if end_switch_candidate is not None:
+        discoveries.append(
+            f"live object {end_switch_candidate.object_index} exposed LM_END_SWITCH at offset {end_switch_candidate.opcode_offset}"
         )
 
-        self.writer.write_event(
-            PersistedVerdictEvent(
-                phase="completed",
-                matched_fingerprint=self.matched_fingerprint,
-                required_screenshots_complete=required_screenshots_complete,
-                result=result,
-                reason=reason,
-                fingerprint_event_id=self.fingerprint_event_id,
-                primary_event_id=self.primary_event_id,
-                primary_post_hit_outcome=None if self.primary_event is None else optional_value(self.primary_event.post_hit_outcome),
-                primary_entered_do_func_life=None if self.primary_event is None else optional_value(self.primary_event.entered_do_func_life),
-                primary_entered_do_test=None if self.primary_event is None else optional_value(self.primary_event.entered_do_test),
-                comparison_event_id=self.comparison_event_id,
-                comparison_post_hit_outcome=None if self.comparison_event is None else optional_value(self.comparison_event.post_hit_outcome),
-                comparison_entered_do_func_life=None if self.comparison_event is None else optional_value(self.comparison_event.entered_do_func_life),
-                comparison_entered_do_test=None if self.comparison_event is None else optional_value(self.comparison_event.entered_do_test),
+    return (
+        "scene11_static_runtime_mismatch",
+        "; ".join([*problems, *discoveries]),
+    )
+
+
+def write_memory_snapshot_event(
+    writer: JsonlWriter,
+    *,
+    snapshot_name: str,
+    debugger: str,
+    address: int,
+    object_index: int | None = None,
+    current_object: int | None = None,
+    relative_to: str | None = None,
+    relative_offset: int | None = None,
+    value_u16: int | None = None,
+    value_u32: int | None = None,
+    window: PointerWindow | None = None,
+) -> str:
+    event_kwargs = {
+        "snapshot_name": snapshot_name,
+        "debugger": debugger,
+        "address": format_hex_u32(address) or "0x00000000",
+        "object_index": object_index,
+        "current_object": format_hex_u32(current_object),
+        "relative_to": relative_to,
+        "relative_offset": relative_offset,
+        "value_hex": format_hex_u32(value_u32)
+        if value_u32 is not None
+        else format_hex_u16(value_u16),
+        "value_u16": value_u16,
+        "value_u32": value_u32,
+    }
+    if window is not None:
+        event_kwargs["window"] = window
+    return writer.write_event(PersistedMemorySnapshotEvent(**event_kwargs))
+
+
+def capture_snapshot_poi(
+    writer: JsonlWriter,
+    capture: WindowCapture,
+    *,
+    pid: int,
+    poi: str,
+    event_id: str,
+    object_index: int,
+    offset_value: int,
+) -> tuple[str | None, str | None]:
+    filename = f"{event_id}__{poi}__obj{object_index}__off{offset_value:03d}.png"
+    absolute_path = writer.screenshot_dir / filename
+    try:
+        window = capture.capture(pid, absolute_path)
+    except CaptureError as error:
+        writer.write_event(
+            PersistedScreenshotErrorEvent(
+                poi=poi,
+                reason=str(error),
+                capture_status="failed",
             ),
-            event_id=verdict_event_id,
+            event_id=event_id,
         )
-        self.writer.write_event(
-            PersistedStatusEvent(
-                phase="completed",
-                message=TRACE_COMPLETE_STATUS_MESSAGE if result == "scene11_pair_complete" else TRACE_FINISHED_STATUS_MESSAGE,
-                pid=self.pid,
+        return None, str(error)
+
+    relative_path = str(absolute_path.relative_to(REPO_ROOT)).replace("\\", "/")
+    writer.write_event(
+        PersistedScreenshotEvent(
+            poi=poi,
+            screenshot_path=relative_path,
+            source_window_title=window.title,
+            capture_status="captured",
+        ),
+        event_id=event_id,
+    )
+    return relative_path, None
+
+
+def run_scene11_debugger_snapshot(
+    args: argparse.Namespace,
+    writer: JsonlWriter,
+    pid: int,
+) -> tuple[int, str | None]:
+    capture = WindowCapture()
+    screenshot_error: str | None = None
+
+    writer.write_event(
+        PersistedStatusEvent(
+            phase="capturing_snapshot",
+            message="capturing Scene11 through the debugger snapshot lane",
+            pid=pid,
+        )
+    )
+
+    loaded_scene_event_id = writer.next_event_id()
+    _, loaded_scene_error = capture_snapshot_poi(
+        writer,
+        capture,
+        pid=pid,
+        poi="loaded_scene",
+        event_id=loaded_scene_event_id,
+        object_index=PRIMARY_SNAPSHOT.object_index,
+        offset_value=PRIMARY_SNAPSHOT.target_offset,
+    )
+    if loaded_scene_error is not None:
+        screenshot_error = f"required screenshot failed for loaded_scene: {loaded_scene_error}"
+
+    cdb_path = resolve_cdb_path(args.cdb_path)
+    writer.write_event(
+        PersistedStatusEvent(
+            message=f"attached cdb snapshot backend from {cdb_path}",
+            pid=pid,
+        )
+    )
+    snapshot = collect_scene11_debugger_snapshot(
+        CdbMemoryReader(cdb_path, pid),
+        window_before=args.window_before,
+        window_after=args.window_after,
+    )
+
+    write_memory_snapshot_event(
+        writer,
+        snapshot_name="global_ptr_prg",
+        debugger="cdb",
+        address=PTR_PRG_GLOBAL,
+        value_u32=snapshot.ptr_prg,
+    )
+    write_memory_snapshot_event(
+        writer,
+        snapshot_name="primary_ptr_life",
+        debugger="cdb",
+        address=snapshot.primary.ptr_life_field,
+        object_index=snapshot.primary.spec.object_index,
+        current_object=snapshot.primary.current_object,
+        value_u32=snapshot.primary.ptr_life,
+    )
+    write_memory_snapshot_event(
+        writer,
+        snapshot_name="primary_offset_life",
+        debugger="cdb",
+        address=snapshot.primary.offset_life_field,
+        object_index=snapshot.primary.spec.object_index,
+        current_object=snapshot.primary.current_object,
+        value_u16=snapshot.primary.offset_life,
+    )
+    primary_window_event_id = write_memory_snapshot_event(
+        writer,
+        snapshot_name="primary_target_window",
+        debugger="cdb",
+        address=snapshot.primary.target_address or 0,
+        object_index=snapshot.primary.spec.object_index,
+        current_object=snapshot.primary.current_object,
+        relative_to="ptr_life",
+        relative_offset=snapshot.primary.spec.target_offset,
+        window=snapshot.primary.target_window,
+    )
+
+    write_memory_snapshot_event(
+        writer,
+        snapshot_name="comparison_ptr_life",
+        debugger="cdb",
+        address=snapshot.comparison.ptr_life_field,
+        object_index=snapshot.comparison.spec.object_index,
+        current_object=snapshot.comparison.current_object,
+        value_u32=snapshot.comparison.ptr_life,
+    )
+    write_memory_snapshot_event(
+        writer,
+        snapshot_name="comparison_offset_life",
+        debugger="cdb",
+        address=snapshot.comparison.offset_life_field,
+        object_index=snapshot.comparison.spec.object_index,
+        current_object=snapshot.comparison.current_object,
+        value_u16=snapshot.comparison.offset_life,
+    )
+    comparison_window_event_id = write_memory_snapshot_event(
+        writer,
+        snapshot_name="comparison_target_window",
+        debugger="cdb",
+        address=snapshot.comparison.target_address or 0,
+        object_index=snapshot.comparison.spec.object_index,
+        current_object=snapshot.comparison.current_object,
+        relative_to="ptr_life",
+        relative_offset=snapshot.comparison.spec.target_offset,
+        window=snapshot.comparison.target_window,
+    )
+
+    result, reason = determine_scene11_snapshot_verdict(snapshot)
+    if result != "scene11_snapshot_complete":
+        discovery_candidates = discover_scene11_runtime_candidates(
+            CdbMemoryReader(cdb_path, pid),
+            window_before=args.window_before,
+            window_after=args.window_after,
+        )
+        if discovery_candidates:
+            writer.write_event(
+                PersistedStatusEvent(
+                    message=(
+                        "scene11 runtime discovery found "
+                        + ", ".join(
+                            f"{DISCOVERY_OPCODES[candidate.opcode]} on object {candidate.object_index} at offset {candidate.opcode_offset}"
+                            for candidate in discovery_candidates
+                        )
+                    ),
+                    pid=pid,
+                )
             )
+        for candidate in discovery_candidates:
+            write_memory_snapshot_event(
+                writer,
+                snapshot_name=f"discovery_{DISCOVERY_OPCODES[candidate.opcode].lower()}_window",
+                debugger="cdb",
+                address=candidate.ptr_life + candidate.opcode_offset,
+                object_index=candidate.object_index,
+                current_object=object_record_address(candidate.object_index),
+                relative_to="ptr_life",
+                relative_offset=candidate.opcode_offset,
+                window=candidate.target_window,
+            )
+        mismatch = summarize_scene11_runtime_mismatch(snapshot, discovery_candidates)
+        if mismatch is not None:
+            result, reason = mismatch
+
+    verdict_event_id = writer.next_event_id()
+    _, final_screenshot_error = capture_snapshot_poi(
+        writer,
+        capture,
+        pid=pid,
+        poi="final_verdict",
+        event_id=verdict_event_id,
+        object_index=PRIMARY_SNAPSHOT.object_index,
+        offset_value=PRIMARY_SNAPSHOT.target_offset,
+    )
+    if final_screenshot_error is not None:
+        screenshot_error = f"required screenshot failed for final_verdict: {final_screenshot_error}"
+
+    if screenshot_error is not None:
+        result = "screenshot_capture_failed"
+        reason = screenshot_error
+
+    writer.write_event(
+        PersistedVerdictEvent(
+            phase="completed",
+            matched_fingerprint=False,
+            required_screenshots_complete=screenshot_error is None,
+            result=result,
+            reason=reason,
+            primary_event_id=primary_window_event_id,
+            comparison_event_id=comparison_window_event_id,
+        ),
+        event_id=verdict_event_id,
+    )
+    writer.write_event(
+        PersistedStatusEvent(
+            phase="completed",
+            message=TRACE_COMPLETE_STATUS_MESSAGE if result == "scene11_snapshot_complete" else TRACE_FINISHED_STATUS_MESSAGE,
+            pid=pid,
         )
+    )
 
-        if self.phase != "completed":
-            self.phase = "completed"
-
-        self.last_error = None if result == "scene11_pair_complete" else reason
-        self.exit_code = 0 if result == "scene11_pair_complete" else 1
-        self.terminal = True
-
-    def _required_pois(self) -> set[str]:
-        required: set[str] = set()
-        if self.matched_fingerprint:
-            required.add("fingerprint_match")
-        if self.primary_event_id is not None:
-            required.add("primary_opcode_hit")
-        if self.comparison_event_id is not None:
-            required.add("comparison_opcode_hit")
-        required.add("final_verdict")
-        return required
+    return (0, None) if result == "scene11_snapshot_complete" else (1, reason)
 
 
 SCENE_SPEC = StructuredSceneSpec(
     preset=SCENE11_PAIR_PRESET,
-    controller_factory=Scene11PairController,
+    snapshot_runner=run_scene11_debugger_snapshot,
     prepare_launch=prepare_scene11_launch,
     cleanup_launch=cleanup_scene11_launch,
-    launch_strategy="native_launch_then_fra_attach",
-    requires_callsite_map=True,
-    helper_capture_enabled=True,
+    launch_strategy="native_launch_then_attach",
+    runtime_backend="debugger_snapshot",
+    requires_callsite_map=False,
+    helper_capture_enabled=False,
 )

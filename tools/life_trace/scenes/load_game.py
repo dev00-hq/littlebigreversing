@@ -128,6 +128,7 @@ def drive_single_save_load_game_startup(
     adeline_enter_delay_sec: float,
     startup_window_timeout_sec: float,
     post_load_settle_delay_sec: float = LOAD_GAME_SOLE_SAVE_SETTLE_DELAY_SEC,
+    post_load_status_message: str = "waited for the sole staged save to settle before attaching fra probe",
     capture: WindowCapture | None = None,
     window_input: WindowInput | None = None,
 ) -> None:
@@ -210,7 +211,7 @@ def drive_single_save_load_game_startup(
     time.sleep(post_load_settle_delay_sec)
     writer.write_event(
         PersistedStatusEvent(
-            message="waited for the sole staged save to settle before attaching fra probe",
+            message=post_load_status_message,
             pid=pid,
         )
     )

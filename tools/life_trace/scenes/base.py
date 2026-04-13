@@ -16,7 +16,9 @@ from life_trace_shared import (
 from life_trace_windows import CaptureError, WindowCapture, WindowInfo
 
 
-LaunchStrategy = Literal["fra_spawn", "native_launch_then_fra_attach"]
+LaunchStrategy = Literal["fra_spawn", "native_launch_then_attach"]
+RuntimeBackend = Literal["fra_probe", "frida_probe", "debugger_snapshot"]
+SnapshotLaneRunner = Callable[[argparse.Namespace, JsonlWriter, int], tuple[int, str | None]]
 
 
 class StructuredSceneController(Protocol):
@@ -122,9 +124,11 @@ class StructuredSceneControllerBase:
 @dataclass(frozen=True)
 class StructuredSceneSpec:
     preset: TracePreset
-    controller_factory: Callable[[argparse.Namespace, JsonlWriter, int], StructuredSceneController]
+    controller_factory: Callable[[argparse.Namespace, JsonlWriter, int], StructuredSceneController] | None = None
+    snapshot_runner: SnapshotLaneRunner | None = None
     prepare_launch: Callable[[argparse.Namespace, JsonlWriter, Path, int], None] | None = None
     cleanup_launch: Callable[[argparse.Namespace, JsonlWriter, Path], None] | None = None
     launch_strategy: LaunchStrategy = "fra_spawn"
+    runtime_backend: RuntimeBackend = "fra_probe"
     requires_callsite_map: bool = False
     helper_capture_enabled: bool = False

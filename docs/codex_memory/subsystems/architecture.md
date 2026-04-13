@@ -23,6 +23,8 @@ Own repo-wide port direction and the canonical Codex memory workflow.
 - `docs/PROMPT.md` can lag; cross-check packs and history.
 - `sidequest/` and `LM_TASKS/` are independent workstreams, not part of canonical memory pickup unless a prompt explicitly widens scope.
 - The checked-in memory docs and bulky `work/` artifacts can lag this worktree; verify code, `git status`, and external asset paths.
+- Parked nested Git metadata under `reference/discourse-downloader/.git.disabled/` and `reference/littlebigreversing/.git.disabled/` is portability noise, not canonical project state. Do not treat tracked `objects/`, `refs/`, `logs/`, `HEAD`, or `config` files there as dependencies that need to follow every machine.
+- On this Windows checkout, `bash -lc 'git status'` under `/mnt/d/...` can over-report worktree dirtiness. For canonical repo-state checks, prefer native Windows Git from the PowerShell-hosted shell before deciding that large tracked trees need to be synchronized.
 - A usable `.codex/worktrees/...` checkout can still have stale git metadata; if `git status` says `not a git repository`, confirm the filesystem tree directly before treating the checkout as missing or clean.
 - In the PowerShell-hosted workflow, `bash -lc "..."` can still be mangled before Bash sees it. Prefer single-quoted Bash payloads in tool calls.
 - Use native PowerShell for Windows verification and Python package installs: run Zig checks through `py -3 .\scripts\dev-shell.py`, and use `py -3 -m pip install ...` because the Bash-side `python3` lacks `pip`.

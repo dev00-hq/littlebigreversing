@@ -343,7 +343,7 @@ SCENE_SPEC = StructuredSceneSpec(
     controller_factory=TavernTraceController,
     prepare_launch=prepare_tavern_launch,
     cleanup_launch=cleanup_tavern_launch,
-    launch_strategy="native_launch_then_fra_attach",
+    launch_strategy="native_launch_then_attach",
     requires_callsite_map=False,
     helper_capture_enabled=False,
 )
