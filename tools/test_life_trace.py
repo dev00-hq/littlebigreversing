@@ -16,6 +16,7 @@ import msgspec
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "life_trace"))
 
+import life_trace_debugger
 import trace_life
 
 
@@ -27,7 +28,7 @@ BRANCH_TRACE_LINE = """{"branch_kind": "break_jump", "computed_target_offset": 1
 WINDOW_TRACE_LINE = """{"current_object": "0x49a19c", "event_id": "evt-0015", "exe_switch": {"func": 0, "type_answer": 0, "value": 0}, "kind": "window_trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "ptr_window": {"bytes_hex": "00 22 08 4e 01 75 67 00 76 37 09 00 0b 7a 00 37 09", "cursor_index": 8, "start": "0x33a3506"}, "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z", "working_type_answer": 4, "working_value": 0}"""
 MINIMAL_TAVERN_WINDOW_TRACE_LINE = """{"byte_at_ptr_prg": 118, "byte_at_ptr_prg_hex": "0x76", "current_object": "0x49a19c", "event_id": "evt-0015", "kind": "window_trace", "matches_target": true, "object_index": 0, "offset_life": 47, "opcode": 118, "opcode_hex": "0x76", "owner_kind": "hero", "ptr_life": "0x33a21fb", "ptr_prg": "0x33a350e", "ptr_prg_offset": 4883, "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "thread_id": 21624, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 SCREENSHOT_LINE = """{"capture_status": "captured", "event_id": "evt-0015", "kind": "screenshot", "poi": "opcode_076_fetch", "run_id": "life-trace-20260405-011732", "screenshot_path": "work/life_trace/runs/life-trace-20260405-011732/screenshots/evt-0015__opcode_076_fetch__obj0__off4883.png", "source_stream": "enriched", "source_window_title": "LBA2", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
-MEMORY_SNAPSHOT_LINE = """{"address": "0x0049BCCE", "current_object": "0x0049BAE0", "debugger": "cdb", "event_id": "evt-0020", "kind": "memory_snapshot", "object_index": 12, "relative_offset": 38, "relative_to": "ptr_life", "run_id": "life-trace-20260405-011732", "snapshot_name": "primary_target_window", "source_stream": "enriched", "timestamp_utc": "2026-04-05T05:17:42Z", "window": {"bytes_hex": "00 01 17 42 00 75 2D 00 74 17", "cursor_index": 8, "start": "0x0049BCC6"}}"""
+MEMORY_SNAPSHOT_LINE = """{"address": "0x0049BCCE", "current_object": "0x0049BAE0", "debugger": "cdb-agent", "event_id": "evt-0020", "kind": "memory_snapshot", "object_index": 12, "relative_offset": 38, "relative_to": "ptr_life", "run_id": "life-trace-20260405-011732", "snapshot_name": "primary_target_window", "source_stream": "enriched", "timestamp_utc": "2026-04-05T05:17:42Z", "window": {"bytes_hex": "00 01 17 42 00 75 2D 00 74 17", "cursor_index": 8, "start": "0x0049BCC6"}}"""
 VERDICT_LINE = """{"break_target_offset": 103, "event_id": "evt-0018", "fingerprint_event_id": "evt-0005", "hidden_076_case_seen": false, "kind": "verdict", "matched_fingerprint": true, "opcode_076_fetch_event_id": "evt-0015", "phase": "completed", "post_076_outcome": "loop_reentry", "post_076_outcome_event_id": "evt-0017", "reason": "captured Tavern proof through loop_reentry", "required_screenshots_complete": true, "result": "tavern_trace_complete", "returned_after_076": false, "run_id": "life-trace-20260405-011732", "saw_076_fetch": true, "saw_post_076_loop": true, "source_stream": "enriched", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 ERROR_LINE = """{"description": "boom", "event_id": "evt-0099", "kind": "error", "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "stack": null, "timestamp_utc": "2026-04-05T05:17:42Z"}"""
 SCREENSHOT_ERROR_LINE = """{"capture_status": "failed", "event_id": "evt-0005", "kind": "screenshot_error", "poi": "final_verdict", "reason": "window for pid 1 did not become capturable within 10 seconds", "run_id": "life-trace-20260405-011732", "source_stream": "enriched", "timestamp_utc": "2026-04-05T05:17:42Z"}"""
@@ -1192,6 +1193,95 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                 "canonical object 12 PtrLife was null; canonical object 18 PtrLife was null; live object 2 exposed LM_DEFAULT at offset 96; live object 2 exposed LM_END_SWITCH at offset 103",
             ),
             mismatch,
+        )
+
+
+class CdbAgentMemoryReaderTest(unittest.TestCase):
+    def test_read_scalars_uses_cdb_agent_json_memory_commands(self) -> None:
+        reader = life_trace_debugger.CdbMemoryReader(
+            Path(r"C:\debuggers\cdb.exe"),
+            4321,
+            timeout_sec=12.5,
+            cdb_agent_command=["cdb-agent"],
+        )
+
+        with mock.patch.object(
+            life_trace_debugger,
+            "run_cdb_agent_json",
+            side_effect=[
+                {"rows": [{"address": 0x004976D0, "value": 0x00420000}]},
+                {"rows": [{"address": 0x00497D44, "value": 0x0004}]},
+            ],
+        ) as mocked_run:
+            dwords, words = reader.read_scalars(
+                dword_addresses=(0x004976D0,),
+                word_addresses=(0x00497D44,),
+            )
+
+        self.assertEqual({0x004976D0: 0x00420000}, dwords)
+        self.assertEqual({0x00497D44: 0x0004}, words)
+        mocked_run.assert_has_calls(
+            [
+                mock.call(
+                    ["cdb-agent"],
+                    [
+                        "memory",
+                        "dword",
+                        "--pid",
+                        "4321",
+                        "--cdb-path",
+                        r"C:\debuggers\cdb.exe",
+                        "--wow64",
+                        "--timeout-sec",
+                        "12.5",
+                        "0x004976D0",
+                    ],
+                    timeout_sec=12.5,
+                ),
+                mock.call(
+                    ["cdb-agent"],
+                    [
+                        "memory",
+                        "word",
+                        "--pid",
+                        "4321",
+                        "--cdb-path",
+                        r"C:\debuggers\cdb.exe",
+                        "--wow64",
+                        "--timeout-sec",
+                        "12.5",
+                        "0x00497D44",
+                    ],
+                    timeout_sec=12.5,
+                ),
+            ]
+        )
+
+    def test_read_bytes_collects_contiguous_rows_from_cdb_agent_output(self) -> None:
+        reader = life_trace_debugger.CdbMemoryReader(
+            Path(r"C:\debuggers\cdb.exe"),
+            4321,
+            cdb_agent_command=["cdb-agent"],
+        )
+
+        with mock.patch.object(
+            life_trace_debugger,
+            "run_cdb_agent_json",
+            return_value={
+                "rows": [
+                    {
+                        "address": 0x0049BCC6,
+                        "bytes": [0x00, 0x01, 0x17, 0x42, 0x00, 0x75, 0x2D, 0x00, 0x74, 0x17],
+                        "bytes_hex": "00 01 17 42 00 75 2D 00 74 17",
+                    }
+                ]
+            },
+        ):
+            data = reader.read_bytes(0x0049BCC6, 10)
+
+        self.assertEqual(
+            bytes([0x00, 0x01, 0x17, 0x42, 0x00, 0x75, 0x2D, 0x00, 0x74, 0x17]),
+            data,
         )
 
 

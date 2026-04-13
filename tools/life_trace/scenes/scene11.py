@@ -600,7 +600,7 @@ def run_scene11_debugger_snapshot(
     cdb_path = resolve_cdb_path(args.cdb_path)
     writer.write_event(
         PersistedStatusEvent(
-            message=f"attached cdb snapshot backend from {cdb_path}",
+            message=f"attached cdb-agent snapshot backend via {cdb_path}",
             pid=pid,
         )
     )
@@ -613,14 +613,14 @@ def run_scene11_debugger_snapshot(
     write_memory_snapshot_event(
         writer,
         snapshot_name="global_ptr_prg",
-        debugger="cdb",
+        debugger="cdb-agent",
         address=PTR_PRG_GLOBAL,
         value_u32=snapshot.ptr_prg,
     )
     write_memory_snapshot_event(
         writer,
         snapshot_name="primary_ptr_life",
-        debugger="cdb",
+        debugger="cdb-agent",
         address=snapshot.primary.ptr_life_field,
         object_index=snapshot.primary.spec.object_index,
         current_object=snapshot.primary.current_object,
@@ -629,7 +629,7 @@ def run_scene11_debugger_snapshot(
     write_memory_snapshot_event(
         writer,
         snapshot_name="primary_offset_life",
-        debugger="cdb",
+        debugger="cdb-agent",
         address=snapshot.primary.offset_life_field,
         object_index=snapshot.primary.spec.object_index,
         current_object=snapshot.primary.current_object,
@@ -638,7 +638,7 @@ def run_scene11_debugger_snapshot(
     primary_window_event_id = write_memory_snapshot_event(
         writer,
         snapshot_name="primary_target_window",
-        debugger="cdb",
+        debugger="cdb-agent",
         address=snapshot.primary.target_address or 0,
         object_index=snapshot.primary.spec.object_index,
         current_object=snapshot.primary.current_object,
@@ -650,7 +650,7 @@ def run_scene11_debugger_snapshot(
     write_memory_snapshot_event(
         writer,
         snapshot_name="comparison_ptr_life",
-        debugger="cdb",
+        debugger="cdb-agent",
         address=snapshot.comparison.ptr_life_field,
         object_index=snapshot.comparison.spec.object_index,
         current_object=snapshot.comparison.current_object,
@@ -659,7 +659,7 @@ def run_scene11_debugger_snapshot(
     write_memory_snapshot_event(
         writer,
         snapshot_name="comparison_offset_life",
-        debugger="cdb",
+        debugger="cdb-agent",
         address=snapshot.comparison.offset_life_field,
         object_index=snapshot.comparison.spec.object_index,
         current_object=snapshot.comparison.current_object,
@@ -668,7 +668,7 @@ def run_scene11_debugger_snapshot(
     comparison_window_event_id = write_memory_snapshot_event(
         writer,
         snapshot_name="comparison_target_window",
-        debugger="cdb",
+        debugger="cdb-agent",
         address=snapshot.comparison.target_address or 0,
         object_index=snapshot.comparison.spec.object_index,
         current_object=snapshot.comparison.current_object,
@@ -701,7 +701,7 @@ def run_scene11_debugger_snapshot(
             write_memory_snapshot_event(
                 writer,
                 snapshot_name=f"discovery_{DISCOVERY_OPCODES[candidate.opcode].lower()}_window",
-                debugger="cdb",
+                debugger="cdb-agent",
                 address=candidate.ptr_life + candidate.opcode_offset,
                 object_index=candidate.object_index,
                 current_object=object_record_address(candidate.object_index),

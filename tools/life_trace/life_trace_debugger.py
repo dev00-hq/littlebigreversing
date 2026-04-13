@@ -1,13 +1,23 @@
 from __future__ import annotations
 
-import re
+import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Any
 
 
 class DebuggerReadError(RuntimeError):
     pass
+
+
+def resolve_cdb_agent_command() -> list[str]:
+    launcher = shutil.which("cdb-agent")
+    if launcher:
+        return [launcher]
+    raise DebuggerReadError(
+        "unable to locate cdb-agent; install D:\\repos\\cdb-agent or put cdb-agent on PATH"
+    )
 
 
 def resolve_cdb_path(explicit_path: str | None) -> Path:
@@ -51,23 +61,14 @@ def resolve_cdb_path(explicit_path: str | None) -> Path:
     raise DebuggerReadError("unable to locate cdb.exe; pass --cdb-path with an explicit debugger path")
 
 
-def run_cdb_commands(
-    cdb_path: Path,
-    pid: int,
-    commands: list[str],
+def run_cdb_agent_json(
+    launcher: list[str],
+    command_args: list[str],
     *,
     timeout_sec: float = 60.0,
-) -> str:
-    debugger_commands = [".load wow64exts", "!wow64exts.sw", *commands, "q"]
+) -> dict[str, Any]:
     completed = subprocess.run(
-        [
-            str(cdb_path),
-            "-pv",
-            "-p",
-            str(pid),
-            "-c",
-            "; ".join(debugger_commands),
-        ],
+        [*launcher, "--json", *command_args],
         capture_output=True,
         text=True,
         check=False,
@@ -76,60 +77,62 @@ def run_cdb_commands(
     if completed.returncode != 0:
         detail = (completed.stderr or completed.stdout).strip() or "<no output>"
         raise DebuggerReadError(
-            f"cdb command failed ({completed.returncode}) for pid {pid}: {detail}"
+            f"cdb-agent command failed ({completed.returncode}) for {' '.join(command_args)}: {detail}"
         )
-    return completed.stdout
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise DebuggerReadError(
+            f"cdb-agent command returned invalid JSON for {' '.join(command_args)}"
+        ) from exc
+    if not isinstance(payload, dict):
+        raise DebuggerReadError(
+            f"cdb-agent command returned an unexpected payload for {' '.join(command_args)}"
+        )
+    return payload
 
 
-def parse_cdb_dword(output: str, address: int) -> int:
-    pattern = re.compile(
-        rf"(?im)^(?:[0-9a-f]{{8}}`)?{address:08x}\s+([0-9a-f]{{8}})\b"
-    )
-    match = pattern.search(output)
-    if match is None:
-        raise DebuggerReadError(f"cdb output did not contain a dword read for 0x{address:08X}")
-    return int(match.group(1), 16)
+def parse_cdb_agent_rows(payload: dict[str, Any], command_name: str) -> list[dict[str, Any]]:
+    rows = payload.get("rows")
+    if not isinstance(rows, list):
+        raise DebuggerReadError(f"cdb-agent {command_name} did not return a rows list")
+    normalized: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            raise DebuggerReadError(f"cdb-agent {command_name} returned a non-dict row")
+        normalized.append(row)
+    return normalized
 
 
-def parse_cdb_word(output: str, address: int) -> int:
-    pattern = re.compile(
-        rf"(?im)^(?:[0-9a-f]{{8}}`)?{address:08x}\s+([0-9a-f]{{4}})\b"
-    )
-    match = pattern.search(output)
-    if match is None:
-        raise DebuggerReadError(f"cdb output did not contain a word read for 0x{address:08X}")
-    return int(match.group(1), 16)
-
-
-def parse_cdb_bytes(output: str, address: int, count: int) -> bytes:
-    line_pattern = re.compile(
-        r"(?im)^(?:[0-9a-f]{8}`)?([0-9a-f]{8})\s+((?:[0-9a-f]{2}\s+){1,16})"
-    )
+def collect_cdb_agent_bytes(rows: list[dict[str, Any]], address: int, count: int) -> bytes:
     collected: list[int] = []
     expected = address & 0xFFFFFFFF
     current = expected
     started = False
 
-    for line in output.splitlines():
-        match = line_pattern.match(line.strip())
-        if match is None:
-            continue
-        line_address = int(match.group(1), 16)
+    for row in rows:
+        try:
+            row_address = int(row["address"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise DebuggerReadError("cdb-agent memory bytes row is missing an integer address") from exc
+        byte_values = row.get("bytes")
+        if not isinstance(byte_values, list) or any(not isinstance(value, int) for value in byte_values):
+            raise DebuggerReadError("cdb-agent memory bytes row is missing an integer byte list")
+
         if not started:
-            if line_address != expected:
+            if row_address != expected:
                 continue
             started = True
-        elif line_address != current:
+        elif row_address != current:
             break
 
-        tokens = re.findall(r"\b[0-9A-Fa-f]{2}\b", match.group(2))
-        collected.extend(int(token, 16) for token in tokens)
+        collected.extend(byte_values)
         current = (expected + len(collected)) & 0xFFFFFFFF
         if len(collected) >= count:
             return bytes(collected[:count])
 
     raise DebuggerReadError(
-        f"cdb output did not contain {count} bytes starting at 0x{address:08X}"
+        f"cdb-agent memory bytes did not contain {count} bytes starting at 0x{address:08X}"
     )
 
 
@@ -140,10 +143,23 @@ class CdbMemoryReader:
         pid: int,
         *,
         timeout_sec: float = 60.0,
+        cdb_agent_command: list[str] | None = None,
     ) -> None:
         self.cdb_path = cdb_path
         self.pid = pid
         self.timeout_sec = timeout_sec
+        self.cdb_agent_command = resolve_cdb_agent_command() if cdb_agent_command is None else list(cdb_agent_command)
+
+    def _base_command_args(self) -> list[str]:
+        return [
+            "--pid",
+            str(self.pid),
+            "--cdb-path",
+            str(self.cdb_path),
+            "--wow64",
+            "--timeout-sec",
+            str(self.timeout_sec),
+        ]
 
     def read_scalars(
         self,
@@ -151,23 +167,69 @@ class CdbMemoryReader:
         dword_addresses: tuple[int, ...],
         word_addresses: tuple[int, ...],
     ) -> tuple[dict[int, int], dict[int, int]]:
-        commands = [f"dd {address:08x} L1" for address in dword_addresses]
-        commands.extend(f"dw {address:08x} L1" for address in word_addresses)
-        output = run_cdb_commands(
-            self.cdb_path,
-            self.pid,
-            commands,
-            timeout_sec=self.timeout_sec,
-        )
-        dwords = {address: parse_cdb_dword(output, address) for address in dword_addresses}
-        words = {address: parse_cdb_word(output, address) for address in word_addresses}
+        dwords: dict[int, int] = {}
+        if dword_addresses:
+            payload = run_cdb_agent_json(
+                self.cdb_agent_command,
+                [
+                    "memory",
+                    "dword",
+                    *self._base_command_args(),
+                    *[f"0x{address:08X}" for address in dword_addresses],
+                ],
+                timeout_sec=self.timeout_sec,
+            )
+            for row in parse_cdb_agent_rows(payload, "memory dword"):
+                try:
+                    address = int(row["address"])
+                    value = int(row["value"])
+                except (KeyError, TypeError, ValueError) as exc:
+                    raise DebuggerReadError("cdb-agent memory dword row is missing integer address/value fields") from exc
+                dwords[address] = value
+
+        words: dict[int, int] = {}
+        if word_addresses:
+            payload = run_cdb_agent_json(
+                self.cdb_agent_command,
+                [
+                    "memory",
+                    "word",
+                    *self._base_command_args(),
+                    *[f"0x{address:08X}" for address in word_addresses],
+                ],
+                timeout_sec=self.timeout_sec,
+            )
+            for row in parse_cdb_agent_rows(payload, "memory word"):
+                try:
+                    address = int(row["address"])
+                    value = int(row["value"])
+                except (KeyError, TypeError, ValueError) as exc:
+                    raise DebuggerReadError("cdb-agent memory word row is missing integer address/value fields") from exc
+                words[address] = value
+
+        missing_dwords = [address for address in dword_addresses if address not in dwords]
+        if missing_dwords:
+            missing = ", ".join(f"0x{address:08X}" for address in missing_dwords)
+            raise DebuggerReadError(f"cdb-agent memory dword did not return addresses: {missing}")
+
+        missing_words = [address for address in word_addresses if address not in words]
+        if missing_words:
+            missing = ", ".join(f"0x{address:08X}" for address in missing_words)
+            raise DebuggerReadError(f"cdb-agent memory word did not return addresses: {missing}")
+
         return dwords, words
 
     def read_bytes(self, address: int, count: int) -> bytes:
-        output = run_cdb_commands(
-            self.cdb_path,
-            self.pid,
-            [f"db {address:08x} L{count}"],
+        payload = run_cdb_agent_json(
+            self.cdb_agent_command,
+            [
+                "memory",
+                "bytes",
+                *self._base_command_args(),
+                "--count",
+                str(count),
+                f"0x{address:08X}",
+            ],
             timeout_sec=self.timeout_sec,
         )
-        return parse_cdb_bytes(output, address, count)
+        return collect_cdb_agent_bytes(parse_cdb_agent_rows(payload, "memory bytes"), address, count)
