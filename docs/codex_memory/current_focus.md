@@ -6,7 +6,7 @@
 - Keep `19/19`, `2/2`, and `11/10` guarded-positive; keep `44/2` as the guarded exterior rejection.
 - Keep `LM_DEFAULT` and `LM_END_SWITCH` supported as one-byte structural markers.
 - Keep `life_audit.zig` owning decoded-interior ranking and `room_state.zig` owning guarded room/load admission.
-- Keep fast validation additive: `zig build test-fast` is the daily loop, and `zig build test-cli-slow` is the explicit same-index CLI triage repro shard.
+- Keep fast validation additive: `zig build test-fast` is the daily loop, `zig build test-cli-integration` is the bounded slower room/load coverage, and same-index CLI triage stays tool-only via `zig build tool -- triage-same-index-decoded-interior-candidates --json`.
 
 ## Active Streams
 
@@ -25,7 +25,7 @@
 
 - Keep the widened Branch-A boundary in code, tests, and docs.
 - Use the differentiated `raw_invalid_start` hints plus landed ranking to pick the next runtime-facing slice.
-- Keep `zig build test-fast` as the daily loop; use `zig build test-cli-slow` only as the explicit same-index CLI triage repro shard.
+- Keep `zig build test-fast` as the daily loop; use `zig build test-cli-integration` for bounded slower room/load coverage, and use `zig build tool -- triage-same-index-decoded-interior-candidates --json` when you explicitly want the heavier same-index triage workload.
 
 ## Relevant Subsystem Packs
 

@@ -20,7 +20,7 @@ Own the typed `SCENE.HQR` metadata model, parser, zone semantics, and track-prog
 
 - `SCENE.HQR[0]` is reserved loader state, so real scene numbering is offset.
 - Scene tests are asset-backed; `zig build test` is not a stripped-down unit-only pass.
-- `zig build test-fast` is the daily loop and omits the isolated all-scene life-audit inventory shard plus the slow same-index CLI triage shard; use `zig build test-cli-slow` as the deliberate repro step for that diagnostic path.
+- `zig build test-fast` is the daily loop and omits the isolated all-scene life-audit inventory shard plus the slower asset-backed CLI room/load coverage; use `zig build test-cli-integration` for bounded room/load checks, and use `zig build tool -- triage-same-index-decoded-interior-candidates --json` only when you deliberately want the heavier same-index triage workload.
 
 ## Canonical Entry Points
 
