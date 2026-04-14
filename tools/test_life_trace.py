@@ -17,6 +17,8 @@ import msgspec
 sys.path.insert(0, str(Path(__file__).resolve().parent / "life_trace"))
 
 import life_trace_debugger
+import scene11_compare
+import save_profiles
 import trace_life
 
 
@@ -1033,6 +1035,17 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
             self.assertEqual("raw", raw_line["source_stream"])
             self.assertEqual("enriched", enriched_line["source_stream"])
 
+    def test_writer_register_artifact_updates_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(Path(temp_dir), run_id="bundle-test")
+            try:
+                writer.register_artifact("scene11_summary", "scene11_summary.json")
+            finally:
+                writer.close()
+
+            manifest = json.loads(writer.manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual("scene11_summary.json", manifest["artifacts"]["scene11_summary"])
+
     def test_collect_scene11_debugger_snapshot_records_expected_target_bytes(self) -> None:
         object_base = 0x0049A19C
         object_stride = 0x21B
@@ -1195,6 +1208,208 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
             mismatch,
         )
 
+    def test_build_scene11_run_summary_records_runtime_pair_owner(self) -> None:
+        snapshot = trace_life.Scene11DebuggerSnapshot(
+            ptr_prg=0x00420000,
+            primary=trace_life.Scene11ObjectSnapshot(
+                spec=trace_life.PRIMARY_SNAPSHOT,
+                current_object=0x0049BAE0,
+                ptr_life_field=0x0049BCCE,
+                ptr_life=0,
+                offset_life_field=0x0049BCD2,
+                offset_life=0,
+                target_address=None,
+                target_window=trace_life.PointerWindow(
+                    start="0x00000000",
+                    cursor_index=8,
+                    bytes_hex=None,
+                    error="PtrLife for object 12 was null",
+                ),
+                target_byte=None,
+            ),
+            comparison=trace_life.Scene11ObjectSnapshot(
+                spec=trace_life.COMPARISON_SNAPSHOT,
+                current_object=0x0049C784,
+                ptr_life_field=0x0049C972,
+                ptr_life=0,
+                offset_life_field=0x0049C976,
+                offset_life=0,
+                target_address=None,
+                target_window=trace_life.PointerWindow(
+                    start="0x00000000",
+                    cursor_index=8,
+                    bytes_hex=None,
+                    error="PtrLife for object 18 was null",
+                ),
+                target_byte=None,
+            ),
+        )
+        candidates = (
+            trace_life.Scene11RuntimeCandidate(
+                object_index=2,
+                ptr_life=0x00E823A1,
+                offset_life=33,
+                opcode=0x74,
+                opcode_offset=96,
+                target_window=trace_life.PointerWindow(
+                    start="0x00E823F9",
+                    cursor_index=8,
+                    bytes_hex="00 00 00 00 00 00 00 00 74 17",
+                ),
+            ),
+            trace_life.Scene11RuntimeCandidate(
+                object_index=2,
+                ptr_life=0x00E823A1,
+                offset_life=33,
+                opcode=0x76,
+                opcode_offset=103,
+                target_window=trace_life.PointerWindow(
+                    start="0x00E82400",
+                    cursor_index=8,
+                    bytes_hex="00 00 00 00 00 00 00 00 76 37",
+                ),
+            ),
+        )
+        summary = trace_life.build_scene11_run_summary(
+            run_id="life-trace-test",
+            mode="scene11-pair",
+            launch_save=r"D:\repos\reverse\littlebigreversing\work\saves\S8741.LBA",
+            bundle_root=Path(r"D:\repos\reverse\littlebigreversing\work\life_trace\runs\life-trace-test"),
+            snapshot=snapshot,
+            candidates=candidates,
+            verdict_result="scene11_static_runtime_mismatch",
+            verdict_reason="canonical object 12 PtrLife was null",
+        )
+
+        self.assertEqual("scene11-run-summary-v1", summary.payload["schema_version"])
+        self.assertEqual(2, summary.payload["runtime_pair_owner"])
+        self.assertTrue(summary.payload["global_ptr_prg_nonzero"])
+        self.assertEqual("ptr_life_missing", summary.payload["canonical_objects"]["primary"]["status"])
+
+    def test_scene11_comparison_report_redefines_runtime_contract_for_two_distinct_object_2_saves(self) -> None:
+        summary_one = trace_life.Scene11RunSummary(
+            payload={
+                "schema_version": "scene11-run-summary-v1",
+                "run_id": "run-1",
+                "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\S8741.LBA",
+                "global_ptr_prg": "0x00420000",
+                "global_ptr_prg_nonzero": True,
+                "canonical_objects": {
+                    "primary": {"status": "ptr_life_missing"},
+                    "comparison": {"status": "ptr_life_missing"},
+                },
+                "runtime_pair_owner": 2,
+                "verdict": {"result": "scene11_static_runtime_mismatch", "reason": "mismatch"},
+            }
+        )
+        summary_two = trace_life.Scene11RunSummary(
+            payload={
+                "schema_version": "scene11-run-summary-v1",
+                "run_id": "run-2",
+                "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\neighbor-house.LBA",
+                "global_ptr_prg": "0x00421000",
+                "global_ptr_prg_nonzero": True,
+                "canonical_objects": {
+                    "primary": {"status": "ptr_life_missing"},
+                    "comparison": {"status": "ptr_life_missing"},
+                },
+                "runtime_pair_owner": 2,
+                "verdict": {"result": "scene11_static_runtime_mismatch", "reason": "mismatch"},
+            }
+        )
+
+        report = trace_life.build_scene11_comparison_report((summary_one, summary_two))
+        self.assertEqual("redefine_runtime_contract", report.payload["decision"])
+
+    def test_scene11_comparison_report_preserves_static_contract_when_canonical_pair_exists(self) -> None:
+        summary_one = trace_life.Scene11RunSummary(
+            payload={
+                "schema_version": "scene11-run-summary-v1",
+                "run_id": "run-1",
+                "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\S8741.LBA",
+                "global_ptr_prg": "0x00420000",
+                "global_ptr_prg_nonzero": True,
+                "canonical_objects": {
+                    "primary": {"status": "opcode_match"},
+                    "comparison": {"status": "opcode_match"},
+                },
+                "runtime_pair_owner": None,
+                "verdict": {"result": "scene11_snapshot_complete", "reason": "complete"},
+            }
+        )
+        summary_two = trace_life.Scene11RunSummary(
+            payload={
+                "schema_version": "scene11-run-summary-v1",
+                "run_id": "run-2",
+                "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\neighbor-house.LBA",
+                "global_ptr_prg": "0x00421000",
+                "global_ptr_prg_nonzero": True,
+                "canonical_objects": {
+                    "primary": {"status": "ptr_life_missing"},
+                    "comparison": {"status": "ptr_life_missing"},
+                },
+                "runtime_pair_owner": 2,
+                "verdict": {"result": "scene11_static_runtime_mismatch", "reason": "mismatch"},
+            }
+        )
+
+        report = trace_life.build_scene11_comparison_report((summary_one, summary_two))
+        self.assertEqual("preserve_static_contract", report.payload["decision"])
+
+    def test_scene11_compare_cli_writes_report(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            first_bundle = temp_root / "run-1"
+            second_bundle = temp_root / "run-2"
+            first_bundle.mkdir()
+            second_bundle.mkdir()
+            (first_bundle / "scene11_summary.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "scene11-run-summary-v1",
+                        "run_id": "run-1",
+                        "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\S8741.LBA",
+                        "global_ptr_prg": "0x00420000",
+                        "global_ptr_prg_nonzero": True,
+                        "canonical_objects": {
+                            "primary": {"status": "ptr_life_missing"},
+                            "comparison": {"status": "ptr_life_missing"},
+                        },
+                        "runtime_pair_owner": 2,
+                        "verdict": {"result": "scene11_static_runtime_mismatch", "reason": "mismatch"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (second_bundle / "scene11_summary.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "scene11-run-summary-v1",
+                        "run_id": "run-2",
+                        "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\neighbor-house.LBA",
+                        "global_ptr_prg": "0x00421000",
+                        "global_ptr_prg_nonzero": True,
+                        "canonical_objects": {
+                            "primary": {"status": "ptr_life_missing"},
+                            "comparison": {"status": "ptr_life_missing"},
+                        },
+                        "runtime_pair_owner": 2,
+                        "verdict": {"result": "scene11_static_runtime_mismatch", "reason": "mismatch"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            output_path = temp_root / "comparison.json"
+
+            exit_code = scene11_compare.main(
+                [str(first_bundle), str(second_bundle), "--output", str(output_path)]
+            )
+
+            report = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertEqual(0, exit_code)
+            self.assertEqual("scene11-comparison-report-v1", report["schema_version"])
+            self.assertEqual("redefine_runtime_contract", report["decision"])
+
 
 class CdbAgentMemoryReaderTest(unittest.TestCase):
     def test_read_scalars_uses_cdb_agent_json_memory_commands(self) -> None:
@@ -1345,6 +1560,113 @@ class SpawnedProcessTerminationTest(unittest.TestCase):
                 ],
                 [line["message"] for line in lines],
             )
+
+
+class SaveProfilesCliTest(unittest.TestCase):
+    def test_validate_profiles_payload_rejects_duplicate_profile_ids(self) -> None:
+        payload = {
+            "schema_version": "lba2-save-profiles-v3",
+            "purpose": "test",
+            "profiles": [
+                {
+                    "profile_id": "dup",
+                    "scene_name": "One",
+                    "scene_id": 1,
+                    "raw_scene_entry_index": 2,
+                    "proof_goal": "first",
+                    "generation_spec": {
+                        "story_arc": "arc",
+                        "story_prerequisites": ["a"],
+                        "hero_state": ["b"],
+                        "room_requirement": "room",
+                        "interaction_boundary": "boundary",
+                        "record_with_save": ["field"],
+                    },
+                    "visual_verification": {
+                        "validation_method": "manual",
+                        "screenshot_step": "step",
+                        "expected_visual_cues": ["cue"],
+                        "mismatch_examples": ["mismatch"],
+                    },
+                    "operator_generation_instructions": ["step"],
+                },
+                {
+                    "profile_id": "dup",
+                    "scene_name": "Two",
+                    "scene_id": 3,
+                    "raw_scene_entry_index": 4,
+                    "proof_goal": "second",
+                    "generation_spec": {
+                        "story_arc": "arc",
+                        "story_prerequisites": ["a"],
+                        "hero_state": ["b"],
+                        "room_requirement": "room",
+                        "interaction_boundary": "boundary",
+                        "record_with_save": ["field"],
+                    },
+                    "visual_verification": {
+                        "validation_method": "manual",
+                        "screenshot_step": "step",
+                        "expected_visual_cues": ["cue"],
+                        "mismatch_examples": ["mismatch"],
+                    },
+                    "operator_generation_instructions": ["step"],
+                },
+            ],
+        }
+
+        with self.assertRaisesRegex(RuntimeError, "duplicate save profile id 'dup'"):
+            save_profiles.validate_profiles_payload(payload, Path(r"D:\temp\save_profiles.json"))
+
+    def test_render_profile_text_includes_generation_instructions(self) -> None:
+        payload = save_profiles.load_profiles(save_profiles.DEFAULT_PROFILES_PATH)
+        profile = save_profiles.find_profile(payload, "scene11-returned-house")
+
+        rendered = save_profiles.render_profile_text(profile)
+
+        self.assertIn("profile_id: scene11-returned-house", rendered)
+        self.assertIn("story_arc: Returned-to-Twinsun / kidnapped-children late-house family", rendered)
+        self.assertIn("visual_validation_method:", rendered)
+        self.assertIn("visual_screenshot_step:", rendered)
+        self.assertIn("expected_visual_cues:", rendered)
+        self.assertIn("operator_generation_instructions:", rendered)
+        self.assertIn("Go to Neighbour's House during the kidnapped-children or equivalent late-house branch.", rendered)
+
+    def test_save_profiles_cli_list_writes_human_output(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "profiles.txt"
+
+            exit_code = save_profiles.main(["list", "--output", str(output_path)])
+
+            rendered = output_path.read_text(encoding="utf-8")
+            self.assertEqual(0, exit_code)
+            self.assertIn("scene11-early-house: Early-game baseline contrast", rendered)
+            self.assertIn("tavern-sendell-ball: Tavern proof in the lightning-spell / Sendell-ball story family.", rendered)
+
+    def test_save_profiles_cli_show_json_writes_selected_profile(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "profile.json"
+
+            exit_code = save_profiles.main(
+                ["show", "scene11-wizard-house", "--json", "--output", str(output_path)]
+            )
+
+            rendered = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertEqual(0, exit_code)
+            self.assertEqual("scene11-wizard-house", rendered["profile_id"])
+            self.assertEqual("School-of-Magic / wizard-disguise family", rendered["generation_spec"]["story_arc"])
+
+    def test_save_profiles_cli_validate_json_reports_ok(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "validate.json"
+
+            exit_code = save_profiles.main(["validate", "--json", "--output", str(output_path)])
+
+            rendered = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertEqual(0, exit_code)
+            self.assertEqual("ok", rendered["status"])
+            self.assertEqual("lba2-save-profiles-v3", rendered["schema_version"])
+            self.assertGreaterEqual(rendered["profile_count"], 1)
 
 
 class ProcessExistsPidTest(unittest.TestCase):

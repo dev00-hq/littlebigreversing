@@ -81,9 +81,41 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         }),
     });
+    const fast_tests_options = b.addOptions();
+    fast_tests_options.addOption(bool, "enable_slow_cli_tests", false);
+    fast_tests.root_module.addOptions("build_options", fast_tests_options);
     const run_fast_tests = b.addRunArtifact(fast_tests);
     const test_fast_step = b.step("test-fast", "Run the fast parser and runtime regression suite");
     test_fast_step.dependOn(&run_fast_tests.step);
+
+    const cli_slow_tests_options = b.addOptions();
+    cli_slow_tests_options.addOption(bool, "enable_slow_cli_tests", true);
+    const cli_slow_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/test_cli_slow.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+        .filters = &.{
+            "same-index decoded interior triage payload pins the current baseline comparison",
+            "same-index decoded interior triage text output surfaces the fragment-bearing summary",
+        },
+    });
+    cli_slow_tests.root_module.addOptions("build_options", cli_slow_tests_options);
+    const run_cli_slow_tests = b.addRunArtifact(cli_slow_tests);
+    const test_cli_slow_step = b.step("test-cli-slow", "Run the explicit same-index CLI triage repro shard (not a daily green gate)");
+    test_cli_slow_step.dependOn(&run_cli_slow_tests.step);
+
+    const cli_integration_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/test_cli_integration.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    const run_cli_integration_tests = b.addRunArtifact(cli_integration_tests);
+    const test_cli_integration_step = b.step("test-cli-integration", "Run the slower asset-backed CLI room/load integration tests");
+    test_cli_integration_step.dependOn(&run_cli_integration_tests.step);
 
     const life_audit_all_tests = b.addTest(.{
         .root_module = b.createModule(.{
@@ -98,6 +130,7 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run the full parser and runtime regression suite");
     test_step.dependOn(test_fast_step);
+    test_step.dependOn(test_cli_integration_step);
     test_step.dependOn(test_life_audit_all_step);
 }
 

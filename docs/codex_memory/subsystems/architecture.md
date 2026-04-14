@@ -15,7 +15,7 @@ Own repo-wide direction and the canonical Codex memory workflow across the two a
 ## Current Parity Status
 
 - The Zig port remains decode-first, Windows-first, and fail-fast.
-- `life_audit.zig` owns offline decoded-interior ranking and unsupported-life evidence.
+- `life_audit.zig` owns offline decoded-interior ranking and the canonical all-scenes life inventory.
 - `tools/life_trace/trace_life.py` owns original-runtime evidence capture.
 - The canonical original-runtime split is stable for now: Tavern uses a live Frida/FRA proof lane, Scene11 uses a debugger-backed snapshot lane.
 

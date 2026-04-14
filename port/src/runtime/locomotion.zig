@@ -35,6 +35,18 @@ pub const RawInvalidStartCandidate = struct {
     distance_sq: i64,
 };
 
+pub const RawInvalidStartMappingHint = struct {
+    hypothesis: runtime_query.MappingHypothesis,
+    cell_span_xz: i32,
+    raw_cell: ?GridCell,
+    exact_status: runtime_query.HeroStartExactStatus,
+    diagnostic_status: runtime_query.HeroStartDiagnosticStatus,
+    occupied_coverage: runtime_query.OccupiedCoverageProbe,
+    disposition: runtime_query.MappingEvidenceDisposition,
+    better_metric_count: u8,
+    worse_metric_count: u8,
+};
+
 pub const RawInvalidStartStatus = struct {
     exact_status: runtime_query.HeroStartExactStatus,
     diagnostic_status: runtime_query.HeroStartDiagnosticStatus,
@@ -42,6 +54,7 @@ pub const RawInvalidStartStatus = struct {
     occupied_coverage: runtime_query.OccupiedCoverageProbe,
     nearest_occupied: ?RawInvalidStartCandidate,
     nearest_standable: ?RawInvalidStartCandidate,
+    best_alt_mapping: ?RawInvalidStartMappingHint,
     hero_position: WorldPointSnapshot,
 };
 
@@ -92,6 +105,7 @@ pub fn inspectCurrentStatus(
     if (std.meta.eql(hero_position, room_state.heroStartWorldPoint(room))) {
         const probe = try query.probeHeroStart();
         if (probe.exact_status != .valid) {
+            const mapping_report = try query.evaluateHeroStartMappings();
             return .{
                 .raw_invalid_start = .{
                     .exact_status = probe.exact_status,
@@ -100,6 +114,7 @@ pub fn inspectCurrentStatus(
                     .occupied_coverage = probe.occupied_coverage,
                     .nearest_occupied = buildRawInvalidStartCandidate(probe.nearest_occupied),
                     .nearest_standable = buildRawInvalidStartCandidate(probe.nearest_standable),
+                    .best_alt_mapping = buildRawInvalidStartMappingHint(mapping_report),
                     .hero_position = hero_position,
                 },
             };
@@ -221,6 +236,66 @@ fn buildRawInvalidStartCandidate(
         .x_distance = resolved.x_distance,
         .z_distance = resolved.z_distance,
         .distance_sq = resolved.distance_sq,
+    };
+}
+
+fn buildRawInvalidStartMappingHint(
+    report: runtime_query.HeroStartMappingEvaluationReport,
+) ?RawInvalidStartMappingHint {
+    var best_index: ?usize = null;
+
+    for (report.evaluations[1..], 1..) |evaluation, index| {
+        if (mappingHintDispositionRank(evaluation.comparison_to_canonical.disposition) == 0) continue;
+        if (best_index) |resolved_best_index| {
+            const best_evaluation = report.evaluations[resolved_best_index];
+            if (!mappingHintOutranks(evaluation, best_evaluation)) continue;
+        }
+        best_index = index;
+    }
+
+    const resolved_index = best_index orelse return null;
+    const evaluation = report.evaluations[resolved_index];
+    return .{
+        .hypothesis = evaluation.hypothesis,
+        .cell_span_xz = evaluation.cell_span_xz,
+        .raw_cell = evaluation.raw_cell.cell,
+        .exact_status = evaluation.exact_status,
+        .diagnostic_status = evaluation.diagnostic_status,
+        .occupied_coverage = evaluation.occupied_coverage,
+        .disposition = evaluation.comparison_to_canonical.disposition,
+        .better_metric_count = evaluation.comparison_to_canonical.better_metric_count,
+        .worse_metric_count = evaluation.comparison_to_canonical.worse_metric_count,
+    };
+}
+
+fn mappingHintOutranks(
+    candidate: runtime_query.HeroStartMappingEvaluation,
+    baseline: runtime_query.HeroStartMappingEvaluation,
+) bool {
+    const candidate_rank = mappingHintDispositionRank(candidate.comparison_to_canonical.disposition);
+    const baseline_rank = mappingHintDispositionRank(baseline.comparison_to_canonical.disposition);
+    if (candidate_rank != baseline_rank) return candidate_rank > baseline_rank;
+
+    if (candidate.comparison_to_canonical.better_metric_count != baseline.comparison_to_canonical.better_metric_count) {
+        return candidate.comparison_to_canonical.better_metric_count > baseline.comparison_to_canonical.better_metric_count;
+    }
+
+    if (candidate.comparison_to_canonical.worse_metric_count != baseline.comparison_to_canonical.worse_metric_count) {
+        return candidate.comparison_to_canonical.worse_metric_count < baseline.comparison_to_canonical.worse_metric_count;
+    }
+
+    if (candidate.cell_span_xz != baseline.cell_span_xz) return candidate.cell_span_xz < baseline.cell_span_xz;
+
+    return @intFromEnum(candidate.hypothesis) < @intFromEnum(baseline.hypothesis);
+}
+
+fn mappingHintDispositionRank(disposition: runtime_query.MappingEvidenceDisposition) u8 {
+    return switch (disposition) {
+        .diagnostic_candidate_only_materially_better => 2,
+        .diagnostic_candidate_only_partial_signal => 1,
+        .canonical_mapping_poor_on_current_evidence,
+        .diagnostic_candidate_only_not_better,
+        => 0,
     };
 }
 

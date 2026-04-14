@@ -110,10 +110,29 @@ fn expectRawInvalidStartCandidate(
     try std.testing.expectEqual(@as(?locomotion.RawInvalidStartCandidate, null), actual);
 }
 
+fn expectRawInvalidStartMappingHint(
+    actual: ?locomotion.RawInvalidStartMappingHint,
+    expected: *const runtime_query.HeroStartMappingEvaluation,
+) !void {
+    const resolved_actual = actual orelse return error.MissingRawInvalidStartMappingHint;
+
+    try std.testing.expectEqual(expected.hypothesis, resolved_actual.hypothesis);
+    try std.testing.expectEqual(expected.cell_span_xz, resolved_actual.cell_span_xz);
+    try std.testing.expectEqual(expected.raw_cell.cell, resolved_actual.raw_cell);
+    try std.testing.expectEqual(expected.exact_status, resolved_actual.exact_status);
+    try std.testing.expectEqual(expected.diagnostic_status, resolved_actual.diagnostic_status);
+    try std.testing.expectEqual(expected.occupied_coverage, resolved_actual.occupied_coverage);
+    try std.testing.expectEqual(expected.comparison_to_canonical.disposition, resolved_actual.disposition);
+    try std.testing.expectEqual(expected.comparison_to_canonical.better_metric_count, resolved_actual.better_metric_count);
+    try std.testing.expectEqual(expected.comparison_to_canonical.worse_metric_count, resolved_actual.worse_metric_count);
+}
+
 test "runtime locomotion reports the baked guarded 19/19 raw start as an invalid non-mutating origin" {
     const room = try room_fixtures.guarded1919();
     const query = runtime_query.init(room);
     const hero_start_probe = try query.probeHeroStart();
+    const mapping_report = try query.evaluateHeroStartMappings();
+    const best_alt_mapping = mapping_report.evaluation(.dense_swapped_axes_64);
 
     var current_session = runtime_session.Session.init(room_state.heroStartWorldPoint(room));
     const initial_status = try locomotion.inspectCurrentStatus(room, current_session);
@@ -127,6 +146,7 @@ test "runtime locomotion reports the baked guarded 19/19 raw start as an invalid
             try std.testing.expectEqual(hero_start_probe.occupied_coverage, value.occupied_coverage);
             try expectRawInvalidStartCandidate(value.nearest_occupied, hero_start_probe.nearest_occupied);
             try expectRawInvalidStartCandidate(value.nearest_standable, hero_start_probe.nearest_standable);
+            try expectRawInvalidStartMappingHint(value.best_alt_mapping, best_alt_mapping);
             try std.testing.expectEqual(room_state.heroStartWorldPoint(room), value.hero_position);
         },
         else => return error.UnexpectedLocomotionStatus,

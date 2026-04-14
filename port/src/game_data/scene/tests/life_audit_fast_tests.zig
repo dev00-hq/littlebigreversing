@@ -1,36 +1,8 @@
 const std = @import("std");
 const life_audit = @import("../life_audit.zig");
-const life_program = @import("../life_program.zig");
 const support = @import("support.zig");
 
-fn expectUnsupportedLifeHit(
-    actual: life_audit.UnsupportedSceneLifeHit,
-    expected_scene_entry_index: usize,
-    expected_classic_loader_scene_number: ?usize,
-    expected_scene_kind: []const u8,
-    expected_owner: life_audit.LifeBlobOwner,
-    expected_opcode_mnemonic: []const u8,
-    expected_opcode_id: u8,
-    expected_byte_offset: usize,
-) !void {
-    try std.testing.expectEqual(expected_scene_entry_index, actual.scene_entry_index);
-    try std.testing.expectEqual(expected_classic_loader_scene_number, actual.classic_loader_scene_number);
-    try std.testing.expectEqualStrings(expected_scene_kind, actual.scene_kind);
-    switch (expected_owner) {
-        .hero => try std.testing.expect(actual.owner == .hero),
-        .object => |expected_object_index| {
-            switch (actual.owner) {
-                .hero => return error.ExpectedObjectOwnedUnsupportedLifeHit,
-                .object => |actual_object_index| try std.testing.expectEqual(expected_object_index, actual_object_index),
-            }
-        },
-    }
-    try std.testing.expectEqualStrings(expected_opcode_mnemonic, actual.unsupported_opcode_mnemonic);
-    try std.testing.expectEqual(expected_opcode_id, actual.unsupported_opcode_id);
-    try std.testing.expectEqual(expected_byte_offset, actual.byte_offset);
-}
-
-test "canonical life audit pins the known scene 2 hero blocker and scene 2 object 5 success" {
+test "canonical life audit now decodes the former scene 2 hero blocker and keeps scene 2 object 5 stable" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
     defer allocator.free(archive_path);
@@ -55,11 +27,9 @@ test "canonical life audit pins the known scene 2 hero blocker and scene 2 objec
     const object5_audit = scene2_object5 orelse return error.MissingScene2Object5Audit;
 
     try std.testing.expectEqual(@as(usize, 203), hero_audit.life_byte_length);
-    try std.testing.expectEqual(@as(usize, 36), hero_audit.instruction_count);
-    try std.testing.expectEqual(@as(usize, 170), hero_audit.decoded_byte_length);
-    try std.testing.expectEqual(life_program.LifeOpcode.LM_DEFAULT, hero_audit.status.unsupported_opcode.opcode);
-    try std.testing.expectEqual(@as(u8, 116), hero_audit.status.unsupported_opcode.opcode_id);
-    try std.testing.expectEqual(@as(usize, 170), hero_audit.status.unsupported_opcode.offset);
+    try std.testing.expect(hero_audit.status == .decoded);
+    try std.testing.expectEqual(@as(usize, 47), hero_audit.instruction_count);
+    try std.testing.expectEqual(hero_audit.life_byte_length, hero_audit.decoded_byte_length);
 
     try std.testing.expectEqual(@as(usize, 51), object5_audit.life_byte_length);
     try std.testing.expect(object5_audit.status == .decoded);
@@ -67,33 +37,36 @@ test "canonical life audit pins the known scene 2 hero blocker and scene 2 objec
     try std.testing.expectEqual(object5_audit.life_byte_length, object5_audit.decoded_byte_length);
 }
 
-test "single-blob life inspection pins the branch-b blocker anchors and success case" {
+test "single-blob life inspection now decodes the former switch-family blocker anchors" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
     defer allocator.free(archive_path);
 
     const scene2_hero = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 2, .{ .hero = {} });
     try std.testing.expectEqual(@as(usize, 203), scene2_hero.life_byte_length);
-    try std.testing.expectEqual(@as(usize, 36), scene2_hero.instruction_count);
-    try std.testing.expectEqual(@as(usize, 170), scene2_hero.decoded_byte_length);
-    try std.testing.expectEqual(life_program.LifeOpcode.LM_DEFAULT, scene2_hero.status.unsupported_opcode.opcode);
-    try std.testing.expectEqual(@as(usize, 170), scene2_hero.status.unsupported_opcode.offset);
+    try std.testing.expect(scene2_hero.status == .decoded);
+    try std.testing.expectEqual(@as(usize, 47), scene2_hero.instruction_count);
+    try std.testing.expectEqual(scene2_hero.life_byte_length, scene2_hero.decoded_byte_length);
 
     const scene5_hero = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 5, .{ .hero = {} });
-    try std.testing.expectEqual(life_program.LifeOpcode.LM_END_SWITCH, scene5_hero.status.unsupported_opcode.opcode);
-    try std.testing.expectEqual(@as(usize, 46), scene5_hero.status.unsupported_opcode.offset);
+    try std.testing.expect(scene5_hero.status == .decoded);
+    try std.testing.expectEqual(@as(usize, 20), scene5_hero.instruction_count);
+    try std.testing.expectEqual(scene5_hero.life_byte_length, scene5_hero.decoded_byte_length);
 
     const scene44_hero = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 44, .{ .hero = {} });
-    try std.testing.expectEqual(life_program.LifeOpcode.LM_END_SWITCH, scene44_hero.status.unsupported_opcode.opcode);
-    try std.testing.expectEqual(@as(usize, 713), scene44_hero.status.unsupported_opcode.offset);
+    try std.testing.expect(scene44_hero.status == .decoded);
+    try std.testing.expectEqual(@as(usize, 197), scene44_hero.instruction_count);
+    try std.testing.expectEqual(scene44_hero.life_byte_length, scene44_hero.decoded_byte_length);
 
     const scene44_object2 = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 44, .{ .object = 2 });
-    try std.testing.expectEqual(life_program.LifeOpcode.LM_DEFAULT, scene44_object2.status.unsupported_opcode.opcode);
-    try std.testing.expectEqual(@as(usize, 274), scene44_object2.status.unsupported_opcode.offset);
+    try std.testing.expect(scene44_object2.status == .decoded);
+    try std.testing.expectEqual(@as(usize, 87), scene44_object2.instruction_count);
+    try std.testing.expectEqual(scene44_object2.life_byte_length, scene44_object2.decoded_byte_length);
 
     const scene44_object3 = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 44, .{ .object = 3 });
-    try std.testing.expectEqual(life_program.LifeOpcode.LM_DEFAULT, scene44_object3.status.unsupported_opcode.opcode);
-    try std.testing.expectEqual(@as(usize, 43), scene44_object3.status.unsupported_opcode.offset);
+    try std.testing.expect(scene44_object3.status == .decoded);
+    try std.testing.expectEqual(@as(usize, 33), scene44_object3.instruction_count);
+    try std.testing.expectEqual(scene44_object3.life_byte_length, scene44_object3.decoded_byte_length);
 
     const scene2_object5 = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 2, .{ .object = 5 });
     try std.testing.expect(scene2_object5.status == .decoded);
@@ -110,65 +83,30 @@ test "single-blob life inspection rejects unknown selectors explicitly" {
     try std.testing.expectError(error.UnknownSceneEntryIndex, life_audit.inspectSceneLifeProgram(allocator, archive_path, 999, .{ .hero = {} }));
 }
 
-test "scene-level life validation returns explicit first-hit blocker diagnostics for the guarded negative set" {
+test "scene-level life validation now decodes the former guarded switch-family set" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
     defer allocator.free(archive_path);
 
-    const scene2 = try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 2);
-    try std.testing.expect(scene2 == .unsupported_life_blob);
-    try expectUnsupportedLifeHit(
-        scene2.unsupported_life_blob,
-        2,
-        0,
-        "interior",
-        .{ .hero = {} },
-        "LM_DEFAULT",
-        116,
-        170,
-    );
-
-    const scene44 = try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 44);
-    try std.testing.expect(scene44 == .unsupported_life_blob);
-    try expectUnsupportedLifeHit(
-        scene44.unsupported_life_blob,
-        44,
-        42,
-        "exterior",
-        .{ .hero = {} },
-        "LM_END_SWITCH",
-        118,
-        713,
-    );
-
-    const scene11 = try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 11);
-    try std.testing.expect(scene11 == .unsupported_life_blob);
-    try expectUnsupportedLifeHit(
-        scene11.unsupported_life_blob,
-        11,
-        9,
-        "interior",
-        .{ .object = 12 },
-        "LM_DEFAULT",
-        116,
-        38,
-    );
+    try std.testing.expect((try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 2)) == .decoded);
+    try std.testing.expect((try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 44)) == .decoded);
+    try std.testing.expect((try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, 11)) == .decoded);
 }
 
-test "scene 11 life audit keeps the guarded first hit ahead of the later unsupported switch-family blob" {
+test "scene 11 life audit now decodes the former guarded switch-family objects" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
     defer allocator.free(archive_path);
 
     const scene11_object12 = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 11, .{ .object = 12 });
-    try std.testing.expectEqual(life_program.LifeOpcode.LM_DEFAULT, scene11_object12.status.unsupported_opcode.opcode);
-    try std.testing.expectEqual(@as(u8, 116), scene11_object12.status.unsupported_opcode.opcode_id);
-    try std.testing.expectEqual(@as(usize, 38), scene11_object12.status.unsupported_opcode.offset);
+    try std.testing.expect(scene11_object12.status == .decoded);
+    try std.testing.expectEqual(@as(usize, 59), scene11_object12.instruction_count);
+    try std.testing.expectEqual(scene11_object12.life_byte_length, scene11_object12.decoded_byte_length);
 
     const scene11_object18 = try life_audit.inspectSceneLifeProgram(allocator, archive_path, 11, .{ .object = 18 });
-    try std.testing.expectEqual(life_program.LifeOpcode.LM_END_SWITCH, scene11_object18.status.unsupported_opcode.opcode);
-    try std.testing.expectEqual(@as(u8, 118), scene11_object18.status.unsupported_opcode.opcode_id);
-    try std.testing.expectEqual(@as(usize, 84), scene11_object18.status.unsupported_opcode.offset);
+    try std.testing.expect(scene11_object18.status == .decoded);
+    try std.testing.expectEqual(@as(usize, 33), scene11_object18.instruction_count);
+    try std.testing.expectEqual(scene11_object18.life_byte_length, scene11_object18.decoded_byte_length);
 }
 
 test "canonical life audit covers the locked scene set" {
@@ -182,10 +120,10 @@ test "canonical life audit covers the locked scene set" {
     var has_scene2 = false;
     var has_scene5 = false;
     var has_scene44 = false;
-    var has_scene5_hero_end_switch = false;
+    var has_scene5_hero_success = false;
     var has_scene5_object2_success = false;
-    var has_scene44_hero_end_switch = false;
-    var has_scene44_object2_default = false;
+    var has_scene44_hero_success = false;
+    var has_scene44_object2_success = false;
     var unsupported_count: usize = 0;
 
     for (audits) |audit| {
@@ -194,30 +132,29 @@ test "canonical life audit covers the locked scene set" {
         if (audit.scene_entry_index == 44) has_scene44 = true;
         if (audit.status == .unsupported_opcode) {
             unsupported_count += 1;
-            switch (audit.owner) {
-                .hero => {
-                    if (audit.scene_entry_index == 5 and audit.status.unsupported_opcode.opcode == .LM_END_SWITCH and audit.status.unsupported_opcode.offset == 46) {
-                        has_scene5_hero_end_switch = true;
-                    }
-                    if (audit.scene_entry_index == 44 and audit.status.unsupported_opcode.opcode == .LM_END_SWITCH and audit.status.unsupported_opcode.offset == 713) {
-                        has_scene44_hero_end_switch = true;
-                    }
-                },
-                .object => |object_index| {
-                    if (audit.scene_entry_index == 5 and object_index == 2 and audit.status == .decoded and audit.instruction_count == 51 and audit.decoded_byte_length == 194) {
-                        has_scene5_object2_success = true;
-                    }
-                    if (audit.scene_entry_index == 44 and object_index == 2 and audit.status.unsupported_opcode.opcode == .LM_DEFAULT and audit.status.unsupported_opcode.offset == 274) {
-                        has_scene44_object2_default = true;
-                    }
-                },
-            }
         } else if (audit.scene_entry_index == 5) {
             switch (audit.owner) {
-                .hero => {},
+                .hero => {
+                    if (audit.instruction_count == 20 and audit.decoded_byte_length == 61) {
+                        has_scene5_hero_success = true;
+                    }
+                },
                 .object => |object_index| {
                     if (object_index == 2 and audit.instruction_count == 51 and audit.decoded_byte_length == 194) {
                         has_scene5_object2_success = true;
+                    }
+                },
+            }
+        } else if (audit.scene_entry_index == 44) {
+            switch (audit.owner) {
+                .hero => {
+                    if (audit.instruction_count == 197 and audit.decoded_byte_length == 823) {
+                        has_scene44_hero_success = true;
+                    }
+                },
+                .object => |object_index| {
+                    if (object_index == 2 and audit.instruction_count == 87 and audit.decoded_byte_length == 329) {
+                        has_scene44_object2_success = true;
                     }
                 },
             }
@@ -228,11 +165,11 @@ test "canonical life audit covers the locked scene set" {
     try std.testing.expect(has_scene2);
     try std.testing.expect(has_scene5);
     try std.testing.expect(has_scene44);
-    try std.testing.expectEqual(@as(usize, 5), unsupported_count);
-    try std.testing.expect(has_scene5_hero_end_switch);
+    try std.testing.expectEqual(@as(usize, 0), unsupported_count);
+    try std.testing.expect(has_scene5_hero_success);
     try std.testing.expect(has_scene5_object2_success);
-    try std.testing.expect(has_scene44_hero_end_switch);
-    try std.testing.expect(has_scene44_object2_default);
+    try std.testing.expect(has_scene44_hero_success);
+    try std.testing.expect(has_scene44_object2_success);
 }
 
 test "explicit life audit selection limits auditing to the requested scene entries" {
@@ -245,14 +182,14 @@ test "explicit life audit selection limits auditing to the requested scene entri
 
     try std.testing.expect(audits.len > 0);
 
-    var has_hero_end_switch = false;
+    var has_hero_success = false;
     var has_object2_success = false;
     for (audits) |audit| {
         try std.testing.expectEqual(@as(usize, 5), audit.scene_entry_index);
         switch (audit.owner) {
             .hero => {
-                if (audit.status == .unsupported_opcode and audit.status.unsupported_opcode.opcode == .LM_END_SWITCH and audit.status.unsupported_opcode.offset == 46) {
-                    has_hero_end_switch = true;
+                if (audit.status == .decoded and audit.instruction_count == 20 and audit.decoded_byte_length == 61) {
+                    has_hero_success = true;
                 }
             },
             .object => |object_index| {
@@ -263,7 +200,7 @@ test "explicit life audit selection limits auditing to the requested scene entri
         }
     }
 
-    try std.testing.expect(has_hero_end_switch);
+    try std.testing.expect(has_hero_success);
     try std.testing.expect(has_object2_success);
 }
 
@@ -275,26 +212,26 @@ test "selected life audit honors explicit scene-entry lists" {
     const audits = try life_audit.auditSelectedSceneLifePrograms(allocator, archive_path, &.{44});
     defer allocator.free(audits);
 
-    var has_hero_end_switch = false;
-    var has_object2_default = false;
+    var has_hero_success = false;
+    var has_object2_success = false;
 
     for (audits) |audit| {
         try std.testing.expectEqual(@as(usize, 44), audit.scene_entry_index);
         switch (audit.owner) {
             .hero => {
-                if (audit.status == .unsupported_opcode and audit.status.unsupported_opcode.opcode == .LM_END_SWITCH and audit.status.unsupported_opcode.offset == 713) {
-                    has_hero_end_switch = true;
+                if (audit.status == .decoded and audit.instruction_count == 197 and audit.decoded_byte_length == 823) {
+                    has_hero_success = true;
                 }
             },
             .object => |object_index| {
-                if (object_index == 2 and audit.status == .unsupported_opcode and audit.status.unsupported_opcode.opcode == .LM_DEFAULT and audit.status.unsupported_opcode.offset == 274) {
-                    has_object2_default = true;
+                if (object_index == 2 and audit.status == .decoded and audit.instruction_count == 87 and audit.decoded_byte_length == 329) {
+                    has_object2_success = true;
                 }
             },
         }
     }
 
     try std.testing.expect(audits.len > 1);
-    try std.testing.expect(has_hero_end_switch);
-    try std.testing.expect(has_object2_default);
+    try std.testing.expect(has_hero_success);
+    try std.testing.expect(has_object2_success);
 }

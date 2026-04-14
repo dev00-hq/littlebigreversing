@@ -2544,6 +2544,9 @@ test "ranked decoded interior candidate payload makes the scene 19 comparison ex
 }
 
 test "same-index decoded interior triage payload pins the current baseline comparison" {
+    const build_options = @import("build_options");
+    if (!build_options.enable_slow_cli_tests) return error.SkipZigTest;
+
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -2619,6 +2622,9 @@ test "same-index decoded interior triage payload pins the current baseline compa
 }
 
 test "same-index decoded interior triage text output surfaces the fragment-bearing summary" {
+    const build_options = @import("build_options");
+    if (!build_options.enable_slow_cli_tests) return error.SkipZigTest;
+
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -2751,30 +2757,14 @@ test "inspect-room-fragment-zones payload explains the 219 219 blocker" {
     try std.testing.expectEqual(@as(?i32, 80), third.x_axis.origin_remainder);
 }
 
-test "inspect-room rejects unsupported scene life outside the guarded runtime boundary" {
+test "inspect-room no longer exposes unsupported-life diagnostics for the former switch-family set" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
-    try std.testing.expectError(error.ViewerUnsupportedSceneLife, inspectRoom(allocator, resolved, 2, 2, true));
-    try std.testing.expectError(error.ViewerUnsupportedSceneLife, inspectRoom(allocator, resolved, 44, 2, true));
-    try std.testing.expectError(error.ViewerUnsupportedSceneLife, inspectRoom(allocator, resolved, 11, 10, true));
-}
-
-test "inspect-room formats unsupported-life diagnostics with first-hit blocker details" {
-    const allocator = std.testing.allocator;
-    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
-    defer resolved.deinit(allocator);
-
-    const hit = try room_state.inspectUnsupportedSceneLifeHit(allocator, resolved, 11);
-    var buffer: [512]u8 = undefined;
-    var stream = std.io.fixedBufferStream(&buffer);
-    try printUnsupportedSceneLifeDiagnostic(stream.writer(), 11, 10, hit);
-
-    try std.testing.expectEqualStrings(
-        "event=room_load_rejected scene_entry_index=11 background_entry_index=10 reason=unsupported_life_blob classic_loader_scene_number=9 scene_kind=interior unsupported_life_owner_kind=object unsupported_life_object_index=12 unsupported_life_opcode_name=LM_DEFAULT unsupported_life_opcode_id=116 unsupported_life_offset=38\n",
-        stream.getWritten(),
-    );
+    try std.testing.expectError(error.UnsupportedSceneLifeHitUnavailable, room_state.inspectUnsupportedSceneLifeHit(allocator, resolved, 2));
+    try std.testing.expectError(error.UnsupportedSceneLifeHitUnavailable, room_state.inspectUnsupportedSceneLifeHit(allocator, resolved, 11));
+    try std.testing.expectError(error.UnsupportedSceneLifeHitUnavailable, room_state.inspectUnsupportedSceneLifeHit(allocator, resolved, 44));
 }
 
 test "inspect-room formats invalid-fragment-zone diagnostics with offending grm zone details" {

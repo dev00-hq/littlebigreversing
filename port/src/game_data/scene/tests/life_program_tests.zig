@@ -116,6 +116,27 @@ test "life decoder recognizes every live opcode id from the checked-in runtime" 
     }
 }
 
+test "life decoder treats LM_DEFAULT and LM_END_SWITCH as one-byte structural markers" {
+    const allocator = std.testing.allocator;
+    const bytes = try allocator.dupe(u8, &.{
+        @intFromEnum(life_program.LifeOpcode.LM_DEFAULT),
+        @intFromEnum(life_program.LifeOpcode.LM_END_SWITCH),
+    });
+    defer allocator.free(bytes);
+
+    const instructions = try life_program.decodeLifeProgram(allocator, bytes);
+    defer allocator.free(instructions);
+
+    try std.testing.expectEqual(@as(usize, 2), instructions.len);
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_DEFAULT, instructions[0].opcode);
+    try std.testing.expectEqual(@as(usize, 1), instructions[0].byte_length);
+    try std.testing.expect(instructions[0].operands == .none);
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_END_SWITCH, instructions[1].opcode);
+    try std.testing.expectEqual(@as(usize, 1), instructions[1].byte_length);
+    try std.testing.expect(instructions[1].operands == .none);
+    try std.testing.expectEqual(@as(usize, bytes.len), try support.lifeInstructionStreamByteLength(instructions));
+}
+
 test "life decoder rejects unsupported ids, missing switch context, truncation, and malformed strings" {
     const allocator = std.testing.allocator;
 
@@ -139,7 +160,9 @@ test "life decoder covers selected real scene blobs without changing the scene s
     const scene2 = try parser.loadSceneMetadata(allocator, scene2_path, scene2_target.entry_index);
     defer scene2.deinit(allocator);
 
-    try std.testing.expectError(error.UnsupportedLifeOpcode, life_program.decodeLifeProgram(allocator, scene2.hero_start.life.bytes));
+    const scene2_hero_life = try life_program.decodeLifeProgram(allocator, scene2.hero_start.life.bytes);
+    defer allocator.free(scene2_hero_life);
+    try std.testing.expectEqual(@as(usize, scene2.hero_start.life.bytes.len), try support.lifeInstructionStreamByteLength(scene2_hero_life));
 
     const scene2_object5_life = try life_program.decodeLifeProgram(allocator, scene2.objects[4].life.bytes);
     defer allocator.free(scene2_object5_life);

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
@@ -94,6 +95,16 @@ class Scene11RuntimeCandidate:
     opcode: int
     opcode_offset: int
     target_window: PointerWindow
+
+
+@dataclass(frozen=True)
+class Scene11RunSummary:
+    payload: dict[str, object]
+
+
+@dataclass(frozen=True)
+class Scene11ComparisonReport:
+    payload: dict[str, object]
 
 
 DISCOVERY_SCAN_OBJECT_LIMIT = 48
@@ -491,6 +502,196 @@ def summarize_scene11_runtime_mismatch(
     )
 
 
+def scene11_object_status(snapshot: Scene11ObjectSnapshot) -> str:
+    if snapshot.ptr_life == 0:
+        return "ptr_life_missing"
+    if snapshot.target_byte is None:
+        return "target_window_unavailable"
+    if snapshot.target_byte == snapshot.spec.expected_opcode:
+        return "opcode_match"
+    return "opcode_mismatch"
+
+
+def scene11_runtime_pair_owner(
+    candidates: tuple[Scene11RuntimeCandidate, ...],
+) -> int | None:
+    opcode_074_owners = {candidate.object_index for candidate in candidates if candidate.opcode == 0x74}
+    opcode_076_owners = {candidate.object_index for candidate in candidates if candidate.opcode == 0x76}
+    shared = sorted(opcode_074_owners & opcode_076_owners)
+    return shared[0] if shared else None
+
+
+def build_scene11_run_summary(
+    *,
+    run_id: str,
+    mode: str,
+    launch_save: str | None,
+    bundle_root: Path,
+    snapshot: Scene11DebuggerSnapshot,
+    candidates: tuple[Scene11RuntimeCandidate, ...],
+    verdict_result: str,
+    verdict_reason: str | None,
+) -> Scene11RunSummary:
+    def summarize_object(snapshot_object: Scene11ObjectSnapshot) -> dict[str, object]:
+        return {
+            "label": snapshot_object.spec.label,
+            "object_index": snapshot_object.spec.object_index,
+            "status": scene11_object_status(snapshot_object),
+            "ptr_life": format_hex_u32(snapshot_object.ptr_life),
+            "offset_life": snapshot_object.offset_life,
+            "target_offset": snapshot_object.spec.target_offset,
+            "expected_opcode_hex": format_hex_u16(snapshot_object.spec.expected_opcode),
+            "actual_opcode_hex": format_hex_u16(snapshot_object.target_byte),
+            "target_address": format_hex_u32(snapshot_object.target_address),
+        }
+
+    summary = {
+        "schema_version": "scene11-run-summary-v1",
+        "run_id": run_id,
+        "mode": mode,
+        "bundle_root": str(bundle_root),
+        "launch_save": None if launch_save is None else str(Path(launch_save).resolve()),
+        "debugger": "cdb-agent",
+        "global_ptr_prg": format_hex_u32(snapshot.ptr_prg),
+        "global_ptr_prg_nonzero": snapshot.ptr_prg != 0,
+        "canonical_objects": {
+            "primary": summarize_object(snapshot.primary),
+            "comparison": summarize_object(snapshot.comparison),
+        },
+        "runtime_candidates": [
+            {
+                "object_index": candidate.object_index,
+                "ptr_life": format_hex_u32(candidate.ptr_life),
+                "offset_life": candidate.offset_life,
+                "opcode_hex": format_hex_u16(candidate.opcode),
+                "opcode_name": DISCOVERY_OPCODES[candidate.opcode],
+                "opcode_offset": candidate.opcode_offset,
+            }
+            for candidate in candidates
+        ],
+        "runtime_pair_owner": scene11_runtime_pair_owner(candidates),
+        "verdict": {
+            "result": verdict_result,
+            "reason": verdict_reason,
+        },
+    }
+    return Scene11RunSummary(payload=summary)
+
+
+def write_scene11_run_summary(
+    writer: JsonlWriter,
+    summary: Scene11RunSummary,
+) -> Path:
+    output_path = writer.bundle_root / "scene11_summary.json"
+    output_path.write_text(
+        json.dumps(summary.payload, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    writer.register_artifact("scene11_summary", output_path.name)
+    return output_path
+
+
+def load_scene11_run_summary(path: Path) -> Scene11RunSummary:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"scene11 summary is not a JSON object: {path}")
+    if payload.get("schema_version") != "scene11-run-summary-v1":
+        raise RuntimeError(f"scene11 summary has an unsupported schema_version: {path}")
+    return Scene11RunSummary(payload=payload)
+
+
+def classify_scene11_run_summary(summary: Scene11RunSummary) -> tuple[str, str]:
+    payload = summary.payload
+    canonical_objects = payload["canonical_objects"]
+    if not isinstance(canonical_objects, dict):
+        raise RuntimeError("scene11 summary is missing canonical_objects")
+    primary = canonical_objects.get("primary")
+    comparison = canonical_objects.get("comparison")
+    if not isinstance(primary, dict) or not isinstance(comparison, dict):
+        raise RuntimeError("scene11 summary canonical_objects entries must be objects")
+
+    if primary.get("status") == "opcode_match" and comparison.get("status") == "opcode_match":
+        return (
+            "canonical_12_18_pair",
+            "canonical objects 12 and 18 both exposed the expected unsupported opcodes",
+        )
+
+    runtime_pair_owner = payload.get("runtime_pair_owner")
+    if isinstance(runtime_pair_owner, int):
+        return (
+            "runtime_object_pair",
+            f"runtime object {runtime_pair_owner} exposed both unsupported opcodes",
+        )
+
+    return (
+        "ambiguous",
+        str(payload.get("verdict", {}).get("reason") if isinstance(payload.get("verdict"), dict) else "scene11 summary did not resolve canonical or runtime-owned pair"),
+    )
+
+
+def build_scene11_comparison_report(
+    summaries: tuple[Scene11RunSummary, ...],
+) -> Scene11ComparisonReport:
+    if len(summaries) < 2:
+        raise ValueError("scene11 comparison requires at least two summaries")
+
+    runs: list[dict[str, object]] = []
+    runtime_pair_saves: set[str] = set()
+    saw_runtime_object_2_pair = False
+    saw_canonical_pair = False
+
+    for summary in summaries:
+        classification, reason = classify_scene11_run_summary(summary)
+        payload = summary.payload
+        launch_save = payload.get("launch_save")
+        if classification == "canonical_12_18_pair":
+            saw_canonical_pair = True
+        if classification == "runtime_object_pair":
+            runtime_pair_owner = payload.get("runtime_pair_owner")
+            if runtime_pair_owner == 2:
+                saw_runtime_object_2_pair = True
+            if isinstance(launch_save, str):
+                runtime_pair_saves.add(launch_save)
+        runs.append(
+            {
+                "run_id": payload.get("run_id"),
+                "launch_save": launch_save,
+                "global_ptr_prg": payload.get("global_ptr_prg"),
+                "global_ptr_prg_nonzero": payload.get("global_ptr_prg_nonzero"),
+                "classification": classification,
+                "classification_reason": reason,
+                "runtime_pair_owner": payload.get("runtime_pair_owner"),
+                "verdict": payload.get("verdict"),
+            }
+        )
+
+    if saw_canonical_pair:
+        decision = "preserve_static_contract"
+        decision_reason = (
+            "at least one Scene11 save materialized canonical objects 12 and 18, so the static contract remains the runtime default"
+        )
+    elif saw_runtime_object_2_pair and len(runtime_pair_saves) >= 2:
+        decision = "redefine_runtime_contract"
+        decision_reason = (
+            "at least two distinct Scene11 saves exposed both unsupported opcodes on runtime object 2, so the runtime proof should pivot to runtime-discovered ownership"
+        )
+    else:
+        decision = "insufficient_evidence"
+        decision_reason = (
+            "the compared Scene11 saves did not yet produce enough independent evidence to replace the static 12/18 contract"
+        )
+
+    return Scene11ComparisonReport(
+        payload={
+            "schema_version": "scene11-comparison-report-v1",
+            "run_count": len(runs),
+            "runs": runs,
+            "decision": decision,
+            "decision_reason": decision_reason,
+        }
+    )
+
+
 def write_memory_snapshot_event(
     writer: JsonlWriter,
     *,
@@ -706,6 +907,8 @@ def run_scene11_debugger_snapshot(
         mismatch = summarize_scene11_runtime_mismatch(snapshot, discovery_candidates)
         if mismatch is not None:
             result, reason = mismatch
+    else:
+        discovery_candidates = tuple()
 
     verdict_event_id = writer.next_event_id()
     _, final_screenshot_error = capture_snapshot_poi(
@@ -723,6 +926,20 @@ def run_scene11_debugger_snapshot(
     if screenshot_error is not None:
         result = "screenshot_capture_failed"
         reason = screenshot_error
+
+    write_scene11_run_summary(
+        writer,
+        build_scene11_run_summary(
+            run_id=writer.run_id,
+            mode=args.mode,
+            launch_save=args.launch_save,
+            bundle_root=writer.bundle_root,
+            snapshot=snapshot,
+            candidates=discovery_candidates,
+            verdict_result=result,
+            verdict_reason=reason,
+        ),
+    )
 
     writer.write_event(
         PersistedVerdictEvent(

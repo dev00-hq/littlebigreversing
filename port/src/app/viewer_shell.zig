@@ -65,6 +65,7 @@ pub const ViewerCardinalMoveOption = runtime_locomotion.CardinalMoveOption;
 pub const ViewerMoveOptions = runtime_locomotion.MoveOptions;
 pub const ViewerLocalNeighborTopology = runtime_locomotion.LocalNeighborTopology;
 pub const ViewerRawInvalidStartCandidate = runtime_locomotion.RawInvalidStartCandidate;
+pub const ViewerRawInvalidStartMappingHint = runtime_locomotion.RawInvalidStartMappingHint;
 pub const ViewerRawInvalidStartStatus = runtime_locomotion.RawInvalidStartStatus;
 pub const ViewerSeededValidStatus = runtime_locomotion.SeededValidStatus;
 pub const ViewerMoveAcceptedStatus = runtime_locomotion.MoveAcceptedStatus;
@@ -161,7 +162,7 @@ pub fn formatLocomotionStatusDisplay(
 ) ViewerLocomotionStatusDisplay {
     return switch (status) {
         .raw_invalid_start => |value| .{
-            .line_count = 6,
+            .line_count = 7,
             .lines = .{
                 "RAW START INVALID",
                 formatRawStartLine(&buffer.line_0, value.raw_cell, value.exact_status),
@@ -169,7 +170,7 @@ pub fn formatLocomotionStatusDisplay(
                 formatCoverageLine(&buffer.line_2, value.occupied_coverage),
                 formatRawInvalidStartCandidateLine(&buffer.line_3, "NEAR OCC", value.nearest_occupied),
                 formatRawInvalidStartCandidateLine(&buffer.line_4, "NEAR STAND", value.nearest_standable),
-                "",
+                formatRawInvalidStartMappingHintLine(&buffer.line_5, value.best_alt_mapping),
             },
         },
         .seeded_valid => |value| .{
@@ -352,8 +353,9 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
             var occupied_bounds_buffer: [32]u8 = undefined;
             var nearest_occupied_buffer: [48]u8 = undefined;
             var nearest_standable_buffer: [48]u8 = undefined;
+            var best_alt_mapping_buffer: [160]u8 = undefined;
             try writer.print(
-                "event=hero_status status=raw_invalid_start exact_status={s} diagnostic_status={s} raw_cell={s} occupied_coverage={s} occupied_bounds={s} occupied_bounds_dx={d} occupied_bounds_dz={d} nearest_occupied={s} nearest_standable={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
+                "event=hero_status status=raw_invalid_start exact_status={s} diagnostic_status={s} raw_cell={s} occupied_coverage={s} occupied_bounds={s} occupied_bounds_dx={d} occupied_bounds_dz={d} nearest_occupied={s} nearest_standable={s} best_alt_mapping={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
                 .{
                     @tagName(value.exact_status),
                     @tagName(value.diagnostic_status),
@@ -364,6 +366,7 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
                     value.occupied_coverage.z_cells_from_bounds,
                     formatRawInvalidStartCandidateDiagnostic(&nearest_occupied_buffer, value.nearest_occupied),
                     formatRawInvalidStartCandidateDiagnostic(&nearest_standable_buffer, value.nearest_standable),
+                    formatRawInvalidStartMappingHintDiagnostic(&best_alt_mapping_buffer, value.best_alt_mapping),
                     value.hero_position.x,
                     value.hero_position.y,
                     value.hero_position.z,
@@ -832,6 +835,48 @@ fn formatRawInvalidStartCandidateDiagnostic(
             resolved.x_distance,
             resolved.z_distance,
             resolved.distance_sq,
+        },
+    ) catch unreachable;
+}
+
+fn formatRawInvalidStartMappingHintLine(
+    buffer: []u8,
+    hint: ?ViewerRawInvalidStartMappingHint,
+) []const u8 {
+    const resolved = hint orelse return "ALT MAP NONE";
+
+    var hypothesis_buffer: [48]u8 = undefined;
+    var cell_buffer: [16]u8 = undefined;
+    var exact_buffer: [48]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "ALT MAP {s} CELL {s} {s}",
+        .{
+            upperTag(&hypothesis_buffer, @tagName(resolved.hypothesis)),
+            formatOptionalCell(&cell_buffer, resolved.raw_cell),
+            upperTag(&exact_buffer, @tagName(resolved.exact_status)),
+        },
+    ) catch unreachable;
+}
+
+fn formatRawInvalidStartMappingHintDiagnostic(
+    buffer: []u8,
+    hint: ?ViewerRawInvalidStartMappingHint,
+) []const u8 {
+    const resolved = hint orelse return "none";
+
+    var cell_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "{s}:{d}:{s}:{s}:{s}:{d}:{d}",
+        .{
+            @tagName(resolved.hypothesis),
+            resolved.cell_span_xz,
+            formatOptionalCell(&cell_buffer, resolved.raw_cell),
+            @tagName(resolved.exact_status),
+            @tagName(resolved.disposition),
+            resolved.better_metric_count,
+            resolved.worse_metric_count,
         },
     ) catch unreachable;
 }

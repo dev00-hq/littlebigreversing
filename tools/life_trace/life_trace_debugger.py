@@ -137,6 +137,10 @@ def collect_cdb_agent_bytes(rows: list[dict[str, Any]], address: int, count: int
 
 
 class CdbMemoryReader:
+    # The canonical Scene11 snapshot lane is intentionally limited to one-shot
+    # cdb-agent --pid reads. Do not replace this adapter with debug-bootstrap
+    # remote sessions in repo automation: those sessions are invasive, stateful,
+    # and unsafe for parallel request/step workflows.
     def __init__(
         self,
         cdb_path: Path,

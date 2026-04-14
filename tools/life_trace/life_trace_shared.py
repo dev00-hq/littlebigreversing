@@ -731,6 +731,13 @@ class JsonlWriter:
         }
         self._write_manifest()
 
+    def register_artifact(self, key: str, relative_path: str) -> None:
+        if not key:
+            raise ValueError("artifact key must not be empty")
+        normalized = relative_path.replace("\\", "/")
+        self._manifest["artifacts"][key] = normalized
+        self._write_manifest()
+
     def next_event_id(self) -> str:
         self._event_counter += 1
         return f"evt-{self._event_counter:04d}"

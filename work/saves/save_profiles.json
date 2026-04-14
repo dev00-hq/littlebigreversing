@@ -1,0 +1,347 @@
+{
+  "schema_version": "lba2-save-profiles-v3",
+  "purpose": "Canonical generation-oriented save specifications for original-runtime proof work.",
+  "notes": [
+    "Treat these profiles as state specifications first and save-file examples second.",
+    "A profile should remain useful even if none of its example .LBA files exist locally.",
+    "For Neighbour's House evidence, room name alone is insufficient; use room plus progression family.",
+    "Visual verification is a Codex/manual screenshot comparison step, not an automated image-matching pass.",
+    "Only put screenshot-verifiable cues in visual_verification; keep story-era assertions in generation_spec."
+  ],
+  "profiles": [
+    {
+      "profile_id": "scene11-early-house",
+      "scene_name": "Neighbour's House",
+      "scene_id": 9,
+      "raw_scene_entry_index": 11,
+      "section": "Twinsen's House Area",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Early-game baseline contrast for the Scene11 ownership/mismatch lane.",
+      "generation_spec": {
+        "story_arc": "Opening Citadel / pre-School-of-Magic family",
+        "story_prerequisites": [
+          "Twinsen is still in the early Citadel storyline",
+          "The save is before the later wizard, Zeelich-return, or captured-world branches"
+        ],
+        "hero_state": [
+          "Twinsen on foot",
+          "Keep the save's natural early-game body/comportment and inventory"
+        ],
+        "room_requirement": "Save inside Neighbour's House",
+        "interaction_boundary": "Prefer saving immediately after entering the room, before additional room-specific interactions.",
+        "record_with_save": [
+          "chapter_or_arc",
+          "hero_outfit_or_body",
+          "magic_level_if_known",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before additional room-specific interactions.",
+        "expected_visual_cues": [
+          "Twinsen is inside Neighbour's House",
+          "Twinsen appears in a non-wizard presentation"
+        ],
+        "mismatch_examples": [
+          "Twinsen is visibly in wizard robes",
+          "The loaded room is not Neighbour's House"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Load or play to an early-game Citadel state.",
+        "Enter Neighbour's House.",
+        "Create the save inside the room before doing extra room-specific actions.",
+        "Record the chapter/arc and Twinsen's visible outfit if known.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": [
+        "neighbor-house.LBA"
+      ]
+    },
+    {
+      "profile_id": "scene11-wizard-house",
+      "scene_name": "Neighbour's House",
+      "scene_id": 9,
+      "raw_scene_entry_index": 11,
+      "section": "Twinsen's House Area",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Wizard-era Scene11 comparison for the ownership/mismatch lane.",
+      "generation_spec": {
+        "story_arc": "School-of-Magic / wizard-disguise family",
+        "story_prerequisites": [
+          "Twinsen has completed the School of Magic sequence or is in its immediate aftermath",
+          "Wizard costume or equivalent wizard-state branch is active"
+        ],
+        "hero_state": [
+          "Prefer Twinsen in wizard robes or equivalent wizard form",
+          "Keep natural inventory and magic state for this era"
+        ],
+        "room_requirement": "Save inside Neighbour's House",
+        "interaction_boundary": "Prefer saving inside the room without introducing extra ad hoc interactions for the experiment.",
+        "record_with_save": [
+          "chapter_or_arc",
+          "hero_outfit_or_body",
+          "magic_level_if_known",
+          "notable_inventory_or_flags_if_known",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before changing outfit or leaving the room.",
+        "expected_visual_cues": [
+          "Twinsen is inside Neighbour's House",
+          "Twinsen is visibly in wizard robes or equivalent wizard disguise"
+        ],
+        "mismatch_examples": [
+          "Twinsen is not in wizard robes",
+          "The loaded room is not Neighbour's House"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Reach the wizard-disguise part of the game around the School of Magic / Hacienda transition.",
+        "Keep Twinsen in wizard robes if possible.",
+        "Enter Neighbour's House and save inside the room.",
+        "Record that this is the wizard-era family.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": []
+    },
+    {
+      "profile_id": "scene11-returned-house",
+      "scene_name": "Neighbour's House",
+      "scene_id": 9,
+      "raw_scene_entry_index": 11,
+      "section": "Twinsen's House Area",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Post-return-to-Twinsun Scene11 runtime-owner comparison.",
+      "generation_spec": {
+        "story_arc": "Returned-to-Twinsun / kidnapped-children late-house family",
+        "story_prerequisites": [
+          "Twinsen has returned to Twinsun from Zeelich",
+          "The kidnapped-children or equivalent late-house story branch is active"
+        ],
+        "hero_state": [
+          "Twinsen on foot in the save's natural returned-to-Twinsun state",
+          "Preserve natural inventory, body, comportment, and magic state"
+        ],
+        "room_requirement": "Save inside Neighbour's House",
+        "interaction_boundary": "Prefer saving soon after entering the room so the room snapshot stays close to the story branch entry state.",
+        "record_with_save": [
+          "chapter_or_arc",
+          "hero_outfit_or_body",
+          "magic_level_if_known",
+          "notable_inventory_or_flags_if_known",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before extra room-local interactions.",
+        "expected_visual_cues": [
+          "Twinsen is inside Neighbour's House"
+        ],
+        "mismatch_examples": [
+          "The loaded room is not Neighbour's House"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Reach the post-Zeelich returned-to-Twinsun portion of the story.",
+        "Go to Neighbour's House during the kidnapped-children or equivalent late-house branch.",
+        "Create the save inside the room with the natural late-game state intact.",
+        "Record that this is the returned-house family.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": [
+        "S8741.LBA"
+      ]
+    },
+    {
+      "profile_id": "scene11-captured-house",
+      "scene_name": "Neighbour's House",
+      "scene_id": 9,
+      "raw_scene_entry_index": 11,
+      "section": "Twinsen's House Area",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Captured-world family confirmation for the Scene11 runtime contract.",
+      "generation_spec": {
+        "story_arc": "Captured-world / S6122-derived late family",
+        "story_prerequisites": [
+          "Use a captured-world or equivalent late-family source state",
+          "Preserve the natural progression state from that source"
+        ],
+        "hero_state": [
+          "Twinsen on foot in the save's natural captured-world state"
+        ],
+        "room_requirement": "Save inside Neighbour's House",
+        "interaction_boundary": "Prefer saving immediately after reaching the room from the captured-world source state.",
+        "record_with_save": [
+          "source_save_family",
+          "chapter_or_arc_if_known",
+          "hero_outfit_or_body",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before normalizing the state further.",
+        "expected_visual_cues": [
+          "Twinsen is inside Neighbour's House"
+        ],
+        "mismatch_examples": [
+          "The loaded room is not Neighbour's House"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Start from a captured-world late-family save if that is the family under test.",
+        "Travel to Neighbour's House.",
+        "Save inside the room without normalizing the state further.",
+        "Record the source save family used to derive it.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": [
+        "neighbor-house-captured.LBA"
+      ]
+    },
+    {
+      "profile_id": "tavern-baseline",
+      "scene_name": "Chez Luc",
+      "scene_id": 3,
+      "raw_scene_entry_index": 5,
+      "section": "Lupin-Bourg (landing zone)",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Canonical Tavern live behavior proof baseline.",
+      "generation_spec": {
+        "story_arc": "General Tavern proof family",
+        "story_prerequisites": [
+          "No specific story era is currently required for the baseline Tavern proof"
+        ],
+        "hero_state": [
+          "Twinsen in the save's natural state"
+        ],
+        "room_requirement": "Save inside the Tavern",
+        "interaction_boundary": "Saving inside the room is enough unless a narrower Tavern experiment says otherwise.",
+        "record_with_save": [
+          "chapter_or_arc_if_known",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before moving deeper into the Tavern sequence.",
+        "expected_visual_cues": [
+          "Twinsen is inside the Tavern",
+          "The loaded room is Chez Luc rather than the outside landing-zone scene"
+        ],
+        "mismatch_examples": [
+          "The loaded scene is outside the Tavern",
+          "The loaded room is not Chez Luc"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Reach the Tavern in any valid story state.",
+        "Create the save inside the room.",
+        "Record the rough progression era if known.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": [
+        "inside-tavern.LBA"
+      ]
+    },
+    {
+      "profile_id": "tavern-sendell-ball",
+      "scene_name": "Chez Luc",
+      "scene_id": 3,
+      "raw_scene_entry_index": 5,
+      "section": "Lupin-Bourg (landing zone)",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Tavern proof in the lightning-spell / Sendell-ball story family.",
+      "generation_spec": {
+        "story_arc": "Pre-Moon Twinsun family around the lightning spell and Sendell's Ball",
+        "story_prerequisites": [
+          "Twinsen has the lightning spell or is in the immediate sequence where Tavern leads into the sewer / Sendell's Ball path"
+        ],
+        "hero_state": [
+          "Preserve the natural pre-Moon state for this story sequence"
+        ],
+        "room_requirement": "Save inside the Tavern",
+        "interaction_boundary": "Prefer saving before clearing the Tavern-local sequence if the goal is to probe that story family directly.",
+        "record_with_save": [
+          "chapter_or_arc_if_known",
+          "notable_magic_or_inventory_if_known",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before consuming the Tavern-local Sendell-ball sequence.",
+        "expected_visual_cues": [
+          "Twinsen is inside the Tavern"
+        ],
+        "mismatch_examples": [
+          "The loaded scene is outside the Tavern"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Reach the phase where the lightning spell and Sendell's Ball path runs through the Tavern.",
+        "Enter the Tavern and save inside the room before over-normalizing the sequence.",
+        "Record that this is the Sendell-ball Tavern family.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": []
+    },
+    {
+      "profile_id": "tavern-late",
+      "scene_name": "Chez Luc",
+      "scene_id": 3,
+      "raw_scene_entry_index": 5,
+      "section": "Lupin-Bourg (landing zone)",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Cross-progression confirmation that the Tavern proof survives later global state.",
+      "generation_spec": {
+        "story_arc": "Late-game or progressed-world Tavern family",
+        "story_prerequisites": [
+          "Use any materially progressed global state where Tavern is still reachable"
+        ],
+        "hero_state": [
+          "Twinsen in the save's natural late-game state"
+        ],
+        "room_requirement": "Save inside the Tavern",
+        "interaction_boundary": "Saving inside the room is enough unless the experiment is tied to a narrower Tavern sequence.",
+        "record_with_save": [
+          "source_save_family_if_known",
+          "chapter_or_arc_if_known",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before altering the late-game Tavern state.",
+        "expected_visual_cues": [
+          "Twinsen is inside the Tavern"
+        ],
+        "mismatch_examples": [
+          "The loaded scene is outside the Tavern"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Reach the Tavern in a later progression state.",
+        "Create the save inside the room.",
+        "Record the rough story era or source save family.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": [
+        "inside-tavern-chapter-2.LBA",
+        "tavern-captured.LBA"
+      ]
+    }
+  ]
+}

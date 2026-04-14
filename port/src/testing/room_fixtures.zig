@@ -8,10 +8,15 @@ var guarded_1919_once = std.once(initGuarded1919);
 var guarded_1919_room: ?*const room_state.RoomSnapshot = null;
 var guarded_1919_error: ?anyerror = null;
 
-var unchecked_1110_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-var unchecked_1110_once = std.once(initUnchecked1110);
-var unchecked_1110_room: ?*const room_state.RoomSnapshot = null;
-var unchecked_1110_error: ?anyerror = null;
+var guarded_1110_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+var guarded_1110_once = std.once(initGuarded1110);
+var guarded_1110_room: ?*const room_state.RoomSnapshot = null;
+var guarded_1110_error: ?anyerror = null;
+
+var guarded_22_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+var guarded_22_once = std.once(initGuarded22);
+var guarded_22_room: ?*const room_state.RoomSnapshot = null;
+var guarded_22_error: ?anyerror = null;
 
 pub fn guarded1919() !*const room_state.RoomSnapshot {
     guarded_1919_once.call();
@@ -19,10 +24,16 @@ pub fn guarded1919() !*const room_state.RoomSnapshot {
     return guarded_1919_room orelse return error.MissingGuarded1919Fixture;
 }
 
-pub fn unchecked1110() !*const room_state.RoomSnapshot {
-    unchecked_1110_once.call();
-    if (unchecked_1110_error) |err| return err;
-    return unchecked_1110_room orelse return error.MissingUnchecked1110Fixture;
+pub fn guarded1110() !*const room_state.RoomSnapshot {
+    guarded_1110_once.call();
+    if (guarded_1110_error) |err| return err;
+    return guarded_1110_room orelse return error.MissingGuarded1110Fixture;
+}
+
+pub fn guarded22() !*const room_state.RoomSnapshot {
+    guarded_22_once.call();
+    if (guarded_22_error) |err| return err;
+    return guarded_22_room orelse return error.MissingGuarded22Fixture;
 }
 
 fn initGuarded1919() void {
@@ -32,9 +43,16 @@ fn initGuarded1919() void {
     };
 }
 
-fn initUnchecked1110() void {
-    unchecked_1110_room = loadRoomFixture(&unchecked_1110_arena, 11, 10, .unchecked) catch |err| {
-        unchecked_1110_error = err;
+fn initGuarded1110() void {
+    guarded_1110_room = loadRoomFixture(&guarded_1110_arena, 11, 10, .guarded) catch |err| {
+        guarded_1110_error = err;
+        return;
+    };
+}
+
+fn initGuarded22() void {
+    guarded_22_room = loadRoomFixture(&guarded_22_arena, 2, 2, .guarded) catch |err| {
+        guarded_22_error = err;
         return;
     };
 }
@@ -63,13 +81,17 @@ fn loadRoomFixture(
 test "memoized room fixtures return stable borrowed snapshots" {
     const first_guarded = try guarded1919();
     const second_guarded = try guarded1919();
-    const first_unchecked = try unchecked1110();
-    const second_unchecked = try unchecked1110();
+    const first_guarded_1110 = try guarded1110();
+    const second_guarded_1110 = try guarded1110();
+    const first_guarded_22 = try guarded22();
+    const second_guarded_22 = try guarded22();
 
     try std.testing.expect(first_guarded == second_guarded);
-    try std.testing.expect(first_unchecked == second_unchecked);
+    try std.testing.expect(first_guarded_1110 == second_guarded_1110);
+    try std.testing.expect(first_guarded_22 == second_guarded_22);
     try std.testing.expectEqual(@as(usize, 19), first_guarded.scene.entry_index);
-    try std.testing.expectEqual(@as(usize, 11), first_unchecked.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 11), first_guarded_1110.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 2), first_guarded_22.scene.entry_index);
 }
 
 test "memoized room fixtures stay immutable across session mutations" {

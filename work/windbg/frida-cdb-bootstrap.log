@@ -1,0 +1,177 @@
+Opened log file 'D:\repos\reverse\littlebigreversing\work\windbg\frida-cdb-bootstrap.log'
+
+************* Preparing the environment for Debugger Extensions Gallery repositories **************
+   ExtensionRepository : Implicit
+   UseExperimentalFeatureForNugetShare : true
+   AllowNugetExeUpdate : true
+   NonInteractiveNuget : true
+   AllowNugetMSCredentialProviderInstall : true
+   AllowParallelInitializationOfLocalRepositories : true
+   EnableRedirectToChakraJsProvider : false
+
+   -- Configuring repositories
+      ----> Repository : LocalInstalled, Enabled: true
+      ----> Repository : UserExtensions, Enabled: true
+
+>>>>>>>>>>>>> Preparing the environment for Debugger Extensions Gallery repositories completed, duration 0.000 seconds
+
+************* Waiting for Debugger Extensions Gallery to Initialize **************
+
+>>>>>>>>>>>>> Waiting for Debugger Extensions Gallery to Initialize completed, duration 0.015 seconds
+   ----> Repository : UserExtensions, Enabled: true, Packages count: 0
+   ----> Repository : LocalInstalled, Enabled: true, Packages count: 46
+
+Microsoft (R) Windows Debugger Version 10.0.29547.1002 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+*** wait with pending attach
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\atlmfc.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\concurrency.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\cpp_rest.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\ObjectiveC.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\stl.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Data.Json.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Geolocation.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Sensors.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Media.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\windows.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\winrt.natvis'
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+
++------------------------------------------------------------------------+
+| This target supports Hardware-enforced Stack Protection. A HW based    |
+| "Shadow Stack" may be available to assist in debugging and analysis.   |
+| See aka.ms/userhsp for more info.                                      |
+|                                                                        |
+| dps @ssp                                                               |
+|                                                                        |
++------------------------------------------------------------------------+
+
+ModLoad: 00400000 004e3000   D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE
+ModLoad: 1ae80000 1b0e7000   C:\WINDOWS\SYSTEM32\ntdll.dll
+ModLoad: 77bc0000 77d7f000   ntdll.dll
+ModLoad: 00007ffa`19e20000 00007ffa`19e75000   C:\WINDOWS\System32\wow64.dll
+ModLoad: 00007ffa`19e80000 00007ffa`19e8b000   C:\WINDOWS\System32\wow64base.dll
+ModLoad: 00007ffa`18c20000 00007ffa`18ca9000   C:\WINDOWS\System32\wow64win.dll
+ModLoad: 00007ffa`1ad00000 00007ffa`1ad19000   C:\WINDOWS\System32\wow64con.dll
+ModLoad: 00000000`77bb0000 00000000`77bba000   C:\WINDOWS\System32\wow64cpu.dll
+ModLoad: 00000000`76460000 00000000`76550000   KERNEL32.dll
+ModLoad: 00000000`75080000 00000000`75348000   KERNELBASE.dll
+ModLoad: 00000000`6d310000 00000000`6d3be000   apphelp.dll
+ModLoad: 00000000`75050000 00000000`75072000   GDI32.dll
+ModLoad: 00000000`779d0000 00000000`779ea000   win32u.dll
+ModLoad: 00000000`76940000 00000000`76a2b000   gdi32full.dll
+ModLoad: 00000000`77480000 00000000`77505000   msvcp_win.dll
+ModLoad: 00000000`74f30000 00000000`75040000   ucrtbase.dll
+ModLoad: 00000000`76560000 00000000`76729000   USER32.dll
+ModLoad: 00000000`77520000 00000000`775a5000   ADVAPI32.dll
+ModLoad: 00000000`76390000 00000000`76457000   msvcrt.dll
+ModLoad: 00000000`75360000 00000000`753e3000   SECHOST.dll
+ModLoad: 00000000`77710000 00000000`777cc000   RPCRT4.dll
+ModLoad: 00000000`74da0000 00000000`74dd3000   WINMM.dll
+ModLoad: 00000000`62540000 00000000`6262c000   DDRAW.dll
+ModLoad: 00000000`65c10000 00000000`65c17000   DCIMAN32.dll
+ModLoad: 00000000`63290000 00000000`63399000   dxgi.dll
+ModLoad: 00000000`74de0000 00000000`74e35000   POWRPROF.dll
+ModLoad: 00000000`65a50000 00000000`65a86000   dxcore.dll
+ModLoad: 00000000`005d0000 00000000`005fb000   mss32.dll
+ModLoad: 00000000`00650000 00000000`00666000   smackw32.dll
+ModLoad: 00000000`776d0000 00000000`776f5000   IMM32.dll
+ModLoad: 00000000`74c70000 00000000`74c7e000   UMPDC.dll
+ModLoad: 00000000`69d00000 00000000`69d80000   UxTheme.dll
+ModLoad: 00000000`770e0000 00000000`77372000   combase.dll
+ModLoad: 00000000`10000000 00000000`100cf000   dxwnd.dll
+ModLoad: 00000000`779f0000 00000000`77b09000   MSCTF.dll
+ModLoad: 00000000`74ca0000 00000000`74cb5000   AppCore.dll
+ModLoad: 00000000`777d0000 00000000`77844000   bcryptPrimitives.dll
+ModLoad: 00000000`759d0000 00000000`75a6f000   OLEAUT32.dll
+ModLoad: 00000000`629b0000 00000000`62ab3000   TextInputFramework.dll
+ModLoad: 00000000`628d0000 00000000`629ad000   CoreMessaging.dll
+ModLoad: 00000000`62630000 00000000`628c2000   CoreUIComponents.dll
+ModLoad: 00000000`76840000 00000000`76939000   WinTypes.dll
+ModLoad: 00000000`6f800000 00000000`6f80a000   CRYPTBASE.dll
+ModLoad: 00000000`624c0000 00000000`62536000   DSOUND.dll
+ModLoad: 00000000`62490000 00000000`624b6000   WINMMBASE.dll
+ModLoad: 00000000`623f0000 00000000`6248a000   ResampleDmo.DLL
+ModLoad: 00000000`75a80000 00000000`75b52000   SHCORE.dll
+ModLoad: 00000000`623e0000 00000000`623e9000   msdmo.dll
+ModLoad: 00000000`753f0000 00000000`75541000   ole32.dll
+ModLoad: 00000000`773f0000 00000000`77476000   CLBCatQ.DLL
+ModLoad: 00000000`67cd0000 00000000`67d4e000   MMDevAPI.DLL
+ModLoad: 00000000`74250000 00000000`74274000   DEVOBJ.dll
+ModLoad: 00000000`74d50000 00000000`74d93000   CFGMGR32.dll
+ModLoad: 00000000`667c0000 00000000`6692d000   AudioSes.DLL
+ModLoad: 00000000`623c0000 00000000`623d0000   ResourcePolicyClient.dll
+ModLoad: 00000000`62380000 00000000`623bd000   WDMAUD.dll
+ModLoad: 00000000`62360000 00000000`6237b000   WDMAUD2.dll
+ModLoad: 00000000`62350000 00000000`62359000   AVRT.dll
+ModLoad: 00000000`62340000 00000000`6234b000   MSACM32.DRV
+ModLoad: 00000000`62320000 00000000`6233a000   MSACM32.dll
+ModLoad: 00000000`62310000 00000000`62318000   MIDIMAP.dll
+ModLoad: 00000000`666b0000 00000000`667bd000   Windows.UI.dll
+ModLoad: 00000000`65430000 00000000`6544a000   atidx9loader32.dll
+ModLoad: 00000000`633a0000 00000000`65421000   amdxn32.dll
+ModLoad: 00000000`76aa0000 00000000`770d6000   SHELL32.dll
+ModLoad: 00000000`75570000 00000000`759c1000   SETUPAPI.dll
+ModLoad: 00000000`75bd0000 00000000`762b4000   Windows.Storage.dll
+ModLoad: 00000000`775b0000 00000000`77602000   SHLWAPI.dll
+ModLoad: 00000000`739f0000 00000000`73a0c000   bcrypt.dll
+ModLoad: 00000000`63260000 00000000`6328e000   amdihk32.dll
+ModLoad: 00000000`68190000 00000000`681b5000   dwmapi.dll
+ModLoad: 00000000`622f0000 00000000`62306000   MCICDA.dll
+(1cbc.5b64): Break instruction exception - code 80000003 (first chance)
+ntdll!DbgBreakPoint:
+00007ffa`1afa0c80 cc              int     3
+BEEEE\sebam (tcp [::ffff:127.0.0.1]:61635) connected at Tue Apr 14 00:26:28 2026
+BEEEE\sebam (tcp [::ffff:127.0.0.1]:61633) connected at Tue Apr 14 00:26:28 2026
+BEEEE\sebam (tcp [::ffff:127.0.0.1]:61634) connected at Tue Apr 14 00:26:28 2026
+[BEEEE\sebam (tcp [::ffff:127.0.0.1]:61633)] [BEEEE\sebam (tcp [::ffff:127.0.0.1]:61635)] [BEEEE\sebam (tcp [::ffff:127.0.0.1]:61634)] 0:018> .load wow64exts; !wow64exts.sw; ? poi(4976d0); .remote_exit
+Switched to Guest (WoW) mode
+Evaluate expression: 38872774 = 025126c6
+                                                                 ^ Syntax error in '.load wow64exts; !wow64exts.sw; ? poi(4976d0); .remote_exit'
+0:018:x86> .load wow64exts; !wow64exts.sw; u 420574 L20; .remote_exit
+0:018:x86> .load wow64exts; !wow64exts.sw; r eip; .remote_exit
+Switched to Host mode
+*** WARNING: Unable to verify checksum for D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\LBA2.EXE
+LBA2+0x20574:
+00000000`00420574 53              push    rbx
+00000000`00420575 51              push    rcx
+00000000`00420576 52              push    rdx
+00000000`00420577 56              push    rsi
+00000000`00420578 57              push    rdi
+00000000`00420579 55              push    rbp
+00000000`0042057a 89e5            mov     ebp,esp
+00000000`0042057c 83ec18          sub     esp,18h
+00000000`0042057f 8845fc          mov     byte ptr [rbp-4],al
+00000000`00420582 31c0            xor     eax,eax
+00000000`00420584 8a45fc          mov     al,byte ptr [rbp-4]
+00000000`00420587 69c01b020000    imul    eax,eax,21Bh
+00000000`0042058d 31d2            xor     edx,edx
+00000000`0042058f 8955e8          mov     dword ptr [rbp-18h],edx
+00000000`00420592 ba9ca14900      mov     edx,offset LBA2+0x9a19c (00000000`0049a19c)
+00000000`00420597 01c2            add     edx,eax
+00000000`00420599 8b82f0010000    mov     eax,dword ptr [rdx+1F0h]
+00000000`0042059f 8955f0          mov     dword ptr [rbp-10h],edx
+00000000`004205a2 c1f810          sar     eax,10h
+00000000`004205a5 8b92ee010000    mov     edx,dword ptr [rdx+1EEh]
+00000000`004205ab 01c2            add     edx,eax
+00000000`004205ad 8b45f0          mov     eax,dword ptr [rbp-10h]
+00000000`004205b0 83c03e          add     eax,3Eh
+00000000`004205b3 8915d0764900    mov     dword ptr [00000000`008b7c89],edx
+00000000`004205b9 8945ec          mov     dword ptr [rbp-14h],eax
+00000000`004205bc 8b15d0764900    mov     edx,dword ptr [00000000`008b7c92]
+00000000`004205c2 8d5a01          lea     ebx,[rdx+1]
+00000000`004205c5 8a02            mov     al,byte ptr [rdx]
+00000000`004205c7 891dd0764900    mov     dword ptr [00000000`008b7c9d],ebx
+00000000`004205cd 3c9a            cmp     al,9Ah
+00000000`004205cf 0f86612f0000    jbe     LBA2+0x23536 (00000000`00423536)
+00000000`004205d5 837de8ff        cmp     dword ptr [rbp-18h],0FFFFFFFFh
+                                                                    ^ Syntax error in '.load wow64exts; !wow64exts.sw; u 420574 l20; .remote_exit'
+Switched to Guest (WoW) mode
+eip=1afa0c80
+                                                             ^ Syntax error in '.load wow64exts; !wow64exts.sw; r eip; .remote_exit'

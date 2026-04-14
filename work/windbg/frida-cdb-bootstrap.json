@@ -1,0 +1,21 @@
+{
+  "launch_mode": "attach-existing",
+  "target": "D:\\repos\\reverse\\littlebigreversing\\work\\_innoextract_full\\Speedrun\\Windows\\LBA2_cdrom\\LBA2\\LBA2.EXE",
+  "target_pid": 7356,
+  "frida_module": "D:\\repos\\reverse\\frida\\build\\install-root\\Program Files\\Frida\\lib\\site-packages\\frida\\__init__.py",
+  "frida_version": "17.9.1",
+  "frida_repo_root": "D:\\repos\\reverse\\frida",
+  "frida_root": "D:\\repos\\reverse\\frida\\build\\install-root\\Program Files\\Frida",
+  "frida_site_packages": "D:\\repos\\reverse\\frida\\build\\install-root\\Program Files\\Frida\\lib\\site-packages",
+  "frida_probe": {
+    "pid": 7356,
+    "arch": "ia32",
+    "platform": "windows",
+    "mainModule": "LBA2.EXE"
+  },
+  "cdb_path": "C:\\Program Files\\WindowsApps\\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\\amd64\\cdb.exe",
+  "cdb_pid": 12292,
+  "log_path": "D:\\repos\\reverse\\littlebigreversing\\work\\windbg\\frida-cdb-bootstrap.log",
+  "connection_string": "tcp:Port=61615,Server=127.0.0.1,Password=22668535",
+  "mcp_open_hint": "open_windbg_remote(connection_string=\"tcp:Port=61615,Server=127.0.0.1,Password=22668535\")"
+}

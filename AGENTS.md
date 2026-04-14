@@ -37,7 +37,7 @@
 6. Never reintroduce v1 files or schema labels.
 
 # Issues logging
-- The role of the `ISSUES.md` file is to describe common mistakes and confusion points that the agents might encounter as they work in this project. If you ever counter something in the project that surprises you, please alert the developer working with you and indicate that this is the case in the ISSUES.md file tp help future agents from having the same issue.
+- The role of the `ISSUES.md` file is to describe common mistakes and confusion points that the agents might encounter as they work in this project. If you ever counter something in the project that surprises you, please alert the developer working with you and indicate that this is the case in the ISSUES.md file to help future agents from having the same issue.
 
 # Shell specific tools
 - Use the provided environment context to determine whether the current shell is PowerShell or Linux Bash; do not rely on a Bash-evaluated PowerShell redirection snippet.
@@ -51,4 +51,3 @@
 - Use rg/rg --files for searches; fall back only if unavailable.
 - Use the `apply_patch` to edit files, fallback to sed.
 - Use jq for json processing
-

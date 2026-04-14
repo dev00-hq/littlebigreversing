@@ -31,10 +31,10 @@ The hard-cut product policy applies throughout this roadmap: prefer one canonica
 ## Current Strategic Status
 
 - The old `Foundation + asset CLI` boundary is already behind the repo; that baseline has landed.
-- The first-viewer gate is crossed. The checked-in port already has a runtime-backed interior viewer path, `BRK`-backed top-surface previews, viewer-local comparison and HUD surfaces, and a canonical Windows verification gate in `scripts/verify_viewer.py`; under the current branch-B boundary, `19/19` is the only supported positive guarded runtime/load pair, while `2/2`, `44/2`, and `11/10` are explicit guarded `ViewerUnsupportedSceneLife` rejections.
+- The first-viewer gate is crossed. The checked-in port already has a runtime-backed interior viewer path, `BRK`-backed top-surface previews, viewer-local comparison and HUD surfaces, and a canonical Windows verification gate in `scripts/verify_viewer.py`; the guarded room/load set is now `19/19`, `2/2`, and `11/10`, while `44/2` remains an explicit guarded `ViewerSceneMustBeInterior` rejection.
 - The first narrow runtime extraction has also landed: `runtime/session.zig` now initializes from explicit world-position input, while `runtime/room_state.zig` remains the mixed adapter that turns guarded `RoomSnapshot` data into that seed.
 - The current implementation stream is guarded runtime/viewer maintenance and bounded widening on top of that validated runtime/viewer path, not another foundation/bootstrap slice.
-- The remaining strategic blocker for widening from viewer-prep into scene-surface gameplay work is the life-script boundary around `LM_DEFAULT` and `LM_END_SWITCH`.
+- The old switch-family life blocker is no longer the strategic gate. `LM_DEFAULT` and `LM_END_SWITCH` are structurally supported in the offline decoder, and the all-scenes life audit currently reports zero unsupported blobs.
 
 ## Delivery Structure
 
@@ -82,10 +82,10 @@ Use explicit replan gates after the evidence baseline, the first-viewer gate, th
 ### Phase 3: Viewer-Prep Evidence on a Validated Runtime Path
 
 - Status: crossed.
-- Keep the runtime-backed interior viewer path on Windows validated through `scripts/verify_viewer.py`, with `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]` as the only supported positive guarded runtime/load baseline.
+- Keep the runtime-backed interior viewer path on Windows validated through `scripts/verify_viewer.py`, with `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]`, `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as the current supported guarded room/load set.
 - Keep `scripts/verify_viewer.py --fast` as the additive daily local loop, not as a replacement for the canonical bare script.
-- Keep `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, `SCENE.HQR[44]` plus `LBA_BKG.HQR[2]`, and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as explicit guarded negative `inspect-room` / viewer-load cases under branch B.
-- Preserve `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as the checked-in fragment-bearing evidence pair only on explicit test-only unchecked paths, not as a supported guarded runtime fixture.
+- Keep `SCENE.HQR[44]` plus `LBA_BKG.HQR[2]` as the explicit guarded exterior negative `inspect-room` / viewer-load case.
+- Preserve `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as the canonical fragment-bearing guarded evidence pair.
 - Treat viewer-local composition snapshots, `BRK`-backed previews, fragment comparison, HUD/legend cues, and provenance overlays as evidence surfaces on top of a landed runtime path, not as proof that the repo is still pre-viewer.
 - Keep indoor and outdoor expansion decoupled until the evidence warrants widening the target.
 
@@ -94,15 +94,14 @@ Use explicit replan gates after the evidence baseline, the first-viewer gate, th
 - Before scene-surface life integration or gameplay work widens further, make an explicit product-boundary decision for `LM_DEFAULT` and `LM_END_SWITCH`.
 - Allowed branch A: deepen checked-in evidence until those switch-family opcodes can be supported in one canonical decoder/interpreter path.
 - Allowed branch B: explicitly reject switch-family-dependent life paths from the current parity target and keep the runtime fail-fast when those paths are encountered.
-- Current checked-in decision: branch B. `LM_DEFAULT` and `LM_END_SWITCH` remain outside the supported decoder/interpreter boundary because the repo still lacks checked-in primary-source structural proof beyond header names and the `LM_BREAK` destination comment.
-- Do not add speculative partial support, compatibility glue, silent fallbacks, or a temporary second life path while this gate is unresolved.
-- Keep offline life-oriented probes, audits, and source-backed evidence work in scope; only scene-surface life integration is blocked here.
+- Current workspace decision: branch A. The raw one-client `cdb` proof logs now show both `LM_DEFAULT` and `LM_END_SWITCH` fetch as one-byte structural markers, and the widened decoder plus all-scenes audit currently decode the real asset corpus with zero unsupported life blobs.
+- Do not add speculative partial support, compatibility glue, silent fallbacks, or a temporary second life path on top of that canonical decoder boundary.
+- Keep future life work focused on semantics and runtime widening, not on re-litigating marker width that the current proof already settled.
 
 ### Phase 5: Runtime and Gameplay Slice
 
 - After Phase 4 resolves, port the object model, update loop, zone handling, collision and movement, and track execution needed for one playable path.
-- If Phase 4 takes branch A, implement life-script decoding and interpretation with tracing and deterministic stepping on the supported boundary.
-- If Phase 4 takes branch B, keep rejected switch-family paths outside the parity target with explicit diagnostics and continue only on gameplay slices that stay inside the chosen product boundary.
+- Under the current branch-A state, keep life-script decoding on the canonical supported boundary and use future tracing/stepping only to answer behavior questions that remain beyond structural decode.
 - Expand from one scripted slice to a small vertical slice with room transitions, inventory or state mutation, dialog or text, and basic combat or interaction.
 
 ### Phase 6: Completion Layers
@@ -132,8 +131,8 @@ Expose a small set of first-class commands early:
 ## Current Strategic Gate
 
 - The first-viewer gate is already complete; do not reframe the repo as if it were still waiting for a foundation/bootstrap package.
-- The current strategic gate outcome is Phase 4 branch B for `LM_DEFAULT` and `LM_END_SWITCH`.
-- Keep scene-surface life integration and any future life execution fail-fast on those switch-family-dependent paths unless new checked-in primary-source evidence reopens the decision.
+- The current strategic gate outcome is Phase 4 branch A for `LM_DEFAULT` and `LM_END_SWITCH`.
+- Keep the next widening question on runtime/gameplay choice, not on whether the switch-family markers are still unsupported.
 
 ## Test Plan
 
@@ -151,16 +150,16 @@ Expose a small set of first-class commands early:
 
 - `scripts/verify_viewer.py` is the canonical Windows acceptance gate for the landed viewer/runtime path.
 - `scripts/verify_viewer.py --fast` reuses the same staged `lba2-tool` / `lba2` assertions but swaps in `zig build test-fast` for daily iteration.
-- `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]` is the only positive guarded runtime/load launch and `inspect-room` success case.
-- `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, `SCENE.HQR[44]` plus `LBA_BKG.HQR[2]`, and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` remain explicit guarded `ViewerUnsupportedSceneLife` rejection cases for `inspect-room`.
-- Fragment-bearing `11/10` evidence stays covered on explicit test-only unchecked loader paths, not through the canonical guarded CLI/runtime seam.
+- `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]`, `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` are guarded positive `inspect-room` and viewer-launch cases.
+- `SCENE.HQR[44]` plus `LBA_BKG.HQR[2]` remains the explicit guarded `ViewerSceneMustBeInterior` rejection case for `inspect-room` and viewer launch.
+- Fragment-bearing `11/10` evidence is now covered on the canonical guarded CLI/runtime seam.
 - Viewer-local evidence surfaces stay covered by deterministic tests and the explicit Windows runtime launches.
 
 ### Life Boundary Tests
 
-- `zig build tool -- audit-life-programs --json` and `zig build tool -- audit-life-programs --json --all-scene-entries` remain the canonical blocker reports until Phase 4 resolves.
-- If Phase 4 takes branch A, add decoder/interpreter tests that prove supported handling for `LM_DEFAULT` and `LM_END_SWITCH`.
-- Phase 4 currently takes branch B, so keep explicit rejection tests and diagnostics for switch-family-dependent paths outside the target boundary.
+- `zig build tool -- audit-life-programs --json` and `zig build tool -- audit-life-programs --json --all-scene-entries` remain the canonical zero-unsupported inventory checks after Phase 4.
+- Keep decoder tests that prove `LM_DEFAULT` and `LM_END_SWITCH` decode as one-byte structural markers.
+- Future life-boundary tests should focus on semantic/runtime widening, not on rejecting those two opcodes as unsupported.
 
 ### Evidence and Regression Tests
 

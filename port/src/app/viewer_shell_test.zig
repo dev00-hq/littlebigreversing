@@ -104,6 +104,48 @@ fn expectNoAttemptCue(display: viewer_shell.ViewerLocomotionStatusDisplay) !void
     }
 }
 
+fn formatRawInvalidStartMappingHintHudLine(
+    buffer: []u8,
+    hint: ?viewer_shell.ViewerRawInvalidStartMappingHint,
+) ![]const u8 {
+    const resolved = hint orelse return std.fmt.bufPrint(buffer, "ALT MAP NONE", .{});
+
+    var hypothesis_buffer: [48]u8 = undefined;
+    var cell_buffer: [16]u8 = undefined;
+    var exact_buffer: [48]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "ALT MAP {s} CELL {s} {s}",
+        .{
+            upperTag(&hypothesis_buffer, @tagName(resolved.hypothesis)),
+            try formatOptionalCellValue(&cell_buffer, resolved.raw_cell),
+            upperTag(&exact_buffer, @tagName(resolved.exact_status)),
+        },
+    );
+}
+
+fn formatRawInvalidStartMappingHintDiagnosticValue(
+    buffer: []u8,
+    hint: ?viewer_shell.ViewerRawInvalidStartMappingHint,
+) ![]const u8 {
+    const resolved = hint orelse return std.fmt.bufPrint(buffer, "none", .{});
+
+    var cell_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "{s}:{d}:{s}:{s}:{s}:{d}:{d}",
+        .{
+            @tagName(resolved.hypothesis),
+            resolved.cell_span_xz,
+            try formatOptionalCellValue(&cell_buffer, resolved.raw_cell),
+            @tagName(resolved.exact_status),
+            @tagName(resolved.disposition),
+            resolved.better_metric_count,
+            resolved.worse_metric_count,
+        },
+    );
+}
+
 fn expectAcceptedAttemptCue(
     display: viewer_shell.ViewerLocomotionStatusDisplay,
     direction: viewer_shell.CardinalDirection,
@@ -558,7 +600,7 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
 
     var status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
     const display = viewer_shell.formatLocomotionStatusDisplay(&status_buffer, status);
-    try std.testing.expectEqual(@as(usize, 6), display.line_count);
+    try std.testing.expectEqual(@as(usize, 7), display.line_count);
     try std.testing.expectEqualStrings("RAW START INVALID", display.lines[0]);
     try std.testing.expectEqualStrings("CELL 3/7 MAPPED_CELL_EMPTY", display.lines[1]);
     try std.testing.expectEqualStrings("DIAG EXACT_INVALID_MAPPING_MISMATCH", display.lines[2]);
@@ -577,6 +619,11 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
         try formatRawInvalidStartCandidateHudLine(&nearest_standable_line_buffer, "NEAR STAND", raw_value.nearest_standable),
         display.lines[5],
     );
+    var best_alt_mapping_line_buffer: [128]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        try formatRawInvalidStartMappingHintHudLine(&best_alt_mapping_line_buffer, raw_value.best_alt_mapping),
+        display.lines[6],
+    );
     try expectNoSchematicCue(display);
     try expectNoAttemptCue(display);
 
@@ -585,9 +632,10 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
     var occupied_bounds_buffer: [48]u8 = undefined;
     var nearest_occupied_buffer: [48]u8 = undefined;
     var nearest_standable_buffer: [48]u8 = undefined;
+    var best_alt_mapping_buffer: [160]u8 = undefined;
     const expected_raw_diagnostic = try std.fmt.allocPrint(
         allocator,
-        "event=hero_status status=raw_invalid_start exact_status={s} diagnostic_status={s} raw_cell=3/7 occupied_coverage={s} occupied_bounds={s} occupied_bounds_dx={d} occupied_bounds_dz={d} nearest_occupied={s} nearest_standable={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
+        "event=hero_status status=raw_invalid_start exact_status={s} diagnostic_status={s} raw_cell=3/7 occupied_coverage={s} occupied_bounds={s} occupied_bounds_dx={d} occupied_bounds_dz={d} nearest_occupied={s} nearest_standable={s} best_alt_mapping={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
         .{
             @tagName(raw_value.exact_status),
             @tagName(raw_value.diagnostic_status),
@@ -597,6 +645,7 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
             raw_value.occupied_coverage.z_cells_from_bounds,
             try formatRawInvalidStartCandidateDiagnosticValue(&nearest_occupied_buffer, raw_value.nearest_occupied),
             try formatRawInvalidStartCandidateDiagnosticValue(&nearest_standable_buffer, raw_value.nearest_standable),
+            try formatRawInvalidStartMappingHintDiagnosticValue(&best_alt_mapping_buffer, raw_value.best_alt_mapping),
             raw_value.hero_position.x,
             raw_value.hero_position.y,
             raw_value.hero_position.z,

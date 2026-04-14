@@ -2,7 +2,7 @@ const std = @import("std");
 const life_audit = @import("../life_audit.zig");
 const support = @import("support.zig");
 
-test "scene-level life validation pins the canonical decoded interior candidate set" {
+test "scene-level life validation pins the widened decoded interior candidate set" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
     defer allocator.free(archive_path);
@@ -10,16 +10,16 @@ test "scene-level life validation pins the canonical decoded interior candidate 
     const candidates = try life_audit.listDecodedInteriorSceneCandidates(allocator, archive_path);
     defer allocator.free(candidates);
 
-    try std.testing.expectEqual(@as(usize, 50), candidates.len);
-    try std.testing.expectEqual(@as(usize, 19), candidates[0].scene_entry_index);
-    try std.testing.expectEqual(@as(?usize, 17), candidates[0].classic_loader_scene_number);
-    try std.testing.expectEqual(@as(usize, 3), candidates[0].blob_count);
+    try std.testing.expectEqual(@as(usize, 147), candidates.len);
+    try std.testing.expectEqual(@as(usize, 2), candidates[0].scene_entry_index);
+    try std.testing.expectEqual(@as(?usize, 0), candidates[0].classic_loader_scene_number);
+    try std.testing.expectEqual(@as(usize, 9), candidates[0].blob_count);
 
     const validation = try life_audit.validateSceneLifeBoundaryForEntry(allocator, archive_path, candidates[0].scene_entry_index);
     try std.testing.expect(validation == .decoded);
 }
 
-test "decoded interior candidate ranking pins the current scene 19 comparison" {
+test "decoded interior candidate ranking pins the widened scene 19 comparison" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
     defer allocator.free(archive_path);
@@ -27,21 +27,21 @@ test "decoded interior candidate ranking pins the current scene 19 comparison" {
     const ranked = try life_audit.rankDecodedInteriorSceneCandidates(allocator, archive_path);
     defer allocator.free(ranked);
 
-    try std.testing.expectEqual(@as(usize, 50), ranked.len);
+    try std.testing.expectEqual(@as(usize, 147), ranked.len);
     try std.testing.expectEqualStrings("track_count_desc", life_audit.ranked_decoded_interior_scene_candidate_basis[0]);
     try std.testing.expectEqualStrings("scene_entry_index_asc", life_audit.ranked_decoded_interior_scene_candidate_basis[4]);
 
-    try std.testing.expectEqual(@as(usize, 219), ranked[0].scene_entry_index);
-    try std.testing.expectEqual(@as(?usize, 217), ranked[0].classic_loader_scene_number);
+    try std.testing.expectEqual(@as(usize, 101), ranked[0].scene_entry_index);
+    try std.testing.expectEqual(@as(?usize, 99), ranked[0].classic_loader_scene_number);
     try std.testing.expectEqualStrings("interior", ranked[0].scene_kind);
-    try std.testing.expectEqual(@as(usize, 34), ranked[0].blob_count);
-    try std.testing.expectEqual(@as(usize, 34), ranked[0].object_count);
-    try std.testing.expectEqual(@as(usize, 16), ranked[0].zone_count);
-    try std.testing.expectEqual(@as(usize, 17), ranked[0].track_count);
-    try std.testing.expectEqual(@as(usize, 42), ranked[0].patch_count);
+    try std.testing.expectEqual(@as(usize, 45), ranked[0].blob_count);
+    try std.testing.expectEqual(@as(usize, 45), ranked[0].object_count);
+    try std.testing.expectEqual(@as(usize, 23), ranked[0].zone_count);
+    try std.testing.expectEqual(@as(usize, 61), ranked[0].track_count);
+    try std.testing.expectEqual(@as(usize, 94), ranked[0].patch_count);
 
     const baseline_index = life_audit.findRankedDecodedInteriorSceneCandidateIndex(ranked, 19) orelse return error.MissingScene19RankedCandidate;
-    try std.testing.expectEqual(@as(usize, 48), baseline_index);
+    try std.testing.expectEqual(@as(usize, 146), baseline_index);
     try std.testing.expectEqual(@as(usize, 19), ranked[baseline_index].scene_entry_index);
     try std.testing.expectEqual(@as(?usize, 17), ranked[baseline_index].classic_loader_scene_number);
     try std.testing.expectEqual(@as(usize, 3), ranked[baseline_index].blob_count);
@@ -76,7 +76,7 @@ test "all-scene life audit selection skips the reserved header entry" {
     try std.testing.expect(has_scene44);
 }
 
-test "all-scene life audit pins the broader unsupported-opcode inventory" {
+test "all-scene life audit now decodes the full broader scene inventory" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");
     defer allocator.free(archive_path);
@@ -85,18 +85,11 @@ test "all-scene life audit pins the broader unsupported-opcode inventory" {
     defer allocator.free(audits);
 
     var unsupported_count: usize = 0;
-    var default_count: usize = 0;
-    var end_switch_count: usize = 0;
 
     for (audits) |audit| {
         switch (audit.status) {
-            .unsupported_opcode => |unsupported| {
+            .unsupported_opcode => {
                 unsupported_count += 1;
-                switch (unsupported.opcode) {
-                    .LM_DEFAULT => default_count += 1,
-                    .LM_END_SWITCH => end_switch_count += 1,
-                    else => return error.UnexpectedUnsupportedOpcodeInAllSceneAudit,
-                }
             },
             .decoded => {},
             else => return error.UnexpectedFailureStatusInAllSceneAudit,
@@ -104,9 +97,7 @@ test "all-scene life audit pins the broader unsupported-opcode inventory" {
     }
 
     try std.testing.expectEqual(@as(usize, 3109), audits.len);
-    try std.testing.expectEqual(@as(usize, 394), unsupported_count);
-    try std.testing.expectEqual(@as(usize, 188), default_count);
-    try std.testing.expectEqual(@as(usize, 206), end_switch_count);
+    try std.testing.expectEqual(@as(usize, 0), unsupported_count);
 }
 
 test "all-scene life audit resolves a broader non-header scene set" {

@@ -1,0 +1,136 @@
+Opened log file '.\work\crash\041426-11031-01-driver.log'
+
+************* Preparing the environment for Debugger Extensions Gallery repositories **************
+   ExtensionRepository : Implicit
+   UseExperimentalFeatureForNugetShare : true
+   AllowNugetExeUpdate : true
+   NonInteractiveNuget : true
+   AllowNugetMSCredentialProviderInstall : true
+   AllowParallelInitializationOfLocalRepositories : true
+   EnableRedirectToChakraJsProvider : false
+
+   -- Configuring repositories
+      ----> Repository : LocalInstalled, Enabled: true
+      ----> Repository : UserExtensions, Enabled: true
+
+>>>>>>>>>>>>> Preparing the environment for Debugger Extensions Gallery repositories completed, duration 0.000 seconds
+
+************* Waiting for Debugger Extensions Gallery to Initialize **************
+
+>>>>>>>>>>>>> Waiting for Debugger Extensions Gallery to Initialize completed, duration 0.031 seconds
+   ----> Repository : UserExtensions, Enabled: true, Packages count: 0
+   ----> Repository : LocalInstalled, Enabled: true, Packages count: 46
+
+Microsoft (R) Windows Debugger Version 10.0.29547.1002 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+
+Loading Dump File [D:\repos\reverse\littlebigreversing\work\crash\041426-11031-01.dmp]
+Mini Kernel Dump File: Only registers and stack trace are available
+
+Symbol search path is: srv*
+Executable search path is: 
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\atlmfc.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\concurrency.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\cpp_rest.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Kernel.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\ObjectiveC.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\stl.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Usb4Kd.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Data.Json.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Geolocation.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Sensors.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Media.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\windows.natvis'
+NatVis script successfully loaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\winrt.natvis'
+Windows 10 Kernel Version 26100 MP (12 procs) Free x64
+Product: WinNt, suite: TerminalServer SingleUserTS
+Kernel base = 0xfffff802`89e00000 PsLoadedModuleList = 0xfffff802`8acf50c0
+Debug session time: Mon Apr 13 22:08:50.220 2026 (UTC - 4:00)
+System Uptime: 0 days 8:10:00.094
+Loading Kernel Symbols
+...............................................................
+................................................................
+................................................................
+................................................
+Loading User Symbols
+PEB is paged out (Peb.Ldr = 00000046`08fab018).  Type ".hh dbgerr001" for details
+Loading unloaded module list
+..............
+For analysis of this file, run !analyze -v
+8: kd> lmvm amdkmdag; !thread ffff990edd4bf080; q
+Browse full module list
+start             end                 module name
+fffff80b`2a7a0000 fffff80b`31364000   amdkmdag   (deferred)             
+    Image path: amdkmdag.sys
+    Image name: amdkmdag.sys
+    Browse all global symbols  functions  data  Symbol Reload
+    Timestamp:        Mon Mar  9 18:46:29 2026 (69AF3FB5)
+    CheckSum:         06B43DF3
+    ImageSize:        06BC4000
+    Mapping Form:     Loaded
+    Translations:     0000.04b0 0000.04e4 0409.04b0 0409.04e4
+    Information from resource tables:
+THREAD ffff990edd4bf080  Cid 49c8.2a18  Teb: 0000004608fd8000 Win32Thread: fffff6016c41ed70 RUNNING on processor 8
+Not impersonating
+GetUlongFromAddress: unable to read from fffff8028ac0b334
+Owning Process            ffff990edcb0f080       Image:         msedgewebview2
+Attached Process          N/A            Image:         N/A
+Wait Start TickCount      1881606        Ticks: 0
+Context Switch Count      30348          IdealProcessor: 11             
+ReadMemory error: Cannot get nt!KeMaximumIncrement value.
+UserTime                  00:00:00.000
+KernelTime                00:00:00.000
+Win32 Start Address 0x00007ffc12dc7a00
+Stack Init fffff6016c41f5f0 Current fffff6016c41d570
+Base fffff6016c420000 Limit fffff6016c419000 Call 0000000000000000
+Priority 15  BasePriority 10  Decay Boost 1  Priority Floor 15  IoPriority 2  PagePriority 5
+*** WARNING: Unable to verify timestamp for amdkmdag.sys
+Child-SP          RetAddr               : Args to Child                                                           : Call Site
+fffff601`6c41cd68 fffff802`8a4bece9     : 00000000`0000003b 00000000`c0000005 fffff80b`2ae1bc2e fffff601`6c41d6b0 : nt!KeBugCheckEx
+fffff601`6c41cd70 fffff802`8a4bdd3c     : fffff601`00000001 fffff601`00000001 fffff802`8a6a8359 fffff802`8a4bdcc0 : nt!KiBugCheckDispatch+0x69
+fffff601`6c41ceb0 fffff802`8a4b42d2     : fffff601`6c41d6b0 00000000`00000000 fffff601`6c41cf80 00000000`00000000 : nt!KiSystemServiceHandler+0x7c
+fffff601`6c41cef0 fffff802`8a07c492     : fffff601`6c41cf80 fffff802`89e00000 fffff802`8a4be40d fffff802`89f16ef0 : nt!RtlpExecuteHandlerForException+0x12
+fffff601`6c41cf20 fffff802`8a1e866f     : fffff601`6c41d6b0 fffff601`6c41dbb0 fffff601`6c41d6b0 fffff601`6c41dd70 : nt!RtlDispatchException+0x2d2
+fffff601`6c41d680 fffff802`8a4bee45     : 00000000`00000000 fffff802`8ac38c00 00000000`00000000 00000000`00000000 : nt!KiDispatchException+0x35f
+fffff601`6c41dd70 fffff802`8a4b9f82     : fffff601`6c41dfc0 fffff802`8a305526 ffff990e`e8b57a20 00000000`00000000 : nt!KiExceptionDispatch+0x145
+fffff601`6c41df50 fffff80b`2ae1bc2e     : fffff80b`2adb2c0d 00000000`00000012 00000000`000049c8 ffff990e`dc432660 : nt!KiPageFault+0x442 (TrapFrame @ fffff601`6c41df50)
+fffff601`6c41e0e8 fffff80b`2adb2c0d     : 00000000`00000012 00000000`000049c8 ffff990e`dc432660 ffff990e`e8b57a20 : amdkmdag+0x67bc2e
+fffff601`6c41e0f0 00000000`00000012     : 00000000`000049c8 ffff990e`dc432660 ffff990e`e8b57a20 00000000`00000013 : amdkmdag+0x612c0d
+fffff601`6c41e0f8 00000000`000049c8     : ffff990e`dc432660 ffff990e`e8b57a20 00000000`00000013 fffff80b`2adb46a3 : 0x12
+fffff601`6c41e100 ffff990e`dc432660     : ffff990e`e8b57a20 00000000`00000013 fffff80b`2adb46a3 ffff990e`bbf97230 : 0x49c8
+fffff601`6c41e108 ffff990e`e8b57a20     : 00000000`00000013 fffff80b`2adb46a3 ffff990e`bbf97230 ffff990e`e96ce7d0 : 0xffff990e`dc432660
+fffff601`6c41e110 00000000`00000013     : fffff80b`2adb46a3 ffff990e`bbf97230 ffff990e`e96ce7d0 ffff990e`e8b57a20 : 0xffff990e`e8b57a20
+fffff601`6c41e118 fffff80b`2adb46a3     : ffff990e`bbf97230 ffff990e`e96ce7d0 ffff990e`e8b57a20 ffffd2b1`08593c93 : 0x13
+fffff601`6c41e120 ffff990e`bbf97230     : ffff990e`e96ce7d0 ffff990e`e8b57a20 ffffd2b1`08593c93 ffff990e`e8b57a20 : amdkmdag+0x6146a3
+fffff601`6c41e128 ffff990e`e96ce7d0     : ffff990e`e8b57a20 ffffd2b1`08593c93 ffff990e`e8b57a20 fffff80b`2ada088d : 0xffff990e`bbf97230
+fffff601`6c41e130 ffff990e`e8b57a20     : ffffd2b1`08593c93 ffff990e`e8b57a20 fffff80b`2ada088d 00000000`00000003 : 0xffff990e`e96ce7d0
+fffff601`6c41e138 ffffd2b1`08593c93     : ffff990e`e8b57a20 fffff80b`2ada088d 00000000`00000003 00000000`000049c8 : 0xffff990e`e8b57a20
+fffff601`6c41e140 ffff990e`e8b57a20     : fffff80b`2ada088d 00000000`00000003 00000000`000049c8 ffff990e`c67e4620 : 0xffffd2b1`08593c93
+fffff601`6c41e148 fffff80b`2ada088d     : 00000000`00000003 00000000`000049c8 ffff990e`c67e4620 ffffe60a`f078af70 : 0xffff990e`e8b57a20
+fffff601`6c41e150 00000000`00000003     : 00000000`000049c8 ffff990e`c67e4620 ffffe60a`f078af70 fffff601`6c41e280 : amdkmdag+0x60088d
+fffff601`6c41e158 00000000`000049c8     : ffff990e`c67e4620 ffffe60a`f078af70 fffff601`6c41e280 fffff80b`2aef7fa8 : 0x3
+fffff601`6c41e160 ffff990e`c67e4620     : ffffe60a`f078af70 fffff601`6c41e280 fffff80b`2aef7fa8 ffff990e`dd2f1920 : 0x49c8
+fffff601`6c41e168 ffffe60a`f078af70     : fffff601`6c41e280 fffff80b`2aef7fa8 ffff990e`dd2f1920 ffff990e`dd1c9c80 : 0xffff990e`c67e4620
+fffff601`6c41e170 fffff601`6c41e280     : fffff80b`2aef7fa8 ffff990e`dd2f1920 ffff990e`dd1c9c80 ffff990e`bd12c000 : 0xffffe60a`f078af70
+fffff601`6c41e178 fffff80b`2aef7fa8     : ffff990e`dd2f1920 ffff990e`dd1c9c80 ffff990e`bd12c000 ffffe60a`f078af70 : 0xfffff601`6c41e280
+fffff601`6c41e180 ffff990e`dd2f1920     : ffff990e`dd1c9c80 ffff990e`bd12c000 ffffe60a`f078af70 00000000`00000000 : amdkmdag+0x757fa8
+fffff601`6c41e188 ffff990e`dd1c9c80     : ffff990e`bd12c000 ffffe60a`f078af70 00000000`00000000 00000000`00000000 : 0xffff990e`dd2f1920
+fffff601`6c41e190 ffff990e`bd12c000     : ffffe60a`f078af70 00000000`00000000 00000000`00000000 fffff601`6c41e1f0 : 0xffff990e`dd1c9c80
+fffff601`6c41e198 ffffe60a`f078af70     : 00000000`00000000 00000000`00000000 fffff601`6c41e1f0 00000000`00000000 : 0xffff990e`bd12c000
+fffff601`6c41e1a0 00000000`00000000     : 00000000`00000000 fffff601`6c41e1f0 00000000`00000000 00000000`00000000 : 0xffffe60a`f078af70
+
+quit:
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\atlmfc.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\concurrency.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\cpp_rest.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Kernel.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\ObjectiveC.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\stl.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Usb4Kd.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Data.Json.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Geolocation.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Devices.Sensors.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\Windows.Media.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\windows.natvis'
+NatVis script unloaded from 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\Visualizers\winrt.natvis'

@@ -271,9 +271,9 @@ test "viewer fragment comparison selection can step ranked entries and fragment 
     try std.testing.expectEqual(cell_prev.focus.?.z, cell_panel.entries[0].z);
 }
 
-test "viewer fragment comparison panel pins the selected cell ahead of the ranked head" {
+test "viewer fragment comparison panel pins the selected cell ahead of the ranked head on the guarded 11/10 pair" {
     const allocator = std.testing.allocator;
-    const room = try room_fixtures.unchecked1110();
+    const room = try room_fixtures.guarded1110();
 
     const render = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, render);
@@ -310,7 +310,7 @@ test "viewer fragment comparison panel pins the selected cell ahead of the ranke
 
 test "viewer fragment comparison panel keeps the checked-in fragment pair inspectable" {
     const allocator = std.testing.allocator;
-    const room = try room_fixtures.unchecked1110();
+    const room = try room_fixtures.guarded1110();
 
     const render = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, render);

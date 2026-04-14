@@ -181,9 +181,9 @@ def test_inspect_room_failure(
     scene: int,
     background: int,
     expected_error: str,
-    expected_unsupported_opcode_name: str,
-    expected_unsupported_opcode_id: int,
-    expected_unsupported_offset: int,
+    expected_unsupported_opcode_name: str | None = None,
+    expected_unsupported_opcode_id: int | None = None,
+    expected_unsupported_offset: int | None = None,
 ) -> dict[str, Any]:
     result = run_tool_probe(
         ["inspect-room", str(scene), str(background), "--json"],
@@ -201,30 +201,33 @@ def test_inspect_room_failure(
             f"Output:\n{result.output.rstrip()}"
         ),
     )
-    ensure_contains(
-        result.output,
-        f"unsupported_life_opcode_name={expected_unsupported_opcode_name}",
-        (
-            f"inspect-room {scene}/{background} failed, but did not mention "
-            f"unsupported_life_opcode_name={expected_unsupported_opcode_name}. Output:\n{result.output.rstrip()}"
-        ),
-    )
-    ensure_contains(
-        result.output,
-        f"unsupported_life_opcode_id={expected_unsupported_opcode_id}",
-        (
-            f"inspect-room {scene}/{background} failed, but did not mention "
-            f"unsupported_life_opcode_id={expected_unsupported_opcode_id}. Output:\n{result.output.rstrip()}"
-        ),
-    )
-    ensure_contains(
-        result.output,
-        f"unsupported_life_offset={expected_unsupported_offset}",
-        (
-            f"inspect-room {scene}/{background} failed, but did not mention "
-            f"unsupported_life_offset={expected_unsupported_offset}. Output:\n{result.output.rstrip()}"
-        ),
-    )
+    if expected_unsupported_opcode_name is not None:
+        ensure_contains(
+            result.output,
+            f"unsupported_life_opcode_name={expected_unsupported_opcode_name}",
+            (
+                f"inspect-room {scene}/{background} failed, but did not mention "
+                f"unsupported_life_opcode_name={expected_unsupported_opcode_name}. Output:\n{result.output.rstrip()}"
+            ),
+        )
+    if expected_unsupported_opcode_id is not None:
+        ensure_contains(
+            result.output,
+            f"unsupported_life_opcode_id={expected_unsupported_opcode_id}",
+            (
+                f"inspect-room {scene}/{background} failed, but did not mention "
+                f"unsupported_life_opcode_id={expected_unsupported_opcode_id}. Output:\n{result.output.rstrip()}"
+            ),
+        )
+    if expected_unsupported_offset is not None:
+        ensure_contains(
+            result.output,
+            f"unsupported_life_offset={expected_unsupported_offset}",
+            (
+                f"inspect-room {scene}/{background} failed, but did not mention "
+                f"unsupported_life_offset={expected_unsupported_offset}. Output:\n{result.output.rstrip()}"
+            ),
+        )
 
     return {
         "Pair": f"{scene}/{background}",
@@ -353,9 +356,9 @@ def test_viewer_launch_failure(
     scene: int,
     background: int,
     expected_error: str,
-    expected_unsupported_opcode_name: str,
-    expected_unsupported_opcode_id: int,
-    expected_unsupported_offset: int,
+    expected_unsupported_opcode_name: str | None = None,
+    expected_unsupported_opcode_id: int | None = None,
+    expected_unsupported_offset: int | None = None,
 ) -> dict[str, Any]:
     print_section(f"lba2 --scene-entry {scene} --background-entry {background} (expected failure)")
     stop_stale_viewer_processes()
@@ -382,22 +385,23 @@ def test_viewer_launch_failure(
                 f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
             ),
         )
-        ensure_contains(
-            stderr,
-            "event=room_load_rejected",
-            (
-                f"viewer launch {scene}/{background} failed, but did not emit room_load_rejected.\n"
-                f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
-            ),
-        )
-        ensure_contains(
-            stderr,
-            f"scene_entry_index={scene} background_entry_index={background}",
-            (
-                f"viewer launch {scene}/{background} failed, but did not echo the scene/background pair.\n"
-                f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
-            ),
-        )
+        if expected_unsupported_opcode_name is not None:
+            ensure_contains(
+                stderr,
+                "event=room_load_rejected",
+                (
+                    f"viewer launch {scene}/{background} failed, but did not emit room_load_rejected.\n"
+                    f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
+                ),
+            )
+            ensure_contains(
+                stderr,
+                f"scene_entry_index={scene} background_entry_index={background}",
+                (
+                    f"viewer launch {scene}/{background} failed, but did not echo the scene/background pair.\n"
+                    f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
+                ),
+            )
         ensure_contains(
             stderr,
             expected_error,
@@ -406,33 +410,36 @@ def test_viewer_launch_failure(
                 f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
             ),
         )
-        ensure_contains(
-            stderr,
-            f"unsupported_life_opcode_name={expected_unsupported_opcode_name}",
-            (
-                f"viewer launch {scene}/{background} failed, but did not mention "
-                f"unsupported_life_opcode_name={expected_unsupported_opcode_name}.\n"
-                f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
-            ),
-        )
-        ensure_contains(
-            stderr,
-            f"unsupported_life_opcode_id={expected_unsupported_opcode_id}",
-            (
-                f"viewer launch {scene}/{background} failed, but did not mention "
-                f"unsupported_life_opcode_id={expected_unsupported_opcode_id}.\n"
-                f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
-            ),
-        )
-        ensure_contains(
-            stderr,
-            f"unsupported_life_offset={expected_unsupported_offset}",
-            (
-                f"viewer launch {scene}/{background} failed, but did not mention "
-                f"unsupported_life_offset={expected_unsupported_offset}.\n"
-                f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
-            ),
-        )
+        if expected_unsupported_opcode_name is not None:
+            ensure_contains(
+                stderr,
+                f"unsupported_life_opcode_name={expected_unsupported_opcode_name}",
+                (
+                    f"viewer launch {scene}/{background} failed, but did not mention "
+                    f"unsupported_life_opcode_name={expected_unsupported_opcode_name}.\n"
+                    f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
+                ),
+            )
+        if expected_unsupported_opcode_id is not None:
+            ensure_contains(
+                stderr,
+                f"unsupported_life_opcode_id={expected_unsupported_opcode_id}",
+                (
+                    f"viewer launch {scene}/{background} failed, but did not mention "
+                    f"unsupported_life_opcode_id={expected_unsupported_opcode_id}.\n"
+                    f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
+                ),
+            )
+        if expected_unsupported_offset is not None:
+            ensure_contains(
+                stderr,
+                f"unsupported_life_offset={expected_unsupported_offset}",
+                (
+                    f"viewer launch {scene}/{background} failed, but did not mention "
+                    f"unsupported_life_offset={expected_unsupported_offset}.\n"
+                    f"stderr:\n{stderr.rstrip()}\nstdout:\n{stdout.rstrip()}"
+                ),
+            )
 
         trimmed = stderr.rstrip()
         if trimmed:
@@ -479,12 +486,12 @@ def main(argv: list[str] | None = None) -> int:
     ensure_staged_binaries()
 
     inspect_success_results = [
-        test_inspect_room_success(19, 19, expected_fragments=0, expected_grm_entry=151)
+        test_inspect_room_success(19, 19, expected_fragments=0, expected_grm_entry=151),
+        test_inspect_room_success(2, 2, expected_fragments=0, expected_grm_entry=149),
+        test_inspect_room_success(11, 10, expected_fragments=1, expected_grm_entry=149),
     ]
     inspect_failure_results = [
-        test_inspect_room_failure(2, 2, "ViewerUnsupportedSceneLife", "LM_DEFAULT", 116, 170),
-        test_inspect_room_failure(44, 2, "ViewerUnsupportedSceneLife", "LM_END_SWITCH", 118, 713),
-        test_inspect_room_failure(11, 10, "ViewerUnsupportedSceneLife", "LM_DEFAULT", 116, 38),
+        test_inspect_room_failure(44, 2, "ViewerSceneMustBeInterior"),
     ]
     launch_results = [
         test_viewer_launch_success(
@@ -501,13 +508,28 @@ def main(argv: list[str] | None = None) -> int:
                 "standable_neighbor_count=4828",
                 "blocked_neighbor_count=0",
                 "top_y_delta_buckets=0:4828",
+                "best_alt_mapping=dense_swapped_axes_64:64:58/31:surface_height_mismatch:diagnostic_candidate_only_materially_better:4:0",
             ],
-        )
+        ),
+        test_viewer_launch_success(
+            2,
+            2,
+            expected_fragments=0,
+            expected_stderr_fragments=[
+                "best_alt_mapping=swapped_axes_512_control:512:1/18:surface_height_mismatch:diagnostic_candidate_only_materially_better:4:0",
+            ],
+        ),
+        test_viewer_launch_success(
+            11,
+            10,
+            expected_fragments=1,
+            expected_stderr_fragments=[
+                "best_alt_mapping=none",
+            ],
+        ),
     ]
     launch_failure_results = [
-        test_viewer_launch_failure(2, 2, "ViewerUnsupportedSceneLife", "LM_DEFAULT", 116, 170),
-        test_viewer_launch_failure(44, 2, "ViewerUnsupportedSceneLife", "LM_END_SWITCH", 118, 713),
-        test_viewer_launch_failure(11, 10, "ViewerUnsupportedSceneLife", "LM_DEFAULT", 116, 38),
+        test_viewer_launch_failure(44, 2, "ViewerSceneMustBeInterior"),
     ]
 
     print()

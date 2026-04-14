@@ -76,14 +76,23 @@ from scenes.scene11 import (
     COMPARISON_SNAPSHOT,
     PRIMARY_SNAPSHOT,
     SCENE11_PAIR_PRESET,
+    build_scene11_comparison_report,
+    build_scene11_run_summary,
+    classify_scene11_run_summary,
     Scene11DebuggerSnapshot,
     Scene11ObjectSnapshot,
+    Scene11RuntimeCandidate,
+    Scene11RunSummary,
     collect_scene11_debugger_snapshot,
     discover_scene11_runtime_candidates,
     determine_scene11_snapshot_verdict,
     drive_scene11_launch_startup,
+    load_scene11_run_summary,
+    scene11_object_status,
+    scene11_runtime_pair_owner,
     stage_scene11_load_game_save,
     summarize_scene11_runtime_mismatch,
+    write_scene11_run_summary,
 )
 from scenes.scene11_live import SCENE11_LIVE_PAIR_PRESET
 from scenes.tavern import (

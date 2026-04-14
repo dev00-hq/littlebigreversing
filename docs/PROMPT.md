@@ -4,73 +4,52 @@ Relevant subsystem packs for this task: `architecture`, `backgrounds`, `life_scr
 
 Current state:
 
-- `19/19` is still the only supported positive branch-B runtime/load baseline.
-- The guarded negative scene-life startup path is settled behavior: `2/2`, `44/2`, and `11/10` fail fast with `ViewerUnsupportedSceneLife`, and both `inspect-room` and viewer startup print the same first-hit `event=room_load_rejected ... unsupported_life_opcode_name=... unsupported_life_opcode_id=... unsupported_life_offset=...` line before the error.
-- The guarded positive startup path still lands on `raw_invalid_start`, and the current scene metadata for `19` still reports `track_count=0`.
-- `life_audit.zig` plus `rank-decoded-interior-candidates` are the canonical offline branch-B ranking surface for fully decoded interior scenes.
-- `triage-same-index-decoded-interior-candidates` is already landed as the canonical same-index compatibility report. On the current asset tree, it keeps `219` at rank `1`, `19` at rank `49/50`, and `86/86` as the highest-ranked compatible same-index pair above baseline.
-- `inspect-room-fragment-zones 86 86 --json` proves that `86/86` is a trivial compatibility pass: `fragment_count=0`, `grm_zone_count=0`, `compatible_zone_count=0`.
-- `triage-same-index-decoded-interior-candidates` currently reports `187/187` as the first fragment-bearing compatible same-index pair, at `rank=16`.
-- `inspect-room-fragment-zones 187 187 --json` proves that `187/187` carries actual fragment-zone data: `fragment_count=2`, `grm_zone_count=2`, and `compatible_zone_count=2`.
-- `inspect-room 219 219 --json` still fails with `InvalidFragmentZoneBounds`, and `inspect-room-fragment-zones 219 219 --json` remains the canonical blocker explanation surface for its six current `misaligned_min` issues.
-- The missing checked-in answer is no longer whether any same-index decoded interior pair outranks the guarded baseline and still clears the current fragment-zone rules. That answer is already yes. The missing answer is to make the fragment-bearing compatible result explicit on the canonical triage surface instead of forcing readers to infer it from the long candidate list.
+- Phase 4 branch A is now the current path. `LM_DEFAULT` and `LM_END_SWITCH` are structurally supported in the offline decoder as one-byte markers.
+- `zig build tool -- audit-life-programs --json --all-scene-entries` now audits all `3109` life blobs with `unsupported_blob_count = 0`.
+- The guarded room/load set is widened: `19/19`, `2/2`, and `11/10` are positive `inspect-room` and viewer-launch cases.
+- `44/2` is no longer a life blocker. It remains a guarded negative because it is exterior and fails with `ViewerSceneMustBeInterior`.
+- The widened guarded startup set is still diagnostics-first, but it is no longer opaque:
+  - `19/19` currently reports `best_alt_mapping=dense_swapped_axes_64`
+  - `2/2` currently reports `best_alt_mapping=swapped_axes_512_control`
+  - `11/10` currently reports `best_alt_mapping=none`
+- `rank-decoded-interior-candidates --json` now reports `147` fully decoded interior candidates, `101` as the top-ranked interior, `11` as rank `15`, and baseline `19` as `146/147`.
+- Same-index fragment-zone triage is still explicit: `86/86` is the highest-ranked compatible pair above baseline, and `187/187` is the first fragment-bearing compatible pair.
+- `inspect-room 219 219 --json` still fails with `InvalidFragmentZoneBounds`.
 
 Next slice:
 
-- Keep one canonical offline report surface in `tools/cli.zig`: `triage-same-index-decoded-interior-candidates`.
-- Extend that existing surface so both the default text output and the `--json` payload explicitly report:
-  1. the current `19/19` baseline
-  2. the highest-ranked compatible same-index pair overall
-  3. the highest-ranked compatible same-index pair above baseline
-  4. the highest-ranked fragment-bearing compatible same-index pair overall
-  5. the highest-ranked fragment-bearing compatible same-index pair above baseline
-- Define a fragment-bearing compatible pair as one with `compatible=true`, `fragment_count > 0`, and `grm_zone_count > 0`.
-- Preserve `86/86` as the highest-ranked compatible pair overall and above baseline on the current asset tree.
-- Surface an explicit `none` result for either fragment-bearing summary when the current candidate set does not contain one.
-- Reuse `life_audit.zig` for ranking and `runtime/room_state.zig` for fragment-zone compatibility. Do not invent a second ranking contract, duplicate the admission logic, or add a new one-off report command for fragment-bearing candidates.
-- Keep `inspect-room`, `inspect-room-fragment-zones`, and the guarded runtime/viewer boundary unchanged for this slice.
+- Keep the widened Branch-A decoder and guarded room/load set stable.
+- Choose one narrow post-Branch-A runtime-facing follow-up from the differentiated start diagnostics instead of reopening switch-family proof:
+  1. either test whether one of the current `best_alt_mapping` hints deserves promotion into a controlled runtime hypothesis,
+  2. or pick the next guarded-positive room/load pair only after justifying it against the current `19/19`, `2/2`, and `11/10` diagnostics.
+- Preserve `44/2` as the explicit exterior rejection and `219/219` as the invalid-fragment-bounds blocker.
+- Do not reintroduce unsupported-life fail-fast paths for `2/2` or `11/10`.
+- Do not widen into full gameplay or scene transitions in the same slice.
 
 Hard-cut ownership:
 
-- `life_audit.zig`: canonical owner of offline decoded-interior ranking
-- `runtime/room_state.zig`: canonical owner of fragment-zone compatibility and current room-admission rules
-- `background` composition/model code plus tests: canonical owner of fragment data and fragment entry indices
-- `scene` metadata/model code plus tests: canonical owner of scene-zone inputs
-- `tools/cli.zig`: canonical owner of the stable same-index triage/report surface
-- `viewer_shell.zig`, `render.zig`, `main.zig`, `locomotion.zig`, and `world_query.zig`: unchanged for this slice unless tiny plumbing is strictly required by tests
-
-Scope:
-
-- Preserve the guarded `19/19` boundary and the current negative guarded cases.
-- Preserve `rank-decoded-interior-candidates` as the canonical offline ranking surface; do not replace it with another ranking contract.
-- Same-index scene/background pairs only for this slice.
-- No runtime widening, no new supported positive startup pair, no life execution, no movement-policy changes, no scene transitions, and no new unchecked public-runtime path.
-- Do not add new `219`-only diagnostics or a second report command.
-- Do not "fix" invalid bounds by normalizing or clamping them in this slice. Surface the evidence instead.
-- Do not treat zero-fragment or zero-GRM compatibility as fragment-bearing evidence.
-- Do not treat docs-only reasoning as enough. The answer must come from checked-in code, tests, or the canonical CLI/report surface.
+- `life_program.zig`: canonical owner of structural life decoding
+- `life_audit.zig`: canonical owner of offline all-scene life inventory and ranking
+- `runtime/room_state.zig`: canonical owner of guarded room/load admission and failure reasons
+- `tools/cli.zig`: canonical owner of `inspect-room` and ranking/triage surfaces
+- `scripts/verify_viewer.py`: canonical Windows acceptance gate
+- `viewer_shell.zig`, `render.zig`, `main.zig`, and locomotion/runtime gameplay code: unchanged unless a tiny plumbing change is required by the chosen slice
 
 Acceptance:
 
-- One canonical checked-in surface answers both questions cleanly:
-  1. what is the highest-ranked compatible same-index pair overall and above baseline?
-  2. what is the highest-ranked fragment-bearing compatible same-index pair overall and above baseline?
-- The answer is derived from existing `life_audit` ranking plus `room_state` compatibility data, not from ad hoc docs-only reasoning.
-- The text output and `--json` payload both make the baseline comparison explicit, preserve `86/86` as the highest-ranked compatible result on current assets, and separately surface `187/187` as the first fragment-bearing compatible result on current assets.
-- The text output and `--json` payload both emit explicit `none` results for fragment-bearing summaries if a future asset/configuration has no compatible fragment-bearing pair.
-- `inspect-room-fragment-zones 86 86 --json` stays a zero-fragment/zero-GRM compatible pass, `inspect-room-fragment-zones 187 187 --json` stays the first fragment-bearing compatible pass, and `inspect-room 219 219 --json` still fails with `InvalidFragmentZoneBounds`.
+- The widened Branch-A boundary stays explicit in code, tests, and docs.
+- `19/19`, `2/2`, and `11/10` remain guarded-positive `inspect-room` / viewer-launch cases.
+- `44/2` remains a guarded `ViewerSceneMustBeInterior` failure.
+- The next runtime-facing step is framed in terms of post-Branch-A admission/diagnostics, not unsupported switch-family life.
 
 Validation:
 
-- From native PowerShell, either open `py -3 .\scripts\dev-shell.py shell` first or run:
-  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-fast`
-  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- rank-decoded-interior-candidates --json`
-  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- triage-same-index-decoded-interior-candidates`
-  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- triage-same-index-decoded-interior-candidates --json`
-  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-fragment-zones 86 86 --json`
-  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-fragment-zones 187 187 --json`
-  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-fragment-zones 219 219 --json`
-  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room 219 219 --json`  `# expected InvalidFragmentZoneBounds plus fragment-zone diagnostics on stderr`
-  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test`
+- From native PowerShell, prefer:
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build stage-viewer`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- audit-life-programs --json --scene-entry 2 --scene-entry 5 --scene-entry 11 --scene-entry 44`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- audit-life-programs --json --all-scene-entries`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room 2 2 --json`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room 11 10 --json`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room 44 2 --json`
   - `py -3 .\scripts\verify_viewer.py --fast`
   - `py -3 .\scripts\verify_viewer.py`

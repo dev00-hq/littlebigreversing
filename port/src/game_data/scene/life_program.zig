@@ -208,6 +208,8 @@ pub const LifeOpcode = enum(u8) {
             .LM_RESTORE_HERO,
             .LM_ACTION,
             .LM_END_MESSAGE,
+            .LM_DEFAULT,
+            .LM_END_SWITCH,
             => .none,
 
             .LM_COMPORTEMENT,
@@ -348,8 +350,6 @@ pub const LifeOpcode = enum(u8) {
             .LM_NOP,
             .LM_ENDIF,
             .LM_REM,
-            .LM_DEFAULT,
-            .LM_END_SWITCH,
             .LM_SPY,
             .LM_DEBUG,
             .LM_DEBUG_OBJ,

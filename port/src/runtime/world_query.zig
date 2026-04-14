@@ -1064,7 +1064,7 @@ pub fn topologyRelationEvidencePolicy(
         .unchecked_evidence_room_snapshot => .{
             .basis = basis,
             .admission = .admitted_discovery_only,
-            .rationale = "Unchecked evidence-only room snapshots may inform discovery-only topology observation because they still decode immutable room geometry, but unsupported scene life keeps them outside the supported runtime boundary and insufficient on their own for runtime-facing relation classes.",
+            .rationale = "Unchecked evidence-only room snapshots may inform discovery-only topology observation because they still decode immutable room geometry, but bypassing the guarded loader policy keeps them outside the supported runtime boundary and insufficient on their own for runtime-facing relation classes.",
         },
     };
 }
@@ -2170,7 +2170,7 @@ test "runtime world query keeps unchecked evidence-room topology discovery outsi
     try std.testing.expectEqual(true, unchecked_policy.allowsDiscovery());
     try std.testing.expectEqual(false, unchecked_policy.allowsRuntimeSemantics());
     try std.testing.expectEqualStrings(
-        "Unchecked evidence-only room snapshots may inform discovery-only topology observation because they still decode immutable room geometry, but unsupported scene life keeps them outside the supported runtime boundary and insufficient on their own for runtime-facing relation classes.",
+        "Unchecked evidence-only room snapshots may inform discovery-only topology observation because they still decode immutable room geometry, but bypassing the guarded loader policy keeps them outside the supported runtime boundary and insufficient on their own for runtime-facing relation classes.",
         unchecked_policy.rationale,
     );
 }

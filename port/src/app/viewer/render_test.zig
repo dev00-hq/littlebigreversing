@@ -426,9 +426,9 @@ fn renderZeroFragmentTrace(
     return trace;
 }
 
-test "viewer render path draws the checked-in fragment comparison panel and focus highlight" {
+test "viewer render path draws the guarded 11/10 fragment comparison panel and focus highlight" {
     const allocator = std.testing.allocator;
-    const room = try room_fixtures.unchecked1110();
+    const room = try room_fixtures.guarded1110();
 
     const snapshot = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
@@ -516,9 +516,9 @@ test "viewer render path draws the checked-in fragment comparison panel and focu
     try std.testing.expect(hasPresent(trace));
 }
 
-test "viewer render path exposes a deterministic owning-zone rect for the focused checked-in fragment cell on the unchecked evidence path" {
+test "viewer render path exposes a deterministic owning-zone rect for the focused guarded 11/10 fragment cell" {
     const allocator = std.testing.allocator;
-    const room = try room_fixtures.unchecked1110();
+    const room = try room_fixtures.guarded1110();
 
     const snapshot = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
@@ -555,7 +555,7 @@ test "viewer render path exposes a deterministic owning-zone rect for the focuse
 
 test "viewer render path keeps the selected cell pinned at the head of the comparison panel" {
     const allocator = std.testing.allocator;
-    const room = try room_fixtures.unchecked1110();
+    const room = try room_fixtures.guarded1110();
 
     const snapshot = state.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
@@ -714,7 +714,7 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
 
 test "viewer render path fails fast when a required brick preview is missing" {
     const allocator = std.testing.allocator;
-    const room = try room_fixtures.unchecked1110();
+    const room = try room_fixtures.guarded1110();
 
     const snapshot = state.buildRenderSnapshot(room);
     const missing_brick_index = findReferencedBrickIndex(snapshot);

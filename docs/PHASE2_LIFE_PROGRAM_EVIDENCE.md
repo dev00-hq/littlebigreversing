@@ -21,19 +21,20 @@ The goal here is structural byte-layout evidence only. This memo does not claim 
 - Four live object-scoped opcodes are easy to miss when summarizing the switch because they sit far from their non-object variants: `LM_STOP_L_TRACK_OBJ`, `LM_RESTORE_L_TRACK_OBJ`, `LM_SAVE_COMPORTEMENT_OBJ`, and `LM_RESTORE_COMPORTEMENT_OBJ` each consume one `object_index_u8`.
 - Life control flow is not a flat opcode stream. `LM_IF`/`LM_SWITCH`-family opcodes embed an `LF_*` function call parsed by `DoFuncLife`, then a comparison parsed by `DoTest`, then one or more jump offsets.
 - Some control-flow opcodes mutate the program bytes in place at runtime: `LM_SWIF` rewrites itself to `LM_SNIF`, `LM_SNIF` rewrites back to `LM_SWIF`, and `LM_ONEIF` rewrites itself to `LM_NEVERIF`.
-- The new offline audit path at `zig build tool -- audit-life-programs [--json]` now proves that unsupported ids appear across the selected canonical scene set, not just in one blob: scene `2` hero reaches `LM_DEFAULT` at byte offset `170`, scene `5` hero reaches `LM_END_SWITCH` at offset `46`, scene `44` hero reaches `LM_END_SWITCH` at offset `713`, and scene `44` objects `2` and `3` reach `LM_DEFAULT` at offsets `274` and `43`.
-- The widened offline audit path can now also inspect explicit scene-entry lists or the full archive. The current `--all-scene-entries` report audited all `221` non-header `SCENE.HQR` entries (`2..222`) and `3109` life blobs, found `394` unsupported blobs across `145` scenes, and still surfaced only two unsupported opcodes anywhere in current real assets: `LM_DEFAULT` (`188` hits) and `LM_END_SWITCH` (`206` hits).
-- A follow-up checked-in-source pass reaffirmed that `LM_DEFAULT` and `LM_END_SWITCH` still lack structural proof: outside the `COMMON.H` names, the only nearby checked-in clue is the `LM_BREAK` comment `saute au END_SWITCH`, which proves a target concept but not a live byte reader, operand width, or runtime case for either opcode.
-- The checked-in source is strong enough to justify a future strict offline structural decoder, but not to justify wiring typed `life_instructions` into scene parsing or `inspect-scene` yet.
+- The offline audit path at `zig build tool -- audit-life-programs [--json]` first proved that only `LM_DEFAULT` and `LM_END_SWITCH` blocked current real assets; the widened `2026-04-14` rerun of `--all-scene-entries` now audits all `221` non-header `SCENE.HQR` entries (`2..222`) and `3109` life blobs with `unsupported_blob_count = 0`.
+- A follow-up raw one-client `cdb` pass on the stable late-family Scene11 runtime state now closes the structural marker-width question for the switch-family blockers:
+  - [scene11-branchA-nextfetch74-proof.log](../work/crash/scene11-branchA-nextfetch74-proof.log) shows `LM_DEFAULT (0x74)` fetched at `PtrPrg = 0x...401`, then the next interpreter fetch immediately resumes at `PtrPrg = 0x...402`.
+  - [scene11-branchA-nextfetch76.log](../work/crash/scene11-branchA-nextfetch76.log) shows `LM_END_SWITCH (0x76)` fetched at `PtrPrg = 0x...408`, then the next interpreter fetch immediately resumes at `PtrPrg = 0x...409`.
+- That raw-cdb evidence is sufficient to support both opcodes as one-byte structural markers in the offline decoder, while still leaving broader gameplay semantics outside the scope of this memo.
 
 ## Canonical Boundary After This Audit
 
 - Keep raw `life_bytes` as the canonical scene-model and CLI surface.
 - Treat `GERELIFE.CPP` rather than `COMMON.H` as the primary byte-layout oracle for a future decoder.
-- The first life decoder should be an unwired module that works directly from raw bytes and fails fast on unsupported ids.
-- Keep `LM_DEFAULT` and `LM_END_SWITCH` outside the supported decoder boundary until checked-in evidence grows beyond header names plus the `LM_BREAK` destination comment.
+- Keep the first life decoder as an unwired module that works directly from raw bytes.
+- Support `LM_DEFAULT` and `LM_END_SWITCH` in that decoder as one-byte structural markers with no extra operand bytes.
 - Treat the remaining six named-but-unimplemented `LM_*` ids as still unsupported but not current real-asset blockers unless a future broader audit or asset set proves otherwise.
-- Any first decoder should reject `LM_NOP`, `LM_ENDIF`, `LM_REM`, `LM_DEFAULT`, `LM_END_SWITCH`, `LM_SPY`, `LM_DEBUG`, and `LM_DEBUG_OBJ` unless stronger checked-in evidence appears.
+- The current decoder should still reject `LM_NOP`, `LM_ENDIF`, `LM_REM`, `LM_SPY`, `LM_DEBUG`, and `LM_DEBUG_OBJ` unless stronger evidence appears.
 
 ## Branch-A Evidence Threshold
 
@@ -45,15 +46,15 @@ Acceptable proof:
 - preserved checked-in runtime logic that fixes operand layout or control-flow behavior
 - another checked-in primary source with equally concrete structural detail
 
-Unacceptable proof:
+Unacceptable proof on their own:
 
 - `COMMON.H` opcode names by themselves
 - inline comments by themselves
 - unsupported-hit offsets from the offline audit
 - repeated asset-byte patterns
-- local byte windows or decoded prefix context without a primary-source structural reader
+- local byte windows without interpreter fetch/advance proof
 
-The current checked-in repo does not meet that branch-A threshold for either opcode.
+The current workspace now meets that branch-A threshold for both opcodes through the preserved raw-cdb fetch logs plus the widened decoder/audit reruns.
 
 ## Scene Loader Boundary
 
@@ -238,33 +239,32 @@ These cases read one unsigned 16-bit value after the opcode:
 
 ### Switch-Family Source-Pass Conclusion
 
-The follow-up source pass over the switch family did not widen the supported boundary:
+The source pass alone still does not widen the supported boundary:
 
 - `LM_SWITCH`, `LM_CASE`, `LM_OR_CASE`, and `LM_BREAK` are still the only live switch-family opcodes with checked-in `DoLife` byte-reading code.
-- `LM_BREAK` reads one `jump_offset_s16`, and its inline comment says it jumps to `END_SWITCH`, but there is still no `case LM_END_SWITCH` in `GERELIFE.CPP`.
-- `LM_DEFAULT` still has no checked-in runtime reference beyond its `COMMON.H` define.
-- A repo-wide checked-in-source search found no extra structural evidence for either `LM_DEFAULT` or `LM_END_SWITCH` outside `COMMON.H` and that `LM_BREAK` comment.
+- `LM_BREAK` still reads one `jump_offset_s16`, and its inline comment still says it jumps to `END_SWITCH`, but there is still no `case LM_END_SWITCH` in `GERELIFE.CPP`.
+- `LM_DEFAULT` still has no direct checked-in classic-source runtime reader beyond its `COMMON.H` define.
 
-That is not enough evidence to assign even a zero-byte marker layout safely. The current decoder should keep treating both ids as explicitly unsupported.
+What changed is the proof surface. The raw one-client `cdb` fetch logs now show that both opcodes are fetched as one-byte structural markers and that the interpreter resumes on the immediately following byte. That is enough to widen the offline decoder boundary even though classic source never added dedicated switch cases for either opcode.
 
 ### Opcode Decision: `LM_DEFAULT`
 
 Proven today:
 
 - `COMMON.H` names `LM_DEFAULT` as opcode `116`.
-- Current real assets reach `LM_DEFAULT` at scene `2` hero byte offset `170` and scene `44` object byte offsets `274` and `43`.
-- `GERELIFE.CPP` does not provide a live `case LM_DEFAULT`.
+- Current real assets reach `LM_DEFAULT` in multiple scenes, including scene `2` hero byte offset `170`, scene `11` object `12` byte offset `38`, and scene `44` object byte offsets `274` and `43`.
+- `GERELIFE.CPP` still does not provide a live `case LM_DEFAULT`.
+- [scene11-branchA-nextfetch74-proof.log](../work/crash/scene11-branchA-nextfetch74-proof.log) shows the interpreter fetching `0x74` at `PtrPrg = 0x...401` and then immediately resuming the next fetch at `PtrPrg = 0x...402`.
 
 Still unproven:
 
-- whether `LM_DEFAULT` is a marker-only opcode or consumes trailing bytes
-- how `LM_DEFAULT` participates in switch-family control flow at runtime
-- any operand layout or control-flow rule safe enough to promote into a canonical decoder
+- higher-level gameplay meaning for the default branch body beyond “execution resumes on the following byte”
+- whether any future runtime interpreter work needs extra explicit switch-frame bookkeeping beyond the decoder’s one-byte marker treatment
 
 Branch-A supportability today:
 
-- Branch A is not supportable for `LM_DEFAULT`.
-- The checked-in evidence does not pass the branch-A threshold, so `LM_DEFAULT` must stay outside the supported decoder boundary.
+- Branch A is supportable for `LM_DEFAULT` as a one-byte structural marker.
+- The decoder may treat `LM_DEFAULT` as `byte_length = 1` with no extra operand bytes.
 
 ### Opcode Decision: `LM_END_SWITCH`
 
@@ -274,25 +274,25 @@ Proven today:
 - Current real assets reach `LM_END_SWITCH` at scene `5` hero byte offset `46` and scene `44` hero byte offset `713`.
 - `GERELIFE.CPP` does not provide a live `case LM_END_SWITCH`.
 - `LM_BREAK` reads `jump_offset_s16`, and its inline comment says that jump targets `END_SWITCH`.
+- [scene11-branchA-nextfetch76.log](../work/crash/scene11-branchA-nextfetch76.log) shows the interpreter fetching `0x76` at `PtrPrg = 0x...408` and then immediately resuming the next fetch at `PtrPrg = 0x...409`, whose byte is `0x0c`.
 
 Still unproven:
 
-- whether `LM_END_SWITCH` is a marker-only opcode or consumes trailing bytes
-- whether runtime ever reads `LM_END_SWITCH` directly rather than treating it as a jump destination concept
-- any operand layout or control-flow rule safe enough to promote into a canonical decoder
+- the full gameplay role of the surrounding switch-family control flow beyond the marker width itself
+- whether a future interpreter wants to model `LM_END_SWITCH` explicitly or simply preserve it structurally in the decoded stream
 
 Branch-A supportability today:
 
-- Branch A is not supportable for `LM_END_SWITCH`.
-- The checked-in evidence does not pass the branch-A threshold, so `LM_END_SWITCH` must stay outside the supported decoder boundary.
+- Branch A is supportable for `LM_END_SWITCH` as a one-byte structural marker.
+- The decoder may treat `LM_END_SWITCH` as `byte_length = 1` with no extra operand bytes.
 
 ### Phase 4 Decision Outcome
 
-The current repo should take Phase 4 branch B.
+The current workspace should take Phase 4 branch A.
 
-- `LM_DEFAULT` and `LM_END_SWITCH` stay outside the supported decoder and interpreter boundary.
-- Switch-family-dependent life paths stay outside the current parity target.
-- Current and future life work should remain fail-fast on those paths unless new checked-in primary-source evidence appears.
+- `LM_DEFAULT` and `LM_END_SWITCH` are now inside the supported offline decoder boundary as one-byte structural markers.
+- Current real-asset life decoding no longer reports any unsupported blobs in the full-archive audit.
+- Future life work should move from marker-width proof to semantic/runtime widening questions.
 
 ### Named But Unproven In Live Runtime Code
 
@@ -308,6 +308,7 @@ The current repo should take Phase 4 branch B.
 - `LM_DEBUG_OBJ`
 
 These ids are the main reason a decoder should reject unsupported opcodes instead of assuming that every named `COMMON.H` entry is currently usable.
+Only six of them still remain outside the current supported decoder boundary: `LM_NOP`, `LM_ENDIF`, `LM_REM`, `LM_SPY`, `LM_DEBUG`, and `LM_DEBUG_OBJ`.
 
 ## `LF_*` Function Layouts Used By Control Flow
 
@@ -392,7 +393,8 @@ The first safe implementation step is now in place as the unwired offline decode
 - decode only the opcodes with live `GERELIFE.CPP` evidence
 - implement the nested `LF_*` and `DoTest` subgrammars exactly as the checked-in source reads them
 - preserve self-mutating control-flow opcodes structurally instead of inventing cleaner semantics
-- reject the eight named-but-unimplemented `LM_*` ids fail-fast
+- support `LM_DEFAULT` and `LM_END_SWITCH` as one-byte structural markers
+- reject the remaining named-but-unimplemented `LM_*` ids fail-fast
 - leave `SceneProgramBlob.life` and `inspect-scene` unchanged until stronger evidence justifies scene-surface integration
 
-The broader offline inventory is now complete too. It showed that current real assets only reach unsupported `LM_DEFAULT` and `LM_END_SWITCH`, not the other named-but-unimplemented ids. A 2026-03-20 validation rerun of `zig build test`, `zig build tool -- audit-life-programs --json --all-scene-entries`, and `zig build tool -- inspect-scene 2 --json` left that conclusion unchanged. The targeted switch-family source pass should therefore be treated as complete for the current checked-in repo state; future sessions should only revisit it if new checked-in evidence appears or the asset corpus changes.
+The broader offline inventory is now complete too. The current `zig build tool -- audit-life-programs --json --all-scene-entries` rerun decodes all `3109` audited life blobs with `unsupported_blob_count = 0`. The remaining follow-up question is no longer whether `LM_DEFAULT` / `LM_END_SWITCH` must stay unsupported; it is which runtime/gameplay slice should use the widened structural decoder boundary next.
