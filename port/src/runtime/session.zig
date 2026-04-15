@@ -38,6 +38,15 @@ pub const BonusSpawnEvent = struct {
     quantity: u8,
 };
 
+pub const PendingRoomTransition = struct {
+    source_zone_index: usize,
+    destination_cube: i16,
+    destination_world_position: world_geometry.WorldPointSnapshot,
+    yaw: i32,
+    test_brick: bool,
+    dont_readjust_twinsen: bool,
+};
+
 const max_bonus_spawn_events = 16;
 const max_game_vars = 256;
 
@@ -74,6 +83,7 @@ pub const Session = struct {
     object_behaviors: []ObjectBehaviorState,
     bonus_spawn_event_count: usize,
     bonus_spawn_events: [max_bonus_spawn_events]BonusSpawnEvent,
+    pending_room_transition: ?PendingRoomTransition,
     owns_objects: bool,
     owns_object_behaviors: bool,
 
@@ -92,6 +102,7 @@ pub const Session = struct {
             .object_behaviors = &.{},
             .bonus_spawn_event_count = 0,
             .bonus_spawn_events = undefined,
+            .pending_room_transition = null,
             .owns_objects = false,
             .owns_object_behaviors = false,
         };
@@ -122,6 +133,7 @@ pub const Session = struct {
             .object_behaviors = owned_object_behaviors,
             .bonus_spawn_event_count = 0,
             .bonus_spawn_events = undefined,
+            .pending_room_transition = null,
             .owns_objects = true,
             .owns_object_behaviors = true,
         };
@@ -136,6 +148,7 @@ pub const Session = struct {
         self.objects = &.{};
         self.object_behaviors = &.{};
         self.bonus_spawn_event_count = 0;
+        self.pending_room_transition = null;
         self.owns_objects = false;
         self.owns_object_behaviors = false;
     }
@@ -214,6 +227,10 @@ pub const Session = struct {
         return self.bonus_spawn_events[0..self.bonus_spawn_event_count];
     }
 
+    pub fn pendingRoomTransition(self: Session) ?PendingRoomTransition {
+        return self.pending_room_transition;
+    }
+
     pub fn objectBehaviorStateByIndex(self: Session, object_index: usize) ?ObjectBehaviorState {
         for (self.object_behaviors) |object_behavior| {
             if (object_behavior.index == object_index) return object_behavior;
@@ -263,6 +280,18 @@ pub const Session = struct {
         }
         self.bonus_spawn_events[self.bonus_spawn_event_count] = event;
         self.bonus_spawn_event_count += 1;
+    }
+
+    pub fn setPendingRoomTransition(
+        self: *Session,
+        transition: PendingRoomTransition,
+    ) !void {
+        if (self.pending_room_transition != null) return error.PendingRoomTransitionAlreadySet;
+        self.pending_room_transition = transition;
+    }
+
+    pub fn clearPendingRoomTransition(self: *Session) void {
+        self.pending_room_transition = null;
     }
 
     pub fn advanceFrameIndex(self: *Session) void {
@@ -325,6 +354,7 @@ test "runtime session initializes mutable hero state from an explicit world-posi
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
     try std.testing.expectEqual(@as(usize, 0), runtime_session.objectSnapshots().len);
     try std.testing.expectEqual(@as(usize, 0), runtime_session.objectBehaviorStates().len);
+    try std.testing.expectEqual(@as(?PendingRoomTransition, null), runtime_session.pendingRoomTransition());
 }
 
 test "runtime session updates stay separate from immutable room snapshot ownership" {
@@ -412,6 +442,36 @@ test "runtime session tracks mutable game vars and magic state separately from c
     try std.testing.expectEqual(@as(u8, 3), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.cubeVar(3));
+}
+
+test "runtime session keeps pending room transitions explicit and single-slot" {
+    var runtime_session = Session.init(.{
+        .x = 1987,
+        .y = 512,
+        .z = 3743,
+    });
+    const expected_transition = PendingRoomTransition{
+        .source_zone_index = 0,
+        .destination_cube = 42,
+        .destination_world_position = .{
+            .x = 2560,
+            .y = 2048,
+            .z = 3072,
+        },
+        .yaw = 3,
+        .test_brick = false,
+        .dont_readjust_twinsen = false,
+    };
+
+    try runtime_session.setPendingRoomTransition(expected_transition);
+    try std.testing.expectEqual(expected_transition, runtime_session.pendingRoomTransition().?);
+    try std.testing.expectError(
+        error.PendingRoomTransitionAlreadySet,
+        runtime_session.setPendingRoomTransition(expected_transition),
+    );
+
+    runtime_session.clearPendingRoomTransition();
+    try std.testing.expectEqual(@as(?PendingRoomTransition, null), runtime_session.pendingRoomTransition());
 }
 
 test "runtime session can advance frame ownership without mutating hero position" {

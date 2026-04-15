@@ -138,6 +138,8 @@ test "viewer room snapshot keeps the supported canonical interior pair stable" {
     try std.testing.expectEqual(@as(i16, 1987), room.scene.hero_start.x);
     try std.testing.expectEqual(@as(i16, 512), room.scene.hero_start.y);
     try std.testing.expectEqual(@as(i16, 3743), room.scene.hero_start.z);
+    try std.testing.expectEqual(@as(usize, room.scene.hero_start.track_byte_length), room.scene.hero_start.track_bytes.len);
+    try std.testing.expectEqual(@as(usize, room.scene.hero_start.life_byte_length), room.scene.hero_start.life_bytes.len);
     try std.testing.expectEqual(@as(usize, 3), room.scene.object_count);
     try std.testing.expectEqual(@as(usize, 4), room.scene.zone_count);
     try std.testing.expectEqual(@as(usize, 0), room.scene.track_count);
@@ -274,6 +276,13 @@ test "viewer room snapshot now admits the widened guarded interior set" {
     const room_22 = try state.loadRoomSnapshot(allocator, resolved, 2, 2);
     defer room_22.deinit(allocator);
     try std.testing.expectEqual(@as(usize, 2), room_22.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, room_22.scene.hero_start.track_byte_length), room_22.scene.hero_start.track_bytes.len);
+    try std.testing.expectEqual(@as(usize, room_22.scene.hero_start.life_byte_length), room_22.scene.hero_start.life_bytes.len);
+    try std.testing.expectEqual(@as(usize, 10), room_22.scene.zones.len);
+    try std.testing.expectEqual(scene_data.ZoneType.change_cube, room_22.scene.zones[0].kind);
+    try std.testing.expectEqual(@as(i16, 0), room_22.scene.zones[0].semantics.change_cube.destination_cube);
+    try std.testing.expectEqual(@as(i32, 2560), room_22.scene.zones[0].semantics.change_cube.destination_x);
+    try std.testing.expect(room_22.scene.zones[0].semantics.change_cube.initially_on);
     try std.testing.expectEqual(@as(usize, 0), room_22.background.fragments.fragment_count);
 
     const room_1110 = try state.loadRoomSnapshot(allocator, resolved, 11, 10);

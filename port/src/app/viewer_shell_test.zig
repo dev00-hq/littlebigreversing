@@ -43,6 +43,17 @@ fn expectLocalTopology(
     }
 }
 
+fn expectZoneIndices(
+    membership: runtime_query.ContainingZoneSet,
+    expected_indices: []const usize,
+) !void {
+    const zones = membership.slice();
+    try std.testing.expectEqual(expected_indices.len, zones.len);
+    for (zones, expected_indices) |zone, expected_index| {
+        try std.testing.expectEqual(expected_index, zone.index);
+    }
+}
+
 fn expectDisplayMoveOptionLines(
     display: viewer_shell.ViewerLocomotionStatusDisplay,
     line_index: usize,
@@ -804,6 +815,62 @@ test "viewer locomotion harness consumes runtime-owned seeded 19/19 fixture stat
     );
     defer allocator.free(expected_seeded_diagnostic);
     try std.testing.expectEqualStrings(expected_seeded_diagnostic, diagnostic);
+}
+
+test "viewer locomotion harness consumes runtime-owned 2/2 raw-zone recovery acceptance" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded22();
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
+    const raw_start = runtime_session.heroWorldPosition();
+    const moved_status = try runtime_locomotion.applyStep(room, &runtime_session, .east);
+
+    switch (moved_status) {
+        .last_zone_recovery_accepted => |value| {
+            try std.testing.expectEqual(viewer_shell.CardinalDirection.east, value.direction);
+            try std.testing.expectEqual(
+                raw_start.x + runtime_locomotion.raw_invalid_zone_entry_step_xz,
+                value.hero_position.x,
+            );
+            try std.testing.expectEqual(raw_start.y, value.hero_position.y);
+            try std.testing.expectEqual(raw_start.z, value.hero_position.z);
+            try std.testing.expectEqual(runtime_session.heroWorldPosition(), value.hero_position);
+            try expectZoneIndices(value.zone_membership, &.{0});
+        },
+        else => return error.UnexpectedViewerLocomotionStatus,
+    }
+    const moved_value = switch (moved_status) {
+        .last_zone_recovery_accepted => |value| value,
+        else => unreachable,
+    };
+
+    var status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
+    const display = viewer_shell.formatLocomotionStatusDisplay(&status_buffer, moved_status);
+    try std.testing.expectEqual(@as(usize, 3), display.line_count);
+    try std.testing.expectEqualStrings("RAW MOVE EAST ACCEPTED", display.lines[0]);
+    try std.testing.expectEqualStrings("ZONES 0", display.lines[1]);
+    try std.testing.expectEqualStrings("RAW START ZONE RECOVERY", display.lines[2]);
+    try expectNoSchematicCue(display);
+    try expectNoAttemptCue(display);
+
+    const diagnostic = try formatDiagnostic(allocator, moved_status);
+    defer allocator.free(diagnostic);
+    var zones_buffer: [128]u8 = undefined;
+    const expected_diagnostic = try std.fmt.allocPrint(
+        allocator,
+        "event=hero_move direction={s} status=accepted_raw_zone_recovery recovery_step_xz={d} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+        .{
+            "east",
+            runtime_locomotion.raw_invalid_zone_entry_step_xz,
+            formatZoneDiagnosticValue(&zones_buffer, moved_value.zone_membership),
+            moved_value.hero_position.x,
+            moved_value.hero_position.y,
+            moved_value.hero_position.z,
+        },
+    );
+    defer allocator.free(expected_diagnostic);
+    try std.testing.expectEqualStrings(expected_diagnostic, diagnostic);
 }
 
 test "viewer locomotion harness consumes runtime-owned accepted and rejected seeded steps" {

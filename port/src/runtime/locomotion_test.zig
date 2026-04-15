@@ -190,6 +190,29 @@ test "runtime locomotion reports the explicit guarded 19/19 fixture as the admit
     }
 }
 
+test "runtime locomotion allows a bounded raw-zone recovery nudge into guarded 2/2 change-cube" {
+    const room = try room_fixtures.guarded22();
+
+    var current_session = runtime_session.Session.init(room_state.heroStartWorldPoint(room));
+    const raw_start = current_session.heroWorldPosition();
+    const moved_status = try locomotion.applyStep(room, &current_session, .east);
+
+    switch (moved_status) {
+        .last_zone_recovery_accepted => |value| {
+            try std.testing.expectEqual(locomotion.CardinalDirection.east, value.direction);
+            try std.testing.expectEqual(raw_start.y, value.hero_position.y);
+            try std.testing.expectEqual(raw_start.z, value.hero_position.z);
+            try std.testing.expectEqual(
+                raw_start.x + locomotion.raw_invalid_zone_entry_step_xz,
+                value.hero_position.x,
+            );
+            try std.testing.expectEqual(current_session.heroWorldPosition(), value.hero_position);
+            try expectZoneIndices(value.zone_membership, &.{0});
+        },
+        else => return error.UnexpectedLocomotionStatus,
+    }
+}
+
 test "runtime locomotion mutates only on allowed seeded steps and preserves zone membership on rejected steps" {
     const room = try room_fixtures.guarded1919();
 

@@ -16,6 +16,15 @@ pub const HeroStartSnapshot = struct {
     z: i16,
     track_byte_length: u16,
     life_byte_length: u16,
+    track_bytes: []u8,
+    track_instructions: []scene_data.TrackInstruction,
+    life_bytes: []u8,
+
+    pub fn deinit(self: HeroStartSnapshot, allocator: std.mem.Allocator) void {
+        allocator.free(self.track_instructions);
+        allocator.free(self.track_bytes);
+        allocator.free(self.life_bytes);
+    }
 };
 
 pub const ObjectPositionSnapshot = struct {
@@ -54,6 +63,8 @@ pub const ZoneBoundsSnapshot = struct {
     index: usize,
     num: i16 = -1,
     kind: scene_data.ZoneType,
+    raw_info: [8]i32,
+    semantics: scene_data.ZoneSemantics,
     x_min: i32,
     y_min: i32,
     z_min: i32,
@@ -77,6 +88,7 @@ pub const SceneSnapshot = struct {
     tracks: []TrackPointSnapshot,
 
     pub fn deinit(self: SceneSnapshot, allocator: std.mem.Allocator) void {
+        self.hero_start.deinit(allocator);
         allocator.free(self.objects);
         for (self.object_behavior_seeds) |seed| seed.deinit(allocator);
         allocator.free(self.object_behavior_seeds);
@@ -304,6 +316,29 @@ pub fn heroStartWorldPoint(room: *const RoomSnapshot) WorldPointSnapshot {
     };
 }
 
+fn copyHeroStartSnapshot(
+    allocator: std.mem.Allocator,
+    hero_start: scene_data.HeroStart,
+) !HeroStartSnapshot {
+    const track_bytes = try allocator.dupe(u8, hero_start.track.bytes);
+    errdefer allocator.free(track_bytes);
+    const track_instructions = try allocator.dupe(scene_data.TrackInstruction, hero_start.track_instructions);
+    errdefer allocator.free(track_instructions);
+    const life_bytes = try allocator.dupe(u8, hero_start.life.bytes);
+    errdefer allocator.free(life_bytes);
+
+    return .{
+        .x = hero_start.x,
+        .y = hero_start.y,
+        .z = hero_start.z,
+        .track_byte_length = hero_start.trackByteLength(),
+        .life_byte_length = hero_start.lifeByteLength(),
+        .track_bytes = track_bytes,
+        .track_instructions = track_instructions,
+        .life_bytes = life_bytes,
+    };
+}
+
 const WorldBounds = world_geometry.WorldBounds;
 
 pub const RenderSnapshot = struct {
@@ -456,13 +491,7 @@ fn loadRoomSnapshotInternal(
         .entry_index = scene.entry_index,
         .classic_loader_scene_number = scene.classicLoaderSceneNumber(),
         .scene_kind = scene.sceneKind(),
-        .hero_start = .{
-            .x = scene.hero_start.x,
-            .y = scene.hero_start.y,
-            .z = scene.hero_start.z,
-            .track_byte_length = scene.hero_start.trackByteLength(),
-            .life_byte_length = scene.hero_start.lifeByteLength(),
-        },
+        .hero_start = try copyHeroStartSnapshot(allocator, scene.hero_start),
         .object_count = scene.object_count,
         .zone_count = scene.zone_count,
         .track_count = scene.track_count,
@@ -668,6 +697,8 @@ fn copyZoneSnapshots(
             .index = index,
             .num = zone.num,
             .kind = zone.zone_type,
+            .raw_info = zone.raw_info,
+            .semantics = zone.semantics,
             .x_min = @min(zone.x0, zone.x1),
             .y_min = @min(zone.y0, zone.y1),
             .z_min = @min(zone.z0, zone.z1),

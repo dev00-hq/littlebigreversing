@@ -6,23 +6,25 @@
 - Keep `19/19`, `2/2`, and `11/10` guarded-positive; keep `44/2` as the guarded exterior rejection.
 - Keep `LM_DEFAULT` and `LM_END_SWITCH` supported as one-byte structural markers.
 - Keep `life_audit.zig` owning decoded-interior ranking and `room_state.zig` owning guarded room/load admission.
-- Keep validation additive: `zig build test-fast` daily, `zig build test-cli-integration` for bounded room/load coverage, and same-index triage tool-only.
+- Keep validation additive: `zig build test-fast`, `zig build test-cli-integration`, and tool-only same-index triage.
 
 ## Active Streams
 
-- Phase 4 Branch A remains the current path.
+- Phase 4 Branch A remains current.
 - Guarded viewer/load widening is live, with differentiated `raw_invalid_start` hints.
-- Guarded locomotion seeding now reaches `19/19`, `2/2`, and `11/10`, with fragment navigation split from hero locomotion.
-- Runtime now owns hero intent consumption and mutable object-position copies for guarded viewer rooms.
-- The guarded `19/19` object-`2` slice is stateful behind the runtime tick: mutable life bytes, bounded bonus events, and the checked-in later reward loop all live in runtime.
-- The structural life decoder boundary now has a machine-readable `life-catalog-v1` surface via `zig build tool -- inspect-life-catalog --json`, sourced from the production `life_program.zig` enums rather than markdown-only notes.
-- Sendell's Ball room (`36`) now has a typed `sendell_summary.json` lane with direct `MagicLevel`, `MagicPoint`, and `ListVarGame[FLAG_BOULE_SENDELL]` reads.
-- Runtime now owns a bounded Sendell room-`36` story-state slice driven by viewer `F` / `Enter` intents.
-- Offline decoded-interior ranking is widened, and same-index fragment-zone triage remains explicit.
+- Guarded locomotion seeding reaches `19/19`, `2/2`, and `11/10`; fragment navigation stays split from hero locomotion, and `2/2` now also has a bounded raw-start zone-recovery trigger without promoting a new runtime mapping.
+- Runtime owns hero intent consumption and mutable object positions for guarded viewer rooms.
+- `RoomSnapshot` now preserves hero program bytes and typed zone semantics.
+- Guarded `19/19` object-`2` is stateful behind the runtime tick: mutable life bytes, bounded bonus events, later reward loop.
+- The structural life boundary now has the machine-readable `life-catalog-v1` surface from production enums.
+- Sendell room `36` now has a typed `sendell_summary.json` lane and a bounded runtime story-state slice driven by viewer `F` / `Enter`.
+- Runtime also owns a generic pending `change_cube` transition record from guarded `2/2` zone membership, including the baked-start east nudge into zone `0`.
+- Offline decoded-interior ranking is widened; same-index fragment-zone triage stays explicit.
 
 ## Blocked Items
 
-- The later guarded `19/19` object-`2` reward branch is runtime-backed now, but the slice currently stops at bounded bonus-event emission; classic extra motion, pickup, UI, and save/load parity are still pending.
+- The guarded `19/19` object-`2` slice still stops at bounded bonus-event emission; extra motion, pickup, UI, and save/load parity are pending.
+- The guarded `2/2` `change_cube` slice now has a checked-in admitted trigger via a bounded raw-world zone-recovery nudge from the baked start, but it still stops short of real room handoff or general floor-mapping proof.
 - The bounded Sendell room-`36` slice still stops at direct story-state transitions; dialog/UI timing, `CurrentDial`, and save/load parity are pending.
 - `inspect-room 219 219 --json` still fails with `InvalidFragmentZoneBounds`.
 - Canonical Windows checks still depend on the extracted asset tree and SDL2 layout.
@@ -30,10 +32,11 @@
 ## Next Actions
 
 - Keep the widened Branch-A boundary in code, tests, and docs.
-- Keep Sendell's Ball separate from the guarded `19/19` sewer reward loop; the direct Sendell lightning/dialog flow is not generic extra-spawn evidence.
-- Keep the Sendell state contract anchored to `MagicLevel`, `MagicPoint`, and `ListVarGame[FLAG_BOULE_SENDELL]`, not screenshots.
-- Decide whether the next Sendell widening step is `CurrentDial` / UI parity or a broader runtime scheduler slice.
-- Move the scheduler boundary farther away from viewer input once a second behavior-bearing runtime slice exists.
+- Keep the bounded `2/2` raw-zone recovery seam explicit and separate from any future general floor-mapping claim.
+- Keep Sendell room `36` separate from the guarded `19/19` sewer reward loop.
+- Keep the Sendell state contract anchored to `MagicLevel`, `MagicPoint`, and `ListVarGame[FLAG_BOULE_SENDELL]`.
+- Decide whether the next Sendell step is `CurrentDial` / UI parity or a broader runtime scheduler slice.
+- Move the scheduler boundary farther from viewer input now that a second behavior-bearing slice exists.
 
 ## Relevant Subsystem Packs
 

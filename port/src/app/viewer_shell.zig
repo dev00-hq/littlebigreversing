@@ -70,6 +70,7 @@ pub const ViewerRawInvalidStartMappingHint = runtime_locomotion.RawInvalidStartM
 pub const ViewerRawInvalidStartStatus = runtime_locomotion.RawInvalidStartStatus;
 pub const ViewerSeededValidStatus = runtime_locomotion.SeededValidStatus;
 pub const ViewerMoveAcceptedStatus = runtime_locomotion.MoveAcceptedStatus;
+pub const ViewerRawZoneRecoveryAcceptedStatus = runtime_locomotion.RawZoneRecoveryAcceptedStatus;
 pub const ViewerMoveRejectedStatus = runtime_locomotion.MoveRejectedStatus;
 pub const ViewerLocomotionStatus = runtime_locomotion.LocomotionStatus;
 pub const ViewerKey = sdl.Key;
@@ -216,6 +217,18 @@ pub fn formatLocomotionStatusDisplay(
                     .origin_cell = value.origin_cell,
                     .destination_cell = value.cell,
                 },
+            },
+        },
+        .last_zone_recovery_accepted => |value| .{
+            .line_count = 3,
+            .lines = .{
+                formatAcceptedRawZoneRecoveryMoveLine(&buffer.line_0, value.direction),
+                formatZoneSummary(&buffer.line_1, value.zone_membership),
+                "RAW START ZONE RECOVERY",
+                "",
+                "",
+                "",
+                "",
             },
         },
         .last_move_rejected => |value| if (value.move_options) |move_options| .{
@@ -531,6 +544,20 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
                     formatMoveOptionsDiagnostic(&move_options_buffer, value.move_options),
                     formatLocalTopologyDiagnosticValue(&topology_buffer, value.local_topology),
                     formatCurrentFootingDiagnosticValue(&footing_buffer, value.local_topology),
+                    formatZoneDiagnosticValue(&zones_buffer, value.zone_membership),
+                    value.hero_position.x,
+                    value.hero_position.y,
+                    value.hero_position.z,
+                },
+            );
+        },
+        .last_zone_recovery_accepted => |value| {
+            var zones_buffer: [128]u8 = undefined;
+            try writer.print(
+                "event=hero_move direction={s} status=accepted_raw_zone_recovery recovery_step_xz={d} zones={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                .{
+                    directionLabel(value.direction),
+                    runtime_locomotion.raw_invalid_zone_entry_step_xz,
                     formatZoneDiagnosticValue(&zones_buffer, value.zone_membership),
                     value.hero_position.x,
                     value.hero_position.y,
@@ -1019,6 +1046,15 @@ fn formatAcceptedMoveLine(buffer: []u8, direction: CardinalDirection) []const u8
     return std.fmt.bufPrint(
         buffer,
         "MOVE {s} ACCEPTED",
+        .{upperTag(&direction_buffer, directionLabel(direction))},
+    ) catch unreachable;
+}
+
+fn formatAcceptedRawZoneRecoveryMoveLine(buffer: []u8, direction: CardinalDirection) []const u8 {
+    var direction_buffer: [16]u8 = undefined;
+    return std.fmt.bufPrint(
+        buffer,
+        "RAW MOVE {s} ACCEPTED",
         .{upperTag(&direction_buffer, directionLabel(direction))},
     ) catch unreachable;
 }

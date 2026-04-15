@@ -2,10 +2,12 @@ const locomotion = @import("locomotion.zig");
 const object_behavior = @import("object_behavior.zig");
 const room_state = @import("room_state.zig");
 const runtime_session = @import("session.zig");
+const zone_effects = @import("zone_effects.zig");
 
 pub const TickResult = struct {
     locomotion_status: locomotion.LocomotionStatus,
     consumed_hero_intent: bool,
+    triggered_room_transition: bool,
     updated_object_count: usize,
 };
 
@@ -25,6 +27,7 @@ pub fn tick(
             break :blk try locomotion.inspectCurrentStatus(room, current_session.*);
         },
     } else try locomotion.inspectCurrentStatus(room, current_session.*);
+    const zone_effect_summary = try zone_effects.applyPostLocomotionEffects(current_session, locomotion_status);
     const behavior_summary = try object_behavior.stepSupportedObjects(room, current_session);
     current_session.advanceFrameIndex();
 
@@ -32,6 +35,7 @@ pub fn tick(
         return .{
             .locomotion_status = locomotion_status,
             .consumed_hero_intent = true,
+            .triggered_room_transition = zone_effect_summary.triggered_room_transition,
             .updated_object_count = behavior_summary.updated_object_count,
         };
     }
@@ -39,6 +43,7 @@ pub fn tick(
     return .{
         .locomotion_status = locomotion_status,
         .consumed_hero_intent = false,
+        .triggered_room_transition = zone_effect_summary.triggered_room_transition,
         .updated_object_count = behavior_summary.updated_object_count,
     };
 }

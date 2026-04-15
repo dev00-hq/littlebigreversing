@@ -10,6 +10,7 @@ pub const WorldPointSnapshot = world_geometry.WorldPointSnapshot;
 pub const ZoneMembership = runtime_query.ContainingZoneSet;
 pub const LocalNeighborTopology = runtime_query.LocalNeighborTopologyProbe;
 pub const HeroIntent = runtime_session.HeroIntent;
+pub const raw_invalid_zone_entry_step_xz: i32 = 32;
 
 pub const LocomotionRejectedStage = enum {
     origin_invalid,
@@ -77,6 +78,12 @@ pub const MoveAcceptedStatus = struct {
     zone_membership: ZoneMembership,
 };
 
+pub const RawZoneRecoveryAcceptedStatus = struct {
+    direction: CardinalDirection,
+    hero_position: WorldPointSnapshot,
+    zone_membership: ZoneMembership,
+};
+
 pub const MoveRejectedStatus = struct {
     direction: CardinalDirection,
     rejection_stage: LocomotionRejectedStage,
@@ -94,6 +101,7 @@ pub const LocomotionStatus = union(enum) {
     raw_invalid_start: RawInvalidStartStatus,
     seeded_valid: SeededValidStatus,
     last_move_accepted: MoveAcceptedStatus,
+    last_zone_recovery_accepted: RawZoneRecoveryAcceptedStatus,
     last_move_rejected: MoveRejectedStatus,
 };
 
@@ -134,6 +142,9 @@ pub fn applyStep(
     const origin_position = current_session.heroWorldPosition();
     const origin = query.evaluateHeroMoveTarget(origin_position);
     if (!origin.isAllowed()) {
+        if (try tryApplyRawInvalidZoneRecoveryStep(query, current_session, direction, origin_position)) |status| {
+            return status;
+        }
         return .{
             .last_move_rejected = .{
                 .direction = direction,
@@ -320,28 +331,100 @@ fn buildLocalTopology(
     return query.probeLocalNeighborTopology(current_cell.x, current_cell.z);
 }
 
+// Some guarded rooms still start a few world units away from a valid trigger even
+// though we do not yet have admitted floor mapping there. Allow one bounded
+// recovery nudge only when that nudge enters a previously absent zone.
+fn tryApplyRawInvalidZoneRecoveryStep(
+    query: runtime_query.WorldQuery,
+    current_session: *runtime_session.Session,
+    direction: CardinalDirection,
+    origin_world_position: WorldPointSnapshot,
+) !?LocomotionStatus {
+    const target_world_position = steppedWorldPointByDistance(
+        origin_world_position,
+        direction,
+        raw_invalid_zone_entry_step_xz,
+    );
+    if (!worldPointWithinBounds(query.roomWorldBounds(), target_world_position)) return null;
+
+    const origin_zones = try query.containingZonesAtWorldPoint(origin_world_position);
+    const target_zones = try query.containingZonesAtWorldPoint(target_world_position);
+    if (!containsNewZone(origin_zones, target_zones)) return null;
+
+    current_session.setHeroWorldPosition(target_world_position);
+    return .{
+        .last_zone_recovery_accepted = .{
+            .direction = direction,
+            .hero_position = current_session.heroWorldPosition(),
+            .zone_membership = target_zones,
+        },
+    };
+}
+
+fn containsNewZone(
+    origin_zones: ZoneMembership,
+    target_zones: ZoneMembership,
+) bool {
+    for (target_zones.slice()) |target_zone| {
+        if (!zoneSetContainsIndex(origin_zones, target_zone.index)) return true;
+    }
+    return false;
+}
+
+fn zoneSetContainsIndex(
+    membership: ZoneMembership,
+    zone_index: usize,
+) bool {
+    for (membership.slice()) |zone| {
+        if (zone.index == zone_index) return true;
+    }
+    return false;
+}
+
+fn worldPointWithinBounds(
+    bounds: world_geometry.WorldBounds,
+    world_position: WorldPointSnapshot,
+) bool {
+    return world_position.x >= bounds.min_x and
+        world_position.x <= bounds.max_x and
+        world_position.z >= bounds.min_z and
+        world_position.z <= bounds.max_z;
+}
+
 fn steppedWorldPoint(
     origin_world_position: WorldPointSnapshot,
     direction: CardinalDirection,
+) WorldPointSnapshot {
+    return steppedWorldPointByDistance(
+        origin_world_position,
+        direction,
+        runtime_query.world_grid_span_xz,
+    );
+}
+
+fn steppedWorldPointByDistance(
+    origin_world_position: WorldPointSnapshot,
+    direction: CardinalDirection,
+    distance_xz: i32,
 ) WorldPointSnapshot {
     return switch (direction) {
         .north => .{
             .x = origin_world_position.x,
             .y = origin_world_position.y,
-            .z = origin_world_position.z - runtime_query.world_grid_span_xz,
+            .z = origin_world_position.z - distance_xz,
         },
         .east => .{
-            .x = origin_world_position.x + runtime_query.world_grid_span_xz,
+            .x = origin_world_position.x + distance_xz,
             .y = origin_world_position.y,
             .z = origin_world_position.z,
         },
         .south => .{
             .x = origin_world_position.x,
             .y = origin_world_position.y,
-            .z = origin_world_position.z + runtime_query.world_grid_span_xz,
+            .z = origin_world_position.z + distance_xz,
         },
         .west => .{
-            .x = origin_world_position.x - runtime_query.world_grid_span_xz,
+            .x = origin_world_position.x - distance_xz,
             .y = origin_world_position.y,
             .z = origin_world_position.z,
         },
