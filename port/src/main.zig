@@ -1,49 +1,49 @@
 const std = @import("std");
-const lba2 = @import("lba2");
+const fragment_compare = @import("app/viewer/fragment_compare.zig");
+const viewer_shell = @import("app/viewer_shell.zig");
+const catalog = @import("assets/catalog.zig");
+const diagnostics = @import("foundation/diagnostics.zig");
+const paths = @import("foundation/paths.zig");
+const process = @import("foundation/process.zig");
+const sdl = @import("platform/sdl.zig");
+const locomotion = @import("runtime/locomotion.zig");
+const room_state = @import("runtime/room_state.zig");
+const runtime_update = @import("runtime/update.zig");
 
 pub fn main() !void {
-    var gpa_state = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa_state.deinit();
-    const allocator = gpa_state.allocator();
+    return process.runWithArgs(run);
+}
 
-    const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
-
-    const parsed = lba2.app.viewer_shell.parseArgs(allocator, args[1..]) catch |err| {
-        var stderr_buffer: [4096]u8 = undefined;
-        var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
-        const stderr = &stderr_writer.interface;
-        lba2.foundation.diagnostics.printError(stderr, @errorName(err));
-        stderr.flush() catch {};
-        return err;
-    };
-    defer parsed.deinit(allocator);
-
+fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     var stderr_buffer: [4096]u8 = undefined;
     var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
     const stderr = &stderr_writer.interface;
 
-    const resolved = lba2.foundation.paths.resolveFromExecutable(allocator, parsed.asset_root_override) catch |err| {
-        lba2.foundation.diagnostics.printError(stderr, @errorName(err));
-        stderr.flush() catch {};
+    const parsed = viewer_shell.parseArgs(allocator, args) catch |err| {
+        diagnostics.reportError(stderr, @errorName(err));
+        return err;
+    };
+    defer parsed.deinit(allocator);
+
+    const resolved = paths.resolveFromExecutable(allocator, parsed.asset_root_override) catch |err| {
+        diagnostics.reportError(stderr, @errorName(err));
         return err;
     };
     defer resolved.deinit(allocator);
 
-    lba2.assets.catalog.validateExplicitRequirements(resolved.asset_root) catch |err| {
-        lba2.foundation.diagnostics.printError(stderr, @errorName(err));
-        stderr.flush() catch {};
+    catalog.validateExplicitRequirements(resolved.asset_root) catch |err| {
+        diagnostics.reportError(stderr, @errorName(err));
         return err;
     };
 
-    const room = lba2.app.viewer_shell.loadRoomSnapshot(
+    const room = room_state.loadRoomSnapshot(
         allocator,
         resolved,
         parsed.scene_entry,
         parsed.background_entry,
     ) catch |err| {
         if (err == error.ViewerUnsupportedSceneLife) {
-            const hit = try lba2.runtime.room_state.inspectUnsupportedSceneLifeHit(
+            const hit = try room_state.inspectUnsupportedSceneLifeHit(
                 allocator,
                 resolved,
                 parsed.scene_entry,
@@ -55,37 +55,35 @@ pub fn main() !void {
                 hit,
             );
         }
-        lba2.foundation.diagnostics.printError(stderr, @errorName(err));
-        stderr.flush() catch {};
+        diagnostics.reportError(stderr, @errorName(err));
         return err;
     };
     defer room.deinit(allocator);
 
-    var runtime_session = try lba2.app.viewer_shell.initSession(allocator, &room);
+    var runtime_session = try viewer_shell.initSession(allocator, &room);
     defer runtime_session.deinit(allocator);
-    var locomotion_status = try lba2.runtime.locomotion.inspectCurrentStatus(&room, runtime_session);
-    try lba2.app.viewer_shell.printStartupDiagnostics(stderr, allocator, resolved, &room);
-    try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
-    var render = lba2.app.viewer_shell.buildRenderSnapshot(&room, runtime_session);
-    var fragment_catalog = try lba2.app.viewer_shell.buildFragmentComparisonCatalog(allocator, render);
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, runtime_session);
+    try viewer_shell.printStartupDiagnostics(stderr, allocator, resolved, &room);
+    try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
+    var render = viewer_shell.buildRenderSnapshot(&room, runtime_session);
+    var fragment_catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, render);
     defer fragment_catalog.deinit(allocator);
-    var interaction = lba2.app.viewer_shell.initialInteractionState(fragment_catalog);
-    const title = try lba2.app.viewer_shell.formatWindowTitleZ(allocator, &room);
+    var interaction = viewer_shell.initialInteractionState(fragment_catalog);
+    const title = try viewer_shell.formatWindowTitleZ(allocator, &room);
     defer allocator.free(title);
     try stderr.flush();
 
-    var canvas = lba2.platform.sdl.Canvas.init(
+    var canvas = sdl.Canvas.init(
         title,
-        lba2.app.viewer_shell.window_width,
-        lba2.app.viewer_shell.window_height,
+        viewer_shell.window_width,
+        viewer_shell.window_height,
     ) catch |err| {
-        lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
-        stderr.flush() catch {};
+        diagnostics.reportError(stderr, sdlErrorMessage(err));
         return err;
     };
     defer canvas.deinit();
 
-    lba2.app.viewer_shell.renderDebugViewWithSelection(
+    viewer_shell.renderDebugViewWithSelection(
         &canvas,
         render,
         fragment_catalog,
@@ -93,15 +91,13 @@ pub fn main() !void {
         locomotion_status,
         interaction.control_mode,
     ) catch |err| {
-        lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
-        stderr.flush() catch {};
+        diagnostics.reportError(stderr, sdlErrorMessage(err));
         return err;
     };
 
     while (true) {
         const event = canvas.waitEvent() catch |err| {
-            lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
-            stderr.flush() catch {};
+            diagnostics.reportError(stderr, sdlErrorMessage(err));
             return err;
         };
         switch (event) {
@@ -118,7 +114,7 @@ pub fn main() !void {
                 locomotion_status,
             ),
             .key_down => |key| {
-                const key_result = try lba2.app.viewer_shell.handleKeyDown(
+                const key_result = try viewer_shell.handleKeyDown(
                     &room,
                     &runtime_session,
                     fragment_catalog,
@@ -129,13 +125,13 @@ pub fn main() !void {
                 interaction = key_result.interaction;
                 locomotion_status = key_result.locomotion_status;
                 if (key_result.should_tick_world) {
-                    const tick_result = try lba2.runtime.update.tick(&room, &runtime_session);
+                    const tick_result = try runtime_update.tick(&room, &runtime_session);
                     locomotion_status = tick_result.locomotion_status;
                     if (tick_result.consumed_hero_intent or key_result.should_print_locomotion_diagnostic) {
-                        try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
+                        try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
                     }
                 } else if (key_result.should_print_locomotion_diagnostic) {
-                    try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
+                    try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
                 }
                 try stderr.flush();
                 try renderCurrentFrame(
@@ -172,7 +168,7 @@ fn sdlErrorMessage(err: anyerror) []const u8 {
         err == error.SdlRenderDrawRectFailed or
         err == error.SdlRenderFillRectFailed or
         err == error.SdlWaitEventFailed)
-        lba2.platform.sdl.lastError()
+        sdl.lastError()
     else
         @errorName(err);
 }
@@ -181,7 +177,7 @@ fn printUnsupportedSceneLifeDiagnostic(
     writer: anytype,
     scene_entry_index: usize,
     background_entry_index: usize,
-    hit: lba2.runtime.room_state.UnsupportedSceneLifeHit,
+    hit: room_state.UnsupportedSceneLifeHit,
 ) !void {
     var classic_loader_scene_number_buffer: [16]u8 = undefined;
     var object_index_buffer: [16]u8 = undefined;
@@ -222,21 +218,21 @@ fn lifeOwnerObjectIndex(owner: anytype) ?usize {
 
 fn renderCurrentFrame(
     allocator: std.mem.Allocator,
-    canvas: *lba2.platform.sdl.Canvas,
+    canvas: *sdl.Canvas,
     stderr: anytype,
-    room: *const lba2.app.viewer_shell.RoomSnapshot,
-    runtime_session: lba2.app.viewer_shell.Session,
-    render: *lba2.app.viewer_shell.RenderSnapshot,
-    fragment_catalog: *lba2.app.viewer_shell.FragmentComparisonCatalog,
-    interaction: lba2.app.viewer_shell.ViewerInteractionState,
-    locomotion_status: lba2.app.viewer_shell.ViewerLocomotionStatus,
+    room: *const viewer_shell.RoomSnapshot,
+    runtime_session: viewer_shell.Session,
+    render: *viewer_shell.RenderSnapshot,
+    fragment_catalog: *viewer_shell.FragmentComparisonCatalog,
+    interaction: viewer_shell.ViewerInteractionState,
+    locomotion_status: viewer_shell.ViewerLocomotionStatus,
 ) !void {
-    const next_render = lba2.app.viewer_shell.buildRenderSnapshot(room, runtime_session);
-    const next_catalog = try lba2.app.viewer_shell.buildFragmentComparisonCatalog(allocator, next_render);
+    const next_render = viewer_shell.buildRenderSnapshot(room, runtime_session);
+    const next_catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, next_render);
     fragment_catalog.deinit(allocator);
     render.* = next_render;
     fragment_catalog.* = next_catalog;
-    lba2.app.viewer_shell.renderDebugViewWithSelection(
+    viewer_shell.renderDebugViewWithSelection(
         canvas,
         render.*,
         fragment_catalog.*,
@@ -244,8 +240,7 @@ fn renderCurrentFrame(
         locomotion_status,
         interaction.control_mode,
     ) catch |err| {
-        lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
-        stderr.flush() catch {};
+        diagnostics.reportError(stderr, sdlErrorMessage(err));
         return err;
     };
 }

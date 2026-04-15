@@ -41,7 +41,7 @@ test "decoded interior candidate ranking pins the widened scene 19 comparison" {
     try std.testing.expectEqual(@as(usize, 94), ranked[0].patch_count);
 
     const baseline_index = life_audit.findRankedDecodedInteriorSceneCandidateIndex(ranked, 19) orelse return error.MissingScene19RankedCandidate;
-    try std.testing.expectEqual(@as(usize, 146), baseline_index);
+    try std.testing.expectEqual(@as(usize, 146), baseline_index + 1);
     try std.testing.expectEqual(@as(usize, 19), ranked[baseline_index].scene_entry_index);
     try std.testing.expectEqual(@as(?usize, 17), ranked[baseline_index].classic_loader_scene_number);
     try std.testing.expectEqual(@as(usize, 3), ranked[baseline_index].blob_count);

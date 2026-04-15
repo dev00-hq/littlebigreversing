@@ -10,21 +10,12 @@ pub fn build(b: *std.Build) void {
     requirePathExists(b, sdl_lib_rel);
     requirePathExists(b, sdl_dll_rel);
 
-    const root_mod = b.addModule("lba2", .{
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
     const app = b.addExecutable(.{
         .name = "lba2",
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/main.zig"),
             .target = target,
             .optimize = optimize,
-            .imports = &.{
-                .{ .name = "lba2", .module = root_mod },
-            },
         }),
     });
     app.linkLibC();
@@ -38,9 +29,6 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("src/tool_main.zig"),
             .target = target,
             .optimize = optimize,
-            .imports = &.{
-                .{ .name = "lba2", .module = root_mod },
-            },
         }),
     });
     b.installArtifact(tool);
@@ -62,12 +50,6 @@ pub fn build(b: *std.Build) void {
     tool_cmd.step.dependOn(&install_tool.step);
     if (b.args) |args| tool_cmd.addArgs(args);
     tool_step.dependOn(&tool_cmd.step);
-
-    const validate_step = b.step("validate-phase1", "Validate phase 1 outputs");
-    const validate_cmd = b.addRunArtifact(tool);
-    validate_cmd.step.dependOn(&install_tool.step);
-    validate_cmd.addArg("validate-phase1");
-    validate_step.dependOn(&validate_cmd.step);
 
     const stage_viewer_step = b.step("stage-viewer", "Install staged viewer binaries for verification");
     stage_viewer_step.dependOn(&install_app.step);

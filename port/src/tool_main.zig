@@ -1,21 +1,19 @@
 const std = @import("std");
-const lba2 = @import("lba2");
+const diagnostics = @import("foundation/diagnostics.zig");
+const process = @import("foundation/process.zig");
+const cli = @import("tools/cli.zig");
 
 pub fn main() !void {
-    var gpa_state = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa_state.deinit();
-    const allocator = gpa_state.allocator();
+    return process.runWithArgs(run);
+}
 
-    const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
-
+fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     var stderr_buffer: [4096]u8 = undefined;
     var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
     const stderr = &stderr_writer.interface;
 
-    lba2.tools.cli.run(allocator, args[1..]) catch |err| {
-        lba2.foundation.diagnostics.printError(stderr, @errorName(err));
-        stderr.flush() catch {};
+    cli.run(allocator, args) catch |err| {
+        diagnostics.reportError(stderr, @errorName(err));
         return err;
     };
 }

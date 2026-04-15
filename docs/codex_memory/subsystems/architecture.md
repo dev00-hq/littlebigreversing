@@ -28,13 +28,14 @@ Own repo-wide direction and the canonical Codex memory workflow across the two a
 
 - `docs/PROMPT.md` can lag; prefer subsystem packs and typed history.
 - `sidequest/` and `LM_TASKS/` are independent workstreams unless a prompt explicitly widens scope.
-- Tracked `work/` artifacts can lag the real worktree; verify code, `git status`, and asset paths before treating generated files as canonical truth.
-- On this Windows checkout, prefer native Windows Git for repo-state checks; Bash-under-`/mnt/d` can over-report dirtiness.
-- In PowerShell-hosted sessions, `bash -lc "..."` can be mangled before Bash sees it; prefer single-quoted Bash payloads in tool calls.
+- `work/` artifacts can lag the real worktree; verify code, `git status`, and asset paths before trusting generated outputs.
+- Prefer native Windows Git for repo-state checks; Bash-under-`/mnt/d` can over-report dirtiness.
+- In PowerShell-hosted sessions, prefer single-quoted `bash -lc` payloads.
+- Keep the tiny top-level Zig test roots under `port/src/`; direct subdirectory roots can fail with `import of file outside module path`.
 - `scripts/verify_viewer.py` is the canonical Windows acceptance gate for the port path.
-- Original-runtime evidence helpers are not default port pickup; use `life_scripts.md` when the task is about Tavern, Scene11, Frida, or debugger capture.
-- Original-runtime UI automation details are lane-specific. On the current Sendell's Ball room proof lane, menu capture needs held-key input rather than a tap, so keep those quirks documented in `life_scripts.md` instead of generalizing them into the port path.
-- On the current Sendell proof lane, the direct `ListVarGame` base is `0x00499E98`; the nearby Ghidra `DAT_00499E96` symbol is a pre-base artifact, not the usable start of the array.
+- Original-runtime evidence helpers are not default port pickup; use `life_scripts.md` for Tavern, Scene11, Frida, or debugger capture work.
+- Sendell room proof menus need held-key input; keep that quirk in `life_scripts.md` instead of generalizing it into the port path.
+- On the current Sendell proof lane, use `0x00499E98` as the direct `ListVarGame` base, not Ghidra `DAT_00499E96`.
 
 ## Canonical Entry Points
 

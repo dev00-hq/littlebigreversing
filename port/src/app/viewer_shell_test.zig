@@ -4,6 +4,7 @@ const room_fixtures = @import("../testing/room_fixtures.zig");
 const runtime_locomotion = @import("../runtime/locomotion.zig");
 const runtime_update = @import("../runtime/update.zig");
 const runtime_query = @import("../runtime/world_query.zig");
+const fragment_compare = @import("viewer/fragment_compare.zig");
 const viewer_shell = @import("viewer_shell.zig");
 
 fn initViewerSession(room: *const viewer_shell.RoomSnapshot) !viewer_shell.Session {
@@ -1002,7 +1003,7 @@ test "viewer key handling keeps fragment-room arrows on fragment navigation unti
     var snapshot_session = try initViewerSession(room);
     defer snapshot_session.deinit(allocator);
     const snapshot = viewer_shell.buildRenderSnapshot(room, snapshot_session);
-    const catalog = try viewer_shell.buildFragmentComparisonCatalog(allocator, snapshot);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
 
     var runtime_session = try initViewerSession(room);
@@ -1053,7 +1054,7 @@ test "viewer key handling seeds fragment rooms and relies on runtime tick to con
     var snapshot_session = try initViewerSession(room);
     defer snapshot_session.deinit(allocator);
     const snapshot = viewer_shell.buildRenderSnapshot(room, snapshot_session);
-    const catalog = try viewer_shell.buildFragmentComparisonCatalog(allocator, snapshot);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
 
     var runtime_session = try initViewerSession(room);
@@ -1116,7 +1117,7 @@ test "viewer key handling routes Sendell room story input through runtime intent
     var snapshot_session = try initViewerSession(room);
     defer snapshot_session.deinit(allocator);
     const snapshot = viewer_shell.buildRenderSnapshot(room, snapshot_session);
-    const catalog = try viewer_shell.buildFragmentComparisonCatalog(allocator, snapshot);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
 
     var runtime_session = try initViewerSession(room);

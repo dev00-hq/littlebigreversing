@@ -13,6 +13,11 @@ pub fn printLine(writer: anytype, pairs: []const Pair) !void {
     try writer.writeByte('\n');
 }
 
-pub fn printError(writer: anytype, message: []const u8) void {
-    writer.print("level=error message=\"{s}\"\n", .{message}) catch {};
+pub fn printError(writer: anytype, message: []const u8) !void {
+    try writer.print("level=error message=\"{s}\"\n", .{message});
+}
+
+pub fn reportError(writer: anytype, message: []const u8) void {
+    printError(writer, message) catch {};
+    writer.flush() catch {};
 }

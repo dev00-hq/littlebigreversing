@@ -1,6 +1,7 @@
 pub const foundation = struct {
     pub const diagnostics = @import("foundation/diagnostics.zig");
     pub const paths = @import("foundation/paths.zig");
+    pub const process = @import("foundation/process.zig");
 };
 
 pub const platform = struct {
@@ -35,17 +36,3 @@ pub const game_data = struct {
 pub const tools = struct {
     pub const cli = @import("tools/cli.zig");
 };
-
-pub const ResolvedPaths = foundation.paths.ResolvedPaths;
-pub const AssetCatalogEntry = assets.catalog.AssetCatalogEntry;
-pub const HqrArchive = assets.hqr.HqrArchive;
-pub const HqrEntry = assets.hqr.HqrEntry;
-pub const FixtureManifestEntry = assets.fixtures.FixtureManifestEntry;
-pub const BackgroundMetadata = game_data.background.BackgroundMetadata;
-pub const SceneMetadata = game_data.scene.SceneMetadata;
-pub const SceneZone = game_data.scene.SceneZone;
-pub const ZoneType = game_data.scene.ZoneType;
-pub const ZoneSemantics = game_data.scene.ZoneSemantics;
-pub const MessageDirection = game_data.scene.MessageDirection;
-pub const EscalatorDirection = game_data.scene.EscalatorDirection;
-pub const GiverBonusKinds = game_data.scene.GiverBonusKinds;

@@ -138,15 +138,6 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !Parsed
     };
 }
 
-pub fn loadRoomSnapshot(
-    allocator: std.mem.Allocator,
-    resolved: paths_mod.ResolvedPaths,
-    scene_entry_index: usize,
-    background_entry_index: usize,
-) !RoomSnapshot {
-    return state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
-}
-
 pub fn initSession(allocator: std.mem.Allocator, room: *const RoomSnapshot) !Session {
     var current_session = try runtime_session.Session.initWithObjects(
         allocator,
@@ -306,39 +297,8 @@ pub fn projectZoneBounds(snapshot: RenderSnapshot, schematic: sdl.Rect, zone: Zo
     return layout.projectZoneBounds(snapshot, schematic, zone);
 }
 
-pub fn renderDebugView(
-    canvas: *sdl.Canvas,
-    snapshot: RenderSnapshot,
-    locomotion_status: ViewerLocomotionStatus,
-    control_mode: ViewerControlMode,
-) !void {
-    const catalog = try fragment_compare.buildFragmentComparisonCatalog(std.heap.page_allocator, snapshot);
-    defer catalog.deinit(std.heap.page_allocator);
-    const interaction = initialInteractionState(catalog);
-    var status_buffer: ViewerLocomotionStatusDisplayBuffer = .{};
-    return render.renderDebugView(
-        canvas,
-        snapshot,
-        catalog,
-        interaction.fragment_selection,
-        formatLocomotionStatusDisplay(&status_buffer, locomotion_status),
-        control_mode,
-    );
-}
-
-pub fn buildFragmentComparisonCatalog(
-    allocator: std.mem.Allocator,
-    snapshot: RenderSnapshot,
-) !FragmentComparisonCatalog {
-    return fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
-}
-
-pub fn initialFragmentComparisonSelection(catalog: FragmentComparisonCatalog) FragmentComparisonSelection {
-    return fragment_compare.initialFragmentComparisonSelection(catalog);
-}
-
 pub fn initialInteractionState(catalog: FragmentComparisonCatalog) ViewerInteractionState {
-    const fragment_selection = initialFragmentComparisonSelection(catalog);
+    const fragment_selection = fragment_compare.initialFragmentComparisonSelection(catalog);
     return .{
         .control_mode = if (fragment_selection.focus == null) .locomotion else .fragment_navigation,
         .fragment_selection = fragment_selection,
