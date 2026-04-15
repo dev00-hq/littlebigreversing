@@ -147,6 +147,11 @@ test "viewer room snapshot keeps the supported canonical interior pair stable" {
     try std.testing.expectEqual(@as(usize, 1), room.scene.objects[0].index);
     try std.testing.expectEqual(@as(i32, 0), room.scene.objects[0].x);
     try std.testing.expectEqual(@as(i32, 0), room.scene.objects[0].z);
+    try std.testing.expectEqual(@as(usize, 1), room.scene.object_behavior_seeds.len);
+    try std.testing.expectEqual(@as(usize, 2), room.scene.object_behavior_seeds[0].index);
+    try std.testing.expectEqual(@as(i16, 137), room.scene.object_behavior_seeds[0].sprite);
+    try std.testing.expect(room.scene.object_behavior_seeds[0].track_instructions.len > 0);
+    try std.testing.expect(room.scene.object_behavior_seeds[0].life_instructions.len > 0);
     try std.testing.expectEqual(scene_data.ZoneType.camera, room.scene.zones[0].kind);
     try std.testing.expectEqual(@as(i32, 512), room.scene.zones[0].x_min);
     try std.testing.expectEqual(@as(i32, 4608), room.scene.zones[0].x_max);
@@ -201,6 +206,7 @@ test "viewer room snapshot keeps the guarded fragment-bearing 11/10 pair stable"
     try std.testing.expect(room.background.bricks.previews.len > 0);
 
     try std.testing.expectEqual(@as(usize, 1), room.fragment_zones.len);
+    try std.testing.expectEqual(@as(usize, 0), room.scene.object_behavior_seeds.len);
     const fragment_zone = room.fragment_zones[0];
     try std.testing.expectEqual(@as(usize, 5), fragment_zone.zone_index);
     try std.testing.expectEqual(@as(i16, 0), fragment_zone.zone_num);

@@ -341,10 +341,17 @@ class WindowInput:
         self.send_virtual_key(hwnd, self.VK_DOWN)
 
     def send_virtual_key(self, hwnd: int, virtual_key: int) -> None:
+        self.key_down(hwnd, virtual_key)
+        time.sleep(0.05)
+        self.key_up(virtual_key)
+
+    def key_down(self, hwnd: int, virtual_key: int) -> None:
         self._activate_window(hwnd)
         scan_code = int(self.user32.MapVirtualKeyW(virtual_key, 0))
         self.user32.keybd_event(virtual_key, scan_code, 0, 0)
-        time.sleep(0.05)
+
+    def key_up(self, virtual_key: int) -> None:
+        scan_code = int(self.user32.MapVirtualKeyW(virtual_key, 0))
         self.user32.keybd_event(virtual_key, scan_code, self.KEYEVENTF_KEYUP, 0)
 
     def _activate_window(self, hwnd: int) -> None:

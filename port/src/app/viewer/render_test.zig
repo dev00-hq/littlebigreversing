@@ -12,6 +12,10 @@ const layout = @import("layout.zig");
 const render = @import("render.zig");
 const fragment_compare = @import("fragment_compare.zig");
 
+fn initViewerSession(room: *const viewer_shell.RoomSnapshot) !viewer_shell.Session {
+    return viewer_shell.initSession(std.testing.allocator, room);
+}
+
 fn hasTraceRectOp(trace: sdl.CanvasTrace, comptime tag: std.meta.Tag(sdl.TraceOp), rect: sdl.Rect, color: ?sdl.Color) bool {
     for (trace.ops.items) |op| {
         switch (op) {
@@ -422,7 +426,7 @@ fn renderZeroFragmentTrace(
     var trace: sdl.CanvasTrace = .{};
     errdefer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, display);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode);
     return trace;
 }
 
@@ -491,7 +495,7 @@ test "viewer render path draws the guarded 11/10 fragment comparison panel and f
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode);
 
     try std.testing.expect(panel.focus != null);
     try std.testing.expect(debug_layout.comparison != null);
@@ -514,6 +518,47 @@ test "viewer render path draws the guarded 11/10 fragment comparison panel and f
     try std.testing.expect(hasTraceText(trace, "COMPARE ORDER"));
     try std.testing.expect(hasTraceText(trace, "LEFT RIGHT RANK"));
     try std.testing.expect(hasPresent(trace));
+}
+
+test "viewer render path surfaces fragment-room control hints for both navigation and locomotion modes" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded1110();
+
+    var raw_runtime_session = try initViewerSession(room);
+    defer raw_runtime_session.deinit(std.testing.allocator);
+    const raw_snapshot = viewer_shell.buildRenderSnapshot(room, raw_runtime_session);
+    const raw_catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, raw_snapshot);
+    defer raw_catalog.deinit(allocator);
+    const raw_selection = fragment_compare.initialFragmentComparisonSelection(raw_catalog);
+
+    var fragment_nav_trace: sdl.CanvasTrace = .{};
+    defer fragment_nav_trace.deinit(allocator);
+    var fragment_nav_canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &fragment_nav_trace);
+    try render.renderDebugView(&fragment_nav_canvas, raw_snapshot, raw_catalog, raw_selection, .{}, .fragment_navigation);
+
+    try std.testing.expect(hasTraceText(fragment_nav_trace, "TAB HERO CTRL"));
+    try std.testing.expect(hasTraceText(fragment_nav_trace, "LEFT RIGHT RANK"));
+    try std.testing.expect(hasTraceText(fragment_nav_trace, "UP DOWN CELL"));
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(std.testing.allocator);
+    _ = try viewer_shell.seedSessionToLocomotionFixture(room, &runtime_session);
+    const seeded_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
+    var seeded_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
+    const seeded_display = viewer_shell.formatLocomotionStatusDisplay(&seeded_status_buffer, seeded_status);
+    const seeded_snapshot = viewer_shell.buildRenderSnapshot(room, runtime_session);
+    const seeded_catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, seeded_snapshot);
+    defer seeded_catalog.deinit(allocator);
+    const seeded_selection = fragment_compare.initialFragmentComparisonSelection(seeded_catalog);
+
+    var locomotion_trace: sdl.CanvasTrace = .{};
+    defer locomotion_trace.deinit(allocator);
+    var locomotion_canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &locomotion_trace);
+    try render.renderDebugView(&locomotion_canvas, seeded_snapshot, seeded_catalog, seeded_selection, seeded_display, .locomotion);
+
+    try std.testing.expect(hasTraceText(locomotion_trace, "TAB FRAG NAV"));
+    try std.testing.expect(hasTraceText(locomotion_trace, "ARROWS MOVE HERO"));
+    try std.testing.expect(hasTraceText(locomotion_trace, "ENTER RESEED HERO"));
 }
 
 test "viewer render path exposes a deterministic owning-zone rect for the focused guarded 11/10 fragment cell" {
@@ -543,7 +588,7 @@ test "viewer render path exposes a deterministic owning-zone rect for the focuse
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode);
 
     try std.testing.expect(zone_rect.x <= focus_rect.x);
     try std.testing.expect(zone_rect.y <= focus_rect.y);
@@ -573,7 +618,7 @@ test "viewer render path keeps the selected cell pinned at the head of the compa
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode);
 
     try std.testing.expect(selection.ranked_index.? >= fragment_compare.max_fragment_comparison_entries);
     try std.testing.expectEqual(focus.x, panel.entries[0].x);
@@ -587,7 +632,8 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1919();
 
-    const raw_runtime_session = viewer_shell.initSession(room);
+    var raw_runtime_session = try initViewerSession(room);
+    defer raw_runtime_session.deinit(std.testing.allocator);
     const raw_status = try runtime_locomotion.inspectCurrentStatus(room, raw_runtime_session);
     var raw_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
     const raw_display = viewer_shell.formatLocomotionStatusDisplay(&raw_status_buffer, raw_status);
@@ -607,7 +653,8 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try std.testing.expect(!hasTraceTextPrefix(raw_trace, "TOPO "));
     try expectNoLocomotionSchematicCue(raw_trace);
 
-    var origin_invalid_runtime_session = viewer_shell.initSession(room);
+    var origin_invalid_runtime_session = try initViewerSession(room);
+    defer origin_invalid_runtime_session.deinit(std.testing.allocator);
     const origin_invalid_status = try runtime_locomotion.applyStep(room, &origin_invalid_runtime_session, .south);
     var origin_invalid_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
     const origin_invalid_display = viewer_shell.formatLocomotionStatusDisplay(&origin_invalid_status_buffer, origin_invalid_status);
@@ -630,7 +677,8 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try expectNoLocomotionAttemptCue(raw_trace);
     try expectNoLocomotionAttemptCue(origin_invalid_trace);
 
-    var seeded_runtime_session = viewer_shell.initSession(room);
+    var seeded_runtime_session = try initViewerSession(room);
+    defer seeded_runtime_session.deinit(std.testing.allocator);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &seeded_runtime_session);
     const seeded_status = try runtime_locomotion.inspectCurrentStatus(room, seeded_runtime_session);
     var seeded_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
@@ -647,7 +695,8 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try expectTraceHasLocomotionSchematicCue(seeded_trace, room, seeded_runtime_session, seeded_display);
     try expectNoLocomotionAttemptCue(seeded_trace);
 
-    var moved_runtime_session = viewer_shell.initSession(room);
+    var moved_runtime_session = try initViewerSession(room);
+    defer moved_runtime_session.deinit(std.testing.allocator);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &moved_runtime_session);
     const moved_status = try runtime_locomotion.applyStep(room, &moved_runtime_session, .south);
     var moved_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
@@ -664,7 +713,8 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try expectTraceHasLocomotionSchematicCue(moved_trace, room, moved_runtime_session, moved_display);
     try expectTraceHasLocomotionAttemptCue(moved_trace, room, moved_runtime_session, moved_display);
 
-    var rejected_runtime_session = viewer_shell.initSession(room);
+    var rejected_runtime_session = try initViewerSession(room);
+    defer rejected_runtime_session.deinit(std.testing.allocator);
     _ = try viewer_shell.seedSessionToLocomotionFixture(room, &rejected_runtime_session);
     const rejected_status = try runtime_locomotion.applyStep(room, &rejected_runtime_session, .west);
     var rejected_status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
@@ -691,7 +741,8 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     defer catalog.deinit(allocator);
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
     const comparison_frame_if_present = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, true).comparison_frame.?;
-    const runtime_session = viewer_shell.initSession(room);
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(std.testing.allocator);
     const locomotion_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
     var status_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
     const display = viewer_shell.formatLocomotionStatusDisplay(&status_buffer, locomotion_status);
@@ -700,7 +751,7 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, display);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode);
 
     try std.testing.expect(selection.focus == null);
     try std.testing.expectEqual(@as(?sdl.Rect, null), layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, false).comparison_frame);
@@ -732,5 +783,5 @@ test "viewer render path fails fast when a required brick preview is missing" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try std.testing.expectError(error.ViewerBrickPreviewMissing, render.renderDebugView(&canvas, missing_snapshot, catalog, selection, .{}));
+    try std.testing.expectError(error.ViewerBrickPreviewMissing, render.renderDebugView(&canvas, missing_snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode));
 }

@@ -7,6 +7,10 @@ test {
     _ = @import("runtime/session.zig");
     _ = @import("runtime/locomotion.zig");
     _ = @import("runtime/locomotion_test.zig");
+    _ = @import("runtime/object_behavior.zig");
+    _ = @import("runtime/object_behavior_test.zig");
+    _ = @import("runtime/update.zig");
+    _ = @import("runtime/update_test.zig");
     _ = @import("runtime/world_query.zig");
     _ = @import("testing/room_fixtures.zig");
     _ = @import("app/viewer/state_test.zig");

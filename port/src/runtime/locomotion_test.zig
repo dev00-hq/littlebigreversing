@@ -236,3 +236,35 @@ test "runtime locomotion mutates only on allowed seeded steps and preserves zone
         else => return error.UnexpectedLocomotionStatus,
     }
 }
+
+test "runtime locomotion consumes pending hero intents through the runtime seam" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = runtime_session.Session.init(room_state.heroStartWorldPoint(room));
+    const seeded_position = try seedSessionToFixture(room, &current_session);
+    try current_session.submitHeroIntent(.{ .move_cardinal = .south });
+
+    const moved_status = try locomotion.applyPendingHeroIntent(room, &current_session);
+    try std.testing.expectEqual(@as(?runtime_session.HeroIntent, null), current_session.pendingHeroIntent());
+
+    switch (moved_status) {
+        .last_move_accepted => |value| {
+            try std.testing.expectEqual(locomotion.CardinalDirection.south, value.direction);
+            try std.testing.expectEqual(fixture_cell, value.origin_cell);
+            try std.testing.expectEqual(locomotion.GridCell{ .x = 39, .z = 7 }, value.cell);
+            try std.testing.expect(current_session.heroWorldPosition().z > seeded_position.z);
+            try std.testing.expectEqual(current_session.heroWorldPosition(), value.hero_position);
+        },
+        else => return error.UnexpectedLocomotionStatus,
+    }
+}
+
+test "runtime locomotion fails fast when asked to apply a missing pending hero intent" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = runtime_session.Session.init(room_state.heroStartWorldPoint(room));
+    try std.testing.expectError(
+        error.MissingPendingHeroIntent,
+        locomotion.applyPendingHeroIntent(room, &current_session),
+    );
+}

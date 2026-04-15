@@ -356,6 +356,36 @@ pub const LifeOpcode = enum(u8) {
             => .unsupported,
         };
     }
+
+    pub fn fixedInstructionByteLength(self: LifeOpcode) ?usize {
+        return switch (self.operandLayout()) {
+            .none => 1,
+            .u8, .i8 => 2,
+            .u16, .i16, .u8_pair, .u8_i8 => 3,
+            .u8_i16, .i16_u8, .u8_u16 => 4,
+            .u8_u16_i16, .i16_u8_i16 => 6,
+            .u8_u8_u8_i16, .i16_i16_u8_i16 => 7,
+            .move,
+            .move_obj,
+            .string,
+            .condition,
+            .switch_expr,
+            .case_branch,
+            .unsupported,
+            => null,
+        };
+    }
+
+    pub fn variableLengthReason(self: LifeOpcode) ?LifeVariableLengthReason {
+        return switch (self.operandLayout()) {
+            .move, .move_obj => .move_mode,
+            .string => .null_terminated_string,
+            .condition, .switch_expr => .embedded_function_layout,
+            .case_branch => .switch_return_type,
+            .unsupported => .unsupported,
+            else => null,
+        };
+    }
 };
 
 pub const LifeReturnType = enum(u8) {
@@ -363,6 +393,39 @@ pub const LifeReturnType = enum(u8) {
     RET_S16 = 1,
     RET_STRING = 2,
     RET_U8 = 4,
+
+    pub fn mnemonic(self: LifeReturnType) []const u8 {
+        return @tagName(self);
+    }
+
+    pub fn literalLayout(self: LifeReturnType) LifeLiteralLayout {
+        return switch (self) {
+            .RET_S8 => .s8,
+            .RET_S16 => .s16,
+            .RET_STRING => .string,
+            .RET_U8 => .u8,
+        };
+    }
+
+    pub fn fixedLiteralByteLength(self: LifeReturnType) ?usize {
+        return switch (self) {
+            .RET_S8, .RET_U8 => 1,
+            .RET_S16 => 2,
+            .RET_STRING => null,
+        };
+    }
+
+    pub fn fixedTestByteLength(self: LifeReturnType) ?usize {
+        const literal_byte_length = self.fixedLiteralByteLength() orelse return null;
+        return 1 + literal_byte_length;
+    }
+
+    pub fn variableLengthReason(self: LifeReturnType) ?LifeVariableLengthReason {
+        return switch (self) {
+            .RET_STRING => .null_terminated_string,
+            else => null,
+        };
+    }
 };
 
 pub const LifeFunctionOperandLayout = enum {
@@ -485,6 +548,13 @@ pub const LifeFunction = enum(u8) {
             else => .RET_S8,
         };
     }
+
+    pub fn fixedCallByteLength(self: LifeFunction) usize {
+        return switch (self.operandLayout()) {
+            .none => 1,
+            .u8 => 2,
+        };
+    }
 };
 
 pub const LifeComparator = enum(u8) {
@@ -499,6 +569,130 @@ pub const LifeComparator = enum(u8) {
         return @tagName(self);
     }
 };
+
+pub const LifeVariableLengthReason = enum {
+    move_mode,
+    null_terminated_string,
+    embedded_function_layout,
+    switch_return_type,
+    unsupported,
+};
+
+pub const LifeLiteralLayout = enum {
+    s8,
+    s16,
+    string,
+    u8,
+};
+
+pub const LifeOpcodeDescriptor = struct {
+    id: u8,
+    mnemonic: []const u8,
+    supported: bool,
+    operand_layout: LifeOperandLayout,
+    fixed_instruction_byte_length: ?usize,
+    variable_length_reason: ?LifeVariableLengthReason,
+};
+
+pub const LifeFunctionDescriptor = struct {
+    id: u8,
+    mnemonic: []const u8,
+    operand_layout: LifeFunctionOperandLayout,
+    return_type: LifeReturnType,
+    fixed_call_byte_length: usize,
+};
+
+pub const LifeComparatorDescriptor = struct {
+    id: u8,
+    mnemonic: []const u8,
+};
+
+pub const LifeReturnTypeDescriptor = struct {
+    id: u8,
+    mnemonic: []const u8,
+    literal_layout: LifeLiteralLayout,
+    fixed_literal_byte_length: ?usize,
+    fixed_test_byte_length: ?usize,
+    variable_length_reason: ?LifeVariableLengthReason,
+};
+
+pub const LifeCatalog = struct {
+    opcodes: []const LifeOpcodeDescriptor,
+    functions: []const LifeFunctionDescriptor,
+    comparators: []const LifeComparatorDescriptor,
+    return_types: []const LifeReturnTypeDescriptor,
+
+    pub fn deinit(self: LifeCatalog, allocator: std.mem.Allocator) void {
+        allocator.free(self.opcodes);
+        allocator.free(self.functions);
+        allocator.free(self.comparators);
+        allocator.free(self.return_types);
+    }
+};
+
+pub fn buildCatalog(allocator: std.mem.Allocator) !LifeCatalog {
+    var opcode_descriptors: std.ArrayList(LifeOpcodeDescriptor) = .empty;
+    errdefer opcode_descriptors.deinit(allocator);
+
+    var function_descriptors: std.ArrayList(LifeFunctionDescriptor) = .empty;
+    errdefer function_descriptors.deinit(allocator);
+
+    var comparator_descriptors: std.ArrayList(LifeComparatorDescriptor) = .empty;
+    errdefer comparator_descriptors.deinit(allocator);
+
+    var return_type_descriptors: std.ArrayList(LifeReturnTypeDescriptor) = .empty;
+    errdefer return_type_descriptors.deinit(allocator);
+
+    inline for (std.meta.fields(LifeOpcode)) |field| {
+        const opcode: LifeOpcode = @enumFromInt(field.value);
+        try opcode_descriptors.append(allocator, .{
+            .id = @intFromEnum(opcode),
+            .mnemonic = opcode.mnemonic(),
+            .supported = opcode.isSupported(),
+            .operand_layout = opcode.operandLayout(),
+            .fixed_instruction_byte_length = opcode.fixedInstructionByteLength(),
+            .variable_length_reason = opcode.variableLengthReason(),
+        });
+    }
+
+    inline for (std.meta.fields(LifeFunction)) |field| {
+        const function: LifeFunction = @enumFromInt(field.value);
+        try function_descriptors.append(allocator, .{
+            .id = @intFromEnum(function),
+            .mnemonic = function.mnemonic(),
+            .operand_layout = function.operandLayout(),
+            .return_type = function.returnType(),
+            .fixed_call_byte_length = function.fixedCallByteLength(),
+        });
+    }
+
+    inline for (std.meta.fields(LifeComparator)) |field| {
+        const comparator: LifeComparator = @enumFromInt(field.value);
+        try comparator_descriptors.append(allocator, .{
+            .id = @intFromEnum(comparator),
+            .mnemonic = comparator.mnemonic(),
+        });
+    }
+
+    inline for (std.meta.fields(LifeReturnType)) |field| {
+        const return_type: LifeReturnType = @enumFromInt(field.value);
+        try return_type_descriptors.append(allocator, .{
+            .id = @intFromEnum(return_type),
+            .mnemonic = return_type.mnemonic(),
+            .literal_layout = return_type.literalLayout(),
+            .fixed_literal_byte_length = return_type.fixedLiteralByteLength(),
+            .fixed_test_byte_length = return_type.fixedTestByteLength(),
+            .variable_length_reason = return_type.variableLengthReason(),
+        });
+    }
+
+    return .{
+        .opcodes = try opcode_descriptors.toOwnedSlice(allocator),
+        .functions = try function_descriptors.toOwnedSlice(allocator),
+        .comparators = try comparator_descriptors.toOwnedSlice(allocator),
+        .return_types = try return_type_descriptors.toOwnedSlice(allocator),
+    };
+}
 
 pub const LifeFunctionOperands = union(enum) {
     none: void,

@@ -23,6 +23,7 @@ const Command = enum {
     audit_life_programs,
     rank_decoded_interior_candidates,
     triage_same_index_decoded_interior_candidates,
+    inspect_life_catalog,
     inspect_life_program,
     generate_fixtures,
     validate_phase1,
@@ -263,6 +264,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed),
         .rank_decoded_interior_candidates => try rankDecodedInteriorCandidates(allocator, resolved, parsed.output_json),
         .triage_same_index_decoded_interior_candidates => try triageSameIndexDecodedInteriorCandidates(allocator, resolved, parsed.output_json),
+        .inspect_life_catalog => try inspectLifeCatalog(allocator, parsed.output_json),
         .inspect_life_program => try inspectLifeProgram(allocator, resolved, parsed),
         .generate_fixtures => try generateFixtures(allocator, resolved),
         .validate_phase1 => try validatePhase1(allocator, resolved),
@@ -486,6 +488,27 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
         }
         return .{
             .command = .triage_same_index_decoded_interior_candidates,
+            .asset_root_override = asset_root_override,
+            .relative_path = null,
+            .entry_index = null,
+            .background_entry_index = null,
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
+            .life_program_owner = null,
+            .output_json = output_json,
+        };
+    }
+    if (std.mem.eql(u8, command_name, "inspect-life-catalog")) {
+        var output_json = false;
+        for (args[(command_index + 1)..]) |arg| {
+            if (std.mem.eql(u8, arg, "--json")) {
+                output_json = true;
+            } else {
+                return error.UnknownOption;
+            }
+        }
+        return .{
+            .command = .inspect_life_catalog,
             .asset_root_override = asset_root_override,
             .relative_path = null,
             .entry_index = null,
@@ -2228,6 +2251,52 @@ const LifeProgramInspectionPayload = struct {
     failure: ?LifeAuditJsonFailure,
 };
 
+const LifeCatalogOpcodeEntry = struct {
+    id: u8,
+    mnemonic: []const u8,
+    supported: bool,
+    operand_layout: []const u8,
+    fixed_instruction_byte_length: ?usize,
+    variable_length_reason: ?[]const u8,
+};
+
+const LifeCatalogFunctionEntry = struct {
+    id: u8,
+    mnemonic: []const u8,
+    operand_layout: []const u8,
+    return_type: []const u8,
+    fixed_call_byte_length: usize,
+};
+
+const LifeCatalogComparatorEntry = struct {
+    id: u8,
+    mnemonic: []const u8,
+};
+
+const LifeCatalogReturnTypeEntry = struct {
+    id: u8,
+    mnemonic: []const u8,
+    literal_layout: []const u8,
+    fixed_literal_byte_length: ?usize,
+    fixed_test_byte_length: ?usize,
+    variable_length_reason: ?[]const u8,
+};
+
+const LifeCatalogPayload = struct {
+    command: []const u8,
+    schema_version: []const u8,
+    opcode_count: usize,
+    supported_opcode_count: usize,
+    unsupported_opcode_count: usize,
+    function_count: usize,
+    comparator_count: usize,
+    return_type_count: usize,
+    opcodes: []const LifeCatalogOpcodeEntry,
+    functions: []const LifeCatalogFunctionEntry,
+    comparators: []const LifeCatalogComparatorEntry,
+    return_types: []const LifeCatalogReturnTypeEntry,
+};
+
 fn buildUnsupportedLifeSummary(
     allocator: std.mem.Allocator,
     audits: []const life_audit.SceneLifeProgramAudit,
@@ -2335,6 +2404,75 @@ fn buildLifeProgramInspectionPayload(audit: life_audit.SceneLifeProgramAudit) Li
     };
 }
 
+fn buildLifeCatalogPayload(allocator: std.mem.Allocator) !LifeCatalogPayload {
+    const life_catalog = try life_program.buildCatalog(allocator);
+    defer life_catalog.deinit(allocator);
+
+    var opcode_entries: std.ArrayList(LifeCatalogOpcodeEntry) = .empty;
+    errdefer opcode_entries.deinit(allocator);
+    var supported_opcode_count: usize = 0;
+    for (life_catalog.opcodes) |entry| {
+        if (entry.supported) supported_opcode_count += 1;
+        try opcode_entries.append(allocator, .{
+            .id = entry.id,
+            .mnemonic = entry.mnemonic,
+            .supported = entry.supported,
+            .operand_layout = @tagName(entry.operand_layout),
+            .fixed_instruction_byte_length = entry.fixed_instruction_byte_length,
+            .variable_length_reason = if (entry.variable_length_reason) |reason| @tagName(reason) else null,
+        });
+    }
+
+    var function_entries: std.ArrayList(LifeCatalogFunctionEntry) = .empty;
+    errdefer function_entries.deinit(allocator);
+    for (life_catalog.functions) |entry| {
+        try function_entries.append(allocator, .{
+            .id = entry.id,
+            .mnemonic = entry.mnemonic,
+            .operand_layout = @tagName(entry.operand_layout),
+            .return_type = entry.return_type.mnemonic(),
+            .fixed_call_byte_length = entry.fixed_call_byte_length,
+        });
+    }
+
+    var comparator_entries: std.ArrayList(LifeCatalogComparatorEntry) = .empty;
+    errdefer comparator_entries.deinit(allocator);
+    for (life_catalog.comparators) |entry| {
+        try comparator_entries.append(allocator, .{
+            .id = entry.id,
+            .mnemonic = entry.mnemonic,
+        });
+    }
+
+    var return_type_entries: std.ArrayList(LifeCatalogReturnTypeEntry) = .empty;
+    errdefer return_type_entries.deinit(allocator);
+    for (life_catalog.return_types) |entry| {
+        try return_type_entries.append(allocator, .{
+            .id = entry.id,
+            .mnemonic = entry.mnemonic,
+            .literal_layout = @tagName(entry.literal_layout),
+            .fixed_literal_byte_length = entry.fixed_literal_byte_length,
+            .fixed_test_byte_length = entry.fixed_test_byte_length,
+            .variable_length_reason = if (entry.variable_length_reason) |reason| @tagName(reason) else null,
+        });
+    }
+
+    return .{
+        .command = "inspect-life-catalog",
+        .schema_version = "life-catalog-v1",
+        .opcode_count = opcode_entries.items.len,
+        .supported_opcode_count = supported_opcode_count,
+        .unsupported_opcode_count = opcode_entries.items.len - supported_opcode_count,
+        .function_count = function_entries.items.len,
+        .comparator_count = comparator_entries.items.len,
+        .return_type_count = return_type_entries.items.len,
+        .opcodes = try opcode_entries.toOwnedSlice(allocator),
+        .functions = try function_entries.toOwnedSlice(allocator),
+        .comparators = try comparator_entries.toOwnedSlice(allocator),
+        .return_types = try return_type_entries.toOwnedSlice(allocator),
+    };
+}
+
 fn lifeOwnerKind(owner: life_audit.LifeBlobOwner) []const u8 {
     return switch (owner) {
         .hero => "hero",
@@ -2367,6 +2505,41 @@ fn formatOptionalI16(buffer: []u8, value: ?i16) []const u8 {
 fn formatOptionalString(buffer: []u8, value: ?[]const u8) []const u8 {
     _ = buffer;
     return value orelse "none";
+}
+
+fn inspectLifeCatalog(allocator: std.mem.Allocator, output_json: bool) !void {
+    const payload = try buildLifeCatalogPayload(allocator);
+    defer allocator.free(payload.opcodes);
+    defer allocator.free(payload.functions);
+    defer allocator.free(payload.comparators);
+    defer allocator.free(payload.return_types);
+
+    if (output_json) {
+        const json = try stringifyJsonAlloc(allocator, payload);
+        defer allocator.free(json);
+        try std.fs.File.stdout().writeAll(json);
+        try std.fs.File.stdout().writeAll("\n");
+        return;
+    }
+
+    var stdout_buffer: [1024]u8 = undefined;
+    var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
+    const stdout = &stdout_writer.interface;
+    try stdout.print(
+        "command={s} schema_version={s} opcode_count={d} supported_opcode_count={d} unsupported_opcode_count={d} function_count={d} comparator_count={d} return_type_count={d}\n",
+        .{
+            payload.command,
+            payload.schema_version,
+            payload.opcode_count,
+            payload.supported_opcode_count,
+            payload.unsupported_opcode_count,
+            payload.function_count,
+            payload.comparator_count,
+            payload.return_type_count,
+        },
+    );
+    try stdout.writeAll("use --json for the full machine-readable catalog\n");
+    try stdout.flush();
 }
 
 fn formatOptionalFragmentDimensions(
@@ -2467,6 +2640,14 @@ test "argument parsing supports triage-same-index-decoded-interior-candidates js
     try std.testing.expect(parsed.output_json);
 }
 
+test "argument parsing supports inspect-life-catalog json output" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-life-catalog", "--json" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.inspect_life_catalog, parsed.command);
+    try std.testing.expect(parsed.output_json);
+}
+
 test "argument parsing supports inspect-life-program hero selection by default" {
     const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-life-program", "--scene-entry", "2", "--json" });
     defer parsed.deinit(std.testing.allocator);
@@ -2528,6 +2709,67 @@ test "argument parsing rejects inspect-life-program duplicate selectors" {
         error.DuplicateObjectIndexSelector,
         parseArgs(std.testing.allocator, &.{ "inspect-life-program", "--scene-entry", "2", "--object-index", "2", "--object-index", "3" }),
     );
+}
+
+test "inspect-life-catalog payload pins structural mappings" {
+    const allocator = std.testing.allocator;
+    const payload = try buildLifeCatalogPayload(allocator);
+    defer allocator.free(payload.opcodes);
+    defer allocator.free(payload.functions);
+    defer allocator.free(payload.comparators);
+    defer allocator.free(payload.return_types);
+
+    try std.testing.expectEqualStrings("inspect-life-catalog", payload.command);
+    try std.testing.expectEqualStrings("life-catalog-v1", payload.schema_version);
+    try std.testing.expectEqual(@as(usize, 149), payload.opcode_count);
+    try std.testing.expectEqual(@as(usize, 143), payload.supported_opcode_count);
+    try std.testing.expectEqual(@as(usize, 6), payload.unsupported_opcode_count);
+    try std.testing.expectEqual(@as(usize, 46), payload.function_count);
+    try std.testing.expectEqual(@as(usize, 6), payload.comparator_count);
+    try std.testing.expectEqual(@as(usize, 4), payload.return_type_count);
+
+    var found_default = false;
+    var found_set_dir = false;
+    for (payload.opcodes) |entry| {
+        if (entry.id == @intFromEnum(life_program.LifeOpcode.LM_DEFAULT)) {
+            found_default = true;
+            try std.testing.expect(entry.supported);
+            try std.testing.expectEqualStrings("none", entry.operand_layout);
+            try std.testing.expectEqual(@as(?usize, 1), entry.fixed_instruction_byte_length);
+            try std.testing.expect(entry.variable_length_reason == null);
+        }
+        if (entry.id == @intFromEnum(life_program.LifeOpcode.LM_SET_DIR)) {
+            found_set_dir = true;
+            try std.testing.expectEqualStrings("move", entry.operand_layout);
+            try std.testing.expectEqual(@as(?usize, null), entry.fixed_instruction_byte_length);
+            try std.testing.expectEqualStrings("move_mode", entry.variable_length_reason.?);
+        }
+    }
+    try std.testing.expect(found_default);
+    try std.testing.expect(found_set_dir);
+
+    var found_var_game = false;
+    for (payload.functions) |entry| {
+        if (entry.id == @intFromEnum(life_program.LifeFunction.LF_VAR_GAME)) {
+            found_var_game = true;
+            try std.testing.expectEqualStrings("u8", entry.operand_layout);
+            try std.testing.expectEqualStrings("RET_S16", entry.return_type);
+            try std.testing.expectEqual(@as(usize, 2), entry.fixed_call_byte_length);
+        }
+    }
+    try std.testing.expect(found_var_game);
+
+    var found_ret_string = false;
+    for (payload.return_types) |entry| {
+        if (entry.id == @intFromEnum(life_program.LifeReturnType.RET_STRING)) {
+            found_ret_string = true;
+            try std.testing.expectEqualStrings("string", entry.literal_layout);
+            try std.testing.expectEqual(@as(?usize, null), entry.fixed_literal_byte_length);
+            try std.testing.expectEqual(@as(?usize, null), entry.fixed_test_byte_length);
+            try std.testing.expectEqualStrings("null_terminated_string", entry.variable_length_reason.?);
+        }
+    }
+    try std.testing.expect(found_ret_string);
 }
 
 test "ranked decoded interior candidate payload makes the scene 19 comparison explicit" {

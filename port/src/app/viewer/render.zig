@@ -56,12 +56,18 @@ pub const LocomotionStatusDisplayBuffer = struct {
     line_6: [128]u8 = undefined,
 };
 
+pub const ControlMode = enum {
+    locomotion,
+    fragment_navigation,
+};
+
 pub fn renderDebugView(
     canvas: *sdl.Canvas,
     snapshot: state.RenderSnapshot,
     catalog: fragment_compare.FragmentComparisonCatalog,
     selection: fragment_compare.FragmentComparisonSelection,
     locomotion_status: LocomotionStatusDisplay,
+    control_mode: ControlMode,
 ) !void {
     const fragment_panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
     const debug_layout = layout.computeDebugLayout(
@@ -141,7 +147,7 @@ pub fn renderDebugView(
     const hero = layout.projectWorldPoint(snapshot, debug_layout.schematic, snapshot.hero_position.x, snapshot.hero_position.z);
     try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
     try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
-    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status);
+    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode);
     canvas.present();
 }
 
@@ -466,6 +472,7 @@ fn drawHud(
     catalog: fragment_compare.FragmentComparisonCatalog,
     selection: fragment_compare.FragmentComparisonSelection,
     locomotion_status: LocomotionStatusDisplay,
+    control_mode: ControlMode,
 ) !void {
     const room_card = splitHudRow(debug_layout.header, 0, 3, 12);
     const fragment_card = splitHudRow(debug_layout.header, 1, 3, 12);
@@ -610,7 +617,13 @@ fn drawHud(
     try drawOverlayLegendCard(canvas, overlay_card);
     try drawComparisonLegendCard(canvas, compare_card);
     const nav_lines: []const []const u8 = if (selection.focus != null)
-        &.{ "LEFT RIGHT RANK", "UP DOWN CELL", "PINNED ROW FOCUS" }
+        switch (control_mode) {
+            .fragment_navigation => &.{ "TAB HERO CTRL", "LEFT RIGHT RANK", "UP DOWN CELL" },
+            .locomotion => switch (locomotion_status.schematic) {
+                .admitted_path => &.{ "TAB FRAG NAV", "ARROWS MOVE HERO", "ENTER RESEED HERO" },
+                .none => &.{ "TAB FRAG NAV", "ENTER SEED HERO", "RAW START STAYS" },
+            },
+        }
     else switch (locomotion_status.schematic) {
         .admitted_path => &.{ "ENTER SEED HERO", "ARROWS MOVE HERO", "ARROWS MOVE FROM HERE" },
         .none => &.{ "ENTER SEED HERO", "ARROWS MOVE HERO", "RAW START STAYS" },

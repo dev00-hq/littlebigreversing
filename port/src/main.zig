@@ -61,14 +61,15 @@ pub fn main() !void {
     };
     defer room.deinit(allocator);
 
-    var runtime_session = lba2.app.viewer_shell.initSession(&room);
+    var runtime_session = try lba2.app.viewer_shell.initSession(allocator, &room);
+    defer runtime_session.deinit(allocator);
     var locomotion_status = try lba2.runtime.locomotion.inspectCurrentStatus(&room, runtime_session);
     try lba2.app.viewer_shell.printStartupDiagnostics(stderr, allocator, resolved, &room);
     try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
     var render = lba2.app.viewer_shell.buildRenderSnapshot(&room, runtime_session);
     var fragment_catalog = try lba2.app.viewer_shell.buildFragmentComparisonCatalog(allocator, render);
     defer fragment_catalog.deinit(allocator);
-    var fragment_selection = lba2.app.viewer_shell.initialFragmentComparisonSelection(fragment_catalog);
+    var interaction = lba2.app.viewer_shell.initialInteractionState(fragment_catalog);
     const title = try lba2.app.viewer_shell.formatWindowTitleZ(allocator, &room);
     defer allocator.free(title);
     try stderr.flush();
@@ -88,8 +89,9 @@ pub fn main() !void {
         &canvas,
         render,
         fragment_catalog,
-        fragment_selection,
+        interaction.fragment_selection,
         locomotion_status,
+        interaction.control_mode,
     ) catch |err| {
         lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
         stderr.flush() catch {};
@@ -112,37 +114,28 @@ pub fn main() !void {
                 runtime_session,
                 &render,
                 &fragment_catalog,
-                fragment_selection,
+                interaction,
                 locomotion_status,
             ),
             .key_down => |key| {
-                switch (key) {
-                    .enter => {
-                        _ = try lba2.app.viewer_shell.seedSessionToLocomotionFixture(&room, &runtime_session);
-                        locomotion_status = try lba2.runtime.locomotion.inspectCurrentStatus(&room, runtime_session);
+                const key_result = try lba2.app.viewer_shell.handleKeyDown(
+                    &room,
+                    &runtime_session,
+                    fragment_catalog,
+                    interaction,
+                    locomotion_status,
+                    key,
+                );
+                interaction = key_result.interaction;
+                locomotion_status = key_result.locomotion_status;
+                if (key_result.should_tick_world) {
+                    const tick_result = try lba2.runtime.update.tick(&room, &runtime_session);
+                    locomotion_status = tick_result.locomotion_status;
+                    if (tick_result.consumed_hero_intent or key_result.should_print_locomotion_diagnostic) {
                         try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
-                    },
-                    .left, .right, .up, .down => {
-                        if (fragment_selection.focus != null) {
-                            fragment_selection = switch (key) {
-                                .left => lba2.app.viewer_shell.stepRankedFragmentComparisonSelection(fragment_catalog, fragment_selection, -1),
-                                .right => lba2.app.viewer_shell.stepRankedFragmentComparisonSelection(fragment_catalog, fragment_selection, 1),
-                                .up => lba2.app.viewer_shell.stepCellFragmentComparisonSelection(fragment_catalog, fragment_selection, -1),
-                                .down => lba2.app.viewer_shell.stepCellFragmentComparisonSelection(fragment_catalog, fragment_selection, 1),
-                                else => unreachable,
-                            };
-                        } else {
-                            const direction: lba2.app.viewer_shell.CardinalDirection = switch (key) {
-                                .left => .west,
-                                .right => .east,
-                                .up => .north,
-                                .down => .south,
-                                else => unreachable,
-                            };
-                            locomotion_status = try lba2.runtime.locomotion.applyStep(&room, &runtime_session, direction);
-                            try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
-                        }
-                    },
+                    }
+                } else if (key_result.should_print_locomotion_diagnostic) {
+                    try lba2.app.viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
                 }
                 try stderr.flush();
                 try renderCurrentFrame(
@@ -153,7 +146,7 @@ pub fn main() !void {
                     runtime_session,
                     &render,
                     &fragment_catalog,
-                    fragment_selection,
+                    interaction,
                     locomotion_status,
                 );
             },
@@ -235,7 +228,7 @@ fn renderCurrentFrame(
     runtime_session: lba2.app.viewer_shell.Session,
     render: *lba2.app.viewer_shell.RenderSnapshot,
     fragment_catalog: *lba2.app.viewer_shell.FragmentComparisonCatalog,
-    fragment_selection: lba2.app.viewer_shell.FragmentComparisonSelection,
+    interaction: lba2.app.viewer_shell.ViewerInteractionState,
     locomotion_status: lba2.app.viewer_shell.ViewerLocomotionStatus,
 ) !void {
     const next_render = lba2.app.viewer_shell.buildRenderSnapshot(room, runtime_session);
@@ -247,8 +240,9 @@ fn renderCurrentFrame(
         canvas,
         render.*,
         fragment_catalog.*,
-        fragment_selection,
+        interaction.fragment_selection,
         locomotion_status,
+        interaction.control_mode,
     ) catch |err| {
         lba2.foundation.diagnostics.printError(stderr, sdlErrorMessage(err));
         stderr.flush() catch {};
