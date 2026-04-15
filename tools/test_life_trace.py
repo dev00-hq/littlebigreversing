@@ -16,6 +16,7 @@ import msgspec
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "life_trace"))
 
+import capture_sendell_ball
 import life_trace_debugger
 import scene11_compare
 import save_profiles
@@ -1409,6 +1410,209 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
             self.assertEqual(0, exit_code)
             self.assertEqual("scene11-comparison-report-v1", report["schema_version"])
             self.assertEqual("redefine_runtime_contract", report["decision"])
+
+    @staticmethod
+    def _sendell_checkpoint(
+        checkpoint_name: str,
+        *,
+        screenshot_path: str,
+        ptr_prg_value_u32: int,
+        type_answer_u32: int,
+        value_u32: int,
+        ptr_prg_window_bytes_hex: str | None,
+        magic_level_u8: int = 0,
+        magic_point_u8: int = 0,
+        sendell_inventory_value_s16: int = 0,
+        inventory_model_id_s16: int = -1,
+        source_window_title: str = "LBA2",
+    ) -> dict[str, object]:
+        return {
+            "checkpoint_name": checkpoint_name,
+            "screenshot_path": screenshot_path,
+            "source_window_title": source_window_title,
+            "ptr_prg_value_hex": f"0x{ptr_prg_value_u32:08X}",
+            "ptr_prg_value_u32": ptr_prg_value_u32,
+            "type_answer_u32": type_answer_u32,
+            "value_u32": value_u32,
+            "ptr_prg_window": {
+                "start": f"0x{ptr_prg_value_u32:08X}",
+                "cursor_index": 0,
+                "bytes_hex": ptr_prg_window_bytes_hex,
+                "error": None,
+            },
+            "direct_state": {
+                "magic_level_u8": magic_level_u8,
+                "magic_point_u8": magic_point_u8,
+                "sendell_inventory_value_s16": sendell_inventory_value_s16,
+                "inventory_model_id_s16": inventory_model_id_s16,
+            },
+            "event_ids": {
+                "screenshot": "evt-0001",
+                "ptr_prg": "evt-0002",
+                "type_answer": "evt-0003",
+                "value": "evt-0004",
+                "ptr_prg_window": "evt-0005",
+            },
+        }
+
+    def test_build_sendell_run_summary_records_story_state_transition(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(
+                Path(temp_dir),
+                mode="sendell-ball-room",
+                process_name="LBA2.EXE",
+                launch_save=r"D:\repos\reverse\littlebigreversing\work\saves\ball of sendell.LBA",
+                run_id="sendell-summary-test",
+            )
+            try:
+                checkpoint_order = [
+                    "loaded_pre_cast",
+                    "after_f_cast",
+                    "dialog_1",
+                    "dialog_2",
+                    "post_dialog_room",
+                ]
+                checkpoint_captures = {
+                    "loaded_pre_cast": self._sendell_checkpoint(
+                        "loaded_pre_cast",
+                        screenshot_path="screenshots/loaded_pre_cast.png",
+                        ptr_prg_value_u32=0x004976D0,
+                        type_answer_u32=0,
+                        value_u32=0,
+                        ptr_prg_window_bytes_hex="10 20 30 40",
+                        magic_level_u8=2,
+                        magic_point_u8=40,
+                        sendell_inventory_value_s16=0,
+                        inventory_model_id_s16=-1,
+                    ),
+                    "after_f_cast": self._sendell_checkpoint(
+                        "after_f_cast",
+                        screenshot_path="screenshots/after_f_cast.png",
+                        ptr_prg_value_u32=0x004976E0,
+                        type_answer_u32=0,
+                        value_u32=0,
+                        ptr_prg_window_bytes_hex="11 22 33 44",
+                        magic_level_u8=3,
+                        magic_point_u8=60,
+                        sendell_inventory_value_s16=1,
+                        inventory_model_id_s16=0,
+                    ),
+                    "dialog_1": self._sendell_checkpoint(
+                        "dialog_1",
+                        screenshot_path="screenshots/dialog_1.png",
+                        ptr_prg_value_u32=0x004976F0,
+                        type_answer_u32=4,
+                        value_u32=11,
+                        ptr_prg_window_bytes_hex="AA BB CC DD",
+                        magic_level_u8=3,
+                        magic_point_u8=60,
+                        sendell_inventory_value_s16=1,
+                        inventory_model_id_s16=0,
+                    ),
+                    "dialog_2": self._sendell_checkpoint(
+                        "dialog_2",
+                        screenshot_path="screenshots/dialog_2.png",
+                        ptr_prg_value_u32=0x00497700,
+                        type_answer_u32=4,
+                        value_u32=11,
+                        ptr_prg_window_bytes_hex="EE FF 00 11",
+                        magic_level_u8=3,
+                        magic_point_u8=60,
+                        sendell_inventory_value_s16=1,
+                        inventory_model_id_s16=0,
+                    ),
+                    "post_dialog_room": self._sendell_checkpoint(
+                        "post_dialog_room",
+                        screenshot_path="screenshots/post_dialog_room.png",
+                        ptr_prg_value_u32=0x00497710,
+                        type_answer_u32=0,
+                        value_u32=0,
+                        ptr_prg_window_bytes_hex="55 66 77 88",
+                        magic_level_u8=3,
+                        magic_point_u8=60,
+                        sendell_inventory_value_s16=1,
+                        inventory_model_id_s16=0,
+                    ),
+                }
+
+                summary = capture_sendell_ball.build_sendell_run_summary(
+                    writer=writer,
+                    launch_save=Path(r"D:\repos\reverse\littlebigreversing\work\saves\ball of sendell.LBA"),
+                    capture_variant_name="full_flow",
+                    checkpoint_order=checkpoint_order,
+                    checkpoint_captures=checkpoint_captures,
+                )
+            finally:
+                writer.close()
+
+        self.assertEqual("sendell-run-summary-v1", summary["schema_version"])
+        self.assertEqual("cdb-agent", summary["debugger"])
+        self.assertEqual("full_flow", summary["capture_variant"])
+        self.assertTrue(summary["transitions"]["dialog_transition_seen"])
+        self.assertTrue(summary["transitions"]["post_dialog_transition_seen"])
+        self.assertEqual(
+            "sendell_story_state_transition_observed",
+            summary["verdict"]["result"],
+        )
+        self.assertEqual(
+            "AA BB CC DD",
+            summary["transitions"]["dialog_signature"]["dialog_1"]["ptr_prg_window_bytes_hex"],
+        )
+        self.assertTrue(summary["transitions"]["direct_story_state_transition_seen"])
+        self.assertEqual(
+            {"after": 3, "before": 2, "changed": True},
+            summary["transitions"]["story_state_transition"]["magic_level"],
+        )
+        self.assertEqual(
+            {"after": 1, "before": 0, "changed": True},
+            summary["transitions"]["story_state_transition"]["sendell_inventory_value"],
+        )
+
+    def test_write_sendell_run_summary_registers_menu_lane_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(
+                Path(temp_dir),
+                mode="sendell-ball-room",
+                process_name="LBA2.EXE",
+                launch_save=r"D:\repos\reverse\littlebigreversing\work\saves\ball of sendell.LBA",
+                run_id="sendell-menu-summary-test",
+            )
+            try:
+                output_path = capture_sendell_ball.write_sendell_run_summary(
+                    writer,
+                    launch_save=Path(r"D:\repos\reverse\littlebigreversing\work\saves\ball of sendell.LBA"),
+                    capture_variant_name="pre_inventory",
+                    checkpoint_order=["loaded_pre_cast", "pre_inventory"],
+                    checkpoint_captures={
+                        "loaded_pre_cast": self._sendell_checkpoint(
+                            "loaded_pre_cast",
+                            screenshot_path="screenshots/loaded_pre_cast.png",
+                            ptr_prg_value_u32=0x004976D0,
+                            type_answer_u32=0,
+                            value_u32=0,
+                            ptr_prg_window_bytes_hex="10 20 30 40",
+                        ),
+                        "pre_inventory": self._sendell_checkpoint(
+                            "pre_inventory",
+                            screenshot_path="screenshots/pre_inventory.png",
+                            ptr_prg_value_u32=0x004976D0,
+                            type_answer_u32=0,
+                            value_u32=0,
+                            ptr_prg_window_bytes_hex="10 20 30 40",
+                        ),
+                    },
+                )
+            finally:
+                writer.close()
+
+            manifest = json.loads(writer.manifest_path.read_text(encoding="utf-8"))
+            payload = json.loads(output_path.read_text(encoding="utf-8"))
+
+        self.assertEqual("sendell_summary.json", manifest["artifacts"]["sendell_summary"])
+        self.assertEqual("sendell_menu_capture_complete", payload["verdict"]["result"])
+        self.assertEqual(["loaded_pre_cast", "pre_inventory"], payload["checkpoint_order"])
+        self.assertTrue(payload["checkpoints"]["pre_inventory"]["present"])
+        self.assertIn("direct_state", payload["checkpoints"]["pre_inventory"])
 
 
 class CdbAgentMemoryReaderTest(unittest.TestCase):

@@ -2,8 +2,13 @@ const std = @import("std");
 const paths_mod = @import("../foundation/paths.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 const runtime_locomotion = @import("../runtime/locomotion.zig");
+const runtime_update = @import("../runtime/update.zig");
 const runtime_query = @import("../runtime/world_query.zig");
 const viewer_shell = @import("viewer_shell.zig");
+
+fn initViewerSession(room: *const viewer_shell.RoomSnapshot) !viewer_shell.Session {
+    return viewer_shell.initSession(std.testing.allocator, room);
+}
 
 fn expectMoveOptions(
     room: *const viewer_shell.RoomSnapshot,
@@ -228,6 +233,34 @@ fn steppedWorldPoint(
             .z = origin_world_position.z,
         },
     };
+}
+
+fn expectNearestStandableSeed(room: *const viewer_shell.RoomSnapshot) !void {
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(std.testing.allocator);
+    const query = runtime_query.init(room);
+    const probe = try query.probeHeroStart();
+    const candidate = probe.nearest_standable orelse return error.MissingNearestStandableDiagnosticCandidate;
+    const expected = runtime_query.gridCellCenterWorldPosition(
+        candidate.cell.x,
+        candidate.cell.z,
+        candidate.surface.top_y,
+    );
+
+    const seeded = try viewer_shell.seedSessionToLocomotionFixture(room, &runtime_session);
+    try std.testing.expectEqual(expected, seeded);
+    try std.testing.expectEqual(expected, runtime_session.heroWorldPosition());
+
+    const status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
+    switch (status) {
+        .seeded_valid => |value| {
+            try std.testing.expectEqual(candidate.cell, value.cell);
+            try std.testing.expectEqual(expected, value.hero_position);
+            try expectMoveOptions(room, expected, value.move_options);
+            try expectLocalTopology(room, candidate.cell, value.local_topology);
+        },
+        else => return error.UnexpectedViewerLocomotionStatus,
+    }
 }
 
 fn directionLabel(direction: viewer_shell.CardinalDirection) []const u8 {
@@ -574,7 +607,8 @@ test "viewer locomotion harness consumes runtime-owned raw invalid 19/19 status 
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1919();
 
-    var runtime_session = viewer_shell.initSession(room);
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
     const raw_start = runtime_session.heroWorldPosition();
     const status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
     const rejected_status = try runtime_locomotion.applyStep(room, &runtime_session, .south);
@@ -700,7 +734,8 @@ test "viewer locomotion harness consumes runtime-owned seeded 19/19 fixture stat
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1919();
 
-    var runtime_session = viewer_shell.initSession(room);
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
     const seeded = try viewer_shell.seedSessionToLocomotionFixture(room, &runtime_session);
     const query = runtime_query.init(room);
     const seeded_eval = query.evaluateHeroMoveTarget(seeded);
@@ -774,7 +809,8 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1919();
 
-    var runtime_session = viewer_shell.initSession(room);
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
     const seeded = try viewer_shell.seedSessionToLocomotionFixture(room, &runtime_session);
 
     const moved_status = try runtime_locomotion.applyStep(room, &runtime_session, .south);
@@ -926,4 +962,194 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     );
     defer allocator.free(expected_rejected_diagnostic);
     try std.testing.expectEqualStrings(expected_rejected_diagnostic, rejected_diagnostic);
+}
+
+test "viewer locomotion fixture seeding widens to guarded-positive rooms beyond 19/19" {
+    try expectNearestStandableSeed(try room_fixtures.guarded22());
+    try expectNearestStandableSeed(try room_fixtures.guarded1110());
+}
+
+test "viewer render snapshots prefer runtime-owned object positions over immutable room positions" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded1919();
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
+
+    const original_object = runtime_session.objectSnapshotByIndex(2) orelse return error.MissingSessionObjectState;
+    try std.testing.expectEqual(room.scene.objects[1], original_object);
+
+    try runtime_session.setObjectWorldPosition(2, .{
+        .x = original_object.x + 512,
+        .y = original_object.y,
+        .z = original_object.z + 512,
+    });
+
+    const snapshot = viewer_shell.buildRenderSnapshot(room, runtime_session);
+    const moved_object = snapshot.objects[1];
+    try std.testing.expectEqual(@as(usize, room.scene.objects.len), snapshot.objects.len);
+    try std.testing.expectEqual(@as(usize, 2), moved_object.index);
+    try std.testing.expectEqual(@as(i32, 3600), moved_object.x);
+    try std.testing.expectEqual(@as(i32, 1248), moved_object.y);
+    try std.testing.expectEqual(@as(i32, 2000), moved_object.z);
+    try std.testing.expectEqual(@as(i32, 3088), room.scene.objects[1].x);
+    try std.testing.expectEqual(@as(i32, 1248), room.scene.objects[1].y);
+    try std.testing.expectEqual(@as(i32, 1488), room.scene.objects[1].z);
+}
+
+test "viewer key handling keeps fragment-room arrows on fragment navigation until locomotion is requested" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded1110();
+    var snapshot_session = try initViewerSession(room);
+    defer snapshot_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(room, snapshot_session);
+    const catalog = try viewer_shell.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
+    const raw_start = runtime_session.heroWorldPosition();
+    const locomotion_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
+    const interaction = viewer_shell.initialInteractionState(catalog);
+    const initial_focus = interaction.fragment_selection.focus orelse return error.MissingInitialFragmentFocus;
+
+    try std.testing.expectEqual(viewer_shell.ViewerControlMode.fragment_navigation, interaction.control_mode);
+
+    const nav_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        interaction,
+        locomotion_status,
+        .right,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerControlMode.fragment_navigation, nav_result.interaction.control_mode);
+    try std.testing.expect(!nav_result.should_print_locomotion_diagnostic);
+    try std.testing.expect(!nav_result.should_tick_world);
+    try std.testing.expect(std.meta.eql(locomotion_status, nav_result.locomotion_status));
+    try std.testing.expectEqual(raw_start, runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());
+    try std.testing.expect(nav_result.interaction.fragment_selection.focus != null);
+    try std.testing.expect(!std.meta.eql(initial_focus, nav_result.interaction.fragment_selection.focus.?));
+
+    const toggle_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        interaction,
+        locomotion_status,
+        .tab,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, toggle_result.interaction.control_mode);
+    try std.testing.expect(!toggle_result.should_print_locomotion_diagnostic);
+    try std.testing.expect(!toggle_result.should_tick_world);
+    try std.testing.expect(std.meta.eql(interaction.fragment_selection, toggle_result.interaction.fragment_selection));
+    try std.testing.expectEqual(raw_start, runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());
+}
+
+test "viewer key handling seeds fragment rooms and relies on runtime tick to consume submitted movement intent" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded1110();
+    var snapshot_session = try initViewerSession(room);
+    defer snapshot_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(room, snapshot_session);
+    const catalog = try viewer_shell.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
+    const initial_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
+    const initial_interaction = viewer_shell.initialInteractionState(catalog);
+
+    const seed_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        initial_interaction,
+        initial_status,
+        .enter,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, seed_result.interaction.control_mode);
+    try std.testing.expect(seed_result.should_print_locomotion_diagnostic);
+    try std.testing.expect(!seed_result.should_tick_world);
+    switch (seed_result.locomotion_status) {
+        .seeded_valid => |value| {
+            try std.testing.expectEqual(runtime_session.heroWorldPosition(), value.hero_position);
+        },
+        else => return error.UnexpectedViewerLocomotionStatus,
+    }
+
+    const seeded_fragment_selection = seed_result.interaction.fragment_selection;
+    const seeded_position = runtime_session.heroWorldPosition();
+    const move_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        seed_result.interaction,
+        seed_result.locomotion_status,
+        .right,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, move_result.interaction.control_mode);
+    try std.testing.expect(!move_result.should_print_locomotion_diagnostic);
+    try std.testing.expect(move_result.should_tick_world);
+    try std.testing.expect(std.meta.eql(seeded_fragment_selection, move_result.interaction.fragment_selection));
+    try std.testing.expectEqual(seeded_position, runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(seed_result.locomotion_status, move_result.locomotion_status);
+    try std.testing.expectEqual(
+        runtime_locomotion.HeroIntent{ .move_cardinal = .east },
+        runtime_session.pendingHeroIntent().?,
+    );
+
+    const tick_result = try runtime_update.tick(room, &runtime_session);
+    try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());
+    try std.testing.expect(tick_result.consumed_hero_intent);
+    try std.testing.expectEqual(@as(usize, 1), runtime_session.frame_index);
+    switch (tick_result.locomotion_status) {
+        .last_move_accepted, .last_move_rejected => {},
+        else => return error.UnexpectedViewerLocomotionStatus,
+    }
+}
+
+test "viewer key handling routes Sendell room story input through runtime intents" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded3636();
+    var snapshot_session = try initViewerSession(room);
+    defer snapshot_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(room, snapshot_session);
+    const catalog = try viewer_shell.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
+    const initial_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
+    const interaction = viewer_shell.initialInteractionState(catalog);
+
+    const cast_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        interaction,
+        initial_status,
+        .f,
+    );
+    try std.testing.expect(cast_result.should_tick_world);
+    try std.testing.expectEqual(runtime_locomotion.HeroIntent.cast_lightning, runtime_session.pendingHeroIntent().?);
+
+    const cast_tick = try runtime_update.tick(room, &runtime_session);
+    try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
+
+    const advance_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        interaction,
+        cast_tick.locomotion_status,
+        .enter,
+    );
+    try std.testing.expect(advance_result.should_tick_world);
+    try std.testing.expectEqual(runtime_locomotion.HeroIntent.advance_story, runtime_session.pendingHeroIntent().?);
+
+    _ = try runtime_update.tick(room, &runtime_session);
+    try std.testing.expectEqual(@as(u8, 3), runtime_session.magicLevel());
+    try std.testing.expectEqual(@as(u8, 60), runtime_session.magicPoint());
 }

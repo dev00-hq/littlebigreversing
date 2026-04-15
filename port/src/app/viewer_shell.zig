@@ -3,6 +3,7 @@ const diagnostics = @import("../foundation/diagnostics.zig");
 const paths_mod = @import("../foundation/paths.zig");
 const sdl = @import("../platform/sdl.zig");
 const runtime_locomotion = @import("../runtime/locomotion.zig");
+const runtime_object_behavior = @import("../runtime/object_behavior.zig");
 const runtime_session = @import("../runtime/session.zig");
 const runtime_query = @import("../runtime/world_query.zig");
 const world_geometry = @import("../runtime/world_geometry.zig");
@@ -71,10 +72,30 @@ pub const ViewerSeededValidStatus = runtime_locomotion.SeededValidStatus;
 pub const ViewerMoveAcceptedStatus = runtime_locomotion.MoveAcceptedStatus;
 pub const ViewerMoveRejectedStatus = runtime_locomotion.MoveRejectedStatus;
 pub const ViewerLocomotionStatus = runtime_locomotion.LocomotionStatus;
+pub const ViewerKey = sdl.Key;
+pub const ViewerControlMode = render.ControlMode;
+pub const ViewerObjectState = runtime_session.ObjectState;
+
+pub const ViewerInteractionState = struct {
+    control_mode: ViewerControlMode,
+    fragment_selection: FragmentComparisonSelection,
+};
+
+pub const ViewerKeyDownResult = struct {
+    interaction: ViewerInteractionState,
+    locomotion_status: ViewerLocomotionStatus,
+    should_print_locomotion_diagnostic: bool = false,
+    should_tick_world: bool = false,
+};
 
 pub const locomotion_fixture_scene_entry: usize = 19;
 pub const locomotion_fixture_background_entry: usize = 19;
 pub const locomotion_fixture_cell = GridCell{ .x = 39, .z = 6 };
+const sendell_scene_entry: usize = 36;
+const sendell_background_entry: usize = 36;
+const sendell_flag_index: u8 = 3;
+const lightning_flag_index: u8 = 19;
+const sendell_seed_magic_level: u8 = 2;
 
 pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs {
     var asset_root_override: ?[]u8 = null;
@@ -126,32 +147,32 @@ pub fn loadRoomSnapshot(
     return state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
 }
 
-pub fn initSession(room: *const RoomSnapshot) Session {
-    return runtime_session.Session.init(state.heroStartWorldPoint(room));
+pub fn initSession(allocator: std.mem.Allocator, room: *const RoomSnapshot) !Session {
+    var current_session = try runtime_session.Session.initWithObjects(
+        allocator,
+        state.heroStartWorldPoint(room),
+        room.scene.objects,
+        room.scene.object_behavior_seeds,
+    );
+    seedSupportedStoryState(room, &current_session);
+    return current_session;
 }
 
 pub fn buildRenderSnapshot(room: *const RoomSnapshot, current_session: Session) RenderSnapshot {
-    return state.buildRenderSnapshotWithHeroPosition(room, current_session.heroWorldPosition());
+    var snapshot = state.buildRenderSnapshotWithHeroPosition(room, current_session.heroWorldPosition());
+    const runtime_objects = current_session.objectSnapshots();
+    std.debug.assert(runtime_objects.len == 0 or runtime_objects.len == room.scene.objects.len);
+    if (runtime_objects.len != 0) snapshot.objects = runtime_objects;
+    return snapshot;
 }
 
 pub fn seedSessionToLocomotionFixture(room: *const RoomSnapshot, current_session: *Session) !WorldPointSnapshot {
-    if (room.scene.entry_index != locomotion_fixture_scene_entry or
-        room.background.entry_index != locomotion_fixture_background_entry)
-    {
-        return error.ViewerLocomotionFixtureUnavailable;
-    }
-
     const query = runtime_query.init(room);
-    const surface = try query.cellTopSurface(locomotion_fixture_cell.x, locomotion_fixture_cell.z);
-    if (try query.standabilityAtCell(locomotion_fixture_cell.x, locomotion_fixture_cell.z) != .standable) {
-        return error.ViewerLocomotionFixtureUnavailable;
-    }
-
-    const position = runtime_query.gridCellCenterWorldPosition(
-        locomotion_fixture_cell.x,
-        locomotion_fixture_cell.z,
-        surface.top_y,
-    );
+    const position = if (room.scene.entry_index == locomotion_fixture_scene_entry and
+        room.background.entry_index == locomotion_fixture_background_entry)
+        try positionForExplicitLocomotionFixture(query, locomotion_fixture_cell)
+    else
+        try positionForNearestStandableCandidate(query);
     current_session.setHeroWorldPosition(position);
     return position;
 }
@@ -289,16 +310,19 @@ pub fn renderDebugView(
     canvas: *sdl.Canvas,
     snapshot: RenderSnapshot,
     locomotion_status: ViewerLocomotionStatus,
+    control_mode: ViewerControlMode,
 ) !void {
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(std.heap.page_allocator, snapshot);
     defer catalog.deinit(std.heap.page_allocator);
+    const interaction = initialInteractionState(catalog);
     var status_buffer: ViewerLocomotionStatusDisplayBuffer = .{};
     return render.renderDebugView(
         canvas,
         snapshot,
         catalog,
-        fragment_compare.initialFragmentComparisonSelection(catalog),
+        interaction.fragment_selection,
         formatLocomotionStatusDisplay(&status_buffer, locomotion_status),
+        control_mode,
     );
 }
 
@@ -311,6 +335,14 @@ pub fn buildFragmentComparisonCatalog(
 
 pub fn initialFragmentComparisonSelection(catalog: FragmentComparisonCatalog) FragmentComparisonSelection {
     return fragment_compare.initialFragmentComparisonSelection(catalog);
+}
+
+pub fn initialInteractionState(catalog: FragmentComparisonCatalog) ViewerInteractionState {
+    const fragment_selection = initialFragmentComparisonSelection(catalog);
+    return .{
+        .control_mode = if (fragment_selection.focus == null) .locomotion else .fragment_navigation,
+        .fragment_selection = fragment_selection,
+    };
 }
 
 pub fn stepRankedFragmentComparisonSelection(
@@ -329,12 +361,115 @@ pub fn stepCellFragmentComparisonSelection(
     return fragment_compare.stepCellSelection(catalog, selection, delta);
 }
 
+pub fn handleKeyDown(
+    room: *const RoomSnapshot,
+    current_session: *Session,
+    catalog: FragmentComparisonCatalog,
+    interaction: ViewerInteractionState,
+    locomotion_status: ViewerLocomotionStatus,
+    key: ViewerKey,
+) !ViewerKeyDownResult {
+    switch (key) {
+        .enter => {
+            if (runtime_object_behavior.sendellStoryAwaitsAdvance(room, current_session.*)) {
+                try current_session.submitHeroIntent(.advance_story);
+                return .{
+                    .interaction = interaction,
+                    .locomotion_status = locomotion_status,
+                    .should_tick_world = true,
+                };
+            }
+
+            _ = try seedSessionToLocomotionFixture(room, current_session);
+            return .{
+                .interaction = .{
+                    .control_mode = .locomotion,
+                    .fragment_selection = interaction.fragment_selection,
+                },
+                .locomotion_status = try runtime_locomotion.inspectCurrentStatus(room, current_session.*),
+                .should_print_locomotion_diagnostic = true,
+            };
+        },
+        .tab => {
+            if (interaction.fragment_selection.focus == null) {
+                return .{
+                    .interaction = interaction,
+                    .locomotion_status = locomotion_status,
+                };
+            }
+
+            return .{
+                .interaction = .{
+                    .control_mode = switch (interaction.control_mode) {
+                        .locomotion => .fragment_navigation,
+                        .fragment_navigation => .locomotion,
+                    },
+                    .fragment_selection = interaction.fragment_selection,
+                },
+                .locomotion_status = locomotion_status,
+            };
+        },
+        .left, .right, .up, .down => {
+            if (interaction.control_mode == .fragment_navigation and interaction.fragment_selection.focus != null) {
+                const next_fragment_selection = switch (key) {
+                    .left => stepRankedFragmentComparisonSelection(catalog, interaction.fragment_selection, -1),
+                    .right => stepRankedFragmentComparisonSelection(catalog, interaction.fragment_selection, 1),
+                    .up => stepCellFragmentComparisonSelection(catalog, interaction.fragment_selection, -1),
+                    .down => stepCellFragmentComparisonSelection(catalog, interaction.fragment_selection, 1),
+                    else => unreachable,
+                };
+
+                return .{
+                    .interaction = .{
+                        .control_mode = interaction.control_mode,
+                        .fragment_selection = next_fragment_selection,
+                    },
+                    .locomotion_status = locomotion_status,
+                };
+            }
+
+            const direction: CardinalDirection = switch (key) {
+                .left => .west,
+                .right => .east,
+                .up => .north,
+                .down => .south,
+                else => unreachable,
+            };
+            try current_session.submitHeroIntent(.{ .move_cardinal = direction });
+            return .{
+                .interaction = interaction,
+                .locomotion_status = locomotion_status,
+                .should_tick_world = true,
+            };
+        },
+        .f => {
+            try current_session.submitHeroIntent(.cast_lightning);
+            return .{
+                .interaction = interaction,
+                .locomotion_status = locomotion_status,
+                .should_tick_world = true,
+            };
+        },
+    }
+}
+
+fn seedSupportedStoryState(room: *const RoomSnapshot, current_session: *Session) void {
+    if (room.scene.entry_index != sendell_scene_entry or room.background.entry_index != sendell_background_entry) {
+        return;
+    }
+
+    current_session.setMagicLevelAndRefill(sendell_seed_magic_level);
+    current_session.setGameVar(sendell_flag_index, 0);
+    current_session.setGameVar(lightning_flag_index, 1);
+}
+
 pub fn renderDebugViewWithSelection(
     canvas: *sdl.Canvas,
     snapshot: RenderSnapshot,
     catalog: FragmentComparisonCatalog,
     selection: FragmentComparisonSelection,
     locomotion_status: ViewerLocomotionStatus,
+    control_mode: ViewerControlMode,
 ) !void {
     var status_buffer: ViewerLocomotionStatusDisplayBuffer = .{};
     return render.renderDebugView(
@@ -343,6 +478,35 @@ pub fn renderDebugViewWithSelection(
         catalog,
         selection,
         formatLocomotionStatusDisplay(&status_buffer, locomotion_status),
+        control_mode,
+    );
+}
+
+fn positionForExplicitLocomotionFixture(
+    query: runtime_query.WorldQuery,
+    fixture_cell: GridCell,
+) !WorldPointSnapshot {
+    const surface = try query.cellTopSurface(fixture_cell.x, fixture_cell.z);
+    if (try query.standabilityAtCell(fixture_cell.x, fixture_cell.z) != .standable) {
+        return error.ViewerLocomotionFixtureUnavailable;
+    }
+
+    return runtime_query.gridCellCenterWorldPosition(
+        fixture_cell.x,
+        fixture_cell.z,
+        surface.top_y,
+    );
+}
+
+fn positionForNearestStandableCandidate(query: runtime_query.WorldQuery) !WorldPointSnapshot {
+    const probe = try query.probeHeroStart();
+    const candidate = probe.nearest_standable orelse return error.ViewerLocomotionFixtureUnavailable;
+    if (candidate.standability != .standable) return error.ViewerLocomotionFixtureUnavailable;
+
+    return runtime_query.gridCellCenterWorldPosition(
+        candidate.cell.x,
+        candidate.cell.z,
+        candidate.surface.top_y,
     );
 }
 

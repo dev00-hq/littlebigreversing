@@ -9,6 +9,7 @@ pub const GridCell = world_geometry.GridCell;
 pub const WorldPointSnapshot = world_geometry.WorldPointSnapshot;
 pub const ZoneMembership = runtime_query.ContainingZoneSet;
 pub const LocalNeighborTopology = runtime_query.LocalNeighborTopologyProbe;
+pub const HeroIntent = runtime_session.HeroIntent;
 
 pub const LocomotionRejectedStage = enum {
     origin_invalid,
@@ -182,6 +183,19 @@ pub fn applyStep(
             .hero_position = updated_position,
             .zone_membership = try query.containingZonesAtWorldPoint(updated_position),
         },
+    };
+}
+
+pub fn applyPendingHeroIntent(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+) !LocomotionStatus {
+    const intent = current_session.consumeHeroIntent() orelse return error.MissingPendingHeroIntent;
+    return switch (intent) {
+        .move_cardinal => |direction| applyStep(room, current_session, direction),
+        .cast_lightning,
+        .advance_story,
+        => error.UnsupportedHeroIntentForLocomotion,
     };
 }
 

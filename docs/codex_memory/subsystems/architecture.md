@@ -16,8 +16,13 @@ Own repo-wide direction and the canonical Codex memory workflow across the two a
 
 - The Zig port remains decode-first, Windows-first, and fail-fast.
 - `life_audit.zig` owns offline decoded-interior ranking and the canonical all-scenes life inventory.
+- Viewer key handling now stops at intent submission for hero movement; runtime session owns the pending intent, and a minimal runtime tick owns consuming and applying it.
+- Runtime session now also owns mutable object-position copies for the live viewer/app path, while `RoomSnapshot` remains immutable decode state.
+- Guarded `19/19` now also carries an explicit immutable object-behavior seed for object `2`, while runtime owns the mutable life-byte copy and later reward-loop state.
+- The life decoder structure now has a machine-readable `life-catalog-v1` CLI surface, sourced from the production enums in `life_program.zig` rather than from markdown-only evidence notes.
 - `tools/life_trace/trace_life.py` owns original-runtime evidence capture.
-- The canonical original-runtime split is stable for now: Tavern uses a live Frida/FRA proof lane, Scene11 uses a debugger-backed snapshot lane.
+- The canonical original-runtime split is stable for now: Tavern uses a live Frida/FRA proof lane, Scene11 uses a debugger-backed snapshot lane, and Sendell's Ball writes typed `sendell_summary.json` bundles with direct story-state reads.
+- Runtime now also owns a bounded Sendell room-`36` seam: viewer input submits `cast_lightning` / `advance_story` intents, session owns magic plus `ListVarGame`, and object behavior advances the red-ball slice.
 
 ## Known Traps
 
@@ -28,6 +33,8 @@ Own repo-wide direction and the canonical Codex memory workflow across the two a
 - In PowerShell-hosted sessions, `bash -lc "..."` can be mangled before Bash sees it; prefer single-quoted Bash payloads in tool calls.
 - `scripts/verify_viewer.py` is the canonical Windows acceptance gate for the port path.
 - Original-runtime evidence helpers are not default port pickup; use `life_scripts.md` when the task is about Tavern, Scene11, Frida, or debugger capture.
+- Original-runtime UI automation details are lane-specific. On the current Sendell's Ball room proof lane, menu capture needs held-key input rather than a tap, so keep those quirks documented in `life_scripts.md` instead of generalizing them into the port path.
+- On the current Sendell proof lane, the direct `ListVarGame` base is `0x00499E98`; the nearby Ghidra `DAT_00499E96` symbol is a pre-base artifact, not the usable start of the array.
 
 ## Canonical Entry Points
 
@@ -51,4 +58,5 @@ Own repo-wide direction and the canonical Codex memory workflow across the two a
 ## Open Unknowns
 
 - Which future runtime seams deserve their own subsystem packs.
+- Whether the next runtime widening slice should pay down bonus-lifecycle parity for guarded `19/19` object `2` or push the scheduler farther away from viewer-driven ticks first.
 - Whether the current split between port work and original-runtime evidence should eventually become a more explicit top-level repo boundary.

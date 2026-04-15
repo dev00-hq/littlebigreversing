@@ -4,6 +4,8 @@ const paths_mod = @import("../foundation/paths.zig");
 const background_data = @import("../game_data/background.zig");
 const scene_data = @import("../game_data/scene.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
+const life_program = @import("../game_data/scene/life_program.zig");
+const track_program = @import("../game_data/scene/track_program.zig");
 const world_geometry = @import("world_geometry.zig");
 
 pub const UnsupportedSceneLifeHit = life_audit.UnsupportedSceneLifeHit;
@@ -23,6 +25,24 @@ pub const ObjectPositionSnapshot = struct {
     z: i32,
 };
 
+pub const ObjectBehaviorSeedSnapshot = struct {
+    index: usize,
+    sprite: i16,
+    option_flags: i16 = 0,
+    bonus_quantity: u8 = 0,
+    track_bytes: []u8,
+    track_instructions: []track_program.TrackInstruction,
+    life_bytes: []u8,
+    life_instructions: []life_program.LifeInstruction,
+
+    pub fn deinit(self: ObjectBehaviorSeedSnapshot, allocator: std.mem.Allocator) void {
+        allocator.free(self.track_instructions);
+        allocator.free(self.track_bytes);
+        allocator.free(self.life_instructions);
+        allocator.free(self.life_bytes);
+    }
+};
+
 pub const TrackPointSnapshot = struct {
     index: usize,
     x: i32,
@@ -32,6 +52,7 @@ pub const TrackPointSnapshot = struct {
 
 pub const ZoneBoundsSnapshot = struct {
     index: usize,
+    num: i16 = -1,
     kind: scene_data.ZoneType,
     x_min: i32,
     y_min: i32,
@@ -51,11 +72,14 @@ pub const SceneSnapshot = struct {
     track_count: usize,
     patch_count: usize,
     objects: []ObjectPositionSnapshot,
+    object_behavior_seeds: []ObjectBehaviorSeedSnapshot,
     zones: []ZoneBoundsSnapshot,
     tracks: []TrackPointSnapshot,
 
     pub fn deinit(self: SceneSnapshot, allocator: std.mem.Allocator) void {
         allocator.free(self.objects);
+        for (self.object_behavior_seeds) |seed| seed.deinit(allocator);
+        allocator.free(self.object_behavior_seeds);
         allocator.free(self.zones);
         allocator.free(self.tracks);
     }
@@ -444,6 +468,7 @@ fn loadRoomSnapshotInternal(
         .track_count = scene.track_count,
         .patch_count = scene.patch_count,
         .objects = try copyObjectSnapshots(allocator, scene.objects),
+        .object_behavior_seeds = try copySupportedObjectBehaviorSeeds(allocator, scene),
         .zones = try copyZoneSnapshots(allocator, scene.zones),
         .tracks = try copyTrackSnapshots(allocator, scene.tracks),
     };
@@ -578,6 +603,61 @@ fn copyObjectSnapshots(
     return copied;
 }
 
+fn copySupportedObjectBehaviorSeeds(
+    allocator: std.mem.Allocator,
+    scene: scene_data.SceneMetadata,
+) ![]ObjectBehaviorSeedSnapshot {
+    var seeds: std.ArrayList(ObjectBehaviorSeedSnapshot) = .empty;
+    errdefer {
+        for (seeds.items) |seed| seed.deinit(allocator);
+        seeds.deinit(allocator);
+    }
+
+    if (scene.entry_index == 19 or scene.entry_index == 36) {
+        try appendObjectBehaviorSeed(allocator, &seeds, scene, 2);
+    }
+
+    return seeds.toOwnedSlice(allocator);
+}
+
+fn appendObjectBehaviorSeed(
+    allocator: std.mem.Allocator,
+    seeds: *std.ArrayList(ObjectBehaviorSeedSnapshot),
+    scene: scene_data.SceneMetadata,
+    object_index: usize,
+) !void {
+    const object = findSceneObjectByIndex(scene.objects, object_index) orelse return error.MissingSupportedObjectBehaviorSeed;
+    const track_bytes = try allocator.dupe(u8, object.track.bytes);
+    errdefer allocator.free(track_bytes);
+    const track_instructions = try track_program.decodeTrackProgram(allocator, track_bytes);
+    errdefer allocator.free(track_instructions);
+    const life_bytes = try allocator.dupe(u8, object.life.bytes);
+    errdefer allocator.free(life_bytes);
+    const life_instructions = try life_program.decodeLifeProgram(allocator, life_bytes);
+    errdefer allocator.free(life_instructions);
+
+    try seeds.append(allocator, .{
+        .index = object.index,
+        .sprite = object.sprite,
+        .option_flags = object.option_flags,
+        .bonus_quantity = std.math.cast(u8, object.bonus_count) orelse return error.UnsupportedObjectBehaviorBonusQuantityRange,
+        .track_bytes = track_bytes,
+        .track_instructions = track_instructions,
+        .life_bytes = life_bytes,
+        .life_instructions = life_instructions,
+    });
+}
+
+fn findSceneObjectByIndex(
+    objects: []const scene_data.SceneObject,
+    object_index: usize,
+) ?scene_data.SceneObject {
+    for (objects) |object| {
+        if (object.index == object_index) return object;
+    }
+    return null;
+}
+
 fn copyZoneSnapshots(
     allocator: std.mem.Allocator,
     zones: []const scene_data.SceneZone,
@@ -586,6 +666,7 @@ fn copyZoneSnapshots(
     for (zones, copied, 0..) |zone, *slot, index| {
         slot.* = .{
             .index = index,
+            .num = zone.num,
             .kind = zone.zone_type,
             .x_min = @min(zone.x0, zone.x1),
             .y_min = @min(zone.y0, zone.y1),

@@ -1,0 +1,542 @@
+const std = @import("std");
+const life_program = @import("../game_data/scene/life_program.zig");
+const track_program = @import("../game_data/scene/track_program.zig");
+const room_state = @import("room_state.zig");
+const runtime_session = @import("session.zig");
+const world_geometry = @import("world_geometry.zig");
+
+pub const UpdateSummary = struct {
+    updated_object_count: usize = 0,
+};
+
+const supported_scene_entry_index: usize = 19;
+const supported_background_entry_index: usize = 19;
+const supported_object_index: usize = 2;
+const sendell_scene_entry_index: usize = 36;
+const sendell_background_entry_index: usize = 36;
+const sendell_object_index: usize = 2;
+const sendell_flag_index: u8 = 3;
+const lightning_flag_index: u8 = 19;
+const sendell_red_ball_magic_level: u8 = 3;
+const supported_magic_bonus_option_flag: i16 = 64;
+const supported_magic_bonus_sprite_index: i16 = 5;
+
+const RuntimeFunctionValue = union(enum) {
+    s8_value: i8,
+    u8_value: u8,
+    s16_value: i16,
+};
+
+pub fn stepSupportedObjects(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+) !UpdateSummary {
+    var updated_object_count: usize = 0;
+
+    for (room.scene.object_behavior_seeds) |seed| {
+        if (room.scene.entry_index == supported_scene_entry_index and
+            room.background.entry_index == supported_background_entry_index and
+            seed.index == supported_object_index)
+        {
+            try stepScene1919Object2(room, seed, current_session);
+            updated_object_count += 1;
+            continue;
+        }
+        if (room.scene.entry_index == sendell_scene_entry_index and
+            room.background.entry_index == sendell_background_entry_index and
+            seed.index == sendell_object_index)
+        {
+            try stepScene3636Object2(seed, current_session);
+            updated_object_count += 1;
+            continue;
+        }
+
+        return error.UnsupportedObjectBehaviorSeed;
+    }
+
+    return .{ .updated_object_count = updated_object_count };
+}
+
+pub fn applyHeroIntent(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+    intent: runtime_session.HeroIntent,
+) !void {
+    switch (intent) {
+        .cast_lightning => try applyScene3636CastLightning(room, current_session),
+        .advance_story => try applyScene3636AdvanceStory(room, current_session),
+        .move_cardinal => return error.UnsupportedObjectBehaviorHeroIntent,
+    }
+}
+
+pub fn sendellStoryAwaitsAdvance(
+    room: *const room_state.RoomSnapshot,
+    current_session: runtime_session.Session,
+) bool {
+    if (room.scene.entry_index != sendell_scene_entry_index or room.background.entry_index != sendell_background_entry_index) {
+        return false;
+    }
+    const object_behavior = current_session.objectBehaviorStateByIndex(sendell_object_index) orelse return false;
+    return switch (object_behavior.sendell_ball_phase) {
+        .awaiting_first_dialog_ack,
+        .awaiting_second_dialog_ack,
+        => true,
+        else => false,
+    };
+}
+
+fn stepScene1919Object2(
+    room: *const room_state.RoomSnapshot,
+    seed: room_state.ObjectBehaviorSeedSnapshot,
+    current_session: *runtime_session.Session,
+) !void {
+    const object_behavior = current_session.objectBehaviorStateByIndexPtr(seed.index) orelse return error.MissingRuntimeObjectBehaviorState;
+    try executeScene1919Object2Life(room, seed, current_session, object_behavior);
+    try executeScene1919Object2Track(seed.track_instructions, object_behavior);
+}
+
+fn stepScene3636Object2(
+    seed: room_state.ObjectBehaviorSeedSnapshot,
+    current_session: *runtime_session.Session,
+) !void {
+    const object_behavior = current_session.objectBehaviorStateByIndexPtr(seed.index) orelse return error.MissingRuntimeObjectBehaviorState;
+    object_behavior.current_sprite = seed.sprite;
+}
+
+fn applyScene3636CastLightning(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+) !void {
+    if (room.scene.entry_index != sendell_scene_entry_index or room.background.entry_index != sendell_background_entry_index) {
+        return error.UnsupportedObjectBehaviorHeroIntent;
+    }
+
+    const object_behavior = current_session.objectBehaviorStateByIndexPtr(sendell_object_index) orelse return error.MissingRuntimeObjectBehaviorState;
+    if (current_session.gameVar(lightning_flag_index) <= 0) return error.SendellLightningSpellUnavailable;
+    if (current_session.gameVar(sendell_flag_index) != 0 or object_behavior.sendell_ball_phase != .idle) {
+        return error.SendellSequenceAlreadyConsumed;
+    }
+
+    const current_magic_level = current_session.magicLevel();
+    if (current_magic_level == 0) return error.SendellRequiresMagicLevel;
+    const expected_full_magic = current_magic_level * 20;
+    if (current_session.magicPoint() != expected_full_magic) return error.SendellRequiresFullMagic;
+
+    current_session.setMagicPoint(0);
+    object_behavior.sendell_ball_phase = .awaiting_first_dialog_ack;
+}
+
+fn applyScene3636AdvanceStory(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+) !void {
+    if (room.scene.entry_index != sendell_scene_entry_index or room.background.entry_index != sendell_background_entry_index) {
+        return error.UnsupportedObjectBehaviorHeroIntent;
+    }
+
+    const object_behavior = current_session.objectBehaviorStateByIndexPtr(sendell_object_index) orelse return error.MissingRuntimeObjectBehaviorState;
+    switch (object_behavior.sendell_ball_phase) {
+        .awaiting_first_dialog_ack => {
+            current_session.setMagicLevelAndRefill(sendell_red_ball_magic_level);
+            object_behavior.sendell_ball_phase = .awaiting_second_dialog_ack;
+        },
+        .awaiting_second_dialog_ack => {
+            current_session.setGameVar(sendell_flag_index, 1);
+            object_behavior.sendell_ball_phase = .completed;
+        },
+        else => return error.SendellStoryAdvanceUnavailable,
+    }
+}
+
+fn executeScene1919Object2Life(
+    room: *const room_state.RoomSnapshot,
+    seed: room_state.ObjectBehaviorSeedSnapshot,
+    current_session: *runtime_session.Session,
+    object_behavior: *runtime_session.ObjectBehaviorState,
+) !void {
+    var instruction_index: usize = 0;
+    var pending_track_offset: ?i16 = null;
+    while (instruction_index < seed.life_instructions.len) {
+        const instruction = seed.life_instructions[instruction_index];
+        const runtime_opcode = try currentLifeOpcode(object_behavior.*, instruction);
+
+        switch (runtime_opcode) {
+            .LM_IF,
+            .LM_AND_IF,
+            => {
+                const condition = switch (instruction.operands) {
+                    .condition => |value| value,
+                    else => return error.UnsupportedObjectBehaviorLifeOperands,
+                };
+                if (!try evaluateScene1919Object2Condition(room, condition, current_session, object_behavior.*)) {
+                    instruction_index = instructionIndexForOffset(
+                        life_program.LifeInstruction,
+                        seed.life_instructions,
+                        try resolveAbsoluteOffset(condition.jump_offset),
+                    ) orelse return error.UnsupportedObjectBehaviorLifeJumpTarget;
+                    continue;
+                }
+            },
+            .LM_ELSE => {
+                const target_offset = switch (instruction.operands) {
+                    .i16_value => |value| value,
+                    else => return error.UnsupportedObjectBehaviorLifeOperands,
+                };
+                instruction_index = instructionIndexForOffset(
+                    life_program.LifeInstruction,
+                    seed.life_instructions,
+                    try resolveAbsoluteOffset(target_offset),
+                ) orelse return error.UnsupportedObjectBehaviorLifeJumpTarget;
+                continue;
+            },
+            .LM_SET_TRACK => {
+                const track_offset = switch (instruction.operands) {
+                    .i16_value => |value| value,
+                    else => return error.UnsupportedObjectBehaviorLifeOperands,
+                };
+                pending_track_offset = track_offset;
+            },
+            .LM_SET_VAR_CUBE => {
+                const operands = switch (instruction.operands) {
+                    .u8_pair => |value| value,
+                    else => return error.UnsupportedObjectBehaviorLifeOperands,
+                };
+                current_session.setCubeVar(operands.first, operands.second);
+            },
+            .LM_ADD_VAR_CUBE => {
+                const operands = switch (instruction.operands) {
+                    .u8_pair => |value| value,
+                    else => return error.UnsupportedObjectBehaviorLifeOperands,
+                };
+                current_session.addCubeVarSaturating(operands.first, operands.second);
+            },
+            .LM_SWIF => {
+                const condition = switch (instruction.operands) {
+                    .condition => |value| value,
+                    else => return error.UnsupportedObjectBehaviorLifeOperands,
+                };
+                if (!try evaluateScene1919Object2Condition(room, condition, current_session, object_behavior.*)) {
+                    instruction_index = instructionIndexForOffset(
+                        life_program.LifeInstruction,
+                        seed.life_instructions,
+                        try resolveAbsoluteOffset(condition.jump_offset),
+                    ) orelse return error.UnsupportedObjectBehaviorLifeJumpTarget;
+                    continue;
+                }
+
+                try mutateLifeOpcodeByte(object_behavior, instruction.offset, .LM_SNIF);
+            },
+            .LM_SNIF => {
+                const condition = switch (instruction.operands) {
+                    .condition => |value| value,
+                    else => return error.UnsupportedObjectBehaviorLifeOperands,
+                };
+                if (!try evaluateScene1919Object2Condition(room, condition, current_session, object_behavior.*)) {
+                    try mutateLifeOpcodeByte(object_behavior, instruction.offset, .LM_SWIF);
+                }
+
+                instruction_index = instructionIndexForOffset(
+                    life_program.LifeInstruction,
+                    seed.life_instructions,
+                    try resolveAbsoluteOffset(condition.jump_offset),
+                ) orelse return error.UnsupportedObjectBehaviorLifeJumpTarget;
+                continue;
+            },
+            .LM_GIVE_BONUS => {
+                const exhaust_after_use = switch (instruction.operands) {
+                    .u8_value => |value| value == 0,
+                    else => return error.UnsupportedObjectBehaviorLifeOperands,
+                };
+                try appendSupportedBonusSpawn(seed, current_session, object_behavior, exhaust_after_use);
+            },
+            .LM_END_COMPORTEMENT,
+            .LM_END,
+            => break,
+            else => return error.UnsupportedScene1919Object2LifeOpcode,
+        }
+
+        instruction_index += 1;
+    }
+
+    if (pending_track_offset) |track_offset| {
+        try setTrackState(seed.track_instructions, object_behavior, track_offset);
+    }
+}
+
+fn executeScene1919Object2Track(
+    instructions: []const track_program.TrackInstruction,
+    object_behavior: *runtime_session.ObjectBehaviorState,
+) !void {
+    const start_offset = object_behavior.current_track_resume_offset orelse object_behavior.current_track_offset orelse return;
+    var instruction_index = instructionIndexForOffset(
+        track_program.TrackInstruction,
+        instructions,
+        try resolveAbsoluteOffset(start_offset),
+    ) orelse return error.UnsupportedObjectBehaviorTrackStartOffset;
+
+    if (object_behavior.wait_ticks_remaining > 0) {
+        object_behavior.wait_ticks_remaining -= 1;
+        if (object_behavior.wait_ticks_remaining > 0) return;
+    }
+
+    while (instruction_index < instructions.len) {
+        const instruction = instructions[instruction_index];
+        switch (instruction.opcode) {
+            .rem => {},
+            .label => {
+                const operands = switch (instruction.operands) {
+                    .label => |value| value,
+                    else => return error.UnsupportedObjectBehaviorTrackOperands,
+                };
+                object_behavior.current_track_label = operands.label;
+            },
+            .sample => {},
+            .sprite => {
+                const sprite = switch (instruction.operands) {
+                    .i16_value => |value| value,
+                    else => return error.UnsupportedObjectBehaviorTrackOperands,
+                };
+                object_behavior.current_sprite = sprite;
+            },
+            .wait_nb_dizieme => {
+                const operands = switch (instruction.operands) {
+                    .wait_timer => |value| value,
+                    else => return error.UnsupportedObjectBehaviorTrackOperands,
+                };
+                object_behavior.current_track_resume_offset = nextInstructionOffset(
+                    track_program.TrackInstruction,
+                    instructions,
+                    instruction_index,
+                );
+                object_behavior.wait_ticks_remaining = operands.raw_count;
+                return;
+            },
+            .stop,
+            .end,
+            => {
+                object_behavior.current_track_resume_offset = null;
+                return;
+            },
+            else => return error.UnsupportedScene1919Object2TrackOpcode,
+        }
+
+        instruction_index += 1;
+    }
+
+    object_behavior.current_track_resume_offset = null;
+}
+
+fn evaluateScene1919Object2Condition(
+    room: *const room_state.RoomSnapshot,
+    condition: life_program.LifeCondition,
+    current_session: *runtime_session.Session,
+    object_behavior: runtime_session.ObjectBehaviorState,
+) !bool {
+    const lhs = try evaluateScene1919Object2Function(room, condition.function, current_session, object_behavior);
+    return compareFunctionValue(lhs, condition.comparison);
+}
+
+fn evaluateScene1919Object2Function(
+    room: *const room_state.RoomSnapshot,
+    function_call: life_program.LifeFunctionCall,
+    current_session: *runtime_session.Session,
+    object_behavior: runtime_session.ObjectBehaviorState,
+) !RuntimeFunctionValue {
+    return switch (function_call.function) {
+        .LF_HIT_BY => switch (function_call.operands) {
+            .none => .{ .s8_value = object_behavior.last_hit_by },
+            else => error.UnsupportedObjectBehaviorLifeFunctionOperands,
+        },
+        .LF_VAR_CUBE => .{ .u8_value = current_session.cubeVar(try expectFunctionU8Operand(function_call)) },
+        .LF_L_TRACK => switch (function_call.operands) {
+            .none => .{ .u8_value = object_behavior.current_track_label orelse std.math.maxInt(u8) },
+            else => error.UnsupportedObjectBehaviorLifeFunctionOperands,
+        },
+        .LF_ZONE_OBJ => .{
+            .s8_value = try zoneFunctionValue(room, current_session, function_call),
+        },
+        else => error.UnsupportedScene1919Object2LifeFunction,
+    };
+}
+
+fn expectFunctionU8Operand(function_call: life_program.LifeFunctionCall) !u8 {
+    return switch (function_call.operands) {
+        .u8_value => |value| value,
+        else => error.UnsupportedObjectBehaviorLifeFunctionOperands,
+    };
+}
+
+fn compareFunctionValue(
+    lhs: RuntimeFunctionValue,
+    comparison: life_program.LifeTest,
+) !bool {
+    return switch (lhs) {
+        .s8_value => |value| switch (comparison.literal) {
+            .s8_value => |literal| compareValues(comparison.comparator, value, literal),
+            else => error.UnsupportedObjectBehaviorLifeLiteral,
+        },
+        .u8_value => |value| switch (comparison.literal) {
+            .u8_value => |literal| compareValues(comparison.comparator, value, literal),
+            else => error.UnsupportedObjectBehaviorLifeLiteral,
+        },
+        .s16_value => |value| switch (comparison.literal) {
+            .s16_value => |literal| compareValues(comparison.comparator, value, literal),
+            else => error.UnsupportedObjectBehaviorLifeLiteral,
+        },
+    };
+}
+
+fn compareValues(
+    comparator: life_program.LifeComparator,
+    lhs: anytype,
+    rhs: @TypeOf(lhs),
+) bool {
+    return switch (comparator) {
+        .LT_EQUAL => lhs == rhs,
+        .LT_SUP => lhs > rhs,
+        .LT_LESS => lhs < rhs,
+        .LT_SUP_EQUAL => lhs >= rhs,
+        .LT_LESS_EQUAL => lhs <= rhs,
+        .LT_DIFFERENT => lhs != rhs,
+    };
+}
+
+fn currentLifeOpcode(
+    object_behavior: runtime_session.ObjectBehaviorState,
+    instruction: life_program.LifeInstruction,
+) !life_program.LifeOpcode {
+    if (instruction.offset >= object_behavior.life_bytes.len) return error.UnsupportedObjectBehaviorLifeOpcodeOffset;
+    return std.meta.intToEnum(life_program.LifeOpcode, object_behavior.life_bytes[instruction.offset]) catch error.UnsupportedObjectBehaviorLifeOpcodeByte;
+}
+
+fn mutateLifeOpcodeByte(
+    object_behavior: *runtime_session.ObjectBehaviorState,
+    offset: usize,
+    opcode: life_program.LifeOpcode,
+) !void {
+    if (offset >= object_behavior.life_bytes.len) return error.UnsupportedObjectBehaviorLifeOpcodeOffset;
+    object_behavior.life_bytes[offset] = @intFromEnum(opcode);
+}
+
+fn zoneFunctionValue(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+    function_call: life_program.LifeFunctionCall,
+) !i8 {
+    const object_index = try expectFunctionU8Operand(function_call);
+    if (object_index != 0) return error.UnsupportedScene1919Object2LifeFunctionObjectIndex;
+    return currentHeroScenarioZone(room, current_session.heroWorldPosition());
+}
+
+fn currentHeroScenarioZone(
+    room: *const room_state.RoomSnapshot,
+    hero_position: world_geometry.WorldPointSnapshot,
+) !i8 {
+    var current_zone: i8 = -1;
+    for (room.scene.zones) |zone| {
+        if (zone.kind != .scenario) continue;
+        if (!classicZoneContainsWorldPoint(zone, hero_position)) continue;
+        current_zone = std.math.cast(i8, zone.num) orelse return error.UnsupportedScene1919Object2ZoneNumberRange;
+    }
+    return current_zone;
+}
+
+fn classicZoneContainsWorldPoint(
+    zone: room_state.ZoneBoundsSnapshot,
+    world_position: world_geometry.WorldPointSnapshot,
+) bool {
+    return world_position.x >= zone.x_min and
+        world_position.x < zone.x_max and
+        world_position.y >= zone.y_min and
+        world_position.y <= zone.y_max and
+        world_position.z >= zone.z_min and
+        world_position.z < zone.z_max;
+}
+
+fn setTrackState(
+    instructions: []const track_program.TrackInstruction,
+    object_behavior: *runtime_session.ObjectBehaviorState,
+    track_offset: i16,
+) !void {
+    object_behavior.current_track_offset = track_offset;
+    object_behavior.current_track_resume_offset = track_offset;
+    object_behavior.current_track_label = try trackLabelAtOffset(instructions, track_offset);
+    object_behavior.wait_ticks_remaining = 0;
+}
+
+fn trackLabelAtOffset(
+    instructions: []const track_program.TrackInstruction,
+    target_offset: i16,
+) !?u8 {
+    var instruction_index = instructionIndexForOffset(
+        track_program.TrackInstruction,
+        instructions,
+        try resolveAbsoluteOffset(target_offset),
+    ) orelse return error.UnsupportedObjectBehaviorTrackStartOffset;
+
+    while (instruction_index < instructions.len) {
+        const instruction = instructions[instruction_index];
+        switch (instruction.opcode) {
+            .label => {
+                return switch (instruction.operands) {
+                    .label => |value| value.label,
+                    else => return error.UnsupportedObjectBehaviorTrackOperands,
+                };
+            },
+            .stop, .end => return null,
+            else => instruction_index += 1,
+        }
+    }
+
+    return null;
+}
+
+fn nextInstructionOffset(
+    comptime Instruction: type,
+    instructions: []const Instruction,
+    instruction_index: usize,
+) ?i16 {
+    if (instruction_index + 1 >= instructions.len) return null;
+    return std.math.cast(i16, instructions[instruction_index + 1].offset);
+}
+
+fn appendSupportedBonusSpawn(
+    seed: room_state.ObjectBehaviorSeedSnapshot,
+    current_session: *runtime_session.Session,
+    object_behavior: *runtime_session.ObjectBehaviorState,
+    exhaust_after_use: bool,
+) !void {
+    if (object_behavior.bonus_exhausted) return;
+    if ((seed.option_flags & supported_magic_bonus_option_flag) == 0) {
+        return error.UnsupportedScene1919Object2BonusFlags;
+    }
+
+    const quantity = if (seed.bonus_quantity == 0) @as(u8, 1) else seed.bonus_quantity;
+    try current_session.appendBonusSpawnEvent(.{
+        .frame_index = current_session.frame_index,
+        .source_object_index = seed.index,
+        .kind = .magic,
+        .sprite_index = supported_magic_bonus_sprite_index,
+        .quantity = quantity,
+    });
+    if (object_behavior.emitted_bonus_count < std.math.maxInt(u8)) {
+        object_behavior.emitted_bonus_count += 1;
+    }
+    if (exhaust_after_use) object_behavior.bonus_exhausted = true;
+}
+
+fn resolveAbsoluteOffset(offset: i16) !usize {
+    if (offset < 0) return error.UnsupportedNegativeObjectBehaviorOffset;
+    return std.math.cast(usize, offset) orelse return error.UnsupportedObjectBehaviorOffsetRange;
+}
+
+fn instructionIndexForOffset(
+    comptime Instruction: type,
+    instructions: []const Instruction,
+    target_offset: usize,
+) ?usize {
+    for (instructions, 0..) |instruction, instruction_index| {
+        if (instruction.offset == target_offset) return instruction_index;
+    }
+    return null;
+}

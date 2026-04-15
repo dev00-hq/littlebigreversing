@@ -1,0 +1,166 @@
+const std = @import("std");
+const room_fixtures = @import("../testing/room_fixtures.zig");
+const life_program = @import("../game_data/scene/life_program.zig");
+const object_behavior = @import("object_behavior.zig");
+const locomotion = @import("locomotion.zig");
+const room_state = @import("room_state.zig");
+const runtime_query = @import("world_query.zig");
+const runtime_session = @import("session.zig");
+const runtime_update = @import("update.zig");
+
+const fixture_cell = locomotion.GridCell{ .x = 39, .z = 6 };
+const sendell_flag_index: u8 = 3;
+const lightning_flag_index: u8 = 19;
+
+fn initSession(room: *const room_state.RoomSnapshot) !runtime_session.Session {
+    return runtime_session.Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(room),
+        room.scene.objects,
+        room.scene.object_behavior_seeds,
+    );
+}
+
+fn seedSessionToFixture(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+) !locomotion.WorldPointSnapshot {
+    const query = runtime_query.init(room);
+    const surface = try query.cellTopSurface(fixture_cell.x, fixture_cell.z);
+    const seeded_position = runtime_query.gridCellCenterWorldPosition(
+        fixture_cell.x,
+        fixture_cell.z,
+        surface.top_y,
+    );
+    current_session.setHeroWorldPosition(seeded_position);
+    return seeded_position;
+}
+
+test "runtime update tick advances frame ownership and supported object behavior even without hero intent" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    const tick_result = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expect(!tick_result.consumed_hero_intent);
+    try std.testing.expectEqual(@as(usize, 1), current_session.frame_index);
+    try std.testing.expectEqual(@as(usize, 1), tick_result.updated_object_count);
+    try std.testing.expectEqual(@as(u8, 1), current_session.cubeVar(0));
+    try std.testing.expectEqual(@as(i16, 138), current_session.objectBehaviorStateByIndex(2).?.current_sprite);
+    switch (tick_result.locomotion_status) {
+        .raw_invalid_start => {},
+        else => return error.UnexpectedLocomotionStatus,
+    }
+}
+
+test "runtime update tick consumes queued hero movement and advances the frame index" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    const seeded_position = try seedSessionToFixture(room, &current_session);
+    try current_session.submitHeroIntent(.{ .move_cardinal = .south });
+
+    const tick_result = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expect(tick_result.consumed_hero_intent);
+    try std.testing.expectEqual(@as(?runtime_session.HeroIntent, null), current_session.pendingHeroIntent());
+    try std.testing.expectEqual(@as(usize, 1), current_session.frame_index);
+    try std.testing.expectEqual(@as(usize, 1), tick_result.updated_object_count);
+    try std.testing.expectEqual(@as(u8, 1), current_session.cubeVar(0));
+    try std.testing.expectEqual(@as(i16, 138), current_session.objectBehaviorStateByIndex(2).?.current_sprite);
+    switch (tick_result.locomotion_status) {
+        .last_move_accepted => |value| {
+            try std.testing.expectEqual(locomotion.CardinalDirection.south, value.direction);
+            try std.testing.expectEqual(fixture_cell, value.origin_cell);
+            try std.testing.expectEqual(locomotion.GridCell{ .x = 39, .z = 7 }, value.cell);
+            try std.testing.expect(current_session.heroWorldPosition().z > seeded_position.z);
+            try std.testing.expectEqual(current_session.heroWorldPosition(), value.hero_position);
+        },
+        else => return error.UnexpectedLocomotionStatus,
+    }
+}
+
+test "runtime object behavior frame progression advances the later 19/19 object 2 reward loop and emits bounded magic bonus events" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{
+        .x = 2500,
+        .y = 1000,
+        .z = 1000,
+    });
+
+    _ = try object_behavior.stepSupportedObjects(room, &current_session);
+    current_session.advanceFrameIndex();
+    const primed_state = current_session.objectBehaviorStateByIndexPtr(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    primed_state.last_hit_by = 1;
+
+    var reward_tick: ?usize = null;
+    var tick_index: usize = 1;
+    while (tick_index < 16) : (tick_index += 1) {
+        _ = try object_behavior.stepSupportedObjects(room, &current_session);
+        current_session.advanceFrameIndex();
+        if (current_session.bonusSpawnEvents().len != 0) {
+            reward_tick = tick_index + 1;
+            break;
+        }
+    }
+
+    try std.testing.expectEqual(@as(?usize, 13), reward_tick);
+    try std.testing.expectEqual(@as(u8, 1), current_session.cubeVar(1));
+    try std.testing.expectEqual(@as(usize, 1), current_session.bonusSpawnEvents().len);
+
+    const bonus_event = current_session.bonusSpawnEvents()[0];
+    try std.testing.expectEqual(@as(usize, 12), bonus_event.frame_index);
+    try std.testing.expectEqual(@as(usize, 2), bonus_event.source_object_index);
+    try std.testing.expectEqual(runtime_session.RuntimeBonusKind.magic, bonus_event.kind);
+    try std.testing.expectEqual(@as(i16, 5), bonus_event.sprite_index);
+    try std.testing.expectEqual(@as(u8, 5), bonus_event.quantity);
+
+    const rewarded_state = current_session.objectBehaviorStateByIndex(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    try std.testing.expectEqual(@as(u8, 1), rewarded_state.emitted_bonus_count);
+    try std.testing.expectEqual(@as(u8, @intFromEnum(life_program.LifeOpcode.LM_SNIF)), rewarded_state.life_bytes[51]);
+
+    _ = try object_behavior.stepSupportedObjects(room, &current_session);
+    current_session.advanceFrameIndex();
+    const recovered_state = current_session.objectBehaviorStateByIndex(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    try std.testing.expectEqual(@as(u8, @intFromEnum(life_program.LifeOpcode.LM_SWIF)), recovered_state.life_bytes[51]);
+}
+
+test "runtime update tick advances the bounded Sendell room-36 story-state sequence" {
+    const room = try room_fixtures.guarded3636();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setMagicLevelAndRefill(2);
+    current_session.setGameVar(sendell_flag_index, 0);
+    current_session.setGameVar(lightning_flag_index, 1);
+
+    try current_session.submitHeroIntent(.cast_lightning);
+    const cast_tick = try runtime_update.tick(room, &current_session);
+    try std.testing.expect(cast_tick.consumed_hero_intent);
+    try std.testing.expectEqual(@as(usize, 1), cast_tick.updated_object_count);
+    try std.testing.expectEqual(@as(usize, 1), current_session.frame_index);
+    try std.testing.expectEqual(@as(u8, 2), current_session.magicLevel());
+    try std.testing.expectEqual(@as(u8, 0), current_session.magicPoint());
+    try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_first_dialog_ack, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
+
+    try current_session.submitHeroIntent(.advance_story);
+    const first_dialog_tick = try runtime_update.tick(room, &current_session);
+    try std.testing.expect(first_dialog_tick.consumed_hero_intent);
+    try std.testing.expectEqual(@as(usize, 2), current_session.frame_index);
+    try std.testing.expectEqual(@as(u8, 3), current_session.magicLevel());
+    try std.testing.expectEqual(@as(u8, 60), current_session.magicPoint());
+    try std.testing.expectEqual(@as(i16, 0), current_session.gameVar(sendell_flag_index));
+    try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_second_dialog_ack, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
+
+    try current_session.submitHeroIntent(.advance_story);
+    const second_dialog_tick = try runtime_update.tick(room, &current_session);
+    try std.testing.expect(second_dialog_tick.consumed_hero_intent);
+    try std.testing.expectEqual(@as(usize, 3), current_session.frame_index);
+    try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(sendell_flag_index));
+    try std.testing.expectEqual(runtime_session.SendellBallPhase.completed, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
+}

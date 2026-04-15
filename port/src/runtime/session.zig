@@ -1,12 +1,19 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const room_fixtures = if (builtin.is_test) @import("../testing/room_fixtures.zig") else struct {};
+const room_state = @import("room_state.zig");
 const world_geometry = @import("world_geometry.zig");
 
 pub const HeroWorldDelta = struct {
     x: i32 = 0,
     y: i32 = 0,
     z: i32 = 0,
+};
+
+pub const HeroIntent = union(enum) {
+    move_cardinal: world_geometry.CardinalDirection,
+    cast_lightning,
+    advance_story,
 };
 
 pub const FrameUpdate = struct {
@@ -17,9 +24,58 @@ pub const HeroState = struct {
     world_position: world_geometry.WorldPointSnapshot,
 };
 
+pub const ObjectState = room_state.ObjectPositionSnapshot;
+pub const ObjectBehaviorSeedState = room_state.ObjectBehaviorSeedSnapshot;
+pub const RuntimeBonusKind = enum {
+    magic,
+};
+
+pub const BonusSpawnEvent = struct {
+    frame_index: usize,
+    source_object_index: usize,
+    kind: RuntimeBonusKind,
+    sprite_index: i16,
+    quantity: u8,
+};
+
+const max_bonus_spawn_events = 16;
+const max_game_vars = 256;
+
+pub const SendellBallPhase = enum(u8) {
+    idle,
+    awaiting_first_dialog_ack,
+    awaiting_second_dialog_ack,
+    completed,
+};
+
+pub const ObjectBehaviorState = struct {
+    index: usize,
+    current_track_offset: ?i16,
+    current_track_resume_offset: ?i16,
+    current_track_label: ?u8,
+    current_sprite: i16,
+    wait_ticks_remaining: u8,
+    last_hit_by: i8,
+    sendell_ball_phase: SendellBallPhase,
+    emitted_bonus_count: u8,
+    bonus_exhausted: bool,
+    life_bytes: []u8,
+};
+
 pub const Session = struct {
     frame_index: usize,
     hero: HeroState,
+    pending_hero_intent: ?HeroIntent,
+    cube_vars: [256]u8,
+    game_vars: [max_game_vars]i16,
+    magic_level: u8,
+    magic_point: u8,
+    objects: []ObjectState,
+    object_behaviors: []ObjectBehaviorState,
+    bonus_spawn_event_count: usize,
+    bonus_spawn_events: [max_bonus_spawn_events]BonusSpawnEvent,
+    owns_objects: bool,
+    owns_object_behaviors: bool,
 
     pub fn init(hero_world_position: world_geometry.WorldPointSnapshot) Session {
         return .{
@@ -27,7 +83,61 @@ pub const Session = struct {
             .hero = .{
                 .world_position = hero_world_position,
             },
+            .pending_hero_intent = null,
+            .cube_vars = [_]u8{0} ** 256,
+            .game_vars = [_]i16{0} ** max_game_vars,
+            .magic_level = 0,
+            .magic_point = 0,
+            .objects = &.{},
+            .object_behaviors = &.{},
+            .bonus_spawn_event_count = 0,
+            .bonus_spawn_events = undefined,
+            .owns_objects = false,
+            .owns_object_behaviors = false,
         };
+    }
+
+    pub fn initWithObjects(
+        allocator: std.mem.Allocator,
+        hero_world_position: world_geometry.WorldPointSnapshot,
+        objects: []const ObjectState,
+        behavior_seeds: []const ObjectBehaviorSeedState,
+    ) !Session {
+        const owned_objects = try allocator.dupe(ObjectState, objects);
+        errdefer allocator.free(owned_objects);
+        const owned_object_behaviors = try copyObjectBehaviorStates(allocator, behavior_seeds);
+        errdefer allocator.free(owned_object_behaviors);
+
+        return .{
+            .frame_index = 0,
+            .hero = .{
+                .world_position = hero_world_position,
+            },
+            .pending_hero_intent = null,
+            .cube_vars = [_]u8{0} ** 256,
+            .game_vars = [_]i16{0} ** max_game_vars,
+            .magic_level = 0,
+            .magic_point = 0,
+            .objects = owned_objects,
+            .object_behaviors = owned_object_behaviors,
+            .bonus_spawn_event_count = 0,
+            .bonus_spawn_events = undefined,
+            .owns_objects = true,
+            .owns_object_behaviors = true,
+        };
+    }
+
+    pub fn deinit(self: *Session, allocator: std.mem.Allocator) void {
+        if (self.owns_objects) allocator.free(self.objects);
+        if (self.owns_object_behaviors) {
+            for (self.object_behaviors) |object_behavior| allocator.free(object_behavior.life_bytes);
+            allocator.free(self.object_behaviors);
+        }
+        self.objects = &.{};
+        self.object_behaviors = &.{};
+        self.bonus_spawn_event_count = 0;
+        self.owns_objects = false;
+        self.owns_object_behaviors = false;
     }
 
     pub fn heroWorldPosition(self: Session) world_geometry.WorldPointSnapshot {
@@ -38,13 +148,165 @@ pub const Session = struct {
         self.hero.world_position = position;
     }
 
-    pub fn advanceFrame(self: *Session, update: FrameUpdate) void {
+    pub fn pendingHeroIntent(self: Session) ?HeroIntent {
+        return self.pending_hero_intent;
+    }
+
+    pub fn cubeVar(self: Session, index: u8) u8 {
+        return self.cube_vars[index];
+    }
+
+    pub fn setCubeVar(self: *Session, index: u8, value: u8) void {
+        self.cube_vars[index] = value;
+    }
+
+    pub fn addCubeVar(self: *Session, index: u8, delta: u8) void {
+        self.cube_vars[index] +%= delta;
+    }
+
+    pub fn addCubeVarSaturating(self: *Session, index: u8, delta: u8) void {
+        const current: u16 = self.cube_vars[index];
+        const addition: u16 = delta;
+        self.cube_vars[index] = @intCast(@min(current + addition, std.math.maxInt(u8)));
+    }
+
+    pub fn gameVar(self: Session, index: u8) i16 {
+        return self.game_vars[index];
+    }
+
+    pub fn setGameVar(self: *Session, index: u8, value: i16) void {
+        self.game_vars[index] = value;
+    }
+
+    pub fn magicLevel(self: Session) u8 {
+        return self.magic_level;
+    }
+
+    pub fn magicPoint(self: Session) u8 {
+        return self.magic_point;
+    }
+
+    pub fn setMagicLevelAndRefill(self: *Session, level: u8) void {
+        self.magic_level = level;
+        self.magic_point = level * 20;
+    }
+
+    pub fn setMagicPoint(self: *Session, value: u8) void {
+        self.magic_point = value;
+    }
+
+    pub fn objectSnapshots(self: Session) []const ObjectState {
+        return self.objects;
+    }
+
+    pub fn objectSnapshotByIndex(self: Session, object_index: usize) ?ObjectState {
+        for (self.objects) |object| {
+            if (object.index == object_index) return object;
+        }
+        return null;
+    }
+
+    pub fn objectBehaviorStates(self: Session) []const ObjectBehaviorState {
+        return self.object_behaviors;
+    }
+
+    pub fn bonusSpawnEvents(self: Session) []const BonusSpawnEvent {
+        return self.bonus_spawn_events[0..self.bonus_spawn_event_count];
+    }
+
+    pub fn objectBehaviorStateByIndex(self: Session, object_index: usize) ?ObjectBehaviorState {
+        for (self.object_behaviors) |object_behavior| {
+            if (object_behavior.index == object_index) return object_behavior;
+        }
+        return null;
+    }
+
+    pub fn objectBehaviorStateByIndexPtr(
+        self: *Session,
+        object_index: usize,
+    ) ?*ObjectBehaviorState {
+        for (self.object_behaviors) |*object_behavior| {
+            if (object_behavior.index == object_index) return object_behavior;
+        }
+        return null;
+    }
+
+    pub fn setObjectWorldPosition(
+        self: *Session,
+        object_index: usize,
+        position: world_geometry.WorldPointSnapshot,
+    ) !void {
+        for (self.objects) |*object| {
+            if (object.index != object_index) continue;
+            object.x = position.x;
+            object.y = position.y;
+            object.z = position.z;
+            return;
+        }
+        return error.UnknownSessionObjectIndex;
+    }
+
+    pub fn submitHeroIntent(self: *Session, intent: HeroIntent) !void {
+        if (self.pending_hero_intent != null) return error.PendingHeroIntentAlreadySet;
+        self.pending_hero_intent = intent;
+    }
+
+    pub fn consumeHeroIntent(self: *Session) ?HeroIntent {
+        const intent = self.pending_hero_intent;
+        self.pending_hero_intent = null;
+        return intent;
+    }
+
+    pub fn appendBonusSpawnEvent(self: *Session, event: BonusSpawnEvent) !void {
+        if (self.bonus_spawn_event_count >= self.bonus_spawn_events.len) {
+            return error.BonusSpawnEventCapacityExceeded;
+        }
+        self.bonus_spawn_events[self.bonus_spawn_event_count] = event;
+        self.bonus_spawn_event_count += 1;
+    }
+
+    pub fn advanceFrameIndex(self: *Session) void {
         self.frame_index += 1;
+    }
+
+    pub fn advanceFrame(self: *Session, update: FrameUpdate) void {
+        self.advanceFrameIndex();
         self.hero.world_position.x += update.hero_world_delta.x;
         self.hero.world_position.y += update.hero_world_delta.y;
         self.hero.world_position.z += update.hero_world_delta.z;
     }
 };
+
+fn copyObjectBehaviorStates(
+    allocator: std.mem.Allocator,
+    behavior_seeds: []const ObjectBehaviorSeedState,
+) ![]ObjectBehaviorState {
+    const copied = try allocator.alloc(ObjectBehaviorState, behavior_seeds.len);
+    var initialized_count: usize = 0;
+    errdefer {
+        for (copied[0..initialized_count]) |object_behavior| allocator.free(object_behavior.life_bytes);
+        allocator.free(copied);
+    }
+
+    for (behavior_seeds, copied) |seed, *slot| {
+        const life_bytes = try allocator.dupe(u8, seed.life_bytes);
+        slot.* = .{
+            .index = seed.index,
+            .current_track_offset = null,
+            .current_track_resume_offset = null,
+            .current_track_label = null,
+            .current_sprite = seed.sprite,
+            .wait_ticks_remaining = 0,
+            .last_hit_by = 0,
+            .sendell_ball_phase = .idle,
+            .emitted_bonus_count = 0,
+            .bonus_exhausted = false,
+            .life_bytes = life_bytes,
+        };
+        initialized_count += 1;
+    }
+    return copied;
+}
 
 test "runtime session initializes mutable hero state from an explicit world-position seed" {
     const runtime_session = Session.init(.{
@@ -56,10 +318,16 @@ test "runtime session initializes mutable hero state from an explicit world-posi
     try std.testing.expectEqual(@as(i32, 1987), runtime_session.hero.world_position.x);
     try std.testing.expectEqual(@as(i32, 512), runtime_session.hero.world_position.y);
     try std.testing.expectEqual(@as(i32, 3743), runtime_session.hero.world_position.z);
+    try std.testing.expectEqual(@as(?HeroIntent, null), runtime_session.pendingHeroIntent());
+    try std.testing.expectEqual(@as(u8, 0), runtime_session.cubeVar(0));
+    try std.testing.expectEqual(@as(i16, 0), runtime_session.gameVar(0));
+    try std.testing.expectEqual(@as(u8, 0), runtime_session.magicLevel());
+    try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
+    try std.testing.expectEqual(@as(usize, 0), runtime_session.objectSnapshots().len);
+    try std.testing.expectEqual(@as(usize, 0), runtime_session.objectBehaviorStates().len);
 }
 
 test "runtime session updates stay separate from immutable room snapshot ownership" {
-    const room_state = @import("room_state.zig");
     const room = try room_fixtures.guarded1919();
 
     var runtime_session = Session.init(room_state.heroStartWorldPoint(room));
@@ -76,8 +344,92 @@ test "runtime session updates stay separate from immutable room snapshot ownersh
     try std.testing.expectEqual(@as(i16, 3743), room.scene.hero_start.z);
 }
 
+test "runtime session can own copied object snapshots separately from immutable room state" {
+    const room = try room_fixtures.guarded1919();
+
+    var runtime_session = try Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(room),
+        room.scene.objects,
+        room.scene.object_behavior_seeds,
+    );
+    defer runtime_session.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(room.scene.objects.len, runtime_session.objectSnapshots().len);
+    try std.testing.expectEqual(room.scene.objects[1], runtime_session.objectSnapshotByIndex(2).?);
+    try std.testing.expectEqual(@as(usize, 1), runtime_session.objectBehaviorStates().len);
+    try std.testing.expectEqual(@as(i16, 137), runtime_session.objectBehaviorStateByIndex(2).?.current_sprite);
+    try std.testing.expectEqual(SendellBallPhase.idle, runtime_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
+
+    try runtime_session.setObjectWorldPosition(2, .{
+        .x = 4096,
+        .y = 1408,
+        .z = 2048,
+    });
+
+    try std.testing.expectEqual(@as(i32, 4096), runtime_session.objectSnapshotByIndex(2).?.x);
+    try std.testing.expectEqual(@as(i32, 1408), runtime_session.objectSnapshotByIndex(2).?.y);
+    try std.testing.expectEqual(@as(i32, 2048), runtime_session.objectSnapshotByIndex(2).?.z);
+    try std.testing.expectEqual(@as(i32, 3088), room.scene.objects[1].x);
+    try std.testing.expectEqual(@as(i32, 1248), room.scene.objects[1].y);
+    try std.testing.expectEqual(@as(i32, 1488), room.scene.objects[1].z);
+    try std.testing.expectEqual(@as(i16, 137), room.scene.object_behavior_seeds[0].sprite);
+    try std.testing.expectEqual(@as(?i16, null), runtime_session.objectBehaviorStateByIndex(2).?.current_track_offset);
+}
+
+test "runtime session hero intents are single-slot and consumed explicitly" {
+    var runtime_session = Session.init(.{
+        .x = 1987,
+        .y = 512,
+        .z = 3743,
+    });
+    const expected_intent: HeroIntent = .{ .move_cardinal = .south };
+
+    try runtime_session.submitHeroIntent(expected_intent);
+    try std.testing.expectEqual(expected_intent, runtime_session.pendingHeroIntent().?);
+    try std.testing.expectError(
+        error.PendingHeroIntentAlreadySet,
+        runtime_session.submitHeroIntent(.{ .move_cardinal = .north }),
+    );
+
+    try std.testing.expectEqual(expected_intent, runtime_session.consumeHeroIntent().?);
+    try std.testing.expectEqual(@as(?HeroIntent, null), runtime_session.pendingHeroIntent());
+    try std.testing.expectEqual(@as(?HeroIntent, null), runtime_session.consumeHeroIntent());
+}
+
+test "runtime session tracks mutable game vars and magic state separately from cube vars" {
+    var runtime_session = Session.init(.{
+        .x = 1987,
+        .y = 512,
+        .z = 3743,
+    });
+
+    runtime_session.setGameVar(3, 1);
+    runtime_session.setMagicLevelAndRefill(3);
+    runtime_session.setMagicPoint(0);
+
+    try std.testing.expectEqual(@as(i16, 1), runtime_session.gameVar(3));
+    try std.testing.expectEqual(@as(u8, 3), runtime_session.magicLevel());
+    try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
+    try std.testing.expectEqual(@as(u8, 0), runtime_session.cubeVar(3));
+}
+
+test "runtime session can advance frame ownership without mutating hero position" {
+    var runtime_session = Session.init(.{
+        .x = 1987,
+        .y = 512,
+        .z = 3743,
+    });
+
+    runtime_session.advanceFrameIndex();
+
+    try std.testing.expectEqual(@as(usize, 1), runtime_session.frame_index);
+    try std.testing.expectEqual(@as(i32, 1987), runtime_session.heroWorldPosition().x);
+    try std.testing.expectEqual(@as(i32, 512), runtime_session.heroWorldPosition().y);
+    try std.testing.expectEqual(@as(i32, 3743), runtime_session.heroWorldPosition().z);
+}
+
 test "runtime render snapshots consume session state without duplicating guarded loading" {
-    const room_state = @import("room_state.zig");
     const room = try room_fixtures.guarded1919();
 
     var runtime_session = Session.init(room_state.heroStartWorldPoint(room));
