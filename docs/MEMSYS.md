@@ -32,6 +32,21 @@ The goal is to keep the always-loaded layer small, move durable current-state tr
 
 ## CLI Surface
 
+From native PowerShell on the canonical Windows host:
+
+```powershell
+py -3 .\tools\codex_memory.py validate
+py -3 .\tools\codex_memory.py context
+py -3 .\tools\codex_memory.py context --path port/src/game_data/background/parser.zig --include-history 3
+py -3 .\tools\codex_memory.py add-policy ...
+py -3 .\tools\codex_memory.py add-fact ...
+py -3 .\tools\codex_memory.py add-investigation ...
+py -3 .\tools\codex_memory.py add-compat-event ...
+py -3 .\tools\codex_memory.py add-task-event ...
+```
+
+From Bash:
+
 ```bash
 python3 tools/codex_memory.py validate
 python3 tools/codex_memory.py context

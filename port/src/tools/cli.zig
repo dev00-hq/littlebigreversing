@@ -2109,6 +2109,10 @@ fn generateFixtures(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPa
 }
 
 fn validatePhase1(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths) !void {
+    var stderr_buffer: [4096]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    const stderr = &stderr_writer.interface;
+
     const inventory = try catalog.generateAssetCatalog(allocator, resolved);
     defer {
         for (inventory) |entry| entry.deinit(allocator);
@@ -2151,12 +2155,9 @@ fn validatePhase1(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPath
     const fixture_path = try std.fs.path.join(allocator, &.{ resolved.work_root, "fixture_manifest.json" });
     defer allocator.free(fixture_path);
 
-    try ensureMatchingFile(inventory_path, inventory_json);
-    try ensureMatchingFile(fixture_path, fixture_json_first);
+    try ensureMatchingFile(stderr, "asset_catalog", "work/port/phase1/asset_catalog.json", inventory_path, inventory_json);
+    try ensureMatchingFile(stderr, "fixture_manifest", "work/port/phase1/fixture_manifest.json", fixture_path, fixture_json_first);
 
-    var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
-    const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "status", .value = "ok" },
         .{ .key = "command", .value = "validate-phase1" },
@@ -2173,15 +2174,69 @@ fn sameFixtureHashes(lhs: []const fixtures.FixtureManifestEntry, rhs: []const fi
     return true;
 }
 
-fn ensureMatchingFile(path: []const u8, expected: []const u8) !void {
-    var file = std.fs.openFileAbsolute(path, .{}) catch return error.MissingGeneratedOutput;
+fn ensureMatchingFile(
+    writer: anytype,
+    output_id: []const u8,
+    output_path: []const u8,
+    absolute_path: []const u8,
+    expected: []const u8,
+) !void {
+    var file = std.fs.openFileAbsolute(absolute_path, .{}) catch |err| {
+        if (err == error.FileNotFound) {
+            try diagnostics.printLine(writer, &.{
+                .{ .key = "status", .value = "error" },
+                .{ .key = "command", .value = "validate-phase1" },
+                .{ .key = "output_id", .value = output_id },
+                .{ .key = "output_path", .value = output_path },
+                .{ .key = "reason", .value = "missing_generated_output" },
+            });
+            try writer.flush();
+            return error.MissingGeneratedOutput;
+        }
+        return err;
+    };
     defer file.close();
 
     const actual = try file.readToEndAlloc(std.heap.page_allocator, 32 * 1024 * 1024);
     defer std.heap.page_allocator.free(actual);
-    if (!std.mem.eql(u8, actual, expected) and !(actual.len == expected.len + 1 and actual[actual.len - 1] == '\n' and std.mem.eql(u8, actual[0 .. actual.len - 1], expected))) {
+
+    const normalized_actual = if (actual.len == expected.len + 1 and
+        actual[actual.len - 1] == '\n' and
+        std.mem.eql(u8, actual[0 .. actual.len - 1], expected))
+        expected
+    else
+        actual;
+
+    if (!std.mem.eql(u8, normalized_actual, expected)) {
+        const first_diff = firstDiffIndex(normalized_actual, expected);
+        var actual_len_buffer: [16]u8 = undefined;
+        var expected_len_buffer: [16]u8 = undefined;
+        var diff_index_buffer: [16]u8 = undefined;
+        var actual_byte_buffer: [8]u8 = undefined;
+        var expected_byte_buffer: [8]u8 = undefined;
+        try diagnostics.printLine(writer, &.{
+            .{ .key = "status", .value = "error" },
+            .{ .key = "command", .value = "validate-phase1" },
+            .{ .key = "output_id", .value = output_id },
+            .{ .key = "output_path", .value = output_path },
+            .{ .key = "reason", .value = "generated_output_drift" },
+            .{ .key = "actual_bytes", .value = std.fmt.bufPrint(&actual_len_buffer, "{d}", .{normalized_actual.len}) catch unreachable },
+            .{ .key = "expected_bytes", .value = std.fmt.bufPrint(&expected_len_buffer, "{d}", .{expected.len}) catch unreachable },
+            .{ .key = "first_diff_index", .value = formatOptionalUsize(&diff_index_buffer, first_diff) },
+            .{ .key = "actual_byte", .value = formatOptionalByteHex(&actual_byte_buffer, if (first_diff) |index| if (index < normalized_actual.len) normalized_actual[index] else null else null) },
+            .{ .key = "expected_byte", .value = formatOptionalByteHex(&expected_byte_buffer, if (first_diff) |index| if (index < expected.len) expected[index] else null else null) },
+        });
+        try writer.flush();
         return error.GeneratedOutputDrift;
     }
+}
+
+fn firstDiffIndex(actual: []const u8, expected: []const u8) ?usize {
+    const shared_len = @min(actual.len, expected.len);
+    for (0..shared_len) |index| {
+        if (actual[index] != expected[index]) return index;
+    }
+    return if (actual.len == expected.len) null else shared_len;
 }
 
 fn writeJson(path: []const u8, bytes: []const u8) !void {
@@ -2505,6 +2560,11 @@ fn formatOptionalI16(buffer: []u8, value: ?i16) []const u8 {
 fn formatOptionalString(buffer: []u8, value: ?[]const u8) []const u8 {
     _ = buffer;
     return value orelse "none";
+}
+
+fn formatOptionalByteHex(buffer: []u8, value: ?u8) []const u8 {
+    if (value) |resolved| return std.fmt.bufPrint(buffer, "0x{X:0>2}", .{resolved}) catch unreachable;
+    return "none";
 }
 
 fn inspectLifeCatalog(allocator: std.mem.Allocator, output_json: bool) !void {

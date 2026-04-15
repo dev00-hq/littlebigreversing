@@ -4,6 +4,9 @@
 
 This memo records the work completed to replace the placeholder `port/hello-world` package with the canonical Phase 1 Zig workspace rooted directly at `port/`.
 
+# IMPORTANT:
+This memo is historical context now. Treat command surfaces and ownership guidance here as Phase 1 history unless they still match the live `port/build.zig`, `port/src/tools/cli.zig`, and `docs/codex_memory/` state.
+
 The target package boundary remains:
 
 - `lba2`: SDL2 smoke app
@@ -44,7 +47,6 @@ The workspace now provides these build surfaces:
 
 - `zig build test`
 - `zig build tool -- <command>`
-- `zig build validate-phase1`
 - `zig build run`
 
 The CLI now implements:
@@ -71,7 +73,7 @@ These commands were verified successfully on this machine:
 - `zig build tool -- inventory-assets`
 - `zig build tool -- inspect-hqr SCENE.HQR --json`
 - `zig build tool -- generate-fixtures`
-- `zig build validate-phase1`
+- `zig build tool -- validate-phase1`
 - `python3 tools/codex_memory.py validate`
 
 `zig build run` now links and runs successfully.
