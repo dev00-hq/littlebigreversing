@@ -328,7 +328,7 @@ class LifeTraceSchemaTest(unittest.TestCase):
         self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_object, args.target_object)
         self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_opcode, args.target_opcode)
         self.assertEqual(trace_life.SCENE11_PAIR_PRESET.target_offset, args.target_offset)
-        self.assertEqual(str(trace_life.DEFAULT_SAVE_SOURCE_ROOT / "S8741.LBA"), args.launch_save)
+        self.assertEqual(str(trace_life.DEFAULT_SAVE_SOURCE_ROOT / "02-voisin.LBA"), args.launch_save)
         self.assertIsNone(args.fra_repo_root)
         self.assertIsNone(args.frida_repo_root)
         self.assertEqual(str(trace_life.DEFAULT_CALLSITES_JSONL), args.callsites_jsonl)
@@ -344,7 +344,7 @@ class LifeTraceSchemaTest(unittest.TestCase):
         self.assertEqual(trace_life.SCENE11_LIVE_PAIR_PRESET.comparison_object, args.comparison_object)
         self.assertEqual(trace_life.SCENE11_LIVE_PAIR_PRESET.comparison_opcode, args.comparison_opcode)
         self.assertEqual(trace_life.SCENE11_LIVE_PAIR_PRESET.comparison_offset, args.comparison_offset)
-        self.assertEqual(str(trace_life.DEFAULT_SAVE_SOURCE_ROOT / "S8741.LBA"), args.launch_save)
+        self.assertEqual(str(trace_life.DEFAULT_SAVE_SOURCE_ROOT / "02-voisin.LBA"), args.launch_save)
         self.assertEqual(str(trace_life.DEFAULT_FRIDA_REPO_ROOT), args.frida_repo_root)
         self.assertIsNone(args.fra_repo_root)
         self.assertTrue(args.requires_callsite_map is False)
@@ -1273,7 +1273,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
         summary = trace_life.build_scene11_run_summary(
             run_id="life-trace-test",
             mode="scene11-pair",
-            launch_save=r"D:\repos\reverse\littlebigreversing\work\saves\S8741.LBA",
+            launch_save=r"D:\repos\reverse\littlebigreversing\work\saves\02-voisin.LBA",
             bundle_root=Path(r"D:\repos\reverse\littlebigreversing\work\life_trace\runs\life-trace-test"),
             snapshot=snapshot,
             candidates=candidates,
@@ -1291,7 +1291,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
             payload={
                 "schema_version": "scene11-run-summary-v1",
                 "run_id": "run-1",
-                "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\S8741.LBA",
+                "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\02-voisin.LBA",
                 "global_ptr_prg": "0x00420000",
                 "global_ptr_prg_nonzero": True,
                 "canonical_objects": {
@@ -1326,7 +1326,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
             payload={
                 "schema_version": "scene11-run-summary-v1",
                 "run_id": "run-1",
-                "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\S8741.LBA",
+                "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\02-voisin.LBA",
                 "global_ptr_prg": "0x00420000",
                 "global_ptr_prg_nonzero": True,
                 "canonical_objects": {
@@ -1368,7 +1368,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                     {
                         "schema_version": "scene11-run-summary-v1",
                         "run_id": "run-1",
-                        "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\S8741.LBA",
+                        "launch_save": r"D:\repos\reverse\littlebigreversing\work\saves\02-voisin.LBA",
                         "global_ptr_prg": "0x00420000",
                         "global_ptr_prg_nonzero": True,
                         "canonical_objects": {
@@ -1642,6 +1642,8 @@ class SaveProfilesCliTest(unittest.TestCase):
             self.assertEqual(0, exit_code)
             self.assertIn("scene11-early-house: Early-game baseline contrast", rendered)
             self.assertIn("tavern-sendell-ball: Tavern proof in the lightning-spell / Sendell-ball story family.", rendered)
+            self.assertIn("wizard-tent-lightning-spell: Weather-mage proof for the lightning-spell step that feeds the Sendell story family.", rendered)
+            self.assertIn("sendell-ball-room: Direct story-critical proof in the actual Sendell's Ball room.", rendered)
 
     def test_save_profiles_cli_show_json_writes_selected_profile(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

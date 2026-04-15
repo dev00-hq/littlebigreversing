@@ -53,7 +53,7 @@ Those remain canonical in:
 ### Lane B: Scene 11 Pair
 
 - canonical source save:
-  - `work\idajs_samples_save_map.jsonl` entry `S8741.LBA`
+  - `work\idajs_samples_save_map.jsonl` entry `02-voisin.LBA`
 - canonical staged runtime save:
   - `work\_innoextract_full\Speedrun\Windows\LBA2_cdrom\LBA2\SAVE\scene11-pair.LBA`
 - primary fingerprint owner:

@@ -42,7 +42,7 @@ SCENE11_LIVE_PAIR_PRESET = TracePreset(
     comparison_object=2,
     comparison_opcode=0x74,
     comparison_offset=96,
-    launch_save=str(default_source_save_path("S8741.LBA")),
+    launch_save=str(default_source_save_path("02-voisin.LBA")),
 )
 
 SCENE11_LIVE_PRE_ATTACH_SETTLE_POLL_COUNT = 3

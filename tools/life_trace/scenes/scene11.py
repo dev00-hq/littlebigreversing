@@ -55,7 +55,7 @@ SCENE11_PAIR_PRESET = TracePreset(
     comparison_object=18,
     comparison_opcode=0x76,
     comparison_offset=84,
-    launch_save=str(default_source_save_path("S8741.LBA")),
+    launch_save=str(default_source_save_path("02-voisin.LBA")),
 )
 
 
@@ -150,7 +150,7 @@ def stage_scene11_load_game_save(
         writer,
         launch_path,
         lane_name="scene11-pair",
-        default_source=default_source_save_path("S8741.LBA"),
+        default_source=default_source_save_path("02-voisin.LBA"),
     )
 
 

@@ -6,7 +6,8 @@
     "A profile should remain useful even if none of its example .LBA files exist locally.",
     "For Neighbour's House evidence, room name alone is insufficient; use room plus progression family.",
     "Visual verification is a Codex/manual screenshot comparison step, not an automated image-matching pass.",
-    "Only put screenshot-verifiable cues in visual_verification; keep story-era assertions in generation_spec."
+    "Only put screenshot-verifiable cues in visual_verification; keep story-era assertions in generation_spec.",
+    "Keep distinct room stages of the same story arc in separate profiles when the proof target changes across Tavern, sewers, treasure rooms, or the actual Sendell's Ball room."
   ],
   "profiles": [
     {
@@ -157,7 +158,7 @@
         "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
       ],
       "known_example_saves": [
-        "S8741.LBA"
+        "02-voisin.LBA"
       ]
     },
     {
@@ -298,6 +299,211 @@
       "known_example_saves": []
     },
     {
+      "profile_id": "wizard-tent-lightning-spell",
+      "scene_name": "Wizard's Tent",
+      "scene_id": 21,
+      "raw_scene_entry_index": 23,
+      "section": "Wizard's Tent Area",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Weather-mage proof for the lightning-spell step that feeds the Sendell story family.",
+      "generation_spec": {
+        "story_arc": "Pre-Moon Twinsun family at the weather-mage / lightning-spell completion step",
+        "story_prerequisites": [
+          "Twinsen has returned from Zeelich and reached the weather-mage follow-up on Twinsun",
+          "The active goal is to complete or immediately verify the lightning spell before the Tavern / sewer / Sendell path"
+        ],
+        "hero_state": [
+          "Preserve the natural pre-Moon state for this spell-completion sequence"
+        ],
+        "room_requirement": "Save inside the Wizard's Tent",
+        "interaction_boundary": "Prefer saving before leaving the tent for the Tavern / Sendell path, and before over-normalizing the spell-completion sequence.",
+        "record_with_save": [
+          "chapter_or_arc_if_known",
+          "whether_the_pearl_step_is_already_done",
+          "notable_magic_or_inventory_if_known",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before leaving the tent or consuming the spell-completion moment.",
+        "expected_visual_cues": [
+          "Twinsen is inside the Wizard's Tent"
+        ],
+        "mismatch_examples": [
+          "The loaded room is not the Wizard's Tent",
+          "The loaded room is already on the Tavern or sewer part of the Sendell path"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Reach the weather-mage follow-up where the lightning spell is completed.",
+        "Create the save inside the Wizard's Tent before leaving for the Tavern / Sendell path.",
+        "Record whether the pearl step is already complete and whether this is meant to prove the lightning-spell handoff specifically.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": [
+        "ring of lightning.LBA",
+        "04-doing-foudre.LBA"
+      ]
+    },
+    {
+      "profile_id": "sendell-sewers-approach",
+      "scene_name": "Sewers",
+      "scene_id": 17,
+      "raw_scene_entry_index": 19,
+      "section": "Lupin-Bourg (landing zone)",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Pre-room sewer proof for the lightning-spell / Sendell's Ball story family.",
+      "generation_spec": {
+        "story_arc": "Pre-Moon Twinsun family between Tavern and the actual Sendell's Ball room",
+        "story_prerequisites": [
+          "Twinsen has the lightning spell",
+          "The Tavern-local sequence has already moved into the sewer / pyramid-key path toward Sendell's Ball"
+        ],
+        "hero_state": [
+          "Preserve the natural pre-Moon state for this story sequence",
+          "Prefer Twinsen on foot with enough magic or nearby refill access to complete the room transition"
+        ],
+        "room_requirement": "Save inside the Sewers on the Sendell's Ball approach",
+        "interaction_boundary": "Prefer saving before entering the final cave or room that contains Sendell's Ball so the transition and trigger sequence can still be observed.",
+        "record_with_save": [
+          "chapter_or_arc_if_known",
+          "notable_magic_or_inventory_if_known",
+          "whether_the_pyramid_key_step_is_already_done",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before entering the final Sendell's Ball room.",
+        "expected_visual_cues": [
+          "Twinsen is inside the Sewers",
+          "The loaded room is not the Tavern and not yet the actual Sendell's Ball room"
+        ],
+        "mismatch_examples": [
+          "The loaded scene is outside the Sewers",
+          "The loaded room already shows the large Sendell's Ball ice sphere"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Reach the post-lightning pre-Moon Sendell family.",
+        "Advance from the Tavern into the sewer path without consuming the final Sendell's Ball trigger.",
+        "Create the save inside the Sewers while the final room transition still remains ahead.",
+        "Record whether the pyramid-key step is already completed.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": [
+        "13-sendell.LBA",
+        "01-after-mage.LBA",
+        "01-degats-after-mage.LBA",
+        "box sewer.LBA",
+        "pyramid key.LBA",
+        "sewer middle.LBA",
+        "wood sewer.LBA"
+      ]
+    },
+    {
+      "profile_id": "sendell-treasure-room",
+      "scene_name": "Treasure room",
+      "scene_id": 18,
+      "raw_scene_entry_index": 20,
+      "section": "Lupin-Bourg (landing zone)",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Intermediate sewer treasure-room proof on the Sendell's Ball path.",
+      "generation_spec": {
+        "story_arc": "Pre-Moon Twinsun family between the main sewers and the actual Sendell's Ball room",
+        "story_prerequisites": [
+          "Twinsen has the lightning spell",
+          "The Sendell's Ball sewer path has progressed past the broad sewer approach and into the inner treasure-room branch"
+        ],
+        "hero_state": [
+          "Preserve the natural pre-Moon state for this story sequence"
+        ],
+        "room_requirement": "Save inside the Treasure room on the Sendell's Ball path",
+        "interaction_boundary": "Prefer saving before the final room transition or before consuming the story-critical Sendell's Ball trigger.",
+        "record_with_save": [
+          "chapter_or_arc_if_known",
+          "notable_magic_or_inventory_if_known",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before leaving the room or consuming the Sendell's Ball trigger.",
+        "expected_visual_cues": [
+          "Twinsen is inside the Treasure room branch of the sewer path"
+        ],
+        "mismatch_examples": [
+          "The loaded room is the broad Sewers scene",
+          "The loaded room is already the actual Sendell's Ball room"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Reach the inner treasure-room branch of the Sendell's Ball sewer path.",
+        "Create the save before leaving that room or triggering the final Sendell's Ball event.",
+        "Record any notable magic or inventory state that matters for reproducing the transition.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": [
+        "secret magic room sewer.LBA"
+      ]
+    },
+    {
+      "profile_id": "sendell-ball-room",
+      "scene_name": "Sendell's ball room",
+      "scene_id": 34,
+      "raw_scene_entry_index": 36,
+      "section": "Lupin-Bourg (landing zone)",
+      "planet": "Twinsun",
+      "island": "Citadel island",
+      "proof_goal": "Direct story-critical proof in the actual Sendell's Ball room.",
+      "generation_spec": {
+        "story_arc": "Pre-Moon Twinsun family at the immediate Sendell's Ball / red-ball unlock moment",
+        "story_prerequisites": [
+          "Twinsen has the lightning spell",
+          "Twinsen has reached the actual Sendell's Ball room behind the sewer path"
+        ],
+        "hero_state": [
+          "Prefer Twinsen standing near the large ice sphere before the first lightning cast",
+          "Keep enough magic to cast the lightning spell once without leaving the room"
+        ],
+        "room_requirement": "Save inside the actual Sendell's Ball room",
+        "interaction_boundary": "Prefer saving before the first lightning cast so the original runtime can reveal whether the story-critical effect is direct state mutation, an extra spawn, or both.",
+        "record_with_save": [
+          "chapter_or_arc_if_known",
+          "magic_level_if_known",
+          "current_magic_if_known",
+          "why_this_save_was_generated"
+        ]
+      },
+      "visual_verification": {
+        "validation_method": "Load the save, capture the loaded-scene screenshot, and have Codex compare it against these cues in-chat before the save is treated as valid proof input.",
+        "screenshot_step": "After loading the save, capture a screenshot before casting lightning on Sendell's Ball.",
+        "expected_visual_cues": [
+          "Twinsen is inside the actual Sendell's Ball room",
+          "The large ice sphere containing Sendell's Ball is visible in the room"
+        ],
+        "mismatch_examples": [
+          "The loaded room is still the broad Sewers scene",
+          "The loaded room is the Tavern or another pre-room setup scene"
+        ]
+      },
+      "operator_generation_instructions": [
+        "Reach the actual Sendell's Ball room behind the Tavern and sewer path.",
+        "Stand near the large ice sphere without casting lightning yet.",
+        "Create the save with enough magic to cast lightning once.",
+        "Record whether this is intended for direct Sendell's Ball / red-ball proof.",
+        "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
+      ],
+      "known_example_saves": [
+        "0008-sendell-ball.LBA",
+        "ball of sendell.LBA"
+      ]
+    },
+    {
       "profile_id": "tavern-late",
       "scene_name": "Chez Luc",
       "scene_id": 3,
@@ -339,6 +545,7 @@
         "After loading the save for proof work, take a screenshot and compare it against this profile's visual verification cues."
       ],
       "known_example_saves": [
+        "chez luc invasion.LBA",
         "inside-tavern-chapter-2.LBA",
         "tavern-captured.LBA"
       ]

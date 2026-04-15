@@ -72,7 +72,7 @@ This is the checked-in source for:
 
 ### Source save
 
-- source save file: `S8741.LBA`
+- source save file: `02-voisin.LBA`
 - source map record: [work/idajs_samples_save_map.jsonl](/D:/repos/reverse/littlebigreversing/work/idajs_samples_save_map.jsonl)
 - source file size: `9403`
 - source save name: `02-voisin`
@@ -95,13 +95,13 @@ These facts line up between the source map and the staged runtime file:
 
 Working assumption:
 
-- `scene11-pair.LBA` is the staged runtime copy of source save `S8741.LBA`
+- `scene11-pair.LBA` is the staged runtime copy of source save `02-voisin.LBA`
 
 ## Numbering Map
 
 This is the part that caused the ambiguity.
 
-For source save `S8741.LBA`:
+For source save `02-voisin.LBA`:
 
 - raw scene entry index: `11`
 - semantic scene id: `9`
@@ -148,7 +148,7 @@ Operational rule:
 
 The safest current cross-check is:
 
-- `S8741.LBA` in [work/idajs_samples_save_map.jsonl](/D:/repos/reverse/littlebigreversing/work/idajs_samples_save_map.jsonl)
+- `02-voisin.LBA` in [work/idajs_samples_save_map.jsonl](/D:/repos/reverse/littlebigreversing/work/idajs_samples_save_map.jsonl)
   ->
 - staged as [scene11-pair.LBA](/D:/repos/reverse/littlebigreversing/work/_innoextract_full/Speedrun/Windows/LBA2_cdrom/LBA2/SAVE/scene11-pair.LBA)
   ->

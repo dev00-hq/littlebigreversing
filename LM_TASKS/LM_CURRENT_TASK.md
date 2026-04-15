@@ -66,7 +66,7 @@ From the successful proof run in [life-trace-20260405-011732.jsonl](/D:/repos/re
 
 From offline scene inspection and the landed `Scene11Pair` preset:
 
-- canonical source save in `work\idajs_samples_save_map.jsonl` is `S8741.LBA`
+- canonical source save in `work\idajs_samples_save_map.jsonl` is `02-voisin.LBA`
 - scene-11 primary fingerprint owner is object `12`
 - bytes at object `12` `PtrLife + 30`:
   - `00 01 17 42 00 75 2D 00 74 17`

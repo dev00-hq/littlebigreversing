@@ -38,7 +38,7 @@ The staged runtime save was not chosen by guesswork or by the filename alone.
 
 The provenance chain is:
 
-1. `work\idajs_samples_save_map.jsonl` contains source save `S8741.LBA`.
+1. `work\idajs_samples_save_map.jsonl` contains source save `02-voisin.LBA`.
 2. That record says:
    - `raw_scene_entry_index = 11`
    - `save_name = 02-voisin`
@@ -51,13 +51,13 @@ The provenance chain is:
 
 There is also a direct file-shape cross-check:
 
-- `S8741.LBA` in the `idajs` save map is `9403` bytes
+- `02-voisin.LBA` in the `idajs` save map is `9403` bytes
 - `scene11-pair.LBA` in the runtime `SAVE` folder is also `9403` bytes
 - the staged file begins with the same `save_name` bytes for `02-voisin`
 
 So the working assumption was:
 
-- `scene11-pair.LBA` is the staged runtime copy of mapped source save `S8741.LBA`
+- `scene11-pair.LBA` is the staged runtime copy of mapped source save `02-voisin.LBA`
 
 ## Scene Numbering Lesson
 
@@ -71,7 +71,7 @@ It did **not** come from:
 
 - `scene_lookup.scene_id = 11`
 
-For `S8741.LBA`, the mapped semantic scene id is actually:
+For `02-voisin.LBA`, the mapped semantic scene id is actually:
 
 - `scene_id = 9`
 
