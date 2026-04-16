@@ -58,4 +58,4 @@ The project is complete when:
 - it emits one stable JSON payload with scene, background, actors, zones, tracks, and patches
 - it includes explicit raw-vs-decoded actor counts and a machine-readable `validation` block
 - actor records expose both raw fields and mapped semantics
-- life and track summaries are included without promising full life semantic decompilation
+- life and track structure are included without promising full life semantic decompilation

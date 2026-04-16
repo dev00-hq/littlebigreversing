@@ -77,7 +77,8 @@ fn syntheticSeedFromObject(
         .index = object.index,
         .sprite = object.sprite,
         .option_flags = object.option_flags,
-        .bonus_quantity = std.math.cast(u8, object.bonus_count) orelse 0,
+        .bonus_quantity = std.math.cast(u8, object.bonus_count) orelse
+            return error.UnsupportedObjectBehaviorBonusQuantityRange,
         .track_bytes = track_bytes,
         .track_instructions = track_instructions,
         .life_bytes = life_bytes,

@@ -44,7 +44,7 @@ flowchart LR
     D --> F["background linkage decode"]
     E --> G["actor intelligence mapper"]
     E --> H["zone/track/patch payloads"]
-    E --> I["life and track summaries"]
+    E --> I["life and track structural decode"]
     F --> J["room context payload"]
     E --> V["scene-life validation"]
     F --> W["fragment-zone validation"]
@@ -65,7 +65,7 @@ Each actor record is organized as:
 - `raw`: exact decoded fields from the current `SceneObject`
 - `mapped`: grouped interpretations such as position, render source, movement, combat, and bit breakdowns
 - `track`: raw bytes plus decoded instructions
-- `life`: raw bytes plus decode status and instruction summaries
+- `life`: raw bytes, decoded instruction structure, and decode audit metadata
 
 This keeps the surface useful both for machine consumers and for future semantic expansion.
 

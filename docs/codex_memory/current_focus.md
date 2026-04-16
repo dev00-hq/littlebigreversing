@@ -14,6 +14,7 @@
 - Guarded viewer/load widening is live, with differentiated `raw_invalid_start` hints and bounded `2/2` raw-start zone recovery.
 - Runtime owns hero intent consumption, mutable object positions, and generic pending `change_cube` transitions for guarded viewer rooms.
 - `RoomSnapshot` now preserves hero program bytes and typed zone semantics.
+- `inspect-room-intelligence` now resolves scene/background names from the checked-in generated Zig metadata artifact instead of the legacy LBArchitect `.hqd` text files.
 - Guarded `19/19` object-`2` is stateful behind the runtime tick: mutable life bytes, bounded bonus events, later reward loop.
 - The structural life boundary now has the machine-readable `life-catalog-v1` surface from production enums.
 - Sendell room `36` keeps a typed `sendell_summary.json` lane plus a bounded runtime story-state slice driven by viewer `F` / `Enter`.

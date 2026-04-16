@@ -244,6 +244,17 @@ pub const RoomSnapshot = struct {
     }
 };
 
+pub const RoomIntelligenceAugmentation = struct {
+    composition: CompositionSnapshot,
+    fragment_zones: []FragmentZoneSnapshot,
+
+    pub fn deinit(self: RoomIntelligenceAugmentation, allocator: std.mem.Allocator) void {
+        self.composition.deinit(allocator);
+        for (self.fragment_zones) |zone| zone.deinit(allocator);
+        allocator.free(self.fragment_zones);
+    }
+};
+
 pub const FragmentZoneAxisDiagnostic = struct {
     min_value: i32,
     max_value: i32,
@@ -422,6 +433,29 @@ pub fn inspectRoomFragmentZoneDiagnostics(
     const background = try background_data.loadBackgroundMetadata(allocator, background_path, background_entry_index);
     defer background.deinit(allocator);
 
+    return inspectRoomFragmentZoneDiagnosticsFromMetadata(allocator, scene, background);
+}
+
+pub fn inspectRoomFragmentZoneDiagnosticsFromMetadata(
+    allocator: std.mem.Allocator,
+    scene: scene_data.SceneMetadata,
+    background: background_data.BackgroundMetadata,
+) !RoomFragmentZoneDiagnostics {
+    switch (try life_audit.validateSceneLifeBoundary(scene)) {
+        .decoded => {},
+        .unsupported_life_blob => return error.ViewerUnsupportedSceneLife,
+    }
+
+    if (scene.cube_mode != 0) return error.ViewerSceneMustBeInterior;
+
+    return buildRoomFragmentZoneDiagnosticsFromMetadataAssumingSupportedScene(allocator, scene, background);
+}
+
+pub fn buildRoomFragmentZoneDiagnosticsFromMetadataAssumingSupportedScene(
+    allocator: std.mem.Allocator,
+    scene: scene_data.SceneMetadata,
+    background: background_data.BackgroundMetadata,
+) !RoomFragmentZoneDiagnostics {
     const zones = try buildFragmentZoneCompatibilityDiagnostics(allocator, scene.zones, background.composition.fragments);
     errdefer allocator.free(zones);
 
@@ -448,6 +482,31 @@ pub fn inspectRoomFragmentZoneDiagnostics(
         .invalid_zone_count = invalid_zone_count,
         .first_invalid_zone_index = first_invalid_zone_index,
         .zones = zones,
+    };
+}
+
+pub fn buildRoomIntelligenceAugmentation(
+    allocator: std.mem.Allocator,
+    scene: scene_data.SceneMetadata,
+    background: background_data.BackgroundMetadata,
+) !RoomIntelligenceAugmentation {
+    const composition = try buildCompositionSnapshot(allocator, background.composition);
+    errdefer composition.deinit(allocator);
+
+    const fragment_zones = try buildFragmentZoneSnapshots(
+        allocator,
+        scene.zones,
+        background.composition.fragments,
+        background.composition.library,
+    );
+    errdefer {
+        for (fragment_zones) |zone| zone.deinit(allocator);
+        allocator.free(fragment_zones);
+    }
+
+    return .{
+        .composition = composition,
+        .fragment_zones = fragment_zones,
     };
 }
 
@@ -739,7 +798,7 @@ fn copyBrickPreviewLibrary(
     };
 }
 
-fn buildFragmentZoneCompatibilityDiagnostics(
+pub fn buildFragmentZoneCompatibilityDiagnostics(
     allocator: std.mem.Allocator,
     zones: []const scene_data.SceneZone,
     fragments: background_data.FragmentLibrary,
@@ -905,7 +964,7 @@ pub fn buildFragmentZoneSnapshots(
     return copied.toOwnedSlice(allocator);
 }
 
-fn buildCompositionSnapshot(
+pub fn buildCompositionSnapshot(
     allocator: std.mem.Allocator,
     composition: background_data.BackgroundComposition,
 ) !CompositionSnapshot {

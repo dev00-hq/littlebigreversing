@@ -1,13 +1,13 @@
 const std = @import("std");
 const hqr = @import("../assets/hqr.zig");
+const room_metadata = @import("../generated/room_metadata.zig");
 const background_data = @import("../game_data/background.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const scene_data = @import("../game_data/scene.zig");
 const room_state = @import("../runtime/room_state.zig");
 
-pub const scene_metadata_relative_path = "reference/littlebigreversing/mbn_tools/dl18_lbarchitect/fileinfo/lba2_sce.hqd";
-pub const background_metadata_relative_path = "reference/littlebigreversing/mbn_tools/dl18_lbarchitect/fileinfo/lba2_bkg.hqd";
+const RoomMetadataEntry = room_metadata.RoomMetadataEntry;
 
 pub const MetadataKind = enum {
     scene,
@@ -20,10 +20,15 @@ pub const MetadataKind = enum {
         };
     }
 
-    pub fn relativePath(self: MetadataKind) []const u8 {
+    pub fn sourcePath(self: MetadataKind) []const u8 {
+        _ = self;
+        return room_metadata.generated_relative_path;
+    }
+
+    fn entries(self: MetadataKind) []const RoomMetadataEntry {
         return switch (self) {
-            .scene => scene_metadata_relative_path,
-            .background => background_metadata_relative_path,
+            .scene => room_metadata.scene_entries,
+            .background => room_metadata.background_entries,
         };
     }
 };
@@ -69,15 +74,9 @@ pub const ResolvedSelection = struct {
     }
 };
 
-const MetadataRecord = struct {
-    raw_entry_index: usize,
-    friendly_name: []u8,
-    normalized_name: []u8,
-
-    fn deinit(self: MetadataRecord, allocator: std.mem.Allocator) void {
-        allocator.free(self.friendly_name);
-        allocator.free(self.normalized_name);
-    }
+pub const SelectionRequest = struct {
+    metadata_kind: MetadataKind,
+    selector: ?Selector = null,
 };
 
 pub fn resolveSceneSelectionAlloc(
@@ -102,32 +101,19 @@ fn resolveSelectionAlloc(
     metadata_kind: MetadataKind,
     selector: Selector,
 ) !ResolvedSelection {
-    const metadata_path = try std.fs.path.join(allocator, &.{ repo_root, metadata_kind.relativePath() });
-    defer allocator.free(metadata_path);
-
-    var metadata_file = try std.fs.openFileAbsolute(metadata_path, .{});
-    defer metadata_file.close();
-    const metadata_bytes = try metadata_file.readToEndAlloc(allocator, std.math.maxInt(usize));
-    defer allocator.free(metadata_bytes);
-
-    return resolveSelectionFromBytesAlloc(allocator, metadata_kind, selector, metadata_bytes);
+    _ = repo_root;
+    return resolveSelectionFromEntriesAlloc(allocator, metadata_kind, selector, metadata_kind.entries());
 }
 
-fn resolveSelectionFromBytesAlloc(
+fn resolveSelectionFromEntriesAlloc(
     allocator: std.mem.Allocator,
     metadata_kind: MetadataKind,
     selector: Selector,
-    metadata_bytes: []const u8,
+    entries: []const RoomMetadataEntry,
 ) !ResolvedSelection {
-    const records = try loadMetadataRecordsAlloc(allocator, metadata_bytes);
-    defer {
-        for (records) |record| record.deinit(allocator);
-        allocator.free(records);
-    }
-
     return switch (selector) {
-        .entry => |entry_index| resolveEntrySelectionAlloc(allocator, metadata_kind, selector, entry_index, records),
-        .name => |name| resolveNameSelectionAlloc(allocator, metadata_kind, selector, name, records),
+        .entry => |entry_index| resolveEntrySelectionAlloc(allocator, metadata_kind, selector, entry_index, entries),
+        .name => |name| resolveNameSelectionAlloc(allocator, metadata_kind, selector, name, entries),
     };
 }
 
@@ -136,15 +122,15 @@ fn resolveEntrySelectionAlloc(
     metadata_kind: MetadataKind,
     selector: Selector,
     entry_index: usize,
-    records: []const MetadataRecord,
+    entries: []const RoomMetadataEntry,
 ) !ResolvedSelection {
-    for (records) |record| {
-        if (record.raw_entry_index != entry_index) continue;
+    for (entries) |entry| {
+        if (entry.entry_index != entry_index) continue;
         return .{
             .metadata_kind = metadata_kind,
             .selector = selector,
             .resolved_entry_index = entry_index,
-            .resolved_friendly_name = try allocator.dupe(u8, record.friendly_name),
+            .resolved_friendly_name = try allocator.dupe(u8, entry.display_name),
         };
     }
 
@@ -161,25 +147,25 @@ fn resolveNameSelectionAlloc(
     metadata_kind: MetadataKind,
     selector: Selector,
     name: []const u8,
-    records: []const MetadataRecord,
+    entries: []const RoomMetadataEntry,
 ) !ResolvedSelection {
     const normalized_query = try normalizeSearchKeyAlloc(allocator, name);
     defer allocator.free(normalized_query);
 
-    var exact_match: ?*const MetadataRecord = null;
-    var suffix_match: ?*const MetadataRecord = null;
+    var exact_match: ?*const RoomMetadataEntry = null;
+    var suffix_match: ?*const RoomMetadataEntry = null;
     var suffix_ambiguous = false;
 
-    for (records) |*record| {
-        if (std.mem.eql(u8, record.normalized_name, normalized_query)) {
+    for (entries) |*entry| {
+        if (std.mem.eql(u8, entry.normalized_name, normalized_query)) {
             if (exact_match != null) return metadataAmbiguousError(metadata_kind);
-            exact_match = record;
+            exact_match = entry;
             continue;
         }
 
-        if (!std.mem.endsWith(u8, record.normalized_name, normalized_query)) continue;
+        if (!std.mem.endsWith(u8, entry.normalized_name, normalized_query)) continue;
         if (suffix_match == null) {
-            suffix_match = record;
+            suffix_match = entry;
         } else {
             suffix_ambiguous = true;
         }
@@ -189,8 +175,8 @@ fn resolveNameSelectionAlloc(
         return .{
             .metadata_kind = metadata_kind,
             .selector = selector,
-            .resolved_entry_index = record.raw_entry_index,
-            .resolved_friendly_name = try allocator.dupe(u8, record.friendly_name),
+            .resolved_entry_index = record.entry_index,
+            .resolved_friendly_name = try allocator.dupe(u8, record.display_name),
         };
     }
     if (suffix_ambiguous) return metadataAmbiguousError(metadata_kind);
@@ -198,8 +184,8 @@ fn resolveNameSelectionAlloc(
         return .{
             .metadata_kind = metadata_kind,
             .selector = selector,
-            .resolved_entry_index = record.raw_entry_index,
-            .resolved_friendly_name = try allocator.dupe(u8, record.friendly_name),
+            .resolved_entry_index = record.entry_index,
+            .resolved_friendly_name = try allocator.dupe(u8, record.display_name),
         };
     }
     return metadataUnknownError(metadata_kind);
@@ -227,60 +213,6 @@ fn metadataAmbiguousError(metadata_kind: MetadataKind) error{
         .scene => error.AmbiguousSceneName,
         .background => error.AmbiguousBackgroundName,
     };
-}
-
-fn loadMetadataRecordsAlloc(allocator: std.mem.Allocator, metadata_bytes: []const u8) ![]MetadataRecord {
-    var records: std.ArrayList(MetadataRecord) = .empty;
-    errdefer {
-        for (records.items) |record| record.deinit(allocator);
-        records.deinit(allocator);
-    }
-
-    var line_iterator = std.mem.splitScalar(u8, metadata_bytes, '\n');
-    while (line_iterator.next()) |line_with_newline| {
-        const line = std.mem.trimRight(u8, line_with_newline, "\r");
-        const colon_index = std.mem.indexOfScalar(u8, line, ':') orelse continue;
-        const pipe_index = std.mem.indexOfScalar(u8, line, '|') orelse continue;
-        if (pipe_index <= colon_index) continue;
-
-        const metadata_index = std.fmt.parseInt(usize, line[0..colon_index], 10) catch continue;
-        if (metadata_index == 0) continue;
-
-        const label_bytes = line[(pipe_index + 1)..];
-        if (label_bytes.len == 0) continue;
-
-        const friendly_name = try latin1ToUtf8Alloc(allocator, label_bytes);
-        errdefer allocator.free(friendly_name);
-
-        const normalized_name = try normalizeSearchKeyAlloc(allocator, friendly_name);
-        errdefer allocator.free(normalized_name);
-
-        try records.append(allocator, .{
-            .raw_entry_index = metadata_index + 1,
-            .friendly_name = friendly_name,
-            .normalized_name = normalized_name,
-        });
-    }
-
-    return records.toOwnedSlice(allocator);
-}
-
-fn latin1ToUtf8Alloc(allocator: std.mem.Allocator, bytes: []const u8) ![]u8 {
-    var list: std.ArrayList(u8) = .empty;
-    errdefer list.deinit(allocator);
-
-    for (bytes) |byte| {
-        if (byte < 0x80) {
-            try list.append(allocator, byte);
-            continue;
-        }
-
-        var encoded: [4]u8 = undefined;
-        const encoded_len = try std.unicode.utf8Encode(byte, &encoded);
-        try list.appendSlice(allocator, encoded[0..encoded_len]);
-    }
-
-    return list.toOwnedSlice(allocator);
 }
 
 fn normalizeSearchKeyAlloc(allocator: std.mem.Allocator, input: []const u8) ![]u8 {
@@ -385,9 +317,8 @@ pub fn validateBackgroundEntryIndex(
 
 pub fn inspectValidation(
     allocator: std.mem.Allocator,
-    resolved: anytype,
     scene: scene_data.SceneMetadata,
-    background_entry_index: usize,
+    background: background_data.BackgroundMetadata,
 ) !ValidationSnapshot {
     var validation: ValidationSnapshot = .{
         .scene_life_status = undefined,
@@ -411,12 +342,7 @@ pub fn inspectValidation(
         return validation;
     }
 
-    const diagnostics = try room_state.inspectRoomFragmentZoneDiagnostics(
-        allocator,
-        resolved,
-        scene.entry_index,
-        background_entry_index,
-    );
+    const diagnostics = try room_state.buildRoomFragmentZoneDiagnosticsFromMetadataAssumingSupportedScene(allocator, scene, background);
     validation.fragment_zones_status = if (diagnostics.invalid_zone_count == 0) .compatible else .invalid_bounds;
     validation.viewer_loadable = diagnostics.invalid_zone_count == 0;
     validation.fragment_zone_diagnostics = diagnostics;
@@ -424,39 +350,23 @@ pub fn inspectValidation(
 }
 
 pub const PayloadView = struct {
+    allocator: std.mem.Allocator,
     scene_selection: *const ResolvedSelection,
     background_selection: *const ResolvedSelection,
     scene: *const scene_data.SceneMetadata,
     background: *const background_data.BackgroundMetadata,
     validation: *const ValidationSnapshot,
-    room: ?*const room_state.RoomSnapshot = null,
+    augmentation: ?*const room_state.RoomIntelligenceAugmentation = null,
+};
 
-    pub fn jsonStringify(self: PayloadView, jw: anytype) !void {
-        try jw.beginObject();
-        try jw.objectField("command");
-        try jw.write("inspect-room-intelligence");
-        try jw.objectField("selection");
-        try writeSelectionJson(jw, self.scene_selection, self.background_selection);
-        try jw.objectField("scene");
-        try writeSceneJson(jw, self.scene);
-        try jw.objectField("background");
-        try writeBackgroundJson(jw, self.background, self.room);
-        try jw.objectField("validation");
-        try writeValidationJson(jw, self.validation);
-        try jw.objectField("actors");
-        try writeActorsJson(jw, self.scene.objects);
-        if (self.room) |room| {
-            try jw.objectField("fragment_zone_layout");
-            try writeFragmentZonesJson(jw, room.fragment_zones);
-        }
-        try jw.objectField("zones");
-        try jw.write(self.scene.zones);
-        try jw.objectField("tracks");
-        try jw.write(self.scene.tracks);
-        try jw.objectField("patches");
-        try jw.write(self.scene.patches);
-        try jw.endObject();
-    }
+pub const ErrorPayloadView = struct {
+    scene_request: SelectionRequest,
+    background_request: SelectionRequest,
+    scene_selection: ?*const ResolvedSelection = null,
+    background_selection: ?*const ResolvedSelection = null,
+    phase: []const u8,
+    kind: []const u8,
+    target: []const u8,
 };
 
 pub fn stringifyPayloadAlloc(allocator: std.mem.Allocator, payload: PayloadView) ![]u8 {
@@ -467,8 +377,69 @@ pub fn stringifyPayloadAlloc(allocator: std.mem.Allocator, payload: PayloadView)
         .writer = &out.writer,
         .options = .{ .whitespace = .indent_2 },
     };
-    try stringify.write(payload);
+    try writePayloadJson(allocator, &stringify, payload);
     return allocator.dupe(u8, out.written());
+}
+
+pub fn stringifyErrorPayloadAlloc(allocator: std.mem.Allocator, payload: ErrorPayloadView) ![]u8 {
+    var out: std.io.Writer.Allocating = .init(allocator);
+    defer out.deinit();
+
+    var stringify: std.json.Stringify = .{
+        .writer = &out.writer,
+        .options = .{ .whitespace = .indent_2 },
+    };
+    try writeErrorPayloadJson(&stringify, payload);
+    return allocator.dupe(u8, out.written());
+}
+
+fn writePayloadJson(allocator: std.mem.Allocator, jw: anytype, payload: PayloadView) !void {
+    try jw.beginObject();
+    try jw.objectField("command");
+    try jw.write("inspect-room-intelligence");
+    try jw.objectField("status");
+    try jw.write("ok");
+    try jw.objectField("selection");
+    try writeSelectionJson(jw, payload.scene_selection, payload.background_selection);
+    try jw.objectField("scene");
+    try writeSceneJson(allocator, jw, payload.scene, payload.validation.scene_life_status == .decoded);
+    try jw.objectField("background");
+    try writeBackgroundJson(jw, payload.background, payload.augmentation);
+    try jw.objectField("validation");
+    try writeValidationJson(jw, payload.validation);
+    try jw.objectField("actors");
+    try writeActorsJson(allocator, jw, payload.scene.objects, payload.validation.scene_life_status == .decoded);
+    if (payload.augmentation) |augmentation| {
+        try jw.objectField("fragment_zone_layout");
+        try writeFragmentZonesJson(jw, augmentation.fragment_zones);
+    }
+    try jw.objectField("zones");
+    try jw.write(payload.scene.zones);
+    try jw.objectField("tracks");
+    try jw.write(payload.scene.tracks);
+    try jw.objectField("patches");
+    try jw.write(payload.scene.patches);
+    try jw.endObject();
+}
+
+fn writeErrorPayloadJson(jw: anytype, payload: ErrorPayloadView) !void {
+    try jw.beginObject();
+    try jw.objectField("command");
+    try jw.write("inspect-room-intelligence");
+    try jw.objectField("status");
+    try jw.write("error");
+    try jw.objectField("selection");
+    try writeSelectionRequestJson(jw, payload.scene_request, payload.scene_selection, payload.background_request, payload.background_selection);
+    try jw.objectField("error");
+    try jw.beginObject();
+    try jw.objectField("phase");
+    try jw.write(payload.phase);
+    try jw.objectField("kind");
+    try jw.write(payload.kind);
+    try jw.objectField("target");
+    try jw.write(payload.target);
+    try jw.endObject();
+    try jw.endObject();
 }
 
 fn writeSelectionJson(jw: anytype, scene_selection: *const ResolvedSelection, background_selection: *const ResolvedSelection) !void {
@@ -480,12 +451,68 @@ fn writeSelectionJson(jw: anytype, scene_selection: *const ResolvedSelection, ba
     try jw.endObject();
 }
 
+fn writeSelectionRequestJson(
+    jw: anytype,
+    scene_request: SelectionRequest,
+    scene_selection: ?*const ResolvedSelection,
+    background_request: SelectionRequest,
+    background_selection: ?*const ResolvedSelection,
+) !void {
+    try jw.beginObject();
+    try jw.objectField("scene");
+    try writeSelectionStateJson(jw, scene_request, scene_selection);
+    try jw.objectField("background");
+    try writeSelectionStateJson(jw, background_request, background_selection);
+    try jw.endObject();
+}
+
+fn writeSelectionStateJson(jw: anytype, request: SelectionRequest, resolved: ?*const ResolvedSelection) !void {
+    try jw.beginObject();
+    try jw.objectField("metadata_kind");
+    try jw.write(request.metadata_kind.displayName());
+    try jw.objectField("metadata_source");
+    try jw.write(request.metadata_kind.sourcePath());
+    try jw.objectField("selector_kind");
+    if (request.selector) |selector| {
+        try jw.write(selector.kindName());
+    } else {
+        try jw.write(null);
+    }
+    try jw.objectField("requested_entry_index");
+    if (request.selector) |selector| switch (selector) {
+        .entry => |entry_index| try jw.write(entry_index),
+        .name => try jw.write(null),
+    } else {
+        try jw.write(null);
+    }
+    try jw.objectField("requested_name");
+    if (request.selector) |selector| switch (selector) {
+        .entry => try jw.write(null),
+        .name => |name| try jw.write(name),
+    } else {
+        try jw.write(null);
+    }
+    try jw.objectField("resolved_entry_index");
+    if (resolved) |selection| {
+        try jw.write(selection.resolved_entry_index);
+    } else {
+        try jw.write(null);
+    }
+    try jw.objectField("resolved_friendly_name");
+    if (resolved) |selection| {
+        try jw.write(selection.resolved_friendly_name);
+    } else {
+        try jw.write(null);
+    }
+    try jw.endObject();
+}
+
 fn writeResolvedSelectionJson(jw: anytype, selection: *const ResolvedSelection) !void {
     try jw.beginObject();
     try jw.objectField("metadata_kind");
     try jw.write(selection.metadata_kind.displayName());
     try jw.objectField("metadata_source");
-    try jw.write(selection.metadata_kind.relativePath());
+    try jw.write(selection.metadata_kind.sourcePath());
     try jw.objectField("selector_kind");
     try jw.write(selection.selectorKindName());
     try jw.objectField("requested_entry_index");
@@ -499,7 +526,7 @@ fn writeResolvedSelectionJson(jw: anytype, selection: *const ResolvedSelection) 
     try jw.endObject();
 }
 
-fn writeSceneJson(jw: anytype, scene: *const scene_data.SceneMetadata) !void {
+fn writeSceneJson(allocator: std.mem.Allocator, jw: anytype, scene: *const scene_data.SceneMetadata, assume_life_decoded: bool) !void {
     try jw.beginObject();
     try jw.objectField("entry_index");
     try jw.write(scene.entry_index);
@@ -514,7 +541,7 @@ fn writeSceneJson(jw: anytype, scene: *const scene_data.SceneMetadata) !void {
     try jw.objectField("header");
     try writeSceneHeaderJson(jw, scene);
     try jw.objectField("hero_start");
-    try writeHeroStartJson(jw, scene.hero_start);
+    try writeHeroStartJson(allocator, jw, scene.hero_start, assume_life_decoded);
     try jw.endObject();
 }
 
@@ -668,21 +695,21 @@ fn writeFragmentZonesValidationJson(jw: anytype, validation: *const ValidationSn
     try jw.endObject();
 }
 
-fn writeHeroStartJson(jw: anytype, hero_start: scene_data.HeroStart) !void {
+fn writeHeroStartJson(allocator: std.mem.Allocator, jw: anytype, hero_start: scene_data.HeroStart, assume_life_decoded: bool) !void {
     try jw.beginObject();
     try jw.objectField("position");
     try jw.write(.{ .x = hero_start.x, .y = hero_start.y, .z = hero_start.z });
     try jw.objectField("track");
     try writeTrackProgramJson(jw, hero_start.track.bytes, hero_start.track_instructions);
     try jw.objectField("life");
-    try writeLifeProgramJson(jw, hero_start.life.bytes);
+    try writeLifeProgramJson(allocator, jw, hero_start.life.bytes, assume_life_decoded);
     try jw.endObject();
 }
 
 fn writeBackgroundJson(
     jw: anytype,
     background: *const background_data.BackgroundMetadata,
-    room: ?*const room_state.RoomSnapshot,
+    augmentation: ?*const room_state.RoomIntelligenceAugmentation,
 ) !void {
     try jw.beginObject();
     try jw.objectField("entry_index");
@@ -713,8 +740,8 @@ fn writeBackgroundJson(
     try jw.objectField("column_table");
     try jw.write(background.column_table);
     try jw.objectField("composition");
-    if (room) |resolved_room| {
-        try writeCompositionJson(jw, resolved_room.background.composition, background.composition.grid.summary());
+    if (augmentation) |resolved_augmentation| {
+        try writeCompositionJson(jw, resolved_augmentation.composition, background.composition.grid.summary());
     } else {
         try jw.write(background.composition.grid.summary());
     }
@@ -851,15 +878,15 @@ fn writeFragmentZoneCellsJson(jw: anytype, cells: []const room_state.FragmentZon
     try jw.endArray();
 }
 
-fn writeActorsJson(jw: anytype, actors: []const scene_data.SceneObject) !void {
+fn writeActorsJson(allocator: std.mem.Allocator, jw: anytype, actors: []const scene_data.SceneObject, assume_life_decoded: bool) !void {
     try jw.beginArray();
     for (actors) |actor| {
-        try writeActorJson(jw, actor);
+        try writeActorJson(allocator, jw, actor, assume_life_decoded);
     }
     try jw.endArray();
 }
 
-fn writeActorJson(jw: anytype, actor: scene_data.SceneObject) !void {
+fn writeActorJson(allocator: std.mem.Allocator, jw: anytype, actor: scene_data.SceneObject, assume_life_decoded: bool) !void {
     try jw.beginObject();
     try jw.objectField("array_index");
     try jw.write(actor.index - 1);
@@ -874,7 +901,7 @@ fn writeActorJson(jw: anytype, actor: scene_data.SceneObject) !void {
     try jw.objectField("track");
     try writeTrackProgramJson(jw, actor.track.bytes, actor.track_instructions);
     try jw.objectField("life");
-    try writeLifeProgramJson(jw, actor.life.bytes);
+    try writeLifeProgramJson(allocator, jw, actor.life.bytes, assume_life_decoded);
     try jw.endObject();
 }
 
@@ -1009,15 +1036,320 @@ fn writeTrackProgramJson(jw: anytype, bytes: []const u8, instructions: []const s
     try jw.endObject();
 }
 
-fn writeLifeProgramJson(jw: anytype, bytes: []const u8) !void {
-    const audit = life_program.auditLifeProgram(bytes);
+fn writeLifeProgramJson(allocator: std.mem.Allocator, jw: anytype, bytes: []const u8, assume_decoded: bool) !void {
+    const decoded_audit: ?life_program.LifeProgramAudit = if (assume_decoded)
+        .{
+            .instruction_count = undefined,
+            .decoded_byte_length = bytes.len,
+            .status = .decoded,
+        }
+    else
+        null;
+    const audit = decoded_audit orelse life_program.auditLifeProgram(bytes);
     try jw.beginObject();
     try jw.objectField("byte_length");
     try jw.write(bytes.len);
     try jw.objectField("bytes");
     try writeByteArrayJson(jw, bytes);
-    try jw.objectField("audit");
-    try writeLifeAuditJson(jw, audit);
+    try jw.objectField("instructions");
+    if (assume_decoded) {
+        const instructions = try life_program.decodeLifeProgram(allocator, bytes);
+        defer allocator.free(instructions);
+        try writeLifeInstructionsJson(jw, instructions);
+        try jw.objectField("audit");
+        try writeLifeAuditJson(jw, .{
+            .instruction_count = instructions.len,
+            .decoded_byte_length = bytes.len,
+            .status = .decoded,
+        });
+    } else switch (audit.status) {
+        .decoded => {
+            const instructions = try life_program.decodeLifeProgram(allocator, bytes);
+            defer allocator.free(instructions);
+            try writeLifeInstructionsJson(jw, instructions);
+            try jw.objectField("audit");
+            try writeLifeAuditJson(jw, audit);
+        },
+        else => {
+            try jw.write(null);
+            try jw.objectField("audit");
+            try writeLifeAuditJson(jw, audit);
+        },
+    }
+    try jw.endObject();
+}
+
+fn writeLifeInstructionsJson(jw: anytype, instructions: []const life_program.LifeInstruction) !void {
+    try jw.beginArray();
+    for (instructions) |instruction| {
+        try writeLifeInstructionJson(jw, instruction);
+    }
+    try jw.endArray();
+}
+
+fn writeLifeInstructionJson(jw: anytype, instruction: life_program.LifeInstruction) !void {
+    try jw.beginObject();
+    try jw.objectField("offset");
+    try jw.write(instruction.offset);
+    try jw.objectField("opcode");
+    try jw.write(@intFromEnum(instruction.opcode));
+    try jw.objectField("mnemonic");
+    try jw.write(instruction.opcode.mnemonic());
+    try jw.objectField("byte_length");
+    try jw.write(instruction.byte_length);
+    try jw.objectField("operands");
+    try writeLifeOperandsJson(jw, instruction.operands);
+    try jw.endObject();
+}
+
+fn writeLifeOperandsJson(jw: anytype, operands: life_program.LifeOperands) !void {
+    try jw.beginObject();
+    switch (operands) {
+        .none => {
+            try jw.objectField("kind");
+            try jw.write("none");
+            try jw.objectField("value");
+            try jw.beginObject();
+            try jw.endObject();
+        },
+        .u8_value => |value| {
+            try jw.objectField("kind");
+            try jw.write("u8_value");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .i8_value => |value| {
+            try jw.objectField("kind");
+            try jw.write("i8_value");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .u16_value => |value| {
+            try jw.objectField("kind");
+            try jw.write("u16_value");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .i16_value => |value| {
+            try jw.objectField("kind");
+            try jw.write("i16_value");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .u8_pair => |value| {
+            try jw.objectField("kind");
+            try jw.write("u8_pair");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .u8_i8 => |value| {
+            try jw.objectField("kind");
+            try jw.write("u8_i8");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .u8_i16 => |value| {
+            try jw.objectField("kind");
+            try jw.write("u8_i16");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .i16_u8 => |value| {
+            try jw.objectField("kind");
+            try jw.write("i16_u8");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .u8_u16 => |value| {
+            try jw.objectField("kind");
+            try jw.write("u8_u16");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .u8_u16_i16 => |value| {
+            try jw.objectField("kind");
+            try jw.write("u8_u16_i16");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .u8_u8_u8_i16 => |value| {
+            try jw.objectField("kind");
+            try jw.write("u8_u8_u8_i16");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .i16_u8_i16 => |value| {
+            try jw.objectField("kind");
+            try jw.write("i16_u8_i16");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .i16_i16_u8_i16 => |value| {
+            try jw.objectField("kind");
+            try jw.write("i16_i16_u8_i16");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .move => |value| {
+            try jw.objectField("kind");
+            try jw.write("move");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .move_obj => |value| {
+            try jw.objectField("kind");
+            try jw.write("move_obj");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .string => |value| {
+            try jw.objectField("kind");
+            try jw.write("string");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .condition => |value| {
+            try jw.objectField("kind");
+            try jw.write("condition");
+            try jw.objectField("value");
+            try writeLifeConditionJson(jw, value);
+        },
+        .switch_expr => |value| {
+            try jw.objectField("kind");
+            try jw.write("switch_expr");
+            try jw.objectField("value");
+            try writeLifeSwitchExpressionJson(jw, value);
+        },
+        .case_branch => |value| {
+            try jw.objectField("kind");
+            try jw.write("case_branch");
+            try jw.objectField("value");
+            try writeLifeCaseBranchJson(jw, value);
+        },
+    }
+    try jw.endObject();
+}
+
+fn writeLifeConditionJson(jw: anytype, value: life_program.LifeCondition) !void {
+    try jw.beginObject();
+    try jw.objectField("function");
+    try writeLifeFunctionCallJson(jw, value.function);
+    try jw.objectField("comparison");
+    try writeLifeTestJson(jw, value.comparison);
+    try jw.objectField("jump_offset");
+    try jw.write(value.jump_offset);
+    try jw.endObject();
+}
+
+fn writeLifeSwitchExpressionJson(jw: anytype, value: life_program.LifeSwitchExpression) !void {
+    try jw.beginObject();
+    try jw.objectField("function");
+    try writeLifeFunctionCallJson(jw, value.function);
+    try jw.endObject();
+}
+
+fn writeLifeCaseBranchJson(jw: anytype, value: life_program.LifeCaseBranch) !void {
+    try jw.beginObject();
+    try jw.objectField("jump_offset");
+    try jw.write(value.jump_offset);
+    try jw.objectField("switch_return_type");
+    try writeLifeReturnTypeJson(jw, value.switch_return_type);
+    try jw.objectField("comparison");
+    try writeLifeTestJson(jw, value.comparison);
+    try jw.endObject();
+}
+
+fn writeLifeFunctionCallJson(jw: anytype, value: life_program.LifeFunctionCall) !void {
+    try jw.beginObject();
+    try jw.objectField("offset");
+    try jw.write(value.offset);
+    try jw.objectField("function");
+    try jw.write(@intFromEnum(value.function));
+    try jw.objectField("mnemonic");
+    try jw.write(value.function.mnemonic());
+    try jw.objectField("byte_length");
+    try jw.write(value.byte_length);
+    try jw.objectField("return_type");
+    try writeLifeReturnTypeJson(jw, value.return_type);
+    try jw.objectField("operands");
+    try writeLifeFunctionOperandsJson(jw, value.operands);
+    try jw.endObject();
+}
+
+fn writeLifeFunctionOperandsJson(jw: anytype, operands: life_program.LifeFunctionOperands) !void {
+    try jw.beginObject();
+    switch (operands) {
+        .none => {
+            try jw.objectField("kind");
+            try jw.write("none");
+            try jw.objectField("value");
+            try jw.beginObject();
+            try jw.endObject();
+        },
+        .u8_value => |value| {
+            try jw.objectField("kind");
+            try jw.write("u8_value");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+    }
+    try jw.endObject();
+}
+
+fn writeLifeTestJson(jw: anytype, value: life_program.LifeTest) !void {
+    try jw.beginObject();
+    try jw.objectField("offset");
+    try jw.write(value.offset);
+    try jw.objectField("comparator");
+    try jw.write(@intFromEnum(value.comparator));
+    try jw.objectField("mnemonic");
+    try jw.write(value.comparator.mnemonic());
+    try jw.objectField("byte_length");
+    try jw.write(value.byte_length);
+    try jw.objectField("return_type");
+    try writeLifeReturnTypeJson(jw, value.return_type);
+    try jw.objectField("literal");
+    try writeLifeTestLiteralJson(jw, value.literal);
+    try jw.endObject();
+}
+
+fn writeLifeTestLiteralJson(jw: anytype, literal: life_program.LifeTestLiteral) !void {
+    try jw.beginObject();
+    switch (literal) {
+        .s8_value => |value| {
+            try jw.objectField("kind");
+            try jw.write("s8_value");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .u8_value => |value| {
+            try jw.objectField("kind");
+            try jw.write("u8_value");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .s16_value => |value| {
+            try jw.objectField("kind");
+            try jw.write("s16_value");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .string => |value| {
+            try jw.objectField("kind");
+            try jw.write("string");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+    }
+    try jw.endObject();
+}
+
+fn writeLifeReturnTypeJson(jw: anytype, return_type: life_program.LifeReturnType) !void {
+    try jw.beginObject();
+    try jw.objectField("id");
+    try jw.write(@intFromEnum(return_type));
+    try jw.objectField("mnemonic");
+    try jw.write(return_type.mnemonic());
     try jw.endObject();
 }
 
@@ -1092,12 +1424,44 @@ fn writeByteArrayJson(jw: anytype, bytes: []const u8) !void {
     try jw.endArray();
 }
 
+fn testMetadataEntry(
+    entry_index: usize,
+    display_name: []const u8,
+    normalized_name: []const u8,
+) RoomMetadataEntry {
+    return .{
+        .entry_index = entry_index,
+        .display_name = display_name,
+        .normalized_name = normalized_name,
+    };
+}
+
+fn expectGeneratedEntriesUseRuntimeNormalization(
+    allocator: std.mem.Allocator,
+    entries: []const RoomMetadataEntry,
+) !void {
+    for (entries) |entry| {
+        const normalized = try normalizeSearchKeyAlloc(allocator, entry.display_name);
+        defer allocator.free(normalized);
+        try std.testing.expectEqualStrings(entry.normalized_name, normalized);
+    }
+}
+
+test "generated room metadata normalized names stay in sync with runtime normalization" {
+    try expectGeneratedEntriesUseRuntimeNormalization(std.testing.allocator, room_metadata.scene_entries);
+    try expectGeneratedEntriesUseRuntimeNormalization(std.testing.allocator, room_metadata.background_entries);
+}
+
 test "scene metadata resolution supports exact friendly-name matches" {
-    const selection = try resolveSelectionFromBytesAlloc(
+    const entries = [_]RoomMetadataEntry{
+        testMetadataEntry(2, "Scene 0: Citadel Island, Twinsen's house", "scene 0 citadel island twinsen s house"),
+        testMetadataEntry(3, "Scene 1: Desert Island, Tavern", "scene 1 desert island tavern"),
+    };
+    const selection = try resolveSelectionFromEntriesAlloc(
         std.testing.allocator,
         .scene,
         .{ .name = "Scene 0: Citadel Island, Twinsen's house" },
-        "0:|Count\n1:ls2|Scene 0: Citadel Island, Twinsen's house\n2:ls2|Scene 1: Desert Island, Tavern\n",
+        &entries,
     );
     defer selection.deinit(std.testing.allocator);
 
@@ -1106,11 +1470,15 @@ test "scene metadata resolution supports exact friendly-name matches" {
 }
 
 test "background metadata resolution supports suffix friendly-name matches" {
-    const selection = try resolveSelectionFromBytesAlloc(
+    const entries = [_]RoomMetadataEntry{
+        testMetadataEntry(2, "Grid 0: Citadel Island, Twinsen's house", "grid 0 citadel island twinsen s house"),
+        testMetadataEntry(3, "Grid 1: Desert Island, Tavern", "grid 1 desert island tavern"),
+    };
+    const selection = try resolveSelectionFromEntriesAlloc(
         std.testing.allocator,
         .background,
         .{ .name = "Tavern" },
-        "0:|Info\n1:gr2|Grid 0: Citadel Island, Twinsen's house\n2:gr2|Grid 1: Desert Island, Tavern\n",
+        &entries,
     );
     defer selection.deinit(std.testing.allocator);
 
@@ -1119,25 +1487,32 @@ test "background metadata resolution supports suffix friendly-name matches" {
 }
 
 test "metadata resolution rejects ambiguous suffix matches" {
+    const entries = [_]RoomMetadataEntry{
+        testMetadataEntry(2, "Scene 0: Desert Island, Tavern", "scene 0 desert island tavern"),
+        testMetadataEntry(3, "Scene 1: Rebellion Island, Tavern", "scene 1 rebellion island tavern"),
+    };
     try std.testing.expectError(
         error.AmbiguousSceneName,
-        resolveSelectionFromBytesAlloc(
+        resolveSelectionFromEntriesAlloc(
             std.testing.allocator,
             .scene,
             .{ .name = "Tavern" },
-            "1:ls2|Scene 0: Desert Island, Tavern\n2:ls2|Scene 1: Rebellion Island, Tavern\n",
+            &entries,
         ),
     );
 }
 
 test "metadata resolution rejects unknown friendly names" {
+    const entries = [_]RoomMetadataEntry{
+        testMetadataEntry(2, "Grid 0: Citadel Island, Twinsen's house", "grid 0 citadel island twinsen s house"),
+    };
     try std.testing.expectError(
         error.UnknownBackgroundName,
-        resolveSelectionFromBytesAlloc(
+        resolveSelectionFromEntriesAlloc(
             std.testing.allocator,
             .background,
             .{ .name = "Does Not Exist" },
-            "1:gr2|Grid 0: Citadel Island, Twinsen's house\n",
+            &entries,
         ),
     );
 }

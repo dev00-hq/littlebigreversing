@@ -32,7 +32,7 @@ In scope for v1:
   - background linkage and room context
   - actor intelligence with raw and mapped fields
   - zones, tracks, and patches
-  - life and track program summaries per actor
+  - life and track program structure per actor
 - Reuse existing decoders and audits rather than duplicating parsing logic
 
 Out of scope for v1:

@@ -23,6 +23,7 @@ Reverse-engineering and port-planning workspace for Twinsen's Little Big Adventu
 
 - One canonical current-state codepath per subsystem.
 - One canonical investigative stack for narrowing runtime gaps: `inspect-room-intelligence`, `cdb-agent`, and `ghb`.
+- Repo-owned generated metadata artifacts beat legacy external text exports on canonical tool paths.
 - Codex memory lives only under `docs/codex_memory/`.
 - Structured history uses only `codex-memory-v2` JSONL files.
 - Default canonical memory pickup excludes `sidequest/` and `LM_TASKS/`.

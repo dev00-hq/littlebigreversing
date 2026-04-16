@@ -16,6 +16,7 @@ Current landed baseline:
 - canonical asset-root discovery and config
 - HQR base reader and inspection CLI
 - machine-readable asset inventory and golden-fixture pipeline
+- generated scene/background name metadata for `inspect-room-intelligence`, checked into `port/src/generated/room_metadata.zig` and regenerated with `tools/generate_room_metadata.py`
 - `BRK`-backed viewer evidence surfaces for the supported guarded `19/19`, `2/2`, and `11/10` room/load set
 - Windows viewer verification through `scripts/verify_viewer.py`, with bare mode kept as the canonical gate and `--fast` available for the daily local loop
 - guarded success for `19/19`, `2/2`, and `11/10`, plus expected guarded `ViewerSceneMustBeInterior` rejection for `44/2`

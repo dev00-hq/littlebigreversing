@@ -34,7 +34,7 @@ def payload(
         composition["tiles"] = [{} for _ in range(runtime_tiles)]
         composition["height_grid"] = [0, 1]
 
-    return {
+    result = {
         "selection": {
             "scene": {"resolved_entry_index": scene_entry},
             "background": {"resolved_entry_index": background_entry},
@@ -111,6 +111,8 @@ class RoomIntelligenceTriageTests(unittest.TestCase):
             )
             ranked = ranked_rooms([simple, heavy])
 
+            self.assertEqual(1, heavy.fragment_layout_count)
+            self.assertEqual(0, simple.fragment_layout_count)
             self.assertEqual("11/10", ranked[0].summary.room_label)
             self.assertEqual("runtime-followup", ranked[0].verdict)
             self.assertEqual("2/2", ranked[1].summary.room_label)

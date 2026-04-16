@@ -13,6 +13,7 @@ fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     const stderr = &stderr_writer.interface;
 
     cli.run(allocator, args) catch |err| {
+        if (err == error.MachineReadableReported) std.process.exit(1);
         diagnostics.reportError(stderr, @errorName(err));
         return err;
     };
