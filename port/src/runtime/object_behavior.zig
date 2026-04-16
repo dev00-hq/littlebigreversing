@@ -1,4 +1,5 @@
 const std = @import("std");
+const reference_metadata = @import("../generated/reference_metadata.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const track_program = @import("../game_data/scene/track_program.zig");
 const room_state = @import("room_state.zig");
@@ -15,8 +16,8 @@ const supported_object_index: usize = 2;
 const sendell_scene_entry_index: usize = 36;
 const sendell_background_entry_index: usize = 36;
 const sendell_object_index: usize = 2;
-const sendell_flag_index: u8 = 3;
-const lightning_flag_index: u8 = 19;
+const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
+const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
 const sendell_red_ball_magic_level: u8 = 3;
 const supported_magic_bonus_option_flag: i16 = 64;
 const supported_magic_bonus_sprite_index: i16 = 5;
@@ -112,8 +113,8 @@ fn applyScene3636CastLightning(
     }
 
     const object_behavior = current_session.objectBehaviorStateByIndexPtr(sendell_object_index) orelse return error.MissingRuntimeObjectBehaviorState;
-    if (current_session.gameVar(lightning_flag_index) <= 0) return error.SendellLightningSpellUnavailable;
-    if (current_session.gameVar(sendell_flag_index) != 0 or object_behavior.sendell_ball_phase != .idle) {
+    if (current_session.gameVar(lightning_spell_flag_index) <= 0) return error.SendellLightningSpellUnavailable;
+    if (current_session.gameVar(sendell_ball_flag_index) != 0 or object_behavior.sendell_ball_phase != .idle) {
         return error.SendellSequenceAlreadyConsumed;
     }
 
@@ -141,7 +142,7 @@ fn applyScene3636AdvanceStory(
             object_behavior.sendell_ball_phase = .awaiting_second_dialog_ack;
         },
         .awaiting_second_dialog_ack => {
-            current_session.setGameVar(sendell_flag_index, 1);
+            current_session.setGameVar(sendell_ball_flag_index, 1);
             object_behavior.sendell_ball_phase = .completed;
         },
         else => return error.SendellStoryAdvanceUnavailable,

@@ -1,6 +1,7 @@
 const std = @import("std");
 const diagnostics = @import("../foundation/diagnostics.zig");
 const paths_mod = @import("../foundation/paths.zig");
+const reference_metadata = @import("../generated/reference_metadata.zig");
 const sdl = @import("../platform/sdl.zig");
 const runtime_locomotion = @import("../runtime/locomotion.zig");
 const runtime_object_behavior = @import("../runtime/object_behavior.zig");
@@ -94,8 +95,8 @@ pub const locomotion_fixture_background_entry: usize = 19;
 pub const locomotion_fixture_cell = GridCell{ .x = 39, .z = 6 };
 const sendell_scene_entry: usize = 36;
 const sendell_background_entry: usize = 36;
-const sendell_flag_index: u8 = 3;
-const lightning_flag_index: u8 = 19;
+const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
+const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
 const sendell_seed_magic_level: u8 = 2;
 
 pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs {
@@ -432,8 +433,8 @@ fn seedSupportedStoryState(room: *const RoomSnapshot, current_session: *Session)
     }
 
     current_session.setMagicLevelAndRefill(sendell_seed_magic_level);
-    current_session.setGameVar(sendell_flag_index, 0);
-    current_session.setGameVar(lightning_flag_index, 1);
+    current_session.setGameVar(sendell_ball_flag_index, 0);
+    current_session.setGameVar(lightning_spell_flag_index, 1);
 }
 
 pub fn renderDebugViewWithSelection(

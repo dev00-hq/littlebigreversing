@@ -20,7 +20,7 @@ Own repo direction and the canonical Codex memory workflow across the Zig port a
 - Viewer input stops at intent submission; runtime owns the pending intent and its minimal consumption tick.
 - Runtime owns mutable object positions on the live viewer/app path, while `RoomSnapshot` stays immutable decode state.
 - Guarded `19/19` now also carries an explicit immutable object-behavior seed for object `2`, while runtime owns the mutable life-byte copy and later reward-loop state.
-- The life decoder now has a machine-readable `life-catalog-v1` CLI surface sourced from production enums.
+- The life decoder now has a machine-readable `life-catalog-v2` CLI surface sourced from production enums.
 - `inspect-room-intelligence` scene/background naming now comes from `port/src/generated/room_metadata.zig`, regenerated with `tools/generate_room_metadata.py`.
 - `inspect-room-intelligence` is the approved repo-local gap-discovery surface.
 - `cdb-agent` is the approved debugger/live-trace layer, and `ghb` is the approved Ghidra layer.

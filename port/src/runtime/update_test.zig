@@ -1,4 +1,5 @@
 const std = @import("std");
+const reference_metadata = @import("../generated/reference_metadata.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const object_behavior = @import("object_behavior.zig");
@@ -10,8 +11,8 @@ const runtime_update = @import("update.zig");
 const zone_effects = @import("zone_effects.zig");
 
 const fixture_cell = locomotion.GridCell{ .x = 39, .z = 6 };
-const sendell_flag_index: u8 = 3;
-const lightning_flag_index: u8 = 19;
+const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
+const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
 
 fn initSession(room: *const room_state.RoomSnapshot) !runtime_session.Session {
     return runtime_session.Session.initWithObjects(
@@ -218,8 +219,8 @@ test "runtime update tick advances the bounded Sendell room-36 story-state seque
     var current_session = try initSession(room);
     defer current_session.deinit(std.testing.allocator);
     current_session.setMagicLevelAndRefill(2);
-    current_session.setGameVar(sendell_flag_index, 0);
-    current_session.setGameVar(lightning_flag_index, 1);
+    current_session.setGameVar(sendell_ball_flag_index, 0);
+    current_session.setGameVar(lightning_spell_flag_index, 1);
 
     try current_session.submitHeroIntent(.cast_lightning);
     const cast_tick = try runtime_update.tick(room, &current_session);
@@ -238,7 +239,7 @@ test "runtime update tick advances the bounded Sendell room-36 story-state seque
     try std.testing.expectEqual(@as(usize, 2), current_session.frame_index);
     try std.testing.expectEqual(@as(u8, 3), current_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 60), current_session.magicPoint());
-    try std.testing.expectEqual(@as(i16, 0), current_session.gameVar(sendell_flag_index));
+    try std.testing.expectEqual(@as(i16, 0), current_session.gameVar(sendell_ball_flag_index));
     try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_second_dialog_ack, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
 
     try current_session.submitHeroIntent(.advance_story);
@@ -246,6 +247,6 @@ test "runtime update tick advances the bounded Sendell room-36 story-state seque
     try std.testing.expect(second_dialog_tick.consumed_hero_intent);
     try std.testing.expect(!second_dialog_tick.triggered_room_transition);
     try std.testing.expectEqual(@as(usize, 3), current_session.frame_index);
-    try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(sendell_flag_index));
+    try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(sendell_ball_flag_index));
     try std.testing.expectEqual(runtime_session.SendellBallPhase.completed, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
 }
