@@ -1,0 +1,16 @@
+Room Actor Triage
+Question: which actors are the strongest guarded-runtime follow-up targets?
+Rule: prefer decoded life, then richer life logic, then richer track logic, then movement/combat as tie-breakers.
+Room: 11/10
+Actor count: 47
+
+1. actor 2 [behavior-rich]
+   life=decoded/81; track=29; move=8; life_points=255; armor=51; bonus=0; file3d=42; array_index=1
+2. actor 12 [behavior-rich]
+   life=decoded/59; track=29; move=0; life_points=255; armor=51; bonus=0; file3d=16; array_index=11
+3. actor 20 [behavior-rich]
+   life=decoded/53; track=21; move=0; life_points=45; armor=11; bonus=8; file3d=32; array_index=19
+4. actor 21 [behavior-rich]
+   life=decoded/53; track=20; move=0; life_points=45; armor=11; bonus=8; file3d=32; array_index=20
+5. actor 22 [behavior-rich]
+   life=decoded/44; track=33; move=0; life_points=45; armor=21; bonus=8; file3d=31; array_index=21

@@ -1,0 +1,17 @@
+Room Intelligence Triage
+Question: which dumped rooms are the strongest guarded-runtime follow-up targets?
+Rule: prefer viewer-loadable interiors, then richer fragment-zone/runtime structure, then richer decoded scripts.
+Summary: runtime-followup=3, runtime-risk=0, decode-only=1
+
+1. 11/10 [runtime-followup]
+   viewer_loadable=True; scene_kind=interior; fragment_status=compatible; hero=decoded/126; actors=47/47 decoded; max_actor_instructions=81; fragment_layouts=1; runtime_tiles=3573; height_grid=True
+   source=D:\repos\reverse\littlebigreversing\work\sidequest\room-intelligence\11-10.json
+2. 19/19 [runtime-followup]
+   viewer_loadable=True; scene_kind=interior; fragment_status=compatible; hero=decoded/12; actors=2/2 decoded; max_actor_instructions=17; fragment_layouts=0; runtime_tiles=1246; height_grid=True
+   source=D:\repos\reverse\littlebigreversing\work\sidequest\room-intelligence\19-19.json
+3. 2/2 [runtime-followup]
+   viewer_loadable=True; scene_kind=interior; fragment_status=compatible; hero=decoded/47; actors=8/8 decoded; max_actor_instructions=14; fragment_layouts=0; runtime_tiles=2252; height_grid=True
+   source=D:\repos\reverse\littlebigreversing\work\sidequest\room-intelligence\2-2.json
+4. 44/2 [decode-only]
+   viewer_loadable=False; scene_kind=non_interior; fragment_status=skipped; hero=decoded/197; actors=19/19 decoded; max_actor_instructions=113; fragment_layouts=0; runtime_tiles=n/a; height_grid=False
+   source=D:\repos\reverse\littlebigreversing\work\sidequest\room-intelligence\44-2.json

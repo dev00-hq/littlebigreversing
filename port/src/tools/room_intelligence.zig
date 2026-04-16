@@ -429,6 +429,7 @@ pub const PayloadView = struct {
     scene: *const scene_data.SceneMetadata,
     background: *const background_data.BackgroundMetadata,
     validation: *const ValidationSnapshot,
+    room: ?*const room_state.RoomSnapshot = null,
 
     pub fn jsonStringify(self: PayloadView, jw: anytype) !void {
         try jw.beginObject();
@@ -439,11 +440,15 @@ pub const PayloadView = struct {
         try jw.objectField("scene");
         try writeSceneJson(jw, self.scene);
         try jw.objectField("background");
-        try writeBackgroundJson(jw, self.background);
+        try writeBackgroundJson(jw, self.background, self.room);
         try jw.objectField("validation");
         try writeValidationJson(jw, self.validation);
         try jw.objectField("actors");
         try writeActorsJson(jw, self.scene.objects);
+        if (self.room) |room| {
+            try jw.objectField("fragment_zone_layout");
+            try writeFragmentZonesJson(jw, room.fragment_zones);
+        }
         try jw.objectField("zones");
         try jw.write(self.scene.zones);
         try jw.objectField("tracks");
@@ -502,14 +507,29 @@ fn writeSceneJson(jw: anytype, scene: *const scene_data.SceneMetadata) !void {
     try jw.write(scene.classicLoaderSceneNumber());
     try jw.objectField("scene_kind");
     try jw.write(scene.sceneKind());
-    try jw.objectField("decoded_actor_count");
-    try jw.write(scene.objects.len);
+    try jw.objectField("counts");
+    try writeSceneCountsJson(jw, scene);
     try jw.objectField("compressed_header");
     try jw.write(scene.compressed_header);
     try jw.objectField("header");
     try writeSceneHeaderJson(jw, scene);
     try jw.objectField("hero_start");
     try writeHeroStartJson(jw, scene.hero_start);
+    try jw.endObject();
+}
+
+fn writeSceneCountsJson(jw: anytype, scene: *const scene_data.SceneMetadata) !void {
+    try jw.beginObject();
+    try jw.objectField("header_object_count");
+    try jw.write(scene.object_count);
+    try jw.objectField("decoded_actor_count");
+    try jw.write(scene.objects.len);
+    try jw.objectField("hero_count");
+    try jw.write(@as(usize, 1));
+    try jw.objectField("header_object_count_includes_hero");
+    try jw.write(true);
+    try jw.objectField("decoded_actor_count_matches_header_minus_hero");
+    try jw.write(scene.objects.len + 1 == scene.object_count);
     try jw.endObject();
 }
 
@@ -659,7 +679,11 @@ fn writeHeroStartJson(jw: anytype, hero_start: scene_data.HeroStart) !void {
     try jw.endObject();
 }
 
-fn writeBackgroundJson(jw: anytype, background: *const background_data.BackgroundMetadata) !void {
+fn writeBackgroundJson(
+    jw: anytype,
+    background: *const background_data.BackgroundMetadata,
+    room: ?*const room_state.RoomSnapshot,
+) !void {
     try jw.beginObject();
     try jw.objectField("entry_index");
     try jw.write(background.entry_index);
@@ -689,7 +713,11 @@ fn writeBackgroundJson(jw: anytype, background: *const background_data.Backgroun
     try jw.objectField("column_table");
     try jw.write(background.column_table);
     try jw.objectField("composition");
-    try jw.write(background.composition.grid.summary());
+    if (room) |resolved_room| {
+        try writeCompositionJson(jw, resolved_room.background.composition, background.composition.grid.summary());
+    } else {
+        try jw.write(background.composition.grid.summary());
+    }
     try jw.objectField("layout_library");
     try jw.write(background.composition.library.summary());
     try jw.objectField("fragments");
@@ -697,6 +725,130 @@ fn writeBackgroundJson(jw: anytype, background: *const background_data.Backgroun
     try jw.objectField("bricks");
     try jw.write(background.composition.bricks);
     try jw.endObject();
+}
+
+fn writeCompositionJson(
+    jw: anytype,
+    composition: room_state.CompositionSnapshot,
+    grid_summary: background_data.GridCompositionSummary,
+) !void {
+    try jw.beginObject();
+    try jw.objectField("width");
+    try jw.write(grid_summary.width);
+    try jw.objectField("depth");
+    try jw.write(grid_summary.depth);
+    try jw.objectField("cell_count");
+    try jw.write(grid_summary.cell_count);
+    try jw.objectField("unique_offset_count");
+    try jw.write(grid_summary.unique_offset_count);
+    try jw.objectField("occupied_cell_count");
+    try jw.write(composition.occupied_cell_count);
+    try jw.objectField("occupied_bounds");
+    try jw.write(composition.occupied_bounds);
+    try jw.objectField("layout_count");
+    try jw.write(composition.layout_count);
+    try jw.objectField("max_layout_block_count");
+    try jw.write(composition.max_layout_block_count);
+    try jw.objectField("floor_type_counts");
+    try jw.write(composition.floor_type_counts);
+    try jw.objectField("max_total_height");
+    try jw.write(composition.max_total_height);
+    try jw.objectField("max_stack_depth");
+    try jw.write(composition.max_stack_depth);
+    try jw.objectField("height_grid");
+    try writeByteArrayJson(jw, composition.height_grid);
+    try jw.objectField("tiles");
+    try writeCompositionTilesJson(jw, composition.tiles);
+    try jw.endObject();
+}
+
+fn writeCompositionTilesJson(jw: anytype, tiles: []const room_state.CompositionTileSnapshot) !void {
+    try jw.beginArray();
+    for (tiles) |tile| {
+        try jw.beginObject();
+        try jw.objectField("x");
+        try jw.write(tile.x);
+        try jw.objectField("z");
+        try jw.write(tile.z);
+        try jw.objectField("total_height");
+        try jw.write(tile.total_height);
+        try jw.objectField("stack_depth");
+        try jw.write(tile.stack_depth);
+        try jw.objectField("top_floor_type");
+        try jw.write(tile.top_floor_type);
+        try jw.objectField("top_shape");
+        try jw.write(tile.top_shape);
+        try jw.objectField("top_shape_class");
+        try jw.write(@tagName(tile.top_shape_class));
+        try jw.objectField("top_brick_index");
+        try jw.write(tile.top_brick_index);
+        try jw.endObject();
+    }
+    try jw.endArray();
+}
+
+fn writeFragmentZonesJson(jw: anytype, fragment_zones: []const room_state.FragmentZoneSnapshot) !void {
+    try jw.beginArray();
+    for (fragment_zones) |zone| {
+        try jw.beginObject();
+        try jw.objectField("zone_index");
+        try jw.write(zone.zone_index);
+        try jw.objectField("zone_num");
+        try jw.write(zone.zone_num);
+        try jw.objectField("grm_index");
+        try jw.write(zone.grm_index);
+        try jw.objectField("fragment_entry_index");
+        try jw.write(zone.fragment_entry_index);
+        try jw.objectField("initially_on");
+        try jw.write(zone.initially_on);
+        try jw.objectField("y_min");
+        try jw.write(zone.y_min);
+        try jw.objectField("y_max");
+        try jw.write(zone.y_max);
+        try jw.objectField("origin_x");
+        try jw.write(zone.origin_x);
+        try jw.objectField("origin_z");
+        try jw.write(zone.origin_z);
+        try jw.objectField("width");
+        try jw.write(zone.width);
+        try jw.objectField("height");
+        try jw.write(zone.height);
+        try jw.objectField("depth");
+        try jw.write(zone.depth);
+        try jw.objectField("footprint_cell_count");
+        try jw.write(zone.footprint_cell_count);
+        try jw.objectField("non_empty_cell_count");
+        try jw.write(zone.non_empty_cell_count);
+        try jw.objectField("cells");
+        try writeFragmentZoneCellsJson(jw, zone.cells);
+        try jw.endObject();
+    }
+    try jw.endArray();
+}
+
+fn writeFragmentZoneCellsJson(jw: anytype, cells: []const room_state.FragmentZoneCellSnapshot) !void {
+    try jw.beginArray();
+    for (cells) |cell| {
+        try jw.beginObject();
+        try jw.objectField("x");
+        try jw.write(cell.x);
+        try jw.objectField("z");
+        try jw.write(cell.z);
+        try jw.objectField("has_non_empty");
+        try jw.write(cell.has_non_empty);
+        try jw.objectField("stack_depth");
+        try jw.write(cell.stack_depth);
+        try jw.objectField("top_floor_type");
+        try jw.write(cell.top_floor_type);
+        try jw.objectField("top_shape");
+        try jw.write(cell.top_shape);
+        try jw.objectField("top_shape_class");
+        try jw.write(@tagName(cell.top_shape_class));
+        try jw.objectField("top_brick_index");
+        try jw.write(cell.top_brick_index);
+        try jw.endObject();
+    }
+    try jw.endArray();
 }
 
 fn writeActorsJson(jw: anytype, actors: []const scene_data.SceneObject) !void {
@@ -709,7 +861,11 @@ fn writeActorsJson(jw: anytype, actors: []const scene_data.SceneObject) !void {
 
 fn writeActorJson(jw: anytype, actor: scene_data.SceneObject) !void {
     try jw.beginObject();
+    try jw.objectField("array_index");
+    try jw.write(actor.index - 1);
     try jw.objectField("index");
+    try jw.write(actor.index);
+    try jw.objectField("scene_object_index");
     try jw.write(actor.index);
     try jw.objectField("raw");
     try writeActorRawJson(jw, actor);

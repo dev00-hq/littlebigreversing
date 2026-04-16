@@ -45,7 +45,7 @@ Out of scope for v1:
 
 ## Milestones
 
-Current status: M1, M2, M3, and M4 are implemented and validated in the side-quest branch of work.
+Current status: M1, M2, M3, M4, the downstream room triage consumer, the downstream actor triage consumer, and the actor dossier/runtime probe lane are implemented and validated in the side-quest branch of work.
 
 ### M1: Selection And Naming
 
@@ -104,6 +104,65 @@ Proof:
 - Out-of-range numeric selectors fail with command-scoped errors.
 - Existing scene/room/life command tests still pass.
 
+### M5: Downstream Triage Consumer
+
+- Add one sidequest-only consumer that reads `inspect-room-intelligence` dumps from disk rather than calling back into the runtime.
+- Make it answer one question only: which dumped rooms are the strongest guarded-runtime follow-up targets?
+- Prefer explicit evidence over hidden scoring magic:
+  - viewer-loadable interior status
+  - fragment-zone compatibility and layout presence
+  - hero decode status and instruction count
+  - decoded actor coverage and maximum actor instruction count
+- Keep this consumer out of the canonical `port/` CLI until the side quest is promoted.
+
+Proof:
+
+- The consumer can rank `2/2`, `11/10`, `19/19`, and `44/2` from dump files alone.
+- A non-viewer-loadable room is demoted to `decode-only` even if its scripts are rich.
+- A viewer-loadable interior with richer runtime structure outranks a simpler one.
+
+### M6: Actor Follow-Up Consumer
+
+- Add one sidequest-only consumer that reads a single `inspect-room-intelligence` dump and ranks actors inside that room.
+- Make it answer one question only: which actors are the strongest guarded-runtime follow-up targets?
+- Keep the rule explicit and narrow:
+  - decoded life status first
+  - life instruction count second
+  - track instruction count third
+  - movement and combat only as tie-breakers
+- Do not call back into the runtime from this consumer; it must justify the existing actor payload on its own.
+
+Proof:
+
+- The consumer can rank the top actors in `11/10` from a dump file alone.
+- A non-decoded actor is demoted even if its numeric fields look rich.
+- A behavior-rich actor outranks a mobility-only actor with weaker life logic.
+
+### M7: Actor Dossier And Runtime Falsification
+
+- Add one sidequest-only dossier reader that renders a focused report for selected actors from an existing dump.
+- Use it to compare the top-ranked actor against at least one nearby actor and one low-ranked control.
+- Add one sidequest-only runtime probe that tries a real runtime tick for a selected room/object and reports whether the current runtime boundary admits or rejects it.
+- Do not hide runtime rejection: if the room is outside supported object-behavior coverage, report the exact failure.
+
+Proof:
+
+- The dossier for `11/10` actor `2` explains why it outranks actor `12` and a low-ranked control using existing dump fields only.
+- The runtime probe on `11/10` actor `2` reports the actual current boundary result rather than inferring support from static richness.
+
+### M8: Temporary Seed Admission Probe
+
+- Add one sidequest-only probe that temporarily injects a selected actor as a runtime behavior seed for one tick.
+- Report the real first blocker from the current runtime path.
+- Also report the first interpreter-compatibility blocker behind that gate:
+  - first unsupported life opcode or condition function
+  - first unsupported track opcode
+
+Proof:
+
+- The probe for `11/10` actor `2` distinguishes the live dispatch failure from the next static interpreter failure.
+- The output is enough to decide whether the next runtime step is dispatch widening or opcode support widening.
+
 ## Validation
 
 Use the existing PowerShell-first repo workflow:
@@ -118,6 +177,14 @@ Use the existing PowerShell-first repo workflow:
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-intelligence --scene-name "Scene 0: Citadel Island, Twinsen's house" --background-name "Grid 0: Citadel Island, Twinsen's house"`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-intelligence --scene-entry 44 --background-entry 2`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-intelligence --scene-entry 219 --background-entry 219`
+- `py -3 -m unittest sidequest\\tools\\test_room_intelligence_triage.py`
+- Generate dump files with `--out` and run `py -3 sidequest\\tools\\room_intelligence_triage.py <dump-path>...`
+- `py -3 -m unittest sidequest\\tools\\test_room_actor_triage.py`
+- Generate a dump file with `--out` and run `py -3 sidequest\\tools\\room_actor_triage.py <dump-path> --top 5`
+- `py -3 -m unittest sidequest\\tools\\test_room_actor_dossier.py`
+- Generate a dump file with `--out` and run `py -3 sidequest\\tools\\room_actor_dossier.py <dump-path> 2 12 1`
+- `py -3 .\\scripts\\dev-shell.py exec --cwd port -- zig run src\\sidequest_room_actor_runtime_probe.zig -- 11 10 2`
+- `py -3 .\\scripts\\dev-shell.py exec --cwd port -- zig run src\\sidequest_room_actor_seed_admission_probe.zig -- 11 10 2`
 
 ## Risks And Decisions
 

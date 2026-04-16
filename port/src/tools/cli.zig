@@ -34,6 +34,7 @@ const Command = enum {
 const ParsedArgs = struct {
     command: Command,
     asset_root_override: ?[]u8,
+    output_path: ?[]const u8 = null,
     relative_path: ?[]const u8,
     entry_index: ?usize,
     background_entry_index: ?usize,
@@ -404,6 +405,7 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
         var background_entry_index: ?usize = null;
         var scene_name: ?[]const u8 = null;
         var background_name: ?[]const u8 = null;
+        var output_path: ?[]const u8 = null;
         var output_json = false;
 
         var index = command_index + 1;
@@ -436,6 +438,11 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             } else if (std.mem.eql(u8, arg, "--json")) {
                 output_json = true;
                 index += 1;
+            } else if (std.mem.eql(u8, arg, "--out")) {
+                if (output_path != null) return error.DuplicateOutputPath;
+                if (index + 1 >= args.len) return error.MissingOutputPath;
+                output_path = args[index + 1];
+                index += 2;
             } else {
                 return error.UnknownOption;
             }
@@ -447,6 +454,7 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .relative_path = null,
             .entry_index = if (scene_entry_index == null and scene_name == null) return error.MissingSceneSelector else scene_entry_index,
             .background_entry_index = if (background_entry_index == null and background_name == null) return error.MissingBackgroundSelector else background_entry_index,
+            .output_path = output_path,
             .scene_name = scene_name,
             .background_name = background_name,
             .audit_scene_entry_indices = null,
@@ -1123,17 +1131,33 @@ fn inspectRoomIntelligence(
     );
     defer validation.deinit(allocator);
 
+    const room = if (validation.viewer_loadable)
+        try room_state.loadRoomSnapshot(
+            allocator,
+            resolved,
+            scene_selection.resolved_entry_index,
+            background_selection.resolved_entry_index,
+        )
+    else
+        null;
+    defer if (room) |resolved_room| resolved_room.deinit(allocator);
+
     const payload: room_intelligence.PayloadView = .{
         .scene_selection = &scene_selection,
         .background_selection = &background_selection,
         .scene = &scene,
         .background = &background,
         .validation = &validation,
+        .room = if (room) |*resolved_room| resolved_room else null,
     };
     const json = try room_intelligence.stringifyPayloadAlloc(allocator, payload);
     defer allocator.free(json);
-    try std.fs.File.stdout().writeAll(json);
-    try std.fs.File.stdout().writeAll("\n");
+    if (parsed.output_path) |output_path| {
+        try writeJson(output_path, json);
+    } else {
+        try std.fs.File.stdout().writeAll(json);
+        try std.fs.File.stdout().writeAll("\n");
+    }
 }
 
 fn inspectRoomFragmentZones(
@@ -2815,6 +2839,25 @@ test "argument parsing supports inspect-room-intelligence name selectors" {
     try std.testing.expectEqualStrings("Grid 0: Citadel Island, Twinsen's house", parsed.background_name.?);
 }
 
+test "argument parsing supports inspect-room-intelligence output files" {
+    const parsed = try parseArgs(
+        std.testing.allocator,
+        &.{
+            "inspect-room-intelligence",
+            "--scene-entry",
+            "2",
+            "--background-entry",
+            "2",
+            "--out",
+            "room.json",
+        },
+    );
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.inspect_room_intelligence, parsed.command);
+    try std.testing.expectEqualStrings("room.json", parsed.output_path.?);
+}
+
 test "argument parsing rejects inspect-room-intelligence conflicting selectors" {
     try std.testing.expectError(
         error.ConflictingSceneSelector,
@@ -2834,6 +2877,14 @@ test "argument parsing rejects inspect-room-intelligence missing selectors" {
     try std.testing.expectError(
         error.MissingBackgroundSelector,
         parseArgs(std.testing.allocator, &.{ "inspect-room-intelligence", "--scene-entry", "2" }),
+    );
+    try std.testing.expectError(
+        error.MissingOutputPath,
+        parseArgs(std.testing.allocator, &.{ "inspect-room-intelligence", "--scene-entry", "2", "--background-entry", "2", "--out" }),
+    );
+    try std.testing.expectError(
+        error.DuplicateOutputPath,
+        parseArgs(std.testing.allocator, &.{ "inspect-room-intelligence", "--scene-entry", "2", "--background-entry", "2", "--out", "a.json", "--out", "b.json" }),
     );
 }
 

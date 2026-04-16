@@ -1,0 +1,22 @@
+{
+  "scene_entry_index": 11,
+  "background_entry_index": 10,
+  "object_index": 2,
+  "admitted_seed_count": 1,
+  "admitted_seed_life_instruction_count": 81,
+  "admitted_seed_track_instruction_count": 29,
+  "runtime_tick_succeeded": false,
+  "runtime_tick_error": "UnsupportedObjectBehaviorSeed",
+  "runtime_updated_object_count": null,
+  "first_incompatible_life_issue": {
+    "kind": "unsupported_life_opcode",
+    "offset": 0,
+    "opcode": "LM_OR_IF",
+    "detail": "opcode is outside the current 19/19 runtime life interpreter allowlist"
+  },
+  "first_incompatible_track_issue": {
+    "offset": 2,
+    "opcode": "TM_SAMPLE_STOP",
+    "detail": "opcode is outside the current 19/19 runtime track interpreter allowlist"
+  }
+}

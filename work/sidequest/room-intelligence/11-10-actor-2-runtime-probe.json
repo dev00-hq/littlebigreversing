@@ -1,0 +1,20 @@
+{
+  "scene_entry_index": 11,
+  "background_entry_index": 10,
+  "object_index": 2,
+  "viewer_loadable": true,
+  "object_behavior_seed_count": 0,
+  "target_has_behavior_seed": false,
+  "target_seed_life_instruction_count": null,
+  "target_seed_track_instruction_count": null,
+  "session_has_behavior_state": false,
+  "tick_succeeded": true,
+  "tick_error": null,
+  "updated_object_count": 0,
+  "target_track_offset_before": null,
+  "target_track_offset_after": null,
+  "target_sprite_before": null,
+  "target_sprite_after": null,
+  "target_bonus_count_after": null,
+  "emitted_bonus_event_count_after": 0
+}
