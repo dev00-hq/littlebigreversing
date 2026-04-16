@@ -18,13 +18,14 @@ Current landed baseline:
 - machine-readable asset inventory and golden-fixture pipeline
 - generated scene/background name metadata for `inspect-room-intelligence`, checked into `port/src/generated/room_metadata.zig` and regenerated with `tools/generate_room_metadata.py`
 - generated reference metadata overlays for HQR and game-state aliases, checked into `port/src/generated/reference_metadata.zig` and verified with `zig build verify-reference-metadata`
+- `inspect-room-intelligence` as the canonical repo-local machine-facing per-room/per-scene inspection surface for structured scene/background/actor payloads and validation hints
 - `BRK`-backed viewer evidence surfaces for the supported guarded `19/19`, `2/2`, and `11/10` room/load set
 - Windows viewer verification through `scripts/verify_viewer.py`, with bare mode kept as the canonical gate and `--fast` available for the daily local loop
 - guarded success for `19/19`, `2/2`, and `11/10`, plus expected guarded `ViewerSceneMustBeInterior` rejection for `44/2`
 - offline life decoding now structurally supports `LM_DEFAULT` and `LM_END_SWITCH` as one-byte markers, and the all-scenes audit currently reports zero unsupported life blobs
 - explicit runtime session seeding from world-position input, with `runtime/room_state.zig` remaining the `RoomSnapshot` adaptation boundary
 
-Roadmap phases, gates, and acceptance checks live in `docs/LBA2_ZIG_PORT_PLAN.md`. Active repo state and current blockers live in `docs/codex_memory/current_focus.md`. Canonical memory pickup excludes `sidequest/` and `LM_TASKS/` unless those streams are explicitly promoted.
+Roadmap phases, gates, and acceptance checks live in `docs/LBA2_ZIG_PORT_PLAN.md`. Active repo state and current blockers live in `docs/codex_memory/current_focus.md`. The canonical room-intelligence contract lives in `docs/codex_memory/subsystems/intelligence.md`. Canonical memory pickup excludes `sidequest/` and `LM_TASKS/` unless those streams are explicitly promoted.
 
 Keep `port/` separate from:
 

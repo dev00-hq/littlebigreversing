@@ -14,7 +14,7 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 - `docs/PROMPT.md` owns only the next narrow slice to execute.
 - `docs/PORTING_REPORT.md`, the evidence memos, and other research notes remain supporting context, not execution owners.
 - Canonical current-state pickup does not depend on `sidequest/` or `LM_TASKS/`; treat those as independent workstreams unless they are explicitly promoted.
-- `inspect-room-intelligence`, `cdb-agent`, and the local `ghb` repo at `D:\repos\ghb` are the canonical investigative layers for locating, ranking, and falsifying runtime hypotheses; they generate evidence and do not define supported runtime behavior on their own.
+- `inspect-room-intelligence`, `cdb-agent`, and the local `ghb` repo at `D:\repos\ghb` are the canonical investigative layers for locating, ranking, and falsifying runtime hypotheses; `inspect-room-intelligence` is the canonical repo-local machine-facing per-room/per-scene inspection surface, but those layers still generate evidence and do not define supported runtime behavior on their own.
 
 ## Canonical Direction
 

@@ -22,7 +22,7 @@ Own repo direction and the canonical Codex memory workflow across the Zig port a
 - Guarded `19/19` now also carries an explicit immutable object-behavior seed for object `2`, while runtime owns the mutable life-byte copy and later reward-loop state.
 - The life decoder now has a machine-readable `life-catalog-v2` CLI surface sourced from production enums.
 - `inspect-room-intelligence` scene/background naming now comes from `port/src/generated/room_metadata.zig`, regenerated with `tools/generate_room_metadata.py`.
-- `inspect-room-intelligence` is the approved repo-local gap-discovery surface.
+- `inspect-room-intelligence` is the canonical repo-local, machine-facing per-room/per-scene inspection and gap-discovery surface; see `subsystems/intelligence.md` for the contract.
 - `cdb-agent` is the approved debugger/live-trace layer, and `ghb` is the approved Ghidra layer.
 - The canonical original-runtime split is stable: Tavern uses FRA, Scene11 uses debugger snapshots, and Sendell writes `sendell_summary.json`.
 - Runtime also owns a bounded Sendell room-`36` seam: viewer input submits `cast_lightning` / `advance_story`, and object behavior advances the red-ball slice.
@@ -47,6 +47,7 @@ Own repo direction and the canonical Codex memory workflow across the Zig port a
 - `docs/LBA2_ZIG_PORT_PLAN.md`
 - `docs/codex_memory/project_brief.md`
 - `docs/codex_memory/current_focus.md`
+- `docs/codex_memory/subsystems/intelligence.md`
 - `docs/codex_memory/subsystems/life_scripts.md`
 - `port/README.md`
 

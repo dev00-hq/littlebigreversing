@@ -5,7 +5,7 @@
 - Keep `codex-memory-v2` canonical.
 - Keep `19/19`, `2/2`, and `11/10` guarded-positive; keep `44/2` as the guarded exterior rejection.
 - Keep `LM_DEFAULT` and `LM_END_SWITCH` supported as one-byte structural markers.
-- Keep `life_audit.zig` owning offline ranking, `room_state.zig` owning guarded room/load admission, `inspect-room-intelligence` owning repo-local gap discovery, `cdb-agent` owning debugger-backed live evidence, and `ghb` owning Ghidra-backed static evidence.
+- Keep `life_audit.zig` owning offline ranking, `room_state.zig` owning guarded room/load admission, `inspect-room-intelligence` owning the canonical repo-local machine-facing per-room/per-scene inspection surface plus repo-local gap discovery, `cdb-agent` owning debugger-backed live evidence, and `ghb` owning Ghidra-backed static evidence.
 - Keep validation additive: `zig build test-fast`, `zig build test-cli-integration`, and tool-only same-index triage.
 
 ## Active Streams
@@ -41,6 +41,7 @@
 
 - architecture
 - backgrounds
+- intelligence
 - life_scripts
 - scene_decode
 - platform_windows
