@@ -36,6 +36,7 @@ pub const BackgroundComposition = model.BackgroundComposition;
 pub const BackgroundMetadata = model.BackgroundMetadata;
 
 pub const loadBackgroundMetadata = parser.loadBackgroundMetadata;
+pub const loadBackgroundEntryCount = parser.loadBackgroundEntryCount;
 
 test "background facade reexports the stable public API" {
     comptime {

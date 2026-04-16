@@ -10,6 +10,7 @@ const scene_data = @import("../game_data/scene.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
 const room_state = @import("../runtime/room_state.zig");
+const room_intelligence = @import("room_intelligence.zig");
 const room_fixtures = if (builtin.is_test) @import("../testing/room_fixtures.zig") else struct {};
 
 const Command = enum {
@@ -19,6 +20,7 @@ const Command = enum {
     extract_entry,
     inspect_scene,
     inspect_room,
+    inspect_room_intelligence,
     inspect_room_fragment_zones,
     audit_life_programs,
     rank_decoded_interior_candidates,
@@ -35,6 +37,8 @@ const ParsedArgs = struct {
     relative_path: ?[]const u8,
     entry_index: ?usize,
     background_entry_index: ?usize,
+    scene_name: ?[]const u8 = null,
+    background_name: ?[]const u8 = null,
     audit_scene_entry_indices: ?[]usize,
     audit_all_scene_entries: bool,
     life_program_owner: ?life_audit.LifeBlobOwner,
@@ -260,6 +264,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         .extract_entry => try extractEntry(allocator, resolved, parsed.relative_path.?, parsed.entry_index.?),
         .inspect_scene => try inspectScene(allocator, resolved, parsed.entry_index.?, parsed.output_json),
         .inspect_room => try inspectRoom(allocator, resolved, parsed.entry_index.?, parsed.background_entry_index.?, parsed.output_json),
+        .inspect_room_intelligence => try inspectRoomIntelligence(allocator, resolved, parsed),
         .inspect_room_fragment_zones => try inspectRoomFragmentZones(allocator, resolved, parsed.entry_index.?, parsed.background_entry_index.?, parsed.output_json),
         .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed),
         .rank_decoded_interior_candidates => try rankDecodedInteriorCandidates(allocator, resolved, parsed.output_json),
@@ -388,6 +393,62 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             .relative_path = null,
             .entry_index = try std.fmt.parseInt(usize, args[command_index + 1], 10),
             .background_entry_index = try std.fmt.parseInt(usize, args[command_index + 2], 10),
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
+            .life_program_owner = null,
+            .output_json = output_json,
+        };
+    }
+    if (std.mem.eql(u8, command_name, "inspect-room-intelligence")) {
+        var scene_entry_index: ?usize = null;
+        var background_entry_index: ?usize = null;
+        var scene_name: ?[]const u8 = null;
+        var background_name: ?[]const u8 = null;
+        var output_json = false;
+
+        var index = command_index + 1;
+        while (index < args.len) {
+            const arg = args[index];
+            if (std.mem.eql(u8, arg, "--scene-entry")) {
+                if (scene_name != null) return error.ConflictingSceneSelector;
+                if (scene_entry_index != null) return error.DuplicateSceneSelector;
+                if (index + 1 >= args.len) return error.MissingSceneEntryIndex;
+                scene_entry_index = try std.fmt.parseInt(usize, args[index + 1], 10);
+                index += 2;
+            } else if (std.mem.eql(u8, arg, "--scene-name")) {
+                if (scene_entry_index != null) return error.ConflictingSceneSelector;
+                if (scene_name != null) return error.DuplicateSceneSelector;
+                if (index + 1 >= args.len) return error.MissingSceneName;
+                scene_name = args[index + 1];
+                index += 2;
+            } else if (std.mem.eql(u8, arg, "--background-entry")) {
+                if (background_name != null) return error.ConflictingBackgroundSelector;
+                if (background_entry_index != null) return error.DuplicateBackgroundSelector;
+                if (index + 1 >= args.len) return error.MissingBackgroundEntryIndex;
+                background_entry_index = try std.fmt.parseInt(usize, args[index + 1], 10);
+                index += 2;
+            } else if (std.mem.eql(u8, arg, "--background-name")) {
+                if (background_entry_index != null) return error.ConflictingBackgroundSelector;
+                if (background_name != null) return error.DuplicateBackgroundSelector;
+                if (index + 1 >= args.len) return error.MissingBackgroundName;
+                background_name = args[index + 1];
+                index += 2;
+            } else if (std.mem.eql(u8, arg, "--json")) {
+                output_json = true;
+                index += 1;
+            } else {
+                return error.UnknownOption;
+            }
+        }
+
+        return .{
+            .command = .inspect_room_intelligence,
+            .asset_root_override = asset_root_override,
+            .relative_path = null,
+            .entry_index = if (scene_entry_index == null and scene_name == null) return error.MissingSceneSelector else scene_entry_index,
+            .background_entry_index = if (background_entry_index == null and background_name == null) return error.MissingBackgroundSelector else background_entry_index,
+            .scene_name = scene_name,
+            .background_name = background_name,
             .audit_scene_entry_indices = null,
             .audit_all_scene_entries = false,
             .life_program_owner = null,
@@ -1017,6 +1078,62 @@ fn inspectRoom(
     );
     try printUsedBlockSummary(stderr, payload.background.used_blocks.values);
     try stderr.flush();
+}
+
+fn inspectRoomIntelligence(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    parsed: ParsedArgs,
+) !void {
+    _ = parsed.output_json;
+
+    const scene_selector: room_intelligence.Selector = if (parsed.scene_name) |scene_name|
+        .{ .name = scene_name }
+    else
+        .{ .entry = parsed.entry_index.? };
+    const background_selector: room_intelligence.Selector = if (parsed.background_name) |background_name|
+        .{ .name = background_name }
+    else
+        .{ .entry = parsed.background_entry_index.? };
+
+    var scene_selection = try room_intelligence.resolveSceneSelectionAlloc(allocator, resolved.repo_root, scene_selector);
+    defer scene_selection.deinit(allocator);
+
+    var background_selection = try room_intelligence.resolveBackgroundSelectionAlloc(allocator, resolved.repo_root, background_selector);
+    defer background_selection.deinit(allocator);
+
+    try room_intelligence.validateSceneEntryIndex(allocator, resolved.asset_root, scene_selection.resolved_entry_index);
+    try room_intelligence.validateBackgroundEntryIndex(allocator, resolved.asset_root, background_selection.resolved_entry_index);
+
+    const scene_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
+    defer allocator.free(scene_path);
+    const scene = try scene_data.loadSceneMetadata(allocator, scene_path, scene_selection.resolved_entry_index);
+    defer scene.deinit(allocator);
+
+    const background_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "LBA_BKG.HQR" });
+    defer allocator.free(background_path);
+    const background = try background_data.loadBackgroundMetadata(allocator, background_path, background_selection.resolved_entry_index);
+    defer background.deinit(allocator);
+
+    var validation = try room_intelligence.inspectValidation(
+        allocator,
+        resolved,
+        scene,
+        background_selection.resolved_entry_index,
+    );
+    defer validation.deinit(allocator);
+
+    const payload: room_intelligence.PayloadView = .{
+        .scene_selection = &scene_selection,
+        .background_selection = &background_selection,
+        .scene = &scene,
+        .background = &background,
+        .validation = &validation,
+    };
+    const json = try room_intelligence.stringifyPayloadAlloc(allocator, payload);
+    defer allocator.free(json);
+    try std.fs.File.stdout().writeAll(json);
+    try std.fs.File.stdout().writeAll("\n");
 }
 
 fn inspectRoomFragmentZones(
@@ -2664,6 +2781,60 @@ test "argument parsing supports inspect-room json output" {
     try std.testing.expectEqual(@as(usize, 2), parsed.entry_index.?);
     try std.testing.expectEqual(@as(usize, 2), parsed.background_entry_index.?);
     try std.testing.expect(parsed.output_json);
+}
+
+test "argument parsing supports inspect-room-intelligence entry selectors" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-room-intelligence", "--scene-entry", "2", "--background-entry", "2", "--json" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.inspect_room_intelligence, parsed.command);
+    try std.testing.expectEqual(@as(usize, 2), parsed.entry_index.?);
+    try std.testing.expectEqual(@as(usize, 2), parsed.background_entry_index.?);
+    try std.testing.expect(parsed.scene_name == null);
+    try std.testing.expect(parsed.background_name == null);
+    try std.testing.expect(parsed.output_json);
+}
+
+test "argument parsing supports inspect-room-intelligence name selectors" {
+    const parsed = try parseArgs(
+        std.testing.allocator,
+        &.{
+            "inspect-room-intelligence",
+            "--scene-name",
+            "Scene 0: Citadel Island, Twinsen's house",
+            "--background-name",
+            "Grid 0: Citadel Island, Twinsen's house",
+        },
+    );
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.inspect_room_intelligence, parsed.command);
+    try std.testing.expect(parsed.entry_index == null);
+    try std.testing.expect(parsed.background_entry_index == null);
+    try std.testing.expectEqualStrings("Scene 0: Citadel Island, Twinsen's house", parsed.scene_name.?);
+    try std.testing.expectEqualStrings("Grid 0: Citadel Island, Twinsen's house", parsed.background_name.?);
+}
+
+test "argument parsing rejects inspect-room-intelligence conflicting selectors" {
+    try std.testing.expectError(
+        error.ConflictingSceneSelector,
+        parseArgs(std.testing.allocator, &.{ "inspect-room-intelligence", "--scene-entry", "2", "--scene-name", "Twinsen's house", "--background-entry", "2" }),
+    );
+    try std.testing.expectError(
+        error.ConflictingBackgroundSelector,
+        parseArgs(std.testing.allocator, &.{ "inspect-room-intelligence", "--scene-entry", "2", "--background-entry", "2", "--background-name", "Twinsen's house" }),
+    );
+}
+
+test "argument parsing rejects inspect-room-intelligence missing selectors" {
+    try std.testing.expectError(
+        error.MissingSceneSelector,
+        parseArgs(std.testing.allocator, &.{ "inspect-room-intelligence", "--background-entry", "2" }),
+    );
+    try std.testing.expectError(
+        error.MissingBackgroundSelector,
+        parseArgs(std.testing.allocator, &.{ "inspect-room-intelligence", "--scene-entry", "2" }),
+    );
 }
 
 test "argument parsing supports inspect-room-fragment-zones json output" {

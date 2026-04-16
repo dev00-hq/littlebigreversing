@@ -126,6 +126,25 @@ pub fn loadBackgroundMetadata(
     };
 }
 
+pub fn loadBackgroundEntryCount(
+    allocator: std.mem.Allocator,
+    absolute_path: []const u8,
+) !usize {
+    const header_raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, 0);
+    defer allocator.free(header_raw);
+    const header_payload = try hqr.decodeResourceEntryBytes(allocator, header_raw);
+    defer allocator.free(header_payload);
+    const bkg_header = try parseBkgHeaderPayload(header_payload);
+
+    const tab_all_cube_entry_index = @as(usize, bkg_header.brk_start) + @as(usize, bkg_header.max_brk);
+    const tab_all_cube_raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, tab_all_cube_entry_index);
+    defer allocator.free(tab_all_cube_raw);
+    const tab_all_cube_payload = try hqr.decodeResourceEntryBytes(allocator, tab_all_cube_raw);
+    defer allocator.free(tab_all_cube_payload);
+
+    return parseTabAllCubeEntryCount(tab_all_cube_payload);
+}
+
 pub fn parsePalettePayload(payload: []const u8) ![palette_color_count]model.BrickSwatchPixel {
     if (payload.len < palette_payload_size) return error.TruncatedPalettePayload;
     if (payload.len != palette_payload_size) return error.TrailingPaletteBytes;
@@ -162,10 +181,7 @@ pub fn parseBkgHeaderPayload(payload: []const u8) !model.BkgHeader {
 }
 
 pub fn parseTabAllCubePayload(payload: []const u8, entry_index: usize) !TabAllCubeSelection {
-    if (payload.len == 0) return error.EmptyTabAllCubePayload;
-    if (payload.len % tab_all_cube_entry_size != 0) return error.InvalidTabAllCubePayloadSize;
-
-    const entry_count = payload.len / tab_all_cube_entry_size;
+    const entry_count = try parseTabAllCubeEntryCount(payload);
     if (entry_index >= entry_count) return error.InvalidBackgroundEntryIndex;
     const offset = entry_index * tab_all_cube_entry_size;
 
@@ -176,6 +192,13 @@ pub fn parseTabAllCubePayload(payload: []const u8, entry_index: usize) !TabAllCu
             .num = payload[offset + 1],
         },
     };
+}
+
+pub fn parseTabAllCubeEntryCount(payload: []const u8) !usize {
+    if (payload.len == 0) return error.EmptyTabAllCubePayload;
+    if (payload.len % tab_all_cube_entry_size != 0) return error.InvalidTabAllCubePayloadSize;
+
+    return payload.len / tab_all_cube_entry_size;
 }
 
 pub fn parseGriPayload(allocator: std.mem.Allocator, payload: []const u8) !ParsedGriPayload {

@@ -4,6 +4,8 @@
 
 This pack defines the `room intelligence` project inside `littlebigreversing`: a machine-facing scene and room inspection surface that extends the existing Zig CLI with a richer JSON payload for programs and agents.
 
+This pack is a side quest only. It is not canonical until explicitly promoted.
+
 Dominant docs-pack mode: `existing-codebase`.
 Secondary repo reality: `legacy-port`.
 
@@ -43,6 +45,8 @@ Out of scope for v1:
 
 ## Milestones
 
+Current status: M1, M2, M3, and M4 are implemented and validated in the side-quest branch of work.
+
 ### M1: Selection And Naming
 
 - Add the command and selector parsing.
@@ -63,6 +67,8 @@ Proof:
 
 - Introduce a composed room-intelligence payload that layers over the existing scene and room decode surfaces.
 - Include resolved names, canonical entry indices, classic loader scene number, scene header, hero start, background context, zones, tracks, and patches.
+- Include explicit `decoded_actor_count` so raw header object counts are not confused with decoded actor rows.
+- Include a structured `validation` block so machine consumers can see viewer/runtime admission without losing the payload.
 
 Proof:
 
@@ -81,18 +87,21 @@ Proof:
 
 Proof:
 
-- Actor count matches decoded scene object count.
+- Actor count matches the decoded `SceneMetadata.objects` slice used to build the payload.
 - Representative actor fields are pinned in JSON tests.
 - Track instruction counts and life byte lengths match existing decoder outputs.
 
 ### M4: Port Validation Integration
 
 - Make the new command part of the port-support tooling story without changing runtime codepaths.
-- Add one canonical positive JSON probe for a checked-in room pair and one name-based probe.
+- Add real subprocess-backed CLI coverage for the command entrypoint and stdout path.
+- Keep numeric selectors raw-index-first, but fail early with selector-specific diagnostics when an entry is out of range.
 
 Proof:
 
-- CLI integration tests pass.
+- CLI integration tests hit the actual command entrypoint.
+- Positive and validation-failure probes both emit stable JSON.
+- Out-of-range numeric selectors fail with command-scoped errors.
 - Existing scene/room/life command tests still pass.
 
 ## Validation
@@ -101,16 +110,19 @@ Use the existing PowerShell-first repo workflow:
 
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-fast`
+- `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-cli-integration`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-scene 2 --json`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room 2 2 --json`
-- planned: `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-intelligence --scene-entry 2 --background-entry 2`
-
-The planned command must be clearly labeled as planned until it exists.
+- `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-life-program --scene-entry 2 --object-index 5 --json`
+- `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-intelligence --scene-entry 2 --background-entry 2`
+- `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-intelligence --scene-name "Scene 0: Citadel Island, Twinsen's house" --background-name "Grid 0: Citadel Island, Twinsen's house"`
+- `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-intelligence --scene-entry 44 --background-entry 2`
+- `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-intelligence --scene-entry 219 --background-entry 219`
 
 ## Risks And Decisions
 
 - The biggest risk is semantic overreach. V1 must not invent actor-field meanings that the repo cannot justify.
 - Existing raw inspectors are already useful; the new command should be additive rather than replacing them.
 - Name lookup is convenience, not canonical identity. The output must always include resolved numeric indices.
+- Viewer admission and payload extraction are different concerns. This command should expose both, not conflate them.
 - This initiative is port support tooling, not a detached side project. It should improve validation and debugging for the runtime effort.
-

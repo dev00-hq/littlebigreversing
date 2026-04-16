@@ -6,6 +6,8 @@ This docs pack covers the `room intelligence` extension for `littlebigreversing`
 
 This is a focused tooling project inside the larger Zig port effort. The repo-wide roadmap still lives in `docs/LBA2_ZIG_PORT_PLAN.md`, and the narrow next-slice prompt still lives in `docs/PROMPT.md`.
 
+This pack is a side quest only. It is not canonical until explicitly promoted.
+
 ## Current Status
 
 - Implemented today:
@@ -14,10 +16,12 @@ This is a focused tooling project inside the larger Zig port effort. The repo-wi
   - zone semantics
   - track decoding
   - life decoding and auditing
-- Planned by this pack:
   - `inspect-room-intelligence`
   - friendly room selection by name
   - richer actor intelligence JSON
+  - explicit raw-vs-decoded actor counts
+  - structured validation output for non-interior and fragment-invalid rooms
+  - subprocess-backed CLI integration coverage
 
 ## Important Commands
 
@@ -25,13 +29,11 @@ Current commands:
 
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-fast`
+- `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-cli-integration`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-scene 2 --json`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room 2 2 --json`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-life-program --scene-entry 2 --object-index 5 --json`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-life-catalog --json`
-
-Planned command contract:
-
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-intelligence --scene-entry 2 --background-entry 2`
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room-intelligence --scene-name "Scene 0: Citadel Island, Twinsen's house" --background-name "Grid 0: Citadel Island, Twinsen's house"`
 
@@ -48,15 +50,15 @@ Planned command contract:
 
 For this project, read in this order:
 
-1. `docs/plans.md`
-2. `docs/architecture.md`
-3. `docs/implement.md`
+1. `sidequest/docs/plans.md`
+2. `sidequest/docs/architecture.md`
+3. `sidequest/docs/implement.md`
 4. `docs/LBA2_ZIG_PORT_PLAN.md`
 
 ## Troubleshooting
 
 - If a planned command is mentioned here but does not exist yet, treat it as design contract, not implementation fact.
-- If a scene name matches multiple metadata entries, the future command should fail with an ambiguity diagnostic instead of guessing.
-- If a room pair is invalid or unsupported, the command should preserve current diagnostics-first behavior rather than silently remapping indices.
+- If a scene name matches multiple metadata entries, the command should fail with an ambiguity diagnostic instead of guessing.
+- If a room pair is decodable but not viewer-loadable, `inspect-room-intelligence` should still emit JSON and explain that in `validation`.
+- If a numeric selector is out of range, fail early with a selector-specific error instead of waiting for deeper asset loaders to fail.
 - If actor semantics are unclear, prefer raw fields plus bit breakdowns over speculative friendly labels.
-

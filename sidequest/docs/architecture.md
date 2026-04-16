@@ -4,6 +4,8 @@
 
 `inspect-room-intelligence` is a higher-level inspection layer over the existing room and scene decode pipeline. It should give programs one stable JSON payload that combines scene structure, room context, actor data, and script-linked intelligence without requiring the caller to stitch together multiple lower-level commands.
 
+This pack is a side quest only until the user explicitly promotes it into the canonical docs set.
+
 ## Current State vs Target State
 
 Current state:
@@ -11,13 +13,14 @@ Current state:
 - `inspect-scene` exposes typed scene metadata and raw object fields.
 - `inspect-room` exposes scene plus background linkage.
 - `inspect-life-program` and `inspect-life-catalog` expose life decoding separately.
-- Friendly room naming is not yet a first-class CLI selector for inspection.
+- Friendly room naming is now a first-class selector for `inspect-room-intelligence`.
 
 Target state:
 
 - A new `inspect-room-intelligence` command composes those existing surfaces.
 - Programs can address rooms by entry index or friendly name.
 - Actor intelligence becomes a first-class stable JSON section with raw and mapped fields.
+- Viewer/runtime admission is reported as structured JSON validation instead of suppressing output.
 
 ## Module Boundaries
 
@@ -28,7 +31,7 @@ Target state:
 - `port/src/runtime/room_state.zig`
   Owns room-level scene/background composition used by existing room inspection.
 - Metadata lookup layer
-  Planned small helper that resolves friendly scene/background names from preserved metadata files.
+  Implemented as `port/src/tools/room_intelligence.zig`, resolving friendly scene/background names from preserved metadata files.
 
 ## Data Flow
 
@@ -43,10 +46,14 @@ flowchart LR
     E --> H["zone/track/patch payloads"]
     E --> I["life and track summaries"]
     F --> J["room context payload"]
+    E --> V["scene-life validation"]
+    F --> W["fragment-zone validation"]
     G --> K["room intelligence JSON"]
     H --> K
     I --> K
     J --> K
+    V --> K
+    W --> K
 ```
 
 ## Intelligence Model
@@ -62,10 +69,18 @@ Each actor record is organized as:
 
 This keeps the surface useful both for machine consumers and for future semantic expansion.
 
+The payload also carries a `validation` block:
+
+- `viewer_loadable`
+- `scene_life`
+- `scene_kind`
+- `fragment_zones`
+
+This lets machine consumers distinguish extractability from viewer admission.
+
 ## Non-Negotiable Constraints
 
 - Do not reparse scene blobs in parallel with the existing decoders.
 - Do not change the JSON contract of `inspect-scene` or `inspect-room` in place.
 - Do not claim undocumented flag names unless they are grounded in repo evidence.
 - Do not rely on Builder UI state or automation; this project is data-first and CLI-first.
-
