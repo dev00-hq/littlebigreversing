@@ -248,6 +248,10 @@ test "inspect-room-intelligence subprocess emits machine-facing JSON for the can
     try expectJsonString(try requireJsonField(selected_background, "resolved_friendly_name"), "Grid 0: Citadel Island, Twinsen's house");
 
     const scene = try requireJsonField(root, "scene");
+    try expectJsonFieldAbsent(root, "scripts");
+    try expectJsonInteger(try requireJsonField(scene, "entry_index"), 2);
+    try expectJsonInteger(try requireJsonField(scene, "classic_loader_scene_number"), 0);
+    try expectJsonFieldAbsent(scene, "scripts");
     const counts = try requireJsonField(scene, "counts");
     try expectJsonInteger(try requireJsonField(counts, "decoded_actor_count"), 8);
     try expectJsonInteger(try requireJsonField(counts, "header_object_count"), 9);
@@ -261,6 +265,25 @@ test "inspect-room-intelligence subprocess emits machine-facing JSON for the can
     try expectJsonInteger(try requireJsonField(composition, "width"), 64);
     try expectJsonInteger(try requireJsonField(composition, "depth"), 64);
 
+    const decoded_scene_zones = try requireJsonField(root, "zones");
+    switch (decoded_scene_zones) {
+        .array => |array| try std.testing.expectEqual(@as(usize, 10), array.items.len),
+        else => return error.ExpectedJsonArray,
+    }
+    const first_decoded_zone = try requireJsonArrayItem(decoded_scene_zones, 0);
+    try expectJsonFieldAbsent(first_decoded_zone, "cells");
+
+    const decoded_scene_tracks = try requireJsonField(root, "tracks");
+    switch (decoded_scene_tracks) {
+        .array => |array| try std.testing.expectEqual(@as(usize, 4), array.items.len),
+        else => return error.ExpectedJsonArray,
+    }
+    const fragment_zone_layout = try requireJsonField(root, "fragment_zone_layout");
+    switch (fragment_zone_layout) {
+        .array => |array| try std.testing.expectEqual(@as(usize, 0), array.items.len),
+        else => return error.ExpectedJsonArray,
+    }
+
     const validation = try requireJsonField(root, "validation");
     try expectJsonBool(try requireJsonField(validation, "viewer_loadable"), true);
     try expectJsonString(try requireJsonField(try requireJsonField(validation, "scene_life"), "status"), "decoded");
@@ -270,7 +293,9 @@ test "inspect-room-intelligence subprocess emits machine-facing JSON for the can
     const first_actor = try requireJsonArrayItem(actors, 0);
     try expectJsonInteger(try requireJsonField(first_actor, "scene_object_index"), 1);
     try expectJsonInteger(try requireJsonField(first_actor, "array_index"), 0);
+    try expectJsonFieldAbsent(first_actor, "script");
 
+    _ = try requireJsonField(try requireJsonField(scene, "hero_start"), "track");
     const hero_life = try requireJsonField(try requireJsonField(scene, "hero_start"), "life");
     const hero_instructions = try requireJsonField(hero_life, "instructions");
     const first_instruction = try requireJsonArrayItem(hero_instructions, 0);
@@ -508,7 +533,13 @@ test "inspect-room-intelligence subprocess includes runtime composition and frag
     const parsed = try std.json.parseFromSlice(std.json.Value, allocator, output.output_bytes, .{});
     defer parsed.deinit();
     const root = parsed.value;
+    try expectJsonFieldAbsent(root, "scripts");
+    try expectJsonInteger(try requireJsonField(try requireJsonField(root, "scene"), "entry_index"), 11);
+    try expectJsonInteger(try requireJsonField(try requireJsonField(root, "scene"), "classic_loader_scene_number"), 9);
     try expectJsonBool(try requireJsonField(try requireJsonField(root, "validation"), "viewer_loadable"), true);
+    const decoded_scene_zones = try requireJsonField(root, "zones");
+    const first_decoded_zone = try requireJsonArrayItem(decoded_scene_zones, 0);
+    try expectJsonFieldAbsent(first_decoded_zone, "cells");
     const background = try requireJsonField(root, "background");
     const composition = try requireJsonField(background, "composition");
     const tiles = try requireJsonField(composition, "tiles");

@@ -175,3 +175,24 @@ test "real background 10 metadata keeps fragment ownership stable" {
     }), fragment.non_empty_bounds);
     try std.testing.expectEqual(@as(u8, 9), fragment.max_non_empty_column_height);
 }
+
+test "background entry numbering stays distinct from dependent GRI GRM and BLL entries" {
+    const allocator = std.testing.allocator;
+    const archive_path = try support.resolveBackgroundArchivePathForTests(allocator, "LBA_BKG.HQR");
+    defer allocator.free(archive_path);
+
+    const interior = try background.loadBackgroundMetadata(allocator, archive_path, 2);
+    defer interior.deinit(allocator);
+    const fragment_bearing = try background.loadBackgroundMetadata(allocator, archive_path, 10);
+    defer fragment_bearing.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 2), interior.entry_index);
+    try std.testing.expectEqual(@as(usize, 3), interior.gri_entry_index);
+    try std.testing.expectEqual(@as(usize, 149), interior.grm_entry_index);
+    try std.testing.expectEqual(@as(usize, 180), interior.bll_entry_index);
+
+    try std.testing.expectEqual(@as(usize, 10), fragment_bearing.entry_index);
+    try std.testing.expectEqual(@as(usize, 11), fragment_bearing.gri_entry_index);
+    try std.testing.expectEqual(@as(usize, 149), fragment_bearing.grm_entry_index);
+    try std.testing.expectEqual(@as(usize, 182), fragment_bearing.bll_entry_index);
+}

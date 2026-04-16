@@ -118,6 +118,28 @@ test "real scene 44 metadata matches the canonical citadel exterior target" {
     try std.testing.expectEqual(@as(i16, 7007), metadata.patches[153].offset);
 }
 
+test "asset-backed scene numbering keeps raw entry indices distinct from classic loader scene numbers" {
+    const allocator = std.testing.allocator;
+
+    const interior_target = try support.fixtureTargetById("interior-room-twinsens-house-scene");
+    const exterior_target = try support.fixtureTargetById("exterior-area-citadel-tavern-and-shop-scene");
+    const archive_path = try support.resolveSceneArchivePathForTests(allocator, interior_target.asset_path);
+    defer allocator.free(archive_path);
+
+    const interior = try parser.loadSceneMetadata(allocator, archive_path, interior_target.entry_index);
+    defer interior.deinit(allocator);
+    const exterior = try parser.loadSceneMetadata(allocator, archive_path, exterior_target.entry_index);
+    defer exterior.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 2), interior.entry_index);
+    try std.testing.expectEqual(@as(?usize, 0), interior.classicLoaderSceneNumber());
+    try std.testing.expectEqual(interior.objects.len + 1, interior.object_count);
+
+    try std.testing.expectEqual(@as(usize, 44), exterior.entry_index);
+    try std.testing.expectEqual(@as(?usize, 42), exterior.classicLoaderSceneNumber());
+    try std.testing.expectEqual(exterior.objects.len + 1, exterior.object_count);
+}
+
 test "real scene 5 metadata keeps non-golden zone regressions aligned" {
     const allocator = std.testing.allocator;
     const archive_path = try support.resolveSceneArchivePathForTests(allocator, "SCENE.HQR");

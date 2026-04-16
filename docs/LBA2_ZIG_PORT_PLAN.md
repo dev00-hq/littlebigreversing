@@ -51,7 +51,7 @@ Start worker tracks only after explorer output is strong enough to support imple
 
 1. Foundation worker for the Zig workspace, SDL2 shell, config/path handling, logging, and diagnostics.
 2. Asset worker for HQR and related parsers, fixture generators, and inspection CLIs.
-3. Runtime worker for scene loading, rendering, object/runtime behavior, scripts, audio/video, and save/load.
+3. Runtime worker for scene loading, rendering, object/runtime behavior, life-programs, track execution, audio/video, and save/load.
 
 Use explicit replan gates after the evidence baseline, the first-viewer gate, the Phase 4 life-boundary decision, and the first gameplay slice. Each gate should choose one of three outcomes: continue, deepen evidence, or narrow the subsystem/product target explicitly.
 
@@ -105,7 +105,7 @@ Use explicit replan gates after the evidence baseline, the first-viewer gate, th
 
 - After Phase 4 resolves, port the object model, update loop, zone handling, collision and movement, and track execution needed for one playable path.
 - Under the current branch-A state, keep life-script decoding on the canonical supported boundary and use future tracing/stepping only to answer behavior questions that remain beyond structural decode.
-- Expand from one scripted slice to a small vertical slice with room transitions, inventory or state mutation, dialog or text, and basic combat or interaction.
+- Expand from one behavior-bearing slice to a small vertical slice with room transitions, inventory or state mutation, dialog or text, and basic combat or interaction.
 
 ### Phase 6: Completion Layers
 
@@ -120,7 +120,7 @@ Organize the Zig project around a small set of stable modules:
 - `platform`: SDL2 windowing, timing, input, audio hooks, and filesystem abstraction
 - `assets`: HQR and container primitives, typed decoders, asset catalog, and fixture emitters
 - `game_data`: scene, room or background, actor, zone, track, animation, text, and voice metadata models
-- `runtime`: renderer, scene or world state, object update loop, script interpreter, and save or load state
+- `runtime`: renderer, scene or world state, object update loop, life-program interpreter, and save or load state
 - `tools`: CLI inspectors, validators, scene dumpers, and comparison runners
 
 Expose a small set of first-class commands early:

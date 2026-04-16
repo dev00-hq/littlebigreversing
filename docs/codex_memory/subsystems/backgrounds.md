@@ -9,6 +9,7 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 - Keep background inspection separate from `inspect-scene`.
 - Use classic zero-based HQR access where loader slot `0` matters.
 - Keep this pack interior-only until evidence justifies broader convergence.
+- Keep decoded scene zones, fragment-zone layout, and runtime containing-zone membership as separate surfaces.
 
 ## Current Parity Status
 

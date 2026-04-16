@@ -419,6 +419,7 @@ test "parse synthetic archive with empty entry" {
 
 test "invalid table header and offsets fail fast" {
     const allocator = std.testing.allocator;
+    try std.testing.expectError(error.InvalidArchiveSize, parseTableFromBytes(allocator, fixture_bytes.invalid_archive_size_hqr[0..]));
     try std.testing.expectError(error.InvalidTableHeader, parseTableFromBytes(allocator, fixture_bytes.invalid_header_hqr[0..]));
     try std.testing.expectError(error.InvalidArchiveOffset, parseTableFromBytes(allocator, fixture_bytes.invalid_offset_hqr[0..]));
 }
@@ -450,6 +451,14 @@ test "resource header parsing and decompression follow classic HQR semantics" {
     defer allocator.free(decoded);
 
     try std.testing.expectEqualStrings("ABABA", decoded);
+
+    const method2_header = try parseResourceHeader(fixture_bytes.compressed_resource_ababa_method2[0..]);
+    try std.testing.expectEqual(@as(u16, 2), method2_header.compress_method);
+
+    const method2_decoded = try decodeResourceEntryBytes(allocator, fixture_bytes.compressed_resource_ababa_method2[0..]);
+    defer allocator.free(method2_decoded);
+
+    try std.testing.expectEqualStrings("ABABA", method2_decoded);
 }
 
 test "real SCENE.HQR entry 2 decompresses through the wrapped resource header" {
@@ -541,6 +550,14 @@ test "unsupported resource compression fails fast" {
     try std.testing.expectError(error.UnsupportedCompressionMethod, decodeResourceEntryBytes(allocator, invalid[0..]));
 }
 
+test "truncated resource entries and invalid back-references fail fast" {
+    const allocator = std.testing.allocator;
+
+    try std.testing.expectError(error.TruncatedResourceHeader, parseResourceHeader(fixture_bytes.compressed_resource_ababa[0..9]));
+    try std.testing.expectError(error.TruncatedResourcePayload, decodeResourceEntryBytes(allocator, fixture_bytes.truncated_resource_payload[0..]));
+    try std.testing.expectError(error.InvalidResourceBackReference, decodeResourceEntryBytes(allocator, fixture_bytes.invalid_resource_back_reference[0..]));
+}
+
 test "out of range entry access fails" {
     const allocator = std.testing.allocator;
     var tmp = std.testing.tmpDir(.{});
@@ -551,6 +568,19 @@ test "out of range entry access fails" {
     defer allocator.free(absolute);
 
     try std.testing.expectError(error.EntryIndexOutOfRange, extractEntryToBytes(allocator, absolute, 10));
+}
+
+test "classic entry access rejects empty and out-of-range synthetic slots" {
+    const allocator = std.testing.allocator;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    try tmp.dir.writeFile(.{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
+    const absolute = try tmp.dir.realpathAlloc(allocator, "fixture.hqr");
+    defer allocator.free(absolute);
+
+    try std.testing.expectError(error.EntryIndexOutOfRange, extractClassicEntryToBytes(allocator, absolute, 2));
+    try std.testing.expectError(error.EntryIndexOutOfRange, decodeClassicEntryToBytes(allocator, absolute, 4));
 }
 
 test "sanitization cannot keep path separators" {

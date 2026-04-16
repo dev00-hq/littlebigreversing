@@ -93,9 +93,69 @@ pub fn renderFixtureManifestJson(allocator: std.mem.Allocator, entries: []const 
     return allocator.dupe(u8, out.written());
 }
 
+fn generatedFixtureByTargetId(entries: []const FixtureManifestEntry, target_id: []const u8) ?FixtureManifestEntry {
+    for (entries) |entry| {
+        if (std.mem.eql(u8, entry.target_id, target_id)) return entry;
+    }
+    return null;
+}
+
 test "fixture targets stay locked to phase0 selections" {
     try std.testing.expectEqual(@as(usize, 6), fixture_targets.len);
     try std.testing.expectEqual(@as(usize, 44), fixture_targets[2].entry_index);
     try std.testing.expectEqualStrings("VOX/EN_GAM.VOX", fixture_targets[3].asset_path);
     try std.testing.expectEqual(@as(usize, 49), fixture_targets[5].entry_index);
+    try std.testing.expectEqual(@as(?usize, 48), fixture_targets[5].physical_entry_index);
+}
+
+test "generated fixtures keep semantic entry indices and physical-slot overrides stable" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const entries = try generateFixtures(allocator, resolved);
+    defer {
+        for (entries) |entry| entry.deinit(allocator);
+        allocator.free(entries);
+    }
+
+    const ress_entry = generatedFixtureByTargetId(entries, "cutscene-ascenseu-ress") orelse return error.MissingFixtureTarget;
+    try std.testing.expectEqualStrings("RESS.HQR", ress_entry.asset_path);
+    try std.testing.expectEqual(@as(usize, 49), ress_entry.entry_index);
+    try std.testing.expectEqualStrings("work/port/phase1/fixtures/RESS.HQR/49.bin", ress_entry.output_path);
+
+    const archive_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "RESS.HQR" });
+    defer allocator.free(archive_path);
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const output_path = try tmp.dir.realpathAlloc(allocator, ".");
+    defer allocator.free(output_path);
+    const fixture_path = try std.fs.path.join(allocator, &.{ output_path, "48.bin" });
+    defer allocator.free(fixture_path);
+
+    const expected_sha = try hqr.extractEntryToPath(allocator, archive_path, 48, fixture_path);
+    defer allocator.free(expected_sha);
+
+    try std.testing.expectEqualStrings(expected_sha, ress_entry.sha256);
+}
+
+test "fixture manifest json keeps semantic entry indices stable" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const entries = try generateFixtures(allocator, resolved);
+    defer {
+        for (entries) |entry| entry.deinit(allocator);
+        allocator.free(entries);
+    }
+
+    const json = try renderFixtureManifestJson(allocator, entries);
+    defer allocator.free(json);
+
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"target_id\": \"cutscene-ascenseu-ress\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"entry_index\": 49") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"output_path\": \"work/port/phase1/fixtures/RESS.HQR/49.bin\"") != null);
 }

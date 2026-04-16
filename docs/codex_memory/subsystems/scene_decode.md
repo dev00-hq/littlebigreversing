@@ -9,6 +9,7 @@ Own the typed `SCENE.HQR` metadata model, parser, zone semantics, and track-prog
 - Keep `port/src/game_data/scene.zig` as the stable public facade.
 - Preserve raw `track_bytes` and raw `life_bytes`; only track instructions are scene-surface derived data today.
 - Keep raw HQR entry numbers distinct from classic loader scene numbers.
+- Use `scene entry index` for the physical `SCENE.HQR` slot and `classic loader scene number` for the engine-facing remap; do not collapse them into one generic scene number.
 
 ## Current Parity Status
 
@@ -19,7 +20,9 @@ Own the typed `SCENE.HQR` metadata model, parser, zone semantics, and track-prog
 ## Known Traps
 
 - `SCENE.HQR[0]` is reserved loader state, so real scene numbering is offset.
+- `inspect-room-intelligence` top-level `zones` are decoded scene zones, not fragment-zone layout cells or runtime containing-zone membership.
 - Scene tests are asset-backed; `zig build test` is not a stripped-down unit-only pass.
+- Cross-subsystem behavior anchors for `ChangeCube`, save/load payload structure, and dialog transients now live in `docs/CLASSIC_TEST_ANCHORS.md`.
 - `zig build test-fast` is the daily loop and omits the isolated all-scene life-audit inventory shard plus the slower asset-backed CLI room/load coverage; use `zig build test-cli-integration` for bounded room/load checks, and use `zig build tool -- triage-same-index-decoded-interior-candidates --json` only when you deliberately want the heavier same-index triage workload.
 
 ## Canonical Entry Points
