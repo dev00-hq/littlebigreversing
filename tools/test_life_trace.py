@@ -1614,6 +1614,50 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
         self.assertTrue(payload["checkpoints"]["pre_inventory"]["present"])
         self.assertIn("direct_state", payload["checkpoints"]["pre_inventory"])
 
+    def test_sendell_capture_contract_keeps_current_dial_explicitly_transient(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(
+                Path(temp_dir),
+                mode="sendell-ball-room",
+                process_name="LBA2.EXE",
+                launch_save=r"D:\repos\reverse\littlebigreversing\work\saves\ball of sendell.LBA",
+                run_id="sendell-currentdial-contract-test",
+            )
+            try:
+                output_path = capture_sendell_ball.write_sendell_run_summary(
+                    writer,
+                    launch_save=Path(r"D:\repos\reverse\littlebigreversing\work\saves\ball of sendell.LBA"),
+                    capture_variant_name="pre_inventory",
+                    checkpoint_order=["loaded_pre_cast", "pre_inventory"],
+                    checkpoint_captures={
+                        "loaded_pre_cast": self._sendell_checkpoint(
+                            "loaded_pre_cast",
+                            screenshot_path="screenshots/loaded_pre_cast.png",
+                            ptr_prg_value_u32=0x004976D0,
+                            type_answer_u32=0,
+                            value_u32=0,
+                            ptr_prg_window_bytes_hex="10 20 30 40",
+                        ),
+                        "pre_inventory": self._sendell_checkpoint(
+                            "pre_inventory",
+                            screenshot_path="screenshots/pre_inventory.png",
+                            ptr_prg_value_u32=0x004976D0,
+                            type_answer_u32=0,
+                            value_u32=0,
+                            ptr_prg_window_bytes_hex="10 20 30 40",
+                        ),
+                    },
+                )
+            finally:
+                writer.close()
+
+            payload = json.loads(output_path.read_text(encoding="utf-8"))
+
+        self.assertIn("CurrentDial", payload["missing_state_fields"])
+        self.assertNotIn("CurrentDial", payload["captured_state_fields"])
+        self.assertNotIn("CurrentDial", payload["checkpoints"]["loaded_pre_cast"]["direct_state"])
+        self.assertNotIn("CurrentDial", payload["checkpoints"]["pre_inventory"]["direct_state"])
+
 
 class CdbAgentMemoryReaderTest(unittest.TestCase):
     def test_read_scalars_uses_cdb_agent_json_memory_commands(self) -> None:

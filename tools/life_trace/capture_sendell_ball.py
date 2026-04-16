@@ -80,6 +80,7 @@ CAPTURED_STATE_FIELDS = [
     "InventoryModelId",
     "ScreenshotArtifacts",
 ]
+# Classic MESSAGE.CPP treats CurrentDial as live dialog UI state, not durable save-state payload.
 MISSING_STATE_FIELDS = [
     "CurrentDial",
 ]
