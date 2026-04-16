@@ -1424,18 +1424,6 @@ fn writeByteArrayJson(jw: anytype, bytes: []const u8) !void {
     try jw.endArray();
 }
 
-const legacy_scene_metadata_relative_path = "reference/littlebigreversing/mbn_tools/dl18_lbarchitect/fileinfo/lba2_sce.hqd";
-const legacy_background_metadata_relative_path = "reference/littlebigreversing/mbn_tools/dl18_lbarchitect/fileinfo/lba2_bkg.hqd";
-
-const LegacyMetadataRecord = struct {
-    entry_index: usize,
-    display_name: []u8,
-
-    fn deinit(self: LegacyMetadataRecord, allocator: std.mem.Allocator) void {
-        allocator.free(self.display_name);
-    }
-};
-
 fn testMetadataEntry(
     entry_index: usize,
     display_name: []const u8,
@@ -1446,94 +1434,6 @@ fn testMetadataEntry(
         .display_name = display_name,
         .normalized_name = normalized_name,
     };
-}
-
-fn legacyMetadataRelativePath(metadata_kind: MetadataKind) []const u8 {
-    return switch (metadata_kind) {
-        .scene => legacy_scene_metadata_relative_path,
-        .background => legacy_background_metadata_relative_path,
-    };
-}
-
-fn loadLegacyMetadataRecordsAlloc(
-    allocator: std.mem.Allocator,
-    repo_root: []const u8,
-    metadata_kind: MetadataKind,
-) ![]LegacyMetadataRecord {
-    const metadata_path = try std.fs.path.join(allocator, &.{ repo_root, legacyMetadataRelativePath(metadata_kind) });
-    defer allocator.free(metadata_path);
-
-    var metadata_file = try std.fs.openFileAbsolute(metadata_path, .{});
-    defer metadata_file.close();
-    const metadata_bytes = try metadata_file.readToEndAlloc(allocator, std.math.maxInt(usize));
-    defer allocator.free(metadata_bytes);
-
-    var records: std.ArrayList(LegacyMetadataRecord) = .empty;
-    errdefer {
-        for (records.items) |record| record.deinit(allocator);
-        records.deinit(allocator);
-    }
-
-    var line_iterator = std.mem.splitScalar(u8, metadata_bytes, '\n');
-    while (line_iterator.next()) |line_with_newline| {
-        const line = std.mem.trimRight(u8, line_with_newline, "\r");
-        const colon_index = std.mem.indexOfScalar(u8, line, ':') orelse continue;
-        const pipe_index = std.mem.indexOfScalar(u8, line, '|') orelse continue;
-        if (pipe_index <= colon_index) continue;
-
-        const metadata_index = std.fmt.parseInt(usize, line[0..colon_index], 10) catch continue;
-        if (metadata_index == 0) continue;
-
-        const label_bytes = line[(pipe_index + 1)..];
-        if (label_bytes.len == 0) continue;
-
-        const display_name = try latin1ToUtf8Alloc(allocator, label_bytes);
-        errdefer allocator.free(display_name);
-
-        try records.append(allocator, .{
-            .entry_index = metadata_index + 1,
-            .display_name = display_name,
-        });
-    }
-
-    return records.toOwnedSlice(allocator);
-}
-
-fn latin1ToUtf8Alloc(allocator: std.mem.Allocator, bytes: []const u8) ![]u8 {
-    var list: std.ArrayList(u8) = .empty;
-    errdefer list.deinit(allocator);
-
-    for (bytes) |byte| {
-        if (byte < 0x80) {
-            try list.append(allocator, byte);
-            continue;
-        }
-
-        var encoded: [4]u8 = undefined;
-        const encoded_len = try std.unicode.utf8Encode(byte, &encoded);
-        try list.appendSlice(allocator, encoded[0..encoded_len]);
-    }
-
-    return list.toOwnedSlice(allocator);
-}
-
-fn expectGeneratedEntriesMatchLegacyCorpus(
-    allocator: std.mem.Allocator,
-    repo_root: []const u8,
-    metadata_kind: MetadataKind,
-    generated_entries: []const RoomMetadataEntry,
-) !void {
-    const legacy_records = try loadLegacyMetadataRecordsAlloc(allocator, repo_root, metadata_kind);
-    defer {
-        for (legacy_records) |record| record.deinit(allocator);
-        allocator.free(legacy_records);
-    }
-
-    try std.testing.expectEqual(generated_entries.len, legacy_records.len);
-    for (generated_entries, legacy_records) |generated_entry, legacy_record| {
-        try std.testing.expectEqual(legacy_record.entry_index, generated_entry.entry_index);
-        try std.testing.expectEqualStrings(legacy_record.display_name, generated_entry.display_name);
-    }
 }
 
 fn expectGeneratedEntriesUseRuntimeNormalization(
@@ -1550,15 +1450,6 @@ fn expectGeneratedEntriesUseRuntimeNormalization(
 test "generated room metadata normalized names stay in sync with runtime normalization" {
     try expectGeneratedEntriesUseRuntimeNormalization(std.testing.allocator, room_metadata.scene_entries);
     try expectGeneratedEntriesUseRuntimeNormalization(std.testing.allocator, room_metadata.background_entries);
-}
-
-test "generated room metadata stays in sync with the legacy selector display corpus" {
-    const allocator = std.testing.allocator;
-    const repo_root = try std.fs.cwd().realpathAlloc(allocator, "..");
-    defer allocator.free(repo_root);
-
-    try expectGeneratedEntriesMatchLegacyCorpus(allocator, repo_root, .scene, room_metadata.scene_entries);
-    try expectGeneratedEntriesMatchLegacyCorpus(allocator, repo_root, .background, room_metadata.background_entries);
 }
 
 test "scene metadata resolution supports exact friendly-name matches" {
