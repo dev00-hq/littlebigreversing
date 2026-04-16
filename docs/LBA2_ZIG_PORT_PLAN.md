@@ -14,6 +14,7 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 - `docs/PROMPT.md` owns only the next narrow slice to execute.
 - `docs/PORTING_REPORT.md`, the evidence memos, and other research notes remain supporting context, not execution owners.
 - Canonical current-state pickup does not depend on `sidequest/` or `LM_TASKS/`; treat those as independent workstreams unless they are explicitly promoted.
+- `inspect-room-intelligence`, `cdb-agent`, and the local `ghb` repo at `D:\repos\ghb` are the canonical investigative layers for locating, ranking, and falsifying runtime hypotheses; they generate evidence and do not define supported runtime behavior on their own.
 
 ## Canonical Direction
 
@@ -21,6 +22,7 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 - Target platform: Windows-first native desktop runtime
 - Product goal: high-parity reimplementation with one canonical codepath per subsystem
 - Tooling goal: make discovery, inspection, validation, and fixture generation first-class deliverables
+- Investigative goal: keep narrowing proof obligations with one approved machine-facing evidence lane rather than with ad hoc one-off probes
 
 This roadmap stays parity-first on the checked-in execution path and should only claim extracted engine seams when the live code and checked-in evidence justify them.
 
@@ -35,6 +37,7 @@ The hard-cut product policy applies throughout this roadmap: prefer one canonica
 - The first narrow runtime extraction has also landed: `runtime/session.zig` now initializes from explicit world-position input, while `runtime/room_state.zig` remains the mixed adapter that turns guarded `RoomSnapshot` data into that seed.
 - The current implementation stream is guarded runtime/viewer maintenance and bounded widening on top of that validated runtime/viewer path, not another foundation/bootstrap slice.
 - The old switch-family life blocker is no longer the strategic gate. `LM_DEFAULT` and `LM_END_SWITCH` are structurally supported in the offline decoder, and the all-scenes life audit currently reports zero unsupported blobs.
+- `inspect-room-intelligence`, `cdb-agent`, and `ghb` are now the approved investigative layers for narrowing runtime gaps before widening guarded runtime support; downstream ranking and probe scripts remain supporting evidence, not canonical runtime truth.
 
 ## Delivery Structure
 
