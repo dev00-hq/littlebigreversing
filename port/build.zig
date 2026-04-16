@@ -6,6 +6,9 @@ pub fn build(b: *std.Build) void {
     const sdl_lib_rel = "../vcpkg_installed/x64-windows/lib/SDL2.lib";
     const sdl_lib_dir_rel = "../vcpkg_installed/x64-windows/lib";
     const sdl_dll_rel = "../vcpkg_installed/x64-windows/bin/SDL2.dll";
+    const reference_metadata_script = b.pathFromRoot("../tools/generate_reference_metadata.py");
+    const reference_metadata_root = b.pathFromRoot("../../lba-reference-repos/metadata");
+    const generated_reference_metadata = b.pathFromRoot("src/generated/reference_metadata.zig");
 
     requirePathExists(b, sdl_lib_rel);
     requirePathExists(b, sdl_dll_rel);
@@ -56,6 +59,48 @@ pub fn build(b: *std.Build) void {
     stage_viewer_step.dependOn(&install_tool.step);
     stage_viewer_step.dependOn(&install_sdl2_dll.step);
 
+    const verify_reference_metadata_cmd = b.addSystemCommand(&.{
+        "py",
+        "-3",
+        reference_metadata_script,
+        "--metadata-root",
+        reference_metadata_root,
+        "--output",
+        generated_reference_metadata,
+        "--check",
+    });
+    const verify_reference_metadata_step = b.step(
+        "verify-reference-metadata",
+        "Verify that checked-in reference metadata matches the local LBALab metadata clone",
+    );
+    verify_reference_metadata_step.dependOn(&verify_reference_metadata_cmd.step);
+
+    const regen_reference_metadata_cmd = b.addSystemCommand(&.{
+        "py",
+        "-3",
+        reference_metadata_script,
+        "--metadata-root",
+        reference_metadata_root,
+        "--output",
+        generated_reference_metadata,
+    });
+    const regen_reference_metadata_step = b.step(
+        "regen-reference-metadata",
+        "Regenerate checked-in reference metadata from the local LBALab metadata clone",
+    );
+    regen_reference_metadata_step.dependOn(&regen_reference_metadata_cmd.step);
+
+    const test_reference_metadata_generator_cmd = b.addSystemCommand(&.{
+        "py",
+        "-3",
+        b.pathFromRoot("../tools/test_generate_reference_metadata.py"),
+    });
+    const test_reference_metadata_generator_step = b.step(
+        "test-reference-metadata-generator",
+        "Run the reference metadata generator unit tests",
+    );
+    test_reference_metadata_generator_step.dependOn(&test_reference_metadata_generator_cmd.step);
+
     const fast_tests = b.addTest(.{
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/test_fast.zig"),
@@ -75,6 +120,11 @@ pub fn build(b: *std.Build) void {
         }),
     });
     const run_cli_integration_tests = b.addRunArtifact(cli_integration_tests);
+    run_cli_integration_tests.step.dependOn(&install_tool.step);
+    run_cli_integration_tests.setEnvironmentVariable(
+        "LBA2_TOOL_PATH",
+        b.getInstallPath(.bin, "lba2-tool.exe"),
+    );
     const test_cli_integration_step = b.step("test-cli-integration", "Run the slower asset-backed CLI room/load integration tests");
     test_cli_integration_step.dependOn(&run_cli_integration_tests.step);
 
@@ -90,6 +140,8 @@ pub fn build(b: *std.Build) void {
     test_life_audit_all_step.dependOn(&run_life_audit_all_tests.step);
 
     const test_step = b.step("test", "Run the full parser and runtime regression suite");
+    test_step.dependOn(verify_reference_metadata_step);
+    test_step.dependOn(test_reference_metadata_generator_step);
     test_step.dependOn(test_fast_step);
     test_step.dependOn(test_cli_integration_step);
     test_step.dependOn(test_life_audit_all_step);

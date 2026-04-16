@@ -5,6 +5,7 @@ const paths_mod = @import("../foundation/paths.zig");
 const catalog = @import("../assets/catalog.zig");
 const fixtures = @import("../assets/fixtures.zig");
 const hqr = @import("../assets/hqr.zig");
+const reference_metadata = @import("../assets/reference_metadata.zig");
 const background_data = @import("../game_data/background.zig");
 const scene_data = @import("../game_data/scene.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
@@ -251,6 +252,21 @@ const FirstInvalidFragmentZoneSummary = struct {
     failure_reason: []const u8,
 };
 
+const InspectHqrEntryPayload = struct {
+    index: usize,
+    offset: u32,
+    byte_length: u32,
+    sha256: []const u8,
+    entry_type: ?[]const u8,
+    entry_description: ?[]const u8,
+};
+
+const InspectHqrPayload = struct {
+    asset_path: []const u8,
+    entry_count: usize,
+    entries: []InspectHqrEntryPayload,
+};
+
 pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     const parsed = parseArgs(allocator, args) catch |err| {
         if (try maybeEmitInspectRoomIntelligenceParseFailure(allocator, args, err)) {
@@ -286,6 +302,7 @@ const InspectRoomIntelligenceParseContext = struct {
     scene_request: room_intelligence.SelectionRequest = .{ .metadata_kind = .scene },
     background_request: room_intelligence.SelectionRequest = .{ .metadata_kind = .background },
     output_path: ?[]const u8 = null,
+    malformed_target: ?[]const u8 = null,
 };
 
 fn maybeEmitInspectRoomIntelligenceParseFailure(
@@ -302,10 +319,30 @@ fn maybeEmitInspectRoomIntelligenceParseFailure(
             .background_request = context.background_request,
             .phase = "parse",
             .kind = @errorName(err),
-            .target = inspectRoomIntelligenceParseErrorTarget(err),
+            .target = inspectRoomIntelligenceParseErrorTarget(context, err),
         },
     );
     return true;
+}
+
+fn recordEntrySelectorToken(
+    request: *room_intelligence.SelectionRequest,
+    raw_value: ?[]const u8,
+    malformed_target: *?[]const u8,
+    target_name: []const u8,
+) void {
+    if (request.selector != null or request.selector_kind_hint != null or request.requested_raw_value != null) return;
+
+    request.selector_kind_hint = .entry;
+    request.requested_raw_value = null;
+    if (raw_value) |value| {
+        const parsed = std.fmt.parseInt(usize, value, 10) catch {
+            request.requested_raw_value = value;
+            if (malformed_target.* == null) malformed_target.* = target_name;
+            return;
+        };
+        request.selector = .{ .entry = parsed };
+    }
 }
 
 fn inspectRoomIntelligenceParseContextFromArgs(args: []const []const u8) ?InspectRoomIntelligenceParseContext {
@@ -324,28 +361,40 @@ fn inspectRoomIntelligenceParseContextFromArgs(args: []const []const u8) ?Inspec
     while (index < args.len) {
         const arg = args[index];
         if (std.mem.eql(u8, arg, "--scene-entry")) {
-            if (index + 1 < args.len) {
-                const entry_index = std.fmt.parseInt(usize, args[index + 1], 10) catch null;
-                if (entry_index) |value| context.scene_request.selector = .{ .entry = value };
-            }
+            recordEntrySelectorToken(
+                &context.scene_request,
+                if (index + 1 < args.len) args[index + 1] else null,
+                &context.malformed_target,
+                "scene",
+            );
             index += if (index + 1 < args.len) 2 else 1;
             continue;
         }
         if (std.mem.eql(u8, arg, "--scene-name")) {
-            if (index + 1 < args.len) context.scene_request.selector = .{ .name = args[index + 1] };
-            index += if (index + 1 < args.len) 2 else 1;
-            continue;
-        }
-        if (std.mem.eql(u8, arg, "--background-entry")) {
-            if (index + 1 < args.len) {
-                const entry_index = std.fmt.parseInt(usize, args[index + 1], 10) catch null;
-                if (entry_index) |value| context.background_request.selector = .{ .entry = value };
+            if (context.scene_request.selector == null and context.scene_request.selector_kind_hint == null and context.scene_request.requested_raw_value == null) {
+                context.scene_request.selector_kind_hint = .name;
+                context.scene_request.requested_raw_value = null;
+                if (index + 1 < args.len) context.scene_request.selector = .{ .name = args[index + 1] };
             }
             index += if (index + 1 < args.len) 2 else 1;
             continue;
         }
+        if (std.mem.eql(u8, arg, "--background-entry")) {
+            recordEntrySelectorToken(
+                &context.background_request,
+                if (index + 1 < args.len) args[index + 1] else null,
+                &context.malformed_target,
+                "background",
+            );
+            index += if (index + 1 < args.len) 2 else 1;
+            continue;
+        }
         if (std.mem.eql(u8, arg, "--background-name")) {
-            if (index + 1 < args.len) context.background_request.selector = .{ .name = args[index + 1] };
+            if (context.background_request.selector == null and context.background_request.selector_kind_hint == null and context.background_request.requested_raw_value == null) {
+                context.background_request.selector_kind_hint = .name;
+                context.background_request.requested_raw_value = null;
+                if (index + 1 < args.len) context.background_request.selector = .{ .name = args[index + 1] };
+            }
             index += if (index + 1 < args.len) 2 else 1;
             continue;
         }
@@ -360,7 +409,7 @@ fn inspectRoomIntelligenceParseContextFromArgs(args: []const []const u8) ?Inspec
     return context;
 }
 
-fn inspectRoomIntelligenceParseErrorTarget(err: anyerror) []const u8 {
+fn inspectRoomIntelligenceParseErrorTarget(context: InspectRoomIntelligenceParseContext, err: anyerror) []const u8 {
     return switch (err) {
         error.MissingSceneSelector,
         error.ConflictingSceneSelector,
@@ -374,6 +423,9 @@ fn inspectRoomIntelligenceParseErrorTarget(err: anyerror) []const u8 {
         error.MissingBackgroundEntryIndex,
         error.MissingBackgroundName,
         => "background",
+        error.InvalidCharacter,
+        error.Overflow,
+        => context.malformed_target orelse "command",
         else => "command",
     };
 }
@@ -768,11 +820,8 @@ fn inspectHqr(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, r
     defer archive.deinit(allocator);
 
     if (output_json) {
-        const payload = .{
-            .asset_path = relative_path,
-            .entry_count = archive.entry_count,
-            .entries = archive.entries,
-        };
+        const payload = try buildInspectHqrPayloadAlloc(allocator, relative_path, archive.entries);
+        defer allocator.free(payload.entries);
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
         try std.fs.File.stdout().writeAll(json);
@@ -793,6 +842,33 @@ fn inspectHqr(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, r
         });
     }
     try stderr.flush();
+}
+
+fn buildInspectHqrPayloadAlloc(
+    allocator: std.mem.Allocator,
+    relative_path: []const u8,
+    entries: []const hqr.HqrEntry,
+) !InspectHqrPayload {
+    const payload_entries = try allocator.alloc(InspectHqrEntryPayload, entries.len);
+    errdefer allocator.free(payload_entries);
+
+    for (entries, payload_entries) |entry, *payload_entry| {
+        const metadata = reference_metadata.lookupHqrEntryMetadata(relative_path, entry.index);
+        payload_entry.* = .{
+            .index = entry.index,
+            .offset = entry.offset,
+            .byte_length = entry.byte_length,
+            .sha256 = entry.sha256,
+            .entry_type = if (metadata) |value| value.entry_type else null,
+            .entry_description = if (metadata) |value| value.entry_description else null,
+        };
+    }
+
+    return .{
+        .asset_path = relative_path,
+        .entry_count = entries.len,
+        .entries = payload_entries,
+    };
 }
 
 fn extractEntry(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, relative_path: []const u8, entry_index: usize) !void {
@@ -2687,6 +2763,7 @@ const LifeCatalogOpcodeEntry = struct {
     operand_layout: []const u8,
     fixed_instruction_byte_length: ?usize,
     variable_length_reason: ?[]const u8,
+    semantic_operand_kind: ?[]const u8,
 };
 
 const LifeCatalogFunctionEntry = struct {
@@ -2849,6 +2926,7 @@ fn buildLifeCatalogPayload(allocator: std.mem.Allocator) !LifeCatalogPayload {
             .operand_layout = @tagName(entry.operand_layout),
             .fixed_instruction_byte_length = entry.fixed_instruction_byte_length,
             .variable_length_reason = if (entry.variable_length_reason) |reason| @tagName(reason) else null,
+            .semantic_operand_kind = if (entry.semantic_operand_kind) |kind| @tagName(kind) else null,
         });
     }
 
@@ -2888,7 +2966,7 @@ fn buildLifeCatalogPayload(allocator: std.mem.Allocator) !LifeCatalogPayload {
 
     return .{
         .command = "inspect-life-catalog",
-        .schema_version = "life-catalog-v1",
+        .schema_version = "life-catalog-v2",
         .opcode_count = opcode_entries.items.len,
         .supported_opcode_count = supported_opcode_count,
         .unsupported_opcode_count = opcode_entries.items.len - supported_opcode_count,
@@ -3238,9 +3316,9 @@ test "inspect-life-catalog payload pins structural mappings" {
     defer allocator.free(payload.return_types);
 
     try std.testing.expectEqualStrings("inspect-life-catalog", payload.command);
-    try std.testing.expectEqualStrings("life-catalog-v1", payload.schema_version);
-    try std.testing.expectEqual(@as(usize, 149), payload.opcode_count);
-    try std.testing.expectEqual(@as(usize, 143), payload.supported_opcode_count);
+    try std.testing.expectEqualStrings("life-catalog-v2", payload.schema_version);
+    try std.testing.expectEqual(@as(usize, 150), payload.opcode_count);
+    try std.testing.expectEqual(@as(usize, 144), payload.supported_opcode_count);
     try std.testing.expectEqual(@as(usize, 6), payload.unsupported_opcode_count);
     try std.testing.expectEqual(@as(usize, 46), payload.function_count);
     try std.testing.expectEqual(@as(usize, 6), payload.comparator_count);
@@ -3248,6 +3326,7 @@ test "inspect-life-catalog payload pins structural mappings" {
 
     var found_default = false;
     var found_set_dir = false;
+    var found_init_buggy = false;
     for (payload.opcodes) |entry| {
         if (entry.id == @intFromEnum(life_program.LifeOpcode.LM_DEFAULT)) {
             found_default = true;
@@ -3255,16 +3334,29 @@ test "inspect-life-catalog payload pins structural mappings" {
             try std.testing.expectEqualStrings("none", entry.operand_layout);
             try std.testing.expectEqual(@as(?usize, 1), entry.fixed_instruction_byte_length);
             try std.testing.expect(entry.variable_length_reason == null);
+            try std.testing.expect(entry.semantic_operand_kind == null);
         }
         if (entry.id == @intFromEnum(life_program.LifeOpcode.LM_SET_DIR)) {
             found_set_dir = true;
             try std.testing.expectEqualStrings("move", entry.operand_layout);
             try std.testing.expectEqual(@as(?usize, null), entry.fixed_instruction_byte_length);
             try std.testing.expectEqualStrings("move_mode", entry.variable_length_reason.?);
+            try std.testing.expectEqualStrings("move_mode", entry.semantic_operand_kind.?);
+        }
+        if (entry.id == @intFromEnum(life_program.LifeOpcode.LM_COMPORTEMENT_HERO)) {
+            try std.testing.expectEqualStrings("hero_behaviour", entry.semantic_operand_kind.?);
+        }
+        if (entry.id == @intFromEnum(life_program.LifeOpcode.LM_INIT_BUGGY)) {
+            found_init_buggy = true;
+            try std.testing.expectEqualStrings("u8", entry.operand_layout);
+            try std.testing.expectEqual(@as(?usize, 2), entry.fixed_instruction_byte_length);
+            try std.testing.expect(entry.variable_length_reason == null);
+            try std.testing.expectEqualStrings("buggy_init", entry.semantic_operand_kind.?);
         }
     }
     try std.testing.expect(found_default);
     try std.testing.expect(found_set_dir);
+    try std.testing.expect(found_init_buggy);
 
     var found_var_game = false;
     for (payload.functions) |entry| {

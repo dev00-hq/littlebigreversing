@@ -45,6 +45,15 @@ pub const Selector = union(enum) {
     }
 };
 
+pub const RequestedSelectorKind = enum {
+    entry,
+    name,
+
+    pub fn kindName(self: RequestedSelectorKind) []const u8 {
+        return @tagName(self);
+    }
+};
+
 pub const ResolvedSelection = struct {
     metadata_kind: MetadataKind,
     selector: Selector,
@@ -77,6 +86,8 @@ pub const ResolvedSelection = struct {
 pub const SelectionRequest = struct {
     metadata_kind: MetadataKind,
     selector: ?Selector = null,
+    selector_kind_hint: ?RequestedSelectorKind = null,
+    requested_raw_value: ?[]const u8 = null,
 };
 
 pub fn resolveSceneSelectionAlloc(
@@ -475,6 +486,8 @@ fn writeSelectionStateJson(jw: anytype, request: SelectionRequest, resolved: ?*c
     try jw.objectField("selector_kind");
     if (request.selector) |selector| {
         try jw.write(selector.kindName());
+    } else if (request.selector_kind_hint) |kind| {
+        try jw.write(kind.kindName());
     } else {
         try jw.write(null);
     }
@@ -492,6 +505,8 @@ fn writeSelectionStateJson(jw: anytype, request: SelectionRequest, resolved: ?*c
     } else {
         try jw.write(null);
     }
+    try jw.objectField("requested_raw_value");
+    try jw.write(request.requested_raw_value);
     try jw.objectField("resolved_entry_index");
     if (resolved) |selection| {
         try jw.write(selection.resolved_entry_index);
@@ -1099,6 +1114,10 @@ fn writeLifeInstructionJson(jw: anytype, instruction: life_program.LifeInstructi
     try jw.write(instruction.byte_length);
     try jw.objectField("operands");
     try writeLifeOperandsJson(jw, instruction.operands);
+    if (instruction.semanticOperand()) |semantic| {
+        try jw.objectField("semantic");
+        try writeLifeSemanticJson(jw, semantic);
+    }
     try jw.endObject();
 }
 
@@ -1238,6 +1257,67 @@ fn writeLifeConditionJson(jw: anytype, value: life_program.LifeCondition) !void 
     try writeLifeTestJson(jw, value.comparison);
     try jw.objectField("jump_offset");
     try jw.write(value.jump_offset);
+    try jw.endObject();
+}
+
+fn writeLifeSemanticJson(jw: anytype, semantic: life_program.LifeInstructionSemantic) !void {
+    try jw.beginObject();
+    switch (semantic) {
+        .move_mode => |value| {
+            try jw.objectField("kind");
+            try jw.write("move_mode");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .move_mode_obj => |value| {
+            try jw.objectField("kind");
+            try jw.write("move_mode_obj");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .hero_behaviour => |value| {
+            try jw.objectField("kind");
+            try jw.write("hero_behaviour");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .can_fall => |value| {
+            try jw.objectField("kind");
+            try jw.write("can_fall");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .brick_collision => |value| {
+            try jw.objectField("kind");
+            try jw.write("brick_collision");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .binary_toggle => |value| {
+            try jw.objectField("kind");
+            try jw.write("binary_toggle");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .buggy_init => |value| {
+            try jw.objectField("kind");
+            try jw.write("buggy_init");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .zone_toggle => |value| {
+            try jw.objectField("kind");
+            try jw.write("zone_toggle");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+        .pcx_message => |value| {
+            try jw.objectField("kind");
+            try jw.write("pcx_message");
+            try jw.objectField("value");
+            try jw.write(value);
+        },
+    }
     try jw.endObject();
 }
 

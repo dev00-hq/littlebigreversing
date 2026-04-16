@@ -24,6 +24,17 @@ pub const LifeOperandLayout = enum {
     unsupported,
 };
 
+pub const LifeSemanticOperandKind = enum {
+    move_mode,
+    hero_behaviour,
+    can_fall,
+    zone_toggle,
+    brick_collision,
+    binary_toggle,
+    buggy_init,
+    pcx_message_effect,
+};
+
 pub const LifeOpcode = enum(u8) {
     LM_END = 0,
     LM_NOP = 1,
@@ -152,6 +163,7 @@ pub const LifeOpcode = enum(u8) {
     LM_SUB_VAR_GAME = 129,
     LM_ADD_VAR_CUBE = 130,
     LM_SUB_VAR_CUBE = 131,
+    LM_NOP_132 = 132,
     LM_SET_RAIL = 133,
     LM_INVERSE_BETA = 134,
     LM_NO_BODY = 135,
@@ -208,6 +220,7 @@ pub const LifeOpcode = enum(u8) {
             .LM_RESTORE_HERO,
             .LM_ACTION,
             .LM_END_MESSAGE,
+            .LM_NOP_132,
             .LM_DEFAULT,
             .LM_END_SWITCH,
             => .none,
@@ -383,6 +396,38 @@ pub const LifeOpcode = enum(u8) {
             .condition, .switch_expr => .embedded_function_layout,
             .case_branch => .switch_return_type,
             .unsupported => .unsupported,
+            else => null,
+        };
+    }
+
+    pub fn semanticOperandKind(self: LifeOpcode) ?LifeSemanticOperandKind {
+        return switch (self) {
+            .LM_SET_DIR,
+            .LM_SET_DIR_OBJ,
+            => .move_mode,
+
+            .LM_COMPORTEMENT_HERO => .hero_behaviour,
+            .LM_FALLABLE => .can_fall,
+
+            .LM_SET_CAMERA,
+            .LM_SET_GRM,
+            .LM_SET_CHANGE_CUBE,
+            .LM_ECHELLE,
+            .LM_ESCALATOR,
+            .LM_SET_HIT_ZONE,
+            .LM_SET_RAIL,
+            => .zone_toggle,
+
+            .LM_BRICK_COL => .brick_collision,
+
+            .LM_BULLE,
+            .LM_NO_CHOC,
+            .LM_CINEMA_MODE,
+            .LM_BACKGROUND,
+            => .binary_toggle,
+
+            .LM_INIT_BUGGY => .buggy_init,
+            .LM_PCX_MESS_OBJ => .pcx_message_effect,
             else => null,
         };
     }
@@ -578,6 +623,123 @@ pub const LifeVariableLengthReason = enum {
     unsupported,
 };
 
+pub const LifeMoveParameterKind = enum {
+    actor,
+    point,
+};
+
+pub const LifeMoveMode = enum(u8) {
+    none = 0,
+    player_control = 1,
+    follow_actor = 2,
+    unknown_3 = 3,
+    unknown_4 = 4,
+    unknown_5 = 5,
+    same_xz_other_actor = 6,
+    meca_penguin = 7,
+    rail_cart = 8,
+    circle_point = 9,
+    circle_point_facing = 10,
+    same_xz_angle_other_actor = 11,
+    car = 12,
+    car_player_control = 13,
+};
+
+pub const LifeHeroBehaviour = enum(u8) {
+    normal = 0,
+    athletic = 1,
+    aggressive = 2,
+    discreet = 3,
+    protopack = 4,
+    walking_with_zoe = 5,
+    healing_horn = 6,
+    spacesuit_normal_interior = 7,
+    jetpack = 8,
+    spacesuit_athletic_interior = 9,
+    spacesuit_normal_exterior = 10,
+    spacesuit_athletic_exterior = 11,
+    car = 12,
+    skeleton = 13,
+};
+
+pub const LifeCanFallState = enum(u8) {
+    cannot_fall = 0,
+    can_fall = 1,
+    cannot_fall_stop_fall = 2,
+};
+
+pub const LifeBinaryToggleState = enum(u8) {
+    disabled = 0,
+    enabled = 1,
+};
+
+pub const LifeBuggyInitMode = enum(u8) {
+    no_init = 0,
+    init_if_needed = 1,
+    force_init = 2,
+};
+
+pub const LifeZoneToggleKind = enum {
+    camera,
+    grm,
+    change_cube,
+    ladder,
+    escalator,
+    hit_zone,
+    rail,
+};
+
+pub const LifeZoneToggleIndexMeaning = enum {
+    zone_index,
+    change_cube_destination_index,
+};
+
+pub const LifePcxMessageEffect = enum(u8) {
+    none = 0,
+    venetian_blinds = 1,
+};
+
+pub const LifeHeroBehaviourSemantic = struct {
+    raw_value: u8,
+    behaviour: ?LifeHeroBehaviour,
+};
+
+pub const LifeCanFallSemantic = struct {
+    raw_value: u8,
+    state: ?LifeCanFallState,
+};
+
+pub const LifeBrickCollisionSemantic = struct {
+    raw_value: u8,
+    enabled: ?bool,
+};
+
+pub const LifeBinaryToggleSemantic = struct {
+    raw_value: u8,
+    state: ?LifeBinaryToggleState,
+};
+
+pub const LifeBuggyInitSemantic = struct {
+    raw_value: u8,
+    mode: ?LifeBuggyInitMode,
+};
+
+pub const LifeZoneToggleSemantic = struct {
+    kind: LifeZoneToggleKind,
+    index_meaning: LifeZoneToggleIndexMeaning,
+    raw_index: u8,
+    raw_flag: u8,
+    enabled: ?bool,
+};
+
+pub const LifePcxMessageSemantic = struct {
+    image_index: u8,
+    raw_effect: u8,
+    effect: ?LifePcxMessageEffect,
+    speaker_object_index: u8,
+    message_id: i16,
+};
+
 pub const LifeLiteralLayout = enum {
     s8,
     s16,
@@ -592,6 +754,7 @@ pub const LifeOpcodeDescriptor = struct {
     operand_layout: LifeOperandLayout,
     fixed_instruction_byte_length: ?usize,
     variable_length_reason: ?LifeVariableLengthReason,
+    semantic_operand_kind: ?LifeSemanticOperandKind,
 };
 
 pub const LifeFunctionDescriptor = struct {
@@ -652,6 +815,7 @@ pub fn buildCatalog(allocator: std.mem.Allocator) !LifeCatalog {
             .operand_layout = opcode.operandLayout(),
             .fixed_instruction_byte_length = opcode.fixedInstructionByteLength(),
             .variable_length_reason = opcode.variableLengthReason(),
+            .semantic_operand_kind = opcode.semanticOperandKind(),
         });
     }
 
@@ -731,14 +895,18 @@ pub const LifeTest = struct {
 };
 
 pub const LifeMoveOperand = struct {
-    move_id: u8,
-    point_index: ?u8,
+    raw_mode_id: u8,
+    mode: ?LifeMoveMode,
+    parameter: ?u8,
+    parameter_kind: ?LifeMoveParameterKind,
 };
 
 pub const LifeMoveObjectOperand = struct {
     object_index: u8,
-    move_id: u8,
-    point_index: ?u8,
+    raw_mode_id: u8,
+    mode: ?LifeMoveMode,
+    parameter: ?u8,
+    parameter_kind: ?LifeMoveParameterKind,
 };
 
 pub const LifeCondition = struct {
@@ -822,6 +990,115 @@ pub const LifeInstruction = struct {
     pub fn endOffset(self: LifeInstruction) usize {
         return self.offset + self.byte_length;
     }
+
+    pub fn semanticOperand(self: LifeInstruction) ?LifeInstructionSemantic {
+        return switch (self.opcode) {
+            .LM_SET_DIR => switch (self.operands) {
+                .move => |value| .{ .move_mode = value },
+                else => null,
+            },
+            .LM_SET_DIR_OBJ => switch (self.operands) {
+                .move_obj => |value| .{ .move_mode_obj = value },
+                else => null,
+            },
+            .LM_COMPORTEMENT_HERO => switch (self.operands) {
+                .u8_value => |raw_value| .{ .hero_behaviour = .{
+                    .raw_value = raw_value,
+                    .behaviour = decodeEnumOrNull(LifeHeroBehaviour, raw_value),
+                } },
+                else => null,
+            },
+            .LM_FALLABLE => switch (self.operands) {
+                .u8_value => |raw_value| .{ .can_fall = .{
+                    .raw_value = raw_value,
+                    .state = decodeEnumOrNull(LifeCanFallState, raw_value),
+                } },
+                else => null,
+            },
+            .LM_BRICK_COL => switch (self.operands) {
+                .u8_value => |raw_value| .{ .brick_collision = .{
+                    .raw_value = raw_value,
+                    .enabled = switch (raw_value) {
+                        0 => false,
+                        1 => true,
+                        else => null,
+                    },
+                } },
+                else => null,
+            },
+            .LM_BULLE,
+            .LM_NO_CHOC,
+            .LM_CINEMA_MODE,
+            .LM_BACKGROUND,
+            => switch (self.operands) {
+                .u8_value => |raw_value| .{ .binary_toggle = .{
+                    .raw_value = raw_value,
+                    .state = decodeEnumOrNull(LifeBinaryToggleState, raw_value),
+                } },
+                else => null,
+            },
+            .LM_INIT_BUGGY => switch (self.operands) {
+                .u8_value => |raw_value| .{ .buggy_init = .{
+                    .raw_value = raw_value,
+                    .mode = decodeEnumOrNull(LifeBuggyInitMode, raw_value),
+                } },
+                else => null,
+            },
+            .LM_SET_CAMERA,
+            .LM_SET_GRM,
+            .LM_SET_CHANGE_CUBE,
+            .LM_ECHELLE,
+            .LM_ESCALATOR,
+            .LM_SET_HIT_ZONE,
+            .LM_SET_RAIL,
+            => switch (self.operands) {
+                .u8_pair => |value| .{ .zone_toggle = .{
+                    .kind = switch (self.opcode) {
+                        .LM_SET_CAMERA => .camera,
+                        .LM_SET_GRM => .grm,
+                        .LM_SET_CHANGE_CUBE => .change_cube,
+                        .LM_ECHELLE => .ladder,
+                        .LM_ESCALATOR => .escalator,
+                        .LM_SET_HIT_ZONE => .hit_zone,
+                        .LM_SET_RAIL => .rail,
+                        else => unreachable,
+                    },
+                    .index_meaning = if (self.opcode == .LM_SET_CHANGE_CUBE) .change_cube_destination_index else .zone_index,
+                    .raw_index = value.first,
+                    .raw_flag = value.second,
+                    .enabled = switch (value.second) {
+                        0 => false,
+                        1 => true,
+                        else => null,
+                    },
+                } },
+                else => null,
+            },
+            .LM_PCX_MESS_OBJ => switch (self.operands) {
+                .u8_u8_u8_i16 => |value| .{ .pcx_message = .{
+                    .image_index = value.first_u8,
+                    .raw_effect = value.second_u8,
+                    .effect = decodeEnumOrNull(LifePcxMessageEffect, value.second_u8),
+                    .speaker_object_index = value.third_u8,
+                    .message_id = value.word_i16,
+                } },
+                else => null,
+            },
+            else => null,
+        };
+    }
+};
+
+pub const LifeInstructionSemantic = union(enum) {
+    move_mode: LifeMoveOperand,
+    move_mode_obj: LifeMoveObjectOperand,
+    hero_behaviour: LifeHeroBehaviourSemantic,
+    can_fall: LifeCanFallSemantic,
+    brick_collision: LifeBrickCollisionSemantic,
+    binary_toggle: LifeBinaryToggleSemantic,
+    buggy_init: LifeBuggyInitSemantic,
+    zone_toggle: LifeZoneToggleSemantic,
+    pcx_message: LifePcxMessageSemantic,
 };
 
 pub const UnsupportedLifeOpcodeHit = struct {
@@ -1095,16 +1372,18 @@ fn decodeInstruction(bytes: []const u8, offset: usize, active_switch_return_type
             .active_switch_return_type = active_switch_return_type,
         },
         .move => blk: {
-            const move_id = try readScalar(bytes, offset + 1);
-            const point_index = if (moveUsesPointIndex(move_id)) try readScalar(bytes, offset + 2) else null;
+            const raw_mode_id = try readScalar(bytes, offset + 1);
+            const parameter = if (moveUsesExtraParameter(raw_mode_id)) try readScalar(bytes, offset + 2) else null;
             break :blk .{
                 .instruction = .{
                     .offset = offset,
                     .opcode = opcode,
-                    .byte_length = 2 + @as(usize, @intFromBool(point_index != null)),
+                    .byte_length = 2 + @as(usize, @intFromBool(parameter != null)),
                     .operands = .{ .move = .{
-                        .move_id = move_id,
-                        .point_index = point_index,
+                        .raw_mode_id = raw_mode_id,
+                        .mode = decodeEnumOrNull(LifeMoveMode, raw_mode_id),
+                        .parameter = parameter,
+                        .parameter_kind = moveParameterKind(raw_mode_id),
                     } },
                 },
                 .active_switch_return_type = active_switch_return_type,
@@ -1112,17 +1391,19 @@ fn decodeInstruction(bytes: []const u8, offset: usize, active_switch_return_type
         },
         .move_obj => blk: {
             const object_index = try readScalar(bytes, offset + 1);
-            const move_id = try readScalar(bytes, offset + 2);
-            const point_index = if (moveUsesPointIndex(move_id)) try readScalar(bytes, offset + 3) else null;
+            const raw_mode_id = try readScalar(bytes, offset + 2);
+            const parameter = if (moveUsesExtraParameter(raw_mode_id)) try readScalar(bytes, offset + 3) else null;
             break :blk .{
                 .instruction = .{
                     .offset = offset,
                     .opcode = opcode,
-                    .byte_length = 3 + @as(usize, @intFromBool(point_index != null)),
+                    .byte_length = 3 + @as(usize, @intFromBool(parameter != null)),
                     .operands = .{ .move_obj = .{
                         .object_index = object_index,
-                        .move_id = move_id,
-                        .point_index = point_index,
+                        .raw_mode_id = raw_mode_id,
+                        .mode = decodeEnumOrNull(LifeMoveMode, raw_mode_id),
+                        .parameter = parameter,
+                        .parameter_kind = moveParameterKind(raw_mode_id),
                     } },
                 },
                 .active_switch_return_type = active_switch_return_type,
@@ -1255,11 +1536,23 @@ fn decodeTest(bytes: []const u8, offset: usize, return_type: LifeReturnType) !Li
     };
 }
 
-fn moveUsesPointIndex(move_id: u8) bool {
-    return switch (move_id) {
+fn moveUsesExtraParameter(raw_mode_id: u8) bool {
+    return switch (raw_mode_id) {
         2, 6, 9, 10, 11 => true,
         else => false,
     };
+}
+
+fn moveParameterKind(raw_mode_id: u8) ?LifeMoveParameterKind {
+    return switch (raw_mode_id) {
+        2, 6, 11 => .actor,
+        9, 10 => .point,
+        else => null,
+    };
+}
+
+fn decodeEnumOrNull(comptime T: type, raw_value: u8) ?T {
+    return std.meta.intToEnum(T, raw_value) catch null;
 }
 
 fn readScalar(bytes: []const u8, offset: usize) !u8 {

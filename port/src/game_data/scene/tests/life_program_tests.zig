@@ -73,17 +73,97 @@ test "life decoder handles move operands and source-backed return-width quirks" 
     defer allocator.free(instructions);
 
     try std.testing.expectEqual(@as(usize, 4), instructions.len);
-    try std.testing.expectEqual(@as(u8, 2), instructions[0].operands.move.move_id);
-    try std.testing.expectEqual(@as(?u8, 9), instructions[0].operands.move.point_index);
+    try std.testing.expectEqual(@as(u8, 2), instructions[0].operands.move.raw_mode_id);
+    try std.testing.expectEqual(life_program.LifeMoveMode.follow_actor, instructions[0].operands.move.mode.?);
+    try std.testing.expectEqual(@as(?u8, 9), instructions[0].operands.move.parameter);
+    try std.testing.expectEqual(life_program.LifeMoveParameterKind.actor, instructions[0].operands.move.parameter_kind.?);
+    const move_semantic = instructions[0].semanticOperand().?;
+    try std.testing.expect(move_semantic == .move_mode);
+    try std.testing.expectEqual(life_program.LifeMoveMode.follow_actor, move_semantic.move_mode.mode.?);
+    try std.testing.expectEqual(@as(?u8, 9), move_semantic.move_mode.parameter);
     try std.testing.expectEqual(@as(u8, 4), instructions[1].operands.move_obj.object_index);
-    try std.testing.expectEqual(@as(u8, 6), instructions[1].operands.move_obj.move_id);
-    try std.testing.expectEqual(@as(?u8, 11), instructions[1].operands.move_obj.point_index);
+    try std.testing.expectEqual(@as(u8, 6), instructions[1].operands.move_obj.raw_mode_id);
+    try std.testing.expectEqual(life_program.LifeMoveMode.same_xz_other_actor, instructions[1].operands.move_obj.mode.?);
+    try std.testing.expectEqual(@as(?u8, 11), instructions[1].operands.move_obj.parameter);
+    try std.testing.expectEqual(life_program.LifeMoveParameterKind.actor, instructions[1].operands.move_obj.parameter_kind.?);
+    const move_obj_semantic = instructions[1].semanticOperand().?;
+    try std.testing.expect(move_obj_semantic == .move_mode_obj);
+    try std.testing.expectEqual(@as(u8, 4), move_obj_semantic.move_mode_obj.object_index);
+    try std.testing.expectEqual(life_program.LifeMoveMode.same_xz_other_actor, move_obj_semantic.move_mode_obj.mode.?);
 
     try std.testing.expectEqual(life_program.LifeReturnType.RET_S16, instructions[2].operands.condition.function.return_type);
     try std.testing.expectEqual(@as(i16, 0x1234), instructions[2].operands.condition.comparison.literal.s16_value);
 
     try std.testing.expectEqual(life_program.LifeReturnType.RET_S8, instructions[3].operands.condition.function.return_type);
     try std.testing.expectEqual(@as(i8, 2), instructions[3].operands.condition.comparison.literal.s8_value);
+}
+
+test "life decoder exposes semantic operands for high-value opcode families" {
+    const allocator = std.testing.allocator;
+    const bytes = try allocator.dupe(u8, &.{
+        @intFromEnum(life_program.LifeOpcode.LM_COMPORTEMENT_HERO), 8,
+        @intFromEnum(life_program.LifeOpcode.LM_FALLABLE),          2,
+        @intFromEnum(life_program.LifeOpcode.LM_BRICK_COL),         2,
+        @intFromEnum(life_program.LifeOpcode.LM_INIT_BUGGY),        1,
+        @intFromEnum(life_program.LifeOpcode.LM_SET_CHANGE_CUBE),   3,
+        1,                                                          @intFromEnum(life_program.LifeOpcode.LM_PCX_MESS_OBJ),
+        4,                                                          1,
+        9,                                                          0x34,
+        0x12,
+    });
+    defer allocator.free(bytes);
+
+    const instructions = try life_program.decodeLifeProgram(allocator, bytes);
+    defer allocator.free(instructions);
+
+    try std.testing.expectEqual(@as(usize, 6), instructions.len);
+
+    const hero_semantic = instructions[0].semanticOperand().?;
+    try std.testing.expect(hero_semantic == .hero_behaviour);
+    try std.testing.expectEqual(@as(u8, 8), hero_semantic.hero_behaviour.raw_value);
+    try std.testing.expectEqual(life_program.LifeHeroBehaviour.jetpack, hero_semantic.hero_behaviour.behaviour.?);
+
+    const fall_semantic = instructions[1].semanticOperand().?;
+    try std.testing.expect(fall_semantic == .can_fall);
+    try std.testing.expectEqual(life_program.LifeCanFallState.cannot_fall_stop_fall, fall_semantic.can_fall.state.?);
+
+    const brick_semantic = instructions[2].semanticOperand().?;
+    try std.testing.expect(brick_semantic == .brick_collision);
+    try std.testing.expectEqual(@as(u8, 2), brick_semantic.brick_collision.raw_value);
+    try std.testing.expectEqual(@as(?bool, null), brick_semantic.brick_collision.enabled);
+
+    const buggy_semantic = instructions[3].semanticOperand().?;
+    try std.testing.expect(buggy_semantic == .buggy_init);
+    try std.testing.expectEqual(@as(u8, 1), buggy_semantic.buggy_init.raw_value);
+    try std.testing.expectEqual(life_program.LifeBuggyInitMode.init_if_needed, buggy_semantic.buggy_init.mode.?);
+
+    const zone_semantic = instructions[4].semanticOperand().?;
+    try std.testing.expect(zone_semantic == .zone_toggle);
+    try std.testing.expectEqual(life_program.LifeZoneToggleKind.change_cube, zone_semantic.zone_toggle.kind);
+    try std.testing.expectEqual(life_program.LifeZoneToggleIndexMeaning.change_cube_destination_index, zone_semantic.zone_toggle.index_meaning);
+    try std.testing.expectEqual(@as(u8, 3), zone_semantic.zone_toggle.raw_index);
+    try std.testing.expectEqual(@as(?bool, true), zone_semantic.zone_toggle.enabled);
+
+    const pcx_semantic = instructions[5].semanticOperand().?;
+    try std.testing.expect(pcx_semantic == .pcx_message);
+    try std.testing.expectEqual(@as(u8, 4), pcx_semantic.pcx_message.image_index);
+    try std.testing.expectEqual(life_program.LifePcxMessageEffect.venetian_blinds, pcx_semantic.pcx_message.effect.?);
+    try std.testing.expectEqual(@as(u8, 9), pcx_semantic.pcx_message.speaker_object_index);
+    try std.testing.expectEqual(@as(i16, 0x1234), pcx_semantic.pcx_message.message_id);
+}
+
+test "life decoder treats opcode 132 as a one-byte no-op" {
+    const allocator = std.testing.allocator;
+    const bytes = try allocator.dupe(u8, &.{@intFromEnum(life_program.LifeOpcode.LM_NOP_132)});
+    defer allocator.free(bytes);
+
+    const instructions = try life_program.decodeLifeProgram(allocator, bytes);
+    defer allocator.free(instructions);
+
+    try std.testing.expectEqual(@as(usize, 1), instructions.len);
+    try std.testing.expectEqual(life_program.LifeOpcode.LM_NOP_132, instructions[0].opcode);
+    try std.testing.expectEqual(@as(usize, 1), instructions[0].byte_length);
+    try std.testing.expect(instructions[0].operands == .none);
 }
 
 test "life decoder recognizes every live opcode id from the checked-in runtime" {

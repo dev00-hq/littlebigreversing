@@ -17,6 +17,7 @@ Current landed baseline:
 - HQR base reader and inspection CLI
 - machine-readable asset inventory and golden-fixture pipeline
 - generated scene/background name metadata for `inspect-room-intelligence`, checked into `port/src/generated/room_metadata.zig` and regenerated with `tools/generate_room_metadata.py`
+- generated reference metadata overlays for HQR and game-state aliases, checked into `port/src/generated/reference_metadata.zig` and verified with `zig build verify-reference-metadata`
 - `BRK`-backed viewer evidence surfaces for the supported guarded `19/19`, `2/2`, and `11/10` room/load set
 - Windows viewer verification through `scripts/verify_viewer.py`, with bare mode kept as the canonical gate and `--fast` available for the daily local loop
 - guarded success for `19/19`, `2/2`, and `11/10`, plus expected guarded `ViewerSceneMustBeInterior` rejection for `44/2`
@@ -30,3 +31,9 @@ Keep `port/` separate from:
 - `reference/` for imported upstream and reference material
 - `work/` for generated artifacts, extracted payloads, and rebuildable state
 - `docs/` for reports, plans, and reverse-engineering notes
+
+Reference metadata maintenance:
+
+- `zig build verify-reference-metadata` checks the checked-in reference metadata against the local `..\..\lba-reference-repos\metadata` clone
+- `zig build regen-reference-metadata` refreshes `port/src/generated/reference_metadata.zig` from that clone
+- `zig build test-reference-metadata-generator` runs the generator unit tests without depending on the external clone

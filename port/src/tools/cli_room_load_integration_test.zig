@@ -6,51 +6,11 @@ const scene_data = @import("../game_data/scene.zig");
 const room_state = @import("../runtime/room_state.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 
-var tool_build_lock: std.Thread.Mutex = .{};
-var tool_build_attempted = false;
-var tool_build_error: ?anyerror = null;
-
-fn ensureToolBuilt(allocator: std.mem.Allocator, repo_root: []const u8) !void {
-    tool_build_lock.lock();
-    defer tool_build_lock.unlock();
-
-    if (tool_build_attempted) {
-        if (tool_build_error) |err| return err;
-        return;
-    }
-
-    tool_build_attempted = true;
-    const build_result = std.process.Child.run(.{
-        .allocator = allocator,
-        .argv = &.{
-            "py",
-            "-3",
-            ".\\scripts\\dev-shell.py",
-            "exec",
-            "--cwd",
-            "port",
-            "--",
-            "zig",
-            "build",
-        },
-        .cwd = repo_root,
-        .max_output_bytes = 8 * 1024 * 1024,
-    }) catch |err| {
-        tool_build_error = err;
-        return err;
+fn requireToolPathAlloc(allocator: std.mem.Allocator) ![]u8 {
+    return std.process.getEnvVarOwned(allocator, "LBA2_TOOL_PATH") catch |err| switch (err) {
+        error.EnvironmentVariableNotFound => error.MissingToolPath,
+        else => err,
     };
-    defer allocator.free(build_result.stdout);
-    defer allocator.free(build_result.stderr);
-
-    switch (build_result.term) {
-        .Exited => |code| {
-            if (code == 0) return;
-        },
-        else => {},
-    }
-
-    tool_build_error = error.ToolBuildFailed;
-    return error.ToolBuildFailed;
 }
 
 fn runToolCommandAlloc(
@@ -58,9 +18,7 @@ fn runToolCommandAlloc(
     repo_root: []const u8,
     tool_args: []const []const u8,
 ) !std.process.Child.RunResult {
-    try ensureToolBuilt(allocator, repo_root);
-
-    const tool_path = try std.fs.path.join(allocator, &.{ repo_root, "port", "zig-out", "bin", "lba2-tool.exe" });
+    const tool_path = try requireToolPathAlloc(allocator);
     defer allocator.free(tool_path);
 
     var argv: std.ArrayList([]const u8) = .empty;
@@ -212,6 +170,63 @@ test "inspect-room widened guarded admissions stay covered outside the fast shar
         error.ViewerSceneMustBeInterior,
         room_state.loadRoomSnapshot(allocator, resolved, 44, 2),
     );
+}
+
+test "inspect-hqr subprocess enriches BODY.HQR json entries with metadata overlays" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-hqr",
+        "BODY.HQR",
+        "--json",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    try expectExited(result.term, 0);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+
+    const root = parsed.value;
+    try expectJsonString(try requireJsonField(root, "asset_path"), "BODY.HQR");
+    try expectJsonInteger(try requireJsonField(root, "entry_count"), 469);
+    const entries = try requireJsonField(root, "entries");
+    const first_entry = try requireJsonArrayItem(entries, 0);
+    try expectJsonInteger(try requireJsonField(first_entry, "index"), 1);
+    try expectJsonString(try requireJsonField(first_entry, "entry_type"), "mesh");
+    try expectJsonString(try requireJsonField(first_entry, "entry_description"), "Twinsen without tunic model");
+}
+
+test "inspect-hqr subprocess normalizes EN_GAM voices onto shared VOX metadata" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-hqr",
+        "VOX/EN_GAM.VOX",
+        "--json",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    try expectExited(result.term, 0);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+
+    const root = parsed.value;
+    try expectJsonString(try requireJsonField(root, "asset_path"), "VOX/EN_GAM.VOX");
+    const entries = try requireJsonField(root, "entries");
+    const first_entry = try requireJsonArrayItem(entries, 0);
+    try expectJsonInteger(try requireJsonField(first_entry, "index"), 1);
+    try expectJsonString(try requireJsonField(first_entry, "entry_type"), "wave_audio");
+    try expectJsonString(try requireJsonField(first_entry, "entry_description"), "Voice for Holomap");
+
+    const ninth_entry = try requireJsonArrayItem(entries, 8);
+    try expectJsonNull(try requireJsonField(ninth_entry, "entry_type"));
+    try expectJsonNull(try requireJsonField(ninth_entry, "entry_description"));
 }
 
 test "inspect-room-intelligence subprocess emits machine-facing JSON for the canonical 2/2 pair" {
@@ -483,6 +498,134 @@ test "inspect-room-intelligence subprocess keeps invalid option shapes in machin
     try expectJsonString(try requireJsonField(error_payload, "phase"), "parse");
     try expectJsonString(try requireJsonField(error_payload, "kind"), "UnknownOption");
     try expectJsonString(try requireJsonField(error_payload, "target"), "command");
+}
+
+test "inspect-room-intelligence attributes malformed scene entry values to the scene selector" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-room-intelligence",
+        "--scene-entry",
+        "abc",
+        "--background-entry",
+        "2",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    try expectExited(result.term, 1);
+    try std.testing.expectEqual(@as(usize, 0), result.stderr.len);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+    const root = parsed.value;
+    try expectJsonString(try requireJsonField(root, "status"), "error");
+    const selection = try requireJsonField(root, "selection");
+    const scene_selection = try requireJsonField(selection, "scene");
+    try expectJsonString(try requireJsonField(scene_selection, "selector_kind"), "entry");
+    try expectJsonNull(try requireJsonField(scene_selection, "requested_entry_index"));
+    try expectJsonString(try requireJsonField(scene_selection, "requested_raw_value"), "abc");
+    const background_selection = try requireJsonField(selection, "background");
+    try expectJsonInteger(try requireJsonField(background_selection, "requested_entry_index"), 2);
+    try expectJsonNull(try requireJsonField(background_selection, "requested_raw_value"));
+    const error_payload = try requireJsonField(root, "error");
+    try expectJsonString(try requireJsonField(error_payload, "phase"), "parse");
+    try expectJsonString(try requireJsonField(error_payload, "kind"), "InvalidCharacter");
+    try expectJsonString(try requireJsonField(error_payload, "target"), "scene");
+}
+
+test "inspect-room-intelligence attributes negative background entry values to the background selector" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-room-intelligence",
+        "--scene-entry",
+        "2",
+        "--background-entry",
+        "-1",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    try expectExited(result.term, 1);
+    try std.testing.expectEqual(@as(usize, 0), result.stderr.len);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+    const root = parsed.value;
+    const selection = try requireJsonField(root, "selection");
+    const background_selection = try requireJsonField(selection, "background");
+    try expectJsonString(try requireJsonField(background_selection, "selector_kind"), "entry");
+    try expectJsonNull(try requireJsonField(background_selection, "requested_entry_index"));
+    try expectJsonString(try requireJsonField(background_selection, "requested_raw_value"), "-1");
+    const error_payload = try requireJsonField(root, "error");
+    try expectJsonString(try requireJsonField(error_payload, "phase"), "parse");
+    try expectJsonString(try requireJsonField(error_payload, "kind"), "Overflow");
+    try expectJsonString(try requireJsonField(error_payload, "target"), "background");
+}
+
+test "inspect-room-intelligence attributes overflow background entry values to the background selector" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-room-intelligence",
+        "--scene-entry",
+        "2",
+        "--background-entry",
+        "184467440737095516160",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    try expectExited(result.term, 1);
+    try std.testing.expectEqual(@as(usize, 0), result.stderr.len);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+    const root = parsed.value;
+    const selection = try requireJsonField(root, "selection");
+    const background_selection = try requireJsonField(selection, "background");
+    try expectJsonString(try requireJsonField(background_selection, "selector_kind"), "entry");
+    try expectJsonNull(try requireJsonField(background_selection, "requested_entry_index"));
+    try expectJsonString(try requireJsonField(background_selection, "requested_raw_value"), "184467440737095516160");
+    const error_payload = try requireJsonField(root, "error");
+    try expectJsonString(try requireJsonField(error_payload, "phase"), "parse");
+    try expectJsonString(try requireJsonField(error_payload, "kind"), "Overflow");
+    try expectJsonString(try requireJsonField(error_payload, "target"), "background");
+}
+
+test "inspect-room-intelligence writes parse failures to --out files without stdout spill" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const output = try runToolCommandToFileAlloc(allocator, resolved.repo_root, &.{
+        "inspect-room-intelligence",
+        "--scene-entry",
+        "abc",
+        "--background-entry",
+        "2",
+    });
+    defer allocator.free(output.result.stdout);
+    defer allocator.free(output.result.stderr);
+    defer allocator.free(output.output_path);
+    defer allocator.free(output.output_bytes);
+
+    try expectExited(output.result.term, 1);
+    try std.testing.expectEqual(@as(usize, 0), output.result.stderr.len);
+    try std.testing.expectEqual(@as(usize, 0), output.result.stdout.len);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, output.output_bytes, .{});
+    defer parsed.deinit();
+    const root = parsed.value;
+    try expectJsonString(try requireJsonField(root, "status"), "error");
+    try expectJsonString(try requireJsonField(try requireJsonField(root, "error"), "target"), "scene");
+    try expectJsonString(
+        try requireJsonField(try requireJsonField(try requireJsonField(root, "selection"), "scene"), "requested_raw_value"),
+        "abc",
+    );
 }
 
 test "inspect-room-intelligence subprocess supports --out without changing the JSON payload" {
