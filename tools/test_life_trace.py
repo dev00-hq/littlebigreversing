@@ -1424,6 +1424,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
         magic_point_u8: int = 0,
         sendell_inventory_value_s16: int = 0,
         inventory_model_id_s16: int = -1,
+        current_dial_s32: int = 0,
         source_window_title: str = "LBA2",
     ) -> dict[str, object]:
         return {
@@ -1446,12 +1447,16 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                 "sendell_inventory_value_s16": sendell_inventory_value_s16,
                 "inventory_model_id_s16": inventory_model_id_s16,
             },
+            "transient_dialog_state": {
+                "current_dial_s32": current_dial_s32,
+            },
             "event_ids": {
                 "screenshot": "evt-0001",
                 "ptr_prg": "evt-0002",
                 "type_answer": "evt-0003",
                 "value": "evt-0004",
-                "ptr_prg_window": "evt-0005",
+                "current_dial": "evt-0005",
+                "ptr_prg_window": "evt-0006",
             },
         }
 
@@ -1484,6 +1489,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                         magic_point_u8=40,
                         sendell_inventory_value_s16=0,
                         inventory_model_id_s16=-1,
+                        current_dial_s32=513,
                     ),
                     "after_f_cast": self._sendell_checkpoint(
                         "after_f_cast",
@@ -1496,6 +1502,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                         magic_point_u8=60,
                         sendell_inventory_value_s16=1,
                         inventory_model_id_s16=0,
+                        current_dial_s32=513,
                     ),
                     "dialog_1": self._sendell_checkpoint(
                         "dialog_1",
@@ -1508,6 +1515,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                         magic_point_u8=60,
                         sendell_inventory_value_s16=1,
                         inventory_model_id_s16=0,
+                        current_dial_s32=513,
                     ),
                     "dialog_2": self._sendell_checkpoint(
                         "dialog_2",
@@ -1520,6 +1528,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                         magic_point_u8=60,
                         sendell_inventory_value_s16=1,
                         inventory_model_id_s16=0,
+                        current_dial_s32=513,
                     ),
                     "post_dialog_room": self._sendell_checkpoint(
                         "post_dialog_room",
@@ -1532,6 +1541,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                         magic_point_u8=60,
                         sendell_inventory_value_s16=1,
                         inventory_model_id_s16=0,
+                        current_dial_s32=513,
                     ),
                 }
 
@@ -1545,11 +1555,13 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
             finally:
                 writer.close()
 
-        self.assertEqual("sendell-run-summary-v1", summary["schema_version"])
+        self.assertEqual("sendell-run-summary-v2", summary["schema_version"])
         self.assertEqual("cdb-agent", summary["debugger"])
         self.assertEqual("full_flow", summary["capture_variant"])
         self.assertTrue(summary["transitions"]["dialog_transition_seen"])
         self.assertTrue(summary["transitions"]["post_dialog_transition_seen"])
+        self.assertTrue(summary["transitions"]["current_dial_transition"]["stable_across_flow"])
+        self.assertFalse(summary["transitions"]["current_dial_transition"]["changed_during_flow"])
         self.assertEqual(
             "sendell_story_state_transition_observed",
             summary["verdict"]["result"],
@@ -1566,6 +1578,10 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
         self.assertEqual(
             {"after": 1, "before": 0, "changed": True},
             summary["transitions"]["story_state_transition"]["sendell_inventory_value"],
+        )
+        self.assertEqual(
+            [513],
+            summary["transitions"]["current_dial_transition"]["observed_unique_values"],
         )
 
     def test_write_sendell_run_summary_registers_menu_lane_artifact(self) -> None:
@@ -1613,8 +1629,13 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
         self.assertEqual(["loaded_pre_cast", "pre_inventory"], payload["checkpoint_order"])
         self.assertTrue(payload["checkpoints"]["pre_inventory"]["present"])
         self.assertIn("direct_state", payload["checkpoints"]["pre_inventory"])
+        self.assertTrue(payload["transitions"]["current_dial_transition"]["present_at_loaded_pre_cast"])
+        self.assertFalse(payload["transitions"]["current_dial_transition"]["fully_sampled_flow"])
+        self.assertFalse(payload["transitions"]["current_dial_transition"]["stable_across_flow"])
+        self.assertFalse(payload["transitions"]["current_dial_transition"]["changed_during_flow"])
+        self.assertEqual([0], payload["transitions"]["current_dial_transition"]["observed_unique_values"])
 
-    def test_sendell_capture_contract_keeps_current_dial_explicitly_transient(self) -> None:
+    def test_sendell_capture_contract_records_current_dial_as_transient_only(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             writer = trace_life.JsonlWriter(
                 Path(temp_dir),
@@ -1653,10 +1674,14 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
 
             payload = json.loads(output_path.read_text(encoding="utf-8"))
 
-        self.assertIn("CurrentDial", payload["missing_state_fields"])
+        self.assertIn("CurrentDial", payload["captured_transient_state_fields"])
         self.assertNotIn("CurrentDial", payload["captured_state_fields"])
         self.assertNotIn("CurrentDial", payload["checkpoints"]["loaded_pre_cast"]["direct_state"])
         self.assertNotIn("CurrentDial", payload["checkpoints"]["pre_inventory"]["direct_state"])
+        self.assertEqual(
+            0,
+            payload["checkpoints"]["loaded_pre_cast"]["transient_dialog_state"]["current_dial_s32"],
+        )
 
 
 class CdbAgentMemoryReaderTest(unittest.TestCase):

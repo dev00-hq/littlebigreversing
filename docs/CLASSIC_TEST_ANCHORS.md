@@ -72,6 +72,7 @@ Observed rules:
 Port implications:
 
 - Keep `CurrentDial` evidence-only until the port owns a real dialog/UI subsystem.
+- Do not treat `CurrentDial` alone as the room-36 dialog-progression oracle. The current direct-read lane can keep it stable while the visible `TypeAnswer` / `Value` lane still advances.
 - Keep bounded Sendell room `36` runtime tests focused on story-state deltas, not faux persistence of classic dialog pagination or speaker-routing state.
 - Save/load parity should not serialize transient dialog-page or live speaker-routing state by default.
 
@@ -79,5 +80,5 @@ Current repo test anchors:
 
 - `port/src/runtime/object_behavior_test.zig`: the bounded room-36 sequence asserts story-state deltas only.
 - `port/src/runtime/update_test.zig`: `advance_story` steps consume intent without inventing room-transition side effects.
-- `tools/life_trace/capture_sendell_ball.py`: `CurrentDial` remains an explicitly missing direct-read field until dialog/UI parity work starts.
-- `tools/test_life_trace.py`: keep a unit test that `CurrentDial` stays in `MISSING_STATE_FIELDS` and not in the captured durable-state field list.
+- `tools/life_trace/capture_sendell_ball.py`: `CurrentDial` is read directly from the classic runtime as transient evidence only and stays separate from the captured durable-state field list.
+- `tools/test_life_trace.py`: keep a unit test that `CurrentDial` stays transient-only, not durable.

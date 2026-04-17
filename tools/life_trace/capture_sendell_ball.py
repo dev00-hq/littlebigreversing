@@ -33,6 +33,7 @@ from scenes.load_game import (
 PTR_PRG_GLOBAL = 0x004976D0
 TYPE_ANSWER_GLOBAL = 0x004976D4
 VALUE_GLOBAL = 0x00497D44
+CURRENT_DIAL_GLOBAL = 0x00475630
 MAGIC_LEVEL_GLOBAL = 0x0049A0A4
 MAGIC_POINT_GLOBAL = 0x0049A0A5
 LIST_VAR_GAME_GLOBAL = 0x00499E98
@@ -81,9 +82,10 @@ CAPTURED_STATE_FIELDS = [
     "ScreenshotArtifacts",
 ]
 # Classic MESSAGE.CPP treats CurrentDial as live dialog UI state, not durable save-state payload.
-MISSING_STATE_FIELDS = [
+CAPTURED_TRANSIENT_STATE_FIELDS = [
     "CurrentDial",
 ]
+MISSING_STATE_FIELDS: list[str] = []
 
 
 def parse_args() -> argparse.Namespace:
@@ -241,6 +243,16 @@ def checkpoint_direct_state(checkpoint: dict[str, object] | None) -> dict[str, o
     }
 
 
+def checkpoint_transient_dialog_state(checkpoint: dict[str, object] | None) -> dict[str, object] | None:
+    if checkpoint is None:
+        return None
+    transient_dialog_state = checkpoint["transient_dialog_state"]
+    assert isinstance(transient_dialog_state, dict)
+    return {
+        "current_dial_s32": transient_dialog_state["current_dial_s32"],
+    }
+
+
 def build_state_delta(
     pre_value: int | None,
     post_value: int | None,
@@ -249,6 +261,32 @@ def build_state_delta(
         "before": pre_value,
         "after": post_value,
         "changed": pre_value != post_value,
+    }
+
+
+def build_current_dial_transition(checkpoint_captures: dict[str, dict[str, object]]) -> dict[str, object]:
+    checkpoint_values: dict[str, int | None] = {}
+    observed_unique_values: list[int] = []
+    for checkpoint_name in BASE_FLOW_CHECKPOINTS:
+        transient_dialog_state = checkpoint_transient_dialog_state(checkpoint_captures.get(checkpoint_name))
+        value = None if transient_dialog_state is None else transient_dialog_state["current_dial_s32"]
+        checkpoint_values[checkpoint_name] = value
+        if value is None:
+            continue
+        if value not in observed_unique_values:
+            observed_unique_values.append(value)
+
+    present_values = [value for value in checkpoint_values.values() if value is not None]
+    fully_sampled_flow = len(present_values) == len(BASE_FLOW_CHECKPOINTS)
+    stable_across_flow = fully_sampled_flow and len(set(present_values)) == 1
+
+    return {
+        "values_by_checkpoint": checkpoint_values,
+        "observed_unique_values": observed_unique_values,
+        "present_at_loaded_pre_cast": checkpoint_values["loaded_pre_cast"] is not None,
+        "fully_sampled_flow": fully_sampled_flow,
+        "stable_across_flow": stable_across_flow,
+        "changed_during_flow": fully_sampled_flow and not stable_across_flow,
     }
 
 
@@ -286,6 +324,7 @@ def build_sendell_run_summary(
     dialog_1 = checkpoint_captures.get("dialog_1")
     dialog_2 = checkpoint_captures.get("dialog_2")
     post_dialog_room = checkpoint_captures.get("post_dialog_room")
+    current_dial_transition = build_current_dial_transition(checkpoint_captures)
 
     dialog_transition_seen = (
         dialog_1 is not None
@@ -338,7 +377,7 @@ def build_sendell_run_summary(
             verdict_result = "sendell_story_state_transition_observed"
             verdict_reason = (
                 "captured the full room-36 lightning/dialog lane with stable dialog-state "
-                "signatures and direct story-state deltas"
+                "signatures, direct CurrentDial evidence, and direct story-state deltas"
             )
         else:
             verdict_result = "sendell_flow_incomplete"
@@ -367,6 +406,7 @@ def build_sendell_run_summary(
                 "type_answer_u32": None,
                 "value_u32": None,
                 "direct_state": None,
+                "transient_dialog_state": None,
                 "event_ids": None,
             }
             continue
@@ -380,11 +420,12 @@ def build_sendell_run_summary(
             "type_answer_u32": checkpoint["type_answer_u32"],
             "value_u32": checkpoint["value_u32"],
             "direct_state": checkpoint["direct_state"],
+            "transient_dialog_state": checkpoint["transient_dialog_state"],
             "event_ids": checkpoint["event_ids"],
         }
 
     return {
-        "schema_version": "sendell-run-summary-v1",
+        "schema_version": "sendell-run-summary-v2",
         "run_id": writer.run_id,
         "mode": "sendell-ball-room",
         "bundle_root": str(writer.bundle_root),
@@ -400,6 +441,7 @@ def build_sendell_run_summary(
                 "dialog_2": checkpoint_signature(dialog_2),
                 "stable": dialog_transition_seen,
             },
+            "current_dial_transition": current_dial_transition,
             "post_dialog_signature": checkpoint_signature(post_dialog_room),
             "dialog_transition_seen": dialog_transition_seen,
             "post_dialog_transition_seen": post_dialog_transition_seen,
@@ -407,6 +449,7 @@ def build_sendell_run_summary(
             "direct_story_state_transition_seen": direct_story_state_transition_seen,
         },
         "captured_state_fields": CAPTURED_STATE_FIELDS,
+        "captured_transient_state_fields": CAPTURED_TRANSIENT_STATE_FIELDS,
         "missing_state_fields": MISSING_STATE_FIELDS,
         "verdict": {
             "result": verdict_result,
@@ -515,7 +558,7 @@ def capture_checkpoint_debugger(
 ) -> dict[str, object]:
     try:
         dwords, _ = reader.read_scalars(
-            dword_addresses=(PTR_PRG_GLOBAL, TYPE_ANSWER_GLOBAL, VALUE_GLOBAL),
+            dword_addresses=(PTR_PRG_GLOBAL, TYPE_ANSWER_GLOBAL, VALUE_GLOBAL, CURRENT_DIAL_GLOBAL),
             word_addresses=(),
         )
     except DebuggerReadError as error:
@@ -524,6 +567,7 @@ def capture_checkpoint_debugger(
     ptr_prg = dwords[PTR_PRG_GLOBAL]
     type_answer = dwords[TYPE_ANSWER_GLOBAL]
     value = dwords[VALUE_GLOBAL]
+    current_dial = dwords[CURRENT_DIAL_GLOBAL]
     magic_state_bytes = reader.read_bytes(MAGIC_LEVEL_GLOBAL, 2)
     magic_level = parse_u8(magic_state_bytes[0:1])
     magic_point = parse_u8(magic_state_bytes[1:2])
@@ -561,6 +605,15 @@ def capture_checkpoint_debugger(
             address=format_hex_u32(VALUE_GLOBAL),
             value_hex=format_hex_u32(value),
             value_u32=value,
+        )
+    )
+    current_dial_event_id = writer.write_event(
+        PersistedMemorySnapshotEvent(
+            snapshot_name=f"{checkpoint_name}_current_dial",
+            debugger="cdb-agent",
+            address=format_hex_u32(CURRENT_DIAL_GLOBAL),
+            value_hex=format_hex_u32(current_dial),
+            value_u32=current_dial,
         )
     )
     magic_level_event_id = writer.write_event(
@@ -605,6 +658,9 @@ def capture_checkpoint_debugger(
         "sendell_inventory_value_s16": sendell_inventory_value,
         "inventory_model_id_s16": inventory_model_id,
     }
+    transient_dialog_state = {
+        "current_dial_s32": current_dial,
+    }
 
     if ptr_prg == 0:
         ptr_prg_window_event_id = writer.write_event(
@@ -627,6 +683,7 @@ def capture_checkpoint_debugger(
             "type_answer_u32": type_answer,
             "value_u32": value,
             "direct_state": direct_state,
+            "transient_dialog_state": transient_dialog_state,
             "ptr_prg_window": pointer_window_payload(
                 start=format_hex_u32(0),
                 cursor_index=0,
@@ -637,6 +694,7 @@ def capture_checkpoint_debugger(
                 "ptr_prg": ptr_prg_event_id,
                 "type_answer": type_answer_event_id,
                 "value": value_event_id,
+                "current_dial": current_dial_event_id,
                 "magic_level": magic_level_event_id,
                 "magic_point": magic_point_event_id,
                 "sendell_inventory_value": sendell_inventory_value_event_id,
@@ -683,6 +741,7 @@ def capture_checkpoint_debugger(
         "type_answer_u32": type_answer,
         "value_u32": value,
         "direct_state": direct_state,
+        "transient_dialog_state": transient_dialog_state,
         "ptr_prg_window": pointer_window_payload(
             start=format_hex_u32(ptr_prg),
             cursor_index=0,
@@ -692,6 +751,7 @@ def capture_checkpoint_debugger(
             "ptr_prg": ptr_prg_event_id,
             "type_answer": type_answer_event_id,
             "value": value_event_id,
+            "current_dial": current_dial_event_id,
             "magic_level": magic_level_event_id,
             "magic_point": magic_point_event_id,
             "sendell_inventory_value": sendell_inventory_value_event_id,
@@ -727,6 +787,7 @@ def capture_checkpoint(
         "type_answer_u32": debugger_capture["type_answer_u32"],
         "value_u32": debugger_capture["value_u32"],
         "direct_state": debugger_capture["direct_state"],
+        "transient_dialog_state": debugger_capture["transient_dialog_state"],
         "ptr_prg_window": debugger_capture["ptr_prg_window"],
         "event_ids": {
             **screenshot_capture["event_ids"],
