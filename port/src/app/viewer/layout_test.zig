@@ -15,6 +15,14 @@ test "viewer fragment debug layout reserves a deterministic comparison panel" {
     try std.testing.expectEqual(sdl.Rect{ .x = 42, .y = 414, .w = 876, .h = 84 }, debug_layout.footer);
 }
 
+test "viewer dialog overlay rect stays pinned inside the schematic content lane" {
+    const debug_layout = layout.computeDebugLayout(960, 540, 64, 64, true);
+    try std.testing.expectEqual(
+        sdl.Rect{ .x = 229, .y = 287, .w = 252, .h = 96 },
+        layout.computeDialogOverlayRect(debug_layout),
+    );
+}
+
 test "viewer projection keeps the canonical schematic fit stable" {
     const room = try room_fixtures.guarded1919();
 

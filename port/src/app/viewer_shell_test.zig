@@ -1092,7 +1092,7 @@ test "viewer key handling keeps fragment-room arrows on fragment navigation unti
     );
     try std.testing.expectEqual(viewer_shell.ViewerControlMode.fragment_navigation, nav_result.interaction.control_mode);
     try std.testing.expect(!nav_result.should_print_locomotion_diagnostic);
-    try std.testing.expect(!nav_result.should_tick_world);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, nav_result.post_key_action);
     try std.testing.expect(std.meta.eql(locomotion_status, nav_result.locomotion_status));
     try std.testing.expectEqual(raw_start, runtime_session.heroWorldPosition());
     try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());
@@ -1109,13 +1109,13 @@ test "viewer key handling keeps fragment-room arrows on fragment navigation unti
     );
     try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, toggle_result.interaction.control_mode);
     try std.testing.expect(!toggle_result.should_print_locomotion_diagnostic);
-    try std.testing.expect(!toggle_result.should_tick_world);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, toggle_result.post_key_action);
     try std.testing.expect(std.meta.eql(interaction.fragment_selection, toggle_result.interaction.fragment_selection));
     try std.testing.expectEqual(raw_start, runtime_session.heroWorldPosition());
     try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());
 }
 
-test "viewer key handling seeds fragment rooms and relies on runtime tick to consume submitted movement intent" {
+test "viewer key handling seeds fragment rooms and leaves movement intent queued for the scheduler tick" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1110();
     var snapshot_session = try initViewerSession(room);
@@ -1139,7 +1139,7 @@ test "viewer key handling seeds fragment rooms and relies on runtime tick to con
     );
     try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, seed_result.interaction.control_mode);
     try std.testing.expect(seed_result.should_print_locomotion_diagnostic);
-    try std.testing.expect(!seed_result.should_tick_world);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, seed_result.post_key_action);
     switch (seed_result.locomotion_status) {
         .seeded_valid => |value| {
             try std.testing.expectEqual(runtime_session.heroWorldPosition(), value.hero_position);
@@ -1159,13 +1159,25 @@ test "viewer key handling seeds fragment rooms and relies on runtime tick to con
     );
     try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, move_result.interaction.control_mode);
     try std.testing.expect(!move_result.should_print_locomotion_diagnostic);
-    try std.testing.expect(move_result.should_tick_world);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, move_result.post_key_action);
     try std.testing.expect(std.meta.eql(seeded_fragment_selection, move_result.interaction.fragment_selection));
     try std.testing.expectEqual(seeded_position, runtime_session.heroWorldPosition());
     try std.testing.expectEqual(seed_result.locomotion_status, move_result.locomotion_status);
+    try std.testing.expectEqual(@as(usize, 0), runtime_session.frame_index);
     try std.testing.expectEqual(
         runtime_locomotion.HeroIntent{ .move_cardinal = .east },
         runtime_session.pendingHeroIntent().?,
+    );
+    try std.testing.expectError(
+        error.PendingHeroIntentAlreadySet,
+        viewer_shell.handleKeyDown(
+            room,
+            &runtime_session,
+            catalog,
+            move_result.interaction,
+            move_result.locomotion_status,
+            .down,
+        ),
     );
 
     const tick_result = try runtime_update.tick(room, &runtime_session);
@@ -1178,7 +1190,7 @@ test "viewer key handling seeds fragment rooms and relies on runtime tick to con
     }
 }
 
-test "viewer key handling routes Sendell room story input through runtime intents" {
+test "viewer key handling routes Sendell room story input through queued runtime intents" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded3636();
     var snapshot_session = try initViewerSession(room);
@@ -1200,11 +1212,13 @@ test "viewer key handling routes Sendell room story input through runtime intent
         initial_status,
         .f,
     );
-    try std.testing.expect(cast_result.should_tick_world);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, cast_result.post_key_action);
+    try std.testing.expectEqual(@as(usize, 0), runtime_session.frame_index);
     try std.testing.expectEqual(runtime_locomotion.HeroIntent.cast_lightning, runtime_session.pendingHeroIntent().?);
 
     const cast_tick = try runtime_update.tick(room, &runtime_session);
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
+    try std.testing.expectEqual(@as(?i16, 513), runtime_session.currentDialogId());
 
     const advance_result = try viewer_shell.handleKeyDown(
         room,
@@ -1214,10 +1228,45 @@ test "viewer key handling routes Sendell room story input through runtime intent
         cast_tick.locomotion_status,
         .enter,
     );
-    try std.testing.expect(advance_result.should_tick_world);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, advance_result.post_key_action);
+    try std.testing.expectEqual(@as(usize, 1), runtime_session.frame_index);
     try std.testing.expectEqual(runtime_locomotion.HeroIntent.advance_story, runtime_session.pendingHeroIntent().?);
 
     _ = try runtime_update.tick(room, &runtime_session);
     try std.testing.expectEqual(@as(u8, 3), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 60), runtime_session.magicPoint());
+    try std.testing.expectEqual(@as(?i16, 514), runtime_session.currentDialogId());
+}
+
+test "viewer Sendell dialog overlay is transient and scheduler-owned" {
+    const room = try room_fixtures.guarded3636();
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 0), viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session).line_count);
+
+    try runtime_session.submitHeroIntent(.cast_lightning);
+    _ = try runtime_update.tick(room, &runtime_session);
+
+    const first_overlay = viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session);
+    try std.testing.expectEqualStrings("SENDELL DIAL", first_overlay.title);
+    try std.testing.expectEqual(@as(usize, 4), first_overlay.line_count);
+    try std.testing.expectEqualStrings("CURRENT DIAL 513", first_overlay.lines[0]);
+    try std.testing.expectEqualStrings("ACK 1 PENDING", first_overlay.lines[1]);
+
+    try runtime_session.submitHeroIntent(.advance_story);
+    _ = try runtime_update.tick(room, &runtime_session);
+
+    const second_overlay = viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session);
+    try std.testing.expectEqual(@as(usize, 4), second_overlay.line_count);
+    try std.testing.expectEqualStrings("CURRENT DIAL 514", second_overlay.lines[0]);
+    try std.testing.expectEqualStrings("ACK 2 PENDING", second_overlay.lines[1]);
+
+    try runtime_session.submitHeroIntent(.advance_story);
+    _ = try runtime_update.tick(room, &runtime_session);
+
+    const completed_overlay = viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session);
+    try std.testing.expectEqual(@as(usize, 4), completed_overlay.line_count);
+    try std.testing.expectEqualStrings("CURRENT DIAL 287", completed_overlay.lines[0]);
+    try std.testing.expectEqualStrings("STORY COMPLETE", completed_overlay.lines[1]);
 }

@@ -51,6 +51,12 @@ test "runtime object behavior executes the supported 19/19 object 2 life window 
 
 test "runtime object behavior applies the supported Sendell room-36 story sequence through lightning and dialog advances" {
     const room = try room_fixtures.guarded3636();
+    var message_zone_count: usize = 0;
+    for (room.scene.zones) |zone| switch (zone.semantics) {
+        .message => message_zone_count += 1,
+        else => {},
+    };
+    try std.testing.expectEqual(@as(usize, 0), message_zone_count);
 
     var current_session = try initSession(room);
     defer current_session.deinit(std.testing.allocator);
@@ -65,15 +71,18 @@ test "runtime object behavior applies the supported Sendell room-36 story sequen
     try object_behavior.applyHeroIntent(room, &current_session, .cast_lightning);
     try std.testing.expectEqual(@as(u8, 2), current_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 0), current_session.magicPoint());
+    try std.testing.expectEqual(@as(?i16, 513), current_session.currentDialogId());
     try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_first_dialog_ack, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
 
     try object_behavior.applyHeroIntent(room, &current_session, .advance_story);
     try std.testing.expectEqual(@as(u8, 3), current_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 60), current_session.magicPoint());
     try std.testing.expectEqual(@as(i16, 0), current_session.gameVar(sendell_ball_flag_index));
+    try std.testing.expectEqual(@as(?i16, 514), current_session.currentDialogId());
     try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_second_dialog_ack, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
 
     try object_behavior.applyHeroIntent(room, &current_session, .advance_story);
     try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(sendell_ball_flag_index));
+    try std.testing.expectEqual(@as(?i16, 287), current_session.currentDialogId());
     try std.testing.expectEqual(runtime_session.SendellBallPhase.completed, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
 }

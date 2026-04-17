@@ -16,6 +16,9 @@ const supported_object_index: usize = 2;
 const sendell_scene_entry_index: usize = 36;
 const sendell_background_entry_index: usize = 36;
 const sendell_object_index: usize = 2;
+const sendell_first_dialog_id: i16 = 513;
+const sendell_second_dialog_id: i16 = 514;
+const sendell_completion_dialog_id: i16 = 287;
 const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
 const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
 const sendell_red_ball_magic_level: u8 = 3;
@@ -124,6 +127,7 @@ fn applyScene3636CastLightning(
     if (current_session.magicPoint() != expected_full_magic) return error.SendellRequiresFullMagic;
 
     current_session.setMagicPoint(0);
+    try setCurrentDialogId(current_session, sendell_first_dialog_id);
     object_behavior.sendell_ball_phase = .awaiting_first_dialog_ack;
 }
 
@@ -138,15 +142,27 @@ fn applyScene3636AdvanceStory(
     const object_behavior = current_session.objectBehaviorStateByIndexPtr(sendell_object_index) orelse return error.MissingRuntimeObjectBehaviorState;
     switch (object_behavior.sendell_ball_phase) {
         .awaiting_first_dialog_ack => {
+            try transitionCurrentDialogId(current_session, sendell_second_dialog_id);
             current_session.setMagicLevelAndRefill(sendell_red_ball_magic_level);
             object_behavior.sendell_ball_phase = .awaiting_second_dialog_ack;
         },
         .awaiting_second_dialog_ack => {
+            try transitionCurrentDialogId(current_session, sendell_completion_dialog_id);
             current_session.setGameVar(sendell_ball_flag_index, 1);
             object_behavior.sendell_ball_phase = .completed;
         },
         else => return error.SendellStoryAdvanceUnavailable,
     }
+}
+
+fn setCurrentDialogId(current_session: *runtime_session.Session, dialog_id: i16) !void {
+    current_session.clearCurrentDialogId();
+    try current_session.setCurrentDialogId(dialog_id);
+}
+
+fn transitionCurrentDialogId(current_session: *runtime_session.Session, dialog_id: i16) !void {
+    current_session.clearCurrentDialogId();
+    try current_session.setCurrentDialogId(dialog_id);
 }
 
 fn executeScene1919Object2Life(

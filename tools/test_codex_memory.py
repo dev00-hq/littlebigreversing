@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import sys
 import tempfile
+import shutil
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -18,6 +20,24 @@ class CodexMemoryV2Test(unittest.TestCase):
     def write(self, path: Path, text: str) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
+
+    def git(self, paths: codex_memory.MemoryPaths, *args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["git", *args],
+            cwd=paths.repo_root,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+    def init_git_repo(self, paths: codex_memory.MemoryPaths) -> None:
+        if shutil.which("git") is None:
+            self.skipTest("git is required for append-only history validation tests")
+        self.git(paths, "init")
+        self.git(paths, "config", "user.email", "tester@example.com")
+        self.git(paths, "config", "user.name", "Tester")
+        self.git(paths, "add", ".")
+        self.git(paths, "commit", "-m", "init")
 
     def history_lines(self, output: str, heading: str) -> list[str]:
         marker = f"## {heading}"
@@ -162,6 +182,7 @@ Repo-scoped memory for tests.
 - `scene_decode`: scene decoding.
 - `life_scripts`: life scripts.
 - `backgrounds`: backgrounds.
+- `intelligence`: room and scene inspection.
 - `platform_windows`: windows host.
 - `platform_linux`: linux host.
 - `architecture`: repo architecture.
@@ -174,6 +195,7 @@ Repo-scoped memory for tests.
 - `scene_decode`: `port/src/game_data/scene.zig`{", `port/src/game_data/background/`" if ambiguous else ""}
 - `life_scripts`: `port/src/game_data/scene/life_program.zig`
 - `backgrounds`: `port/src/game_data/background/`
+- `intelligence`: `port/src/tools/room_intelligence.zig`
 - `platform_windows`: `scripts/check-env.py`
 {platform_linux_rule}{architecture_rule}
 """,
@@ -195,6 +217,7 @@ Repo-scoped memory for tests.
         self.write(paths.repo_root / "port" / "src" / "game_data" / "scene.zig", "// scene\n")
         self.write(paths.repo_root / "port" / "src" / "game_data" / "scene" / "life_program.zig", "// life\n")
         self.write(paths.repo_root / "port" / "src" / "game_data" / "background" / "parser.zig", "// background\n")
+        self.write(paths.repo_root / "port" / "src" / "tools" / "room_intelligence.zig", "// intelligence\n")
 
         if obsolete:
             self.write(paths.docs_dir / "handoff.md", "# obsolete\n")
@@ -202,6 +225,83 @@ Repo-scoped memory for tests.
     def test_validate_accepts_v2_tree(self) -> None:
         paths = self.make_paths()
         self.scaffold(paths)
+        self.assertEqual(codex_memory.validate_all(paths), [])
+
+    def test_validate_accepts_append_only_history_growth_relative_to_head(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        self.init_git_repo(paths)
+
+        codex_memory.add_task_event(
+            paths,
+            stream="memory",
+            status="completed",
+            summary="Appended a new durable memory event.",
+            next_actions=["Keep history append-only."],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=["tools/codex_memory.py"],
+            author="tester",
+            timestamp="2026-03-26T23:10:00Z",
+        )
+        self.assertEqual(codex_memory.validate_all(paths), [])
+
+    def test_validate_rejects_non_append_history_edit_relative_to_head(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        self.init_git_repo(paths)
+
+        codex_memory.add_task_event(
+            paths,
+            stream="memory",
+            status="completed",
+            summary="Seed durable memory history.",
+            next_actions=["Keep history append-only."],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=["tools/codex_memory.py"],
+            author="tester",
+            timestamp="2026-03-26T23:10:00Z",
+        )
+        self.git(paths, "add", "docs/codex_memory/task_events.jsonl")
+        self.git(paths, "commit", "-m", "seed history")
+
+        history_path = paths.history_path("task_events.jsonl")
+        self.write(
+            history_path,
+            history_path.read_text(encoding="utf-8").replace(
+                "Seed durable memory history.",
+                "Rewrote durable memory history.",
+            ),
+        )
+
+        errors = codex_memory.validate_all(paths)
+        self.assertTrue(
+            any("append-only relative to HEAD" in error for error in errors),
+            errors,
+        )
+
+    def test_validate_allows_unchanged_historical_prefix_with_legacy_record_id(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        history_path = paths.history_path("task_events.jsonl")
+        self.write(
+            history_path,
+            '{"affected_paths":["tools/codex_memory.py"],"author":"tester","evidence_refs":["tools/codex_memory.py"],"next_actions":["Keep history append-only."],"record_id":"task-20260326T231000Z-legacy00000","schema_version":"codex-memory-v2","status":"completed","stream":"memory","summary":"Seed durable memory history.","timestamp_utc":"2026-03-26T23:10:00Z"}\n',
+        )
+        self.init_git_repo(paths)
+
+        self.assertEqual(codex_memory.validate_all(paths), [])
+
+        codex_memory.add_task_event(
+            paths,
+            stream="memory",
+            status="completed",
+            summary="Appended a new durable memory event.",
+            next_actions=["Keep history append-only."],
+            evidence_refs=["tools/codex_memory.py"],
+            affected_paths=["tools/codex_memory.py"],
+            author="tester",
+            timestamp="2026-03-26T23:11:00Z",
+        )
         self.assertEqual(codex_memory.validate_all(paths), [])
 
     def test_context_default_only_reads_brief_and_focus(self) -> None:

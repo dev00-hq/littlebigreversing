@@ -28,6 +28,7 @@ The goal is to keep the always-loaded layer small, move durable current-state tr
 - The only supported schema is `codex-memory-v2`.
 - Subsystem packs are current-state briefings, not append-only changelogs.
 - Typed JSONL files are the only durable history layer.
+- When a typed history file already exists in `HEAD`, validation treats it as append-only. Durable fixes are new appended records, not in-place rewrites of old timestamped rows.
 - Validation is fail-fast on missing sections, oversized docs, bad schema values, bad repo-relative paths, and ambiguous path mappings.
 
 ## CLI Surface

@@ -135,6 +135,23 @@ pub fn computeDebugLayout(
     };
 }
 
+pub fn computeDialogOverlayRect(debug_layout: DebugLayout) sdl.Rect {
+    const max_width = @max(180, debug_layout.schematic_frame.w - 24);
+    const width = @min(max_width, 252);
+    const height = 96;
+    const min_y = debug_layout.header.bottom() + 12;
+    const max_y = debug_layout.footer.y - height - 12;
+    const desired_y = debug_layout.schematic_frame.bottom() - height - 18;
+    const y = std.math.clamp(desired_y, min_y, max_y);
+
+    return .{
+        .x = debug_layout.schematic_frame.x + @divTrunc(debug_layout.schematic_frame.w - width, 2),
+        .y = y,
+        .w = width,
+        .h = height,
+    };
+}
+
 fn fitSchematicRect(available: sdl.Rect, grid_width: usize, grid_depth: usize) sdl.Rect {
     const target_ratio = @as(f64, @floatFromInt(grid_width)) / @as(f64, @floatFromInt(@max(grid_depth, 1)));
     const available_ratio = @as(f64, @floatFromInt(available.w)) / @as(f64, @floatFromInt(available.h));

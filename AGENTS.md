@@ -51,3 +51,6 @@
 - Use rg/rg --files for searches; fall back only if unavailable.
 - Use the `apply_patch` to edit files, fallback to sed.
 - Use jq for json processing
+
+# Test timeout
+- The command `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-fast` often hits timeout so make sure to give at least 220 seconds.

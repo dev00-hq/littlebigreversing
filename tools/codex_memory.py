@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -20,6 +21,7 @@ EXPECTED_SUBSYSTEMS = (
     "scene_decode",
     "life_scripts",
     "backgrounds",
+    "intelligence",
     "platform_windows",
     "platform_linux",
     "architecture",
@@ -421,8 +423,68 @@ def load_jsonl(path: Path) -> list[tuple[int, dict]]:
     return rows
 
 
+def non_empty_jsonl_lines(text: str) -> list[str]:
+    return [line.strip() for line in text.splitlines() if line.strip()]
+
+
+def git_head_text(paths: MemoryPaths, repo_relative_path: str) -> str | None:
+    git_dir = paths.repo_root / ".git"
+    if not git_dir.exists():
+        return None
+    probe = subprocess.run(
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        cwd=paths.repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if probe.returncode != 0 or probe.stdout.strip() != "true":
+        return None
+    result = subprocess.run(
+        ["git", "show", f"HEAD:{repo_relative_path}"],
+        cwd=paths.repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return None
+    return result.stdout
+
+
+def validate_append_only_history_file(paths: MemoryPaths, filename: str) -> list[str]:
+    path = paths.history_path(filename)
+    repo_relative_path = path.relative_to(paths.repo_root).as_posix()
+    head_text = git_head_text(paths, repo_relative_path)
+    if head_text is None:
+        return []
+
+    head_lines = non_empty_jsonl_lines(head_text)
+    current_text = read_text(path)
+    current_lines = non_empty_jsonl_lines(current_text)
+    mismatch_index = None
+
+    for index, head_line in enumerate(head_lines):
+        if index >= len(current_lines) or current_lines[index] != head_line:
+            mismatch_index = index
+            break
+
+    if mismatch_index is None:
+        return []
+
+    return [
+        f"{path}:{mismatch_index + 1}: JSONL durable history must stay append-only relative to HEAD"
+    ]
+
+
 def validate_record(
-    kind: str, record: dict, path: Path, line_no: int, subsystems: set[str]
+    kind: str,
+    record: dict,
+    path: Path,
+    line_no: int,
+    subsystems: set[str],
+    *,
+    enforce_canonical_id: bool = True,
 ) -> list[str]:
     errors = []
     for field in COMMON_FIELDS + FIELD_RULES[kind]["required"]:
@@ -491,12 +553,13 @@ def validate_record(
         errors.append(
             f"{path}:{line_no}: unsupported confidence {record['confidence']}"
         )
-    stable_fields = {field: record[field] for field in ID_FIELDS[kind]}
-    expected = make_id(kind, record["timestamp_utc"], stable_fields)
-    if record["record_id"] != expected:
-        errors.append(
-            f"{path}:{line_no}: record_id does not match canonical form {expected}"
-        )
+    if enforce_canonical_id:
+        stable_fields = {field: record[field] for field in ID_FIELDS[kind]}
+        expected = make_id(kind, record["timestamp_utc"], stable_fields)
+        if record["record_id"] != expected:
+            errors.append(
+                f"{path}:{line_no}: record_id does not match canonical form {expected}"
+            )
     return errors
 
 
@@ -629,8 +692,23 @@ def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
 
     for kind, rows in history_rows.items():
         path = paths.history_path(f"{kind}.jsonl")
-        for line_no, record in rows:
-            errors.extend(validate_record(kind, record, path, line_no, subsystem_set))
+        repo_relative_path = path.relative_to(paths.repo_root).as_posix()
+        head_text = git_head_text(paths, repo_relative_path)
+        head_line_count = (
+            len(non_empty_jsonl_lines(head_text)) if head_text is not None else 0
+        )
+        for index, (line_no, record) in enumerate(rows):
+            errors.extend(
+                validate_record(
+                    kind,
+                    record,
+                    path,
+                    line_no,
+                    subsystem_set,
+                    enforce_canonical_id=index >= head_line_count,
+                )
+            )
+        errors.extend(validate_append_only_history_file(paths, f"{kind}.jsonl"))
 
     if errors:
         raise ValueError("\n".join(errors))

@@ -60,6 +60,7 @@ pub const SchematicLayout = layout.SchematicLayout;
 pub const ScreenPoint = layout.ScreenPoint;
 pub const ViewerLocomotionStatusDisplay = render.LocomotionStatusDisplay;
 pub const ViewerLocomotionStatusDisplayBuffer = render.LocomotionStatusDisplayBuffer;
+pub const ViewerDialogOverlayDisplay = render.DialogOverlayDisplay;
 pub const ViewerLocomotionSchematicCue = render.LocomotionSchematicCue;
 pub const ViewerLocomotionSchematicMoveOption = render.LocomotionSchematicMoveOption;
 pub const ViewerLocomotionRejectedStage = runtime_locomotion.LocomotionRejectedStage;
@@ -83,11 +84,16 @@ pub const ViewerInteractionState = struct {
     fragment_selection: FragmentComparisonSelection,
 };
 
+pub const ViewerPostKeyAction = enum {
+    none,
+    advance_world,
+};
+
 pub const ViewerKeyDownResult = struct {
     interaction: ViewerInteractionState,
     locomotion_status: ViewerLocomotionStatus,
     should_print_locomotion_diagnostic: bool = false,
-    should_tick_world: bool = false,
+    post_key_action: ViewerPostKeyAction = .none,
 };
 
 pub const locomotion_fixture_scene_entry: usize = 19;
@@ -95,6 +101,7 @@ pub const locomotion_fixture_background_entry: usize = 19;
 pub const locomotion_fixture_cell = GridCell{ .x = 39, .z = 6 };
 const sendell_scene_entry: usize = 36;
 const sendell_background_entry: usize = 36;
+const sendell_object_index: usize = 2;
 const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
 const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
 const sendell_seed_magic_level: u8 = 2;
@@ -350,7 +357,7 @@ pub fn handleKeyDown(
                 return .{
                     .interaction = interaction,
                     .locomotion_status = locomotion_status,
-                    .should_tick_world = true,
+                    .post_key_action = .advance_world,
                 };
             }
 
@@ -413,7 +420,7 @@ pub fn handleKeyDown(
             return .{
                 .interaction = interaction,
                 .locomotion_status = locomotion_status,
-                .should_tick_world = true,
+                .post_key_action = .advance_world,
             };
         },
         .f => {
@@ -421,7 +428,7 @@ pub fn handleKeyDown(
             return .{
                 .interaction = interaction,
                 .locomotion_status = locomotion_status,
-                .should_tick_world = true,
+                .post_key_action = .advance_world,
             };
         },
     }
@@ -444,6 +451,7 @@ pub fn renderDebugViewWithSelection(
     selection: FragmentComparisonSelection,
     locomotion_status: ViewerLocomotionStatus,
     control_mode: ViewerControlMode,
+    dialog_overlay: ViewerDialogOverlayDisplay,
 ) !void {
     var status_buffer: ViewerLocomotionStatusDisplayBuffer = .{};
     return render.renderDebugView(
@@ -453,7 +461,57 @@ pub fn renderDebugViewWithSelection(
         selection,
         formatLocomotionStatusDisplay(&status_buffer, locomotion_status),
         control_mode,
+        dialog_overlay,
     );
+}
+
+pub fn formatSendellDialogOverlayDisplay(
+    room: *const RoomSnapshot,
+    current_session: Session,
+) ViewerDialogOverlayDisplay {
+    if (room.scene.entry_index != sendell_scene_entry or room.background.entry_index != sendell_background_entry) {
+        return .{};
+    }
+
+    const dialog_id = current_session.currentDialogId() orelse return .{};
+    const object_behavior = current_session.objectBehaviorStateByIndex(sendell_object_index) orelse return .{};
+
+    return switch (object_behavior.sendell_ball_phase) {
+        .awaiting_first_dialog_ack => .{
+            .title = "SENDELL DIAL",
+            .line_count = 4,
+            .lines = .{
+                "CURRENT DIAL 513",
+                "ACK 1 PENDING",
+                "ENTER ACK NOW",
+                "MAG 2/0 FLAG 0",
+            },
+        },
+        .awaiting_second_dialog_ack => .{
+            .title = "SENDELL DIAL",
+            .line_count = 4,
+            .lines = .{
+                "CURRENT DIAL 514",
+                "ACK 2 PENDING",
+                "ENTER CLAIM BALL",
+                "MAG 3/60 FLAG 0",
+            },
+        },
+        .completed => blk: {
+            if (dialog_id != 287) break :blk .{};
+            break :blk .{
+                .title = "SENDELL DIAL",
+                .line_count = 4,
+                .lines = .{
+                    "CURRENT DIAL 287",
+                    "STORY COMPLETE",
+                    "NO ACK PENDING",
+                    "MAG 3/60 FLAG 1",
+                },
+            };
+        },
+        else => .{},
+    };
 }
 
 fn positionForExplicitLocomotionFixture(

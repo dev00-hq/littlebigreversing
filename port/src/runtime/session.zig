@@ -79,6 +79,7 @@ pub const Session = struct {
     game_vars: [max_game_vars]i16,
     magic_level: u8,
     magic_point: u8,
+    current_dialog_id: ?i16,
     objects: []ObjectState,
     object_behaviors: []ObjectBehaviorState,
     bonus_spawn_event_count: usize,
@@ -98,6 +99,7 @@ pub const Session = struct {
             .game_vars = [_]i16{0} ** max_game_vars,
             .magic_level = 0,
             .magic_point = 0,
+            .current_dialog_id = null,
             .objects = &.{},
             .object_behaviors = &.{},
             .bonus_spawn_event_count = 0,
@@ -129,6 +131,7 @@ pub const Session = struct {
             .game_vars = [_]i16{0} ** max_game_vars,
             .magic_level = 0,
             .magic_point = 0,
+            .current_dialog_id = null,
             .objects = owned_objects,
             .object_behaviors = owned_object_behaviors,
             .bonus_spawn_event_count = 0,
@@ -148,6 +151,7 @@ pub const Session = struct {
         self.objects = &.{};
         self.object_behaviors = &.{};
         self.bonus_spawn_event_count = 0;
+        self.current_dialog_id = null;
         self.pending_room_transition = null;
         self.owns_objects = false;
         self.owns_object_behaviors = false;
@@ -199,6 +203,10 @@ pub const Session = struct {
         return self.magic_point;
     }
 
+    pub fn currentDialogId(self: Session) ?i16 {
+        return self.current_dialog_id;
+    }
+
     pub fn setMagicLevelAndRefill(self: *Session, level: u8) void {
         self.magic_level = level;
         self.magic_point = level * 20;
@@ -206,6 +214,15 @@ pub const Session = struct {
 
     pub fn setMagicPoint(self: *Session, value: u8) void {
         self.magic_point = value;
+    }
+
+    pub fn setCurrentDialogId(self: *Session, dialog_id: i16) !void {
+        if (self.current_dialog_id != null) return error.CurrentDialogAlreadySet;
+        self.current_dialog_id = dialog_id;
+    }
+
+    pub fn clearCurrentDialogId(self: *Session) void {
+        self.current_dialog_id = null;
     }
 
     pub fn objectSnapshots(self: Session) []const ObjectState {
@@ -352,6 +369,7 @@ test "runtime session initializes mutable hero state from an explicit world-posi
     try std.testing.expectEqual(@as(i16, 0), runtime_session.gameVar(0));
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
+    try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
     try std.testing.expectEqual(@as(usize, 0), runtime_session.objectSnapshots().len);
     try std.testing.expectEqual(@as(usize, 0), runtime_session.objectBehaviorStates().len);
     try std.testing.expectEqual(@as(?PendingRoomTransition, null), runtime_session.pendingRoomTransition());
@@ -442,6 +460,24 @@ test "runtime session tracks mutable game vars and magic state separately from c
     try std.testing.expectEqual(@as(u8, 3), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.cubeVar(3));
+}
+
+test "runtime session keeps transient current dialog state explicit and single-slot" {
+    var runtime_session = Session.init(.{
+        .x = 1987,
+        .y = 512,
+        .z = 3743,
+    });
+
+    try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
+    try runtime_session.setCurrentDialogId(513);
+    try std.testing.expectEqual(@as(?i16, 513), runtime_session.currentDialogId());
+    try std.testing.expectError(error.CurrentDialogAlreadySet, runtime_session.setCurrentDialogId(514));
+
+    runtime_session.clearCurrentDialogId();
+    try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
+    try runtime_session.setCurrentDialogId(287);
+    try std.testing.expectEqual(@as(?i16, 287), runtime_session.currentDialogId());
 }
 
 test "runtime session keeps pending room transitions explicit and single-slot" {

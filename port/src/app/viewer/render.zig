@@ -56,6 +56,13 @@ pub const LocomotionStatusDisplayBuffer = struct {
     line_6: [128]u8 = undefined,
 };
 
+pub const DialogOverlayDisplay = struct {
+    title: []const u8 = "",
+    line_count: usize = 0,
+    lines: [4][]const u8 = .{ "", "", "", "" },
+    accent: sdl.Color = .{ .r = 255, .g = 196, .b = 92, .a = 255 },
+};
+
 pub const ControlMode = enum {
     locomotion,
     fragment_navigation,
@@ -68,6 +75,7 @@ pub fn renderDebugView(
     selection: fragment_compare.FragmentComparisonSelection,
     locomotion_status: LocomotionStatusDisplay,
     control_mode: ControlMode,
+    dialog_overlay: DialogOverlayDisplay,
 ) !void {
     const fragment_panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
     const debug_layout = layout.computeDebugLayout(
@@ -147,7 +155,10 @@ pub fn renderDebugView(
     const hero = layout.projectWorldPoint(snapshot, debug_layout.schematic, snapshot.hero_position.x, snapshot.hero_position.z);
     try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
     try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
-    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode);
+    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode, dialog_overlay);
+    if (dialog_overlay.line_count != 0) {
+        try drawDialogOverlay(canvas, layout.computeDialogOverlayRect(debug_layout), dialog_overlay);
+    }
     canvas.present();
 }
 
@@ -473,6 +484,7 @@ fn drawHud(
     selection: fragment_compare.FragmentComparisonSelection,
     locomotion_status: LocomotionStatusDisplay,
     control_mode: ControlMode,
+    dialog_overlay: DialogOverlayDisplay,
 ) !void {
     const room_card = splitHudRow(debug_layout.header, 0, 3, 12);
     const fragment_card = splitHudRow(debug_layout.header, 1, 3, 12);
@@ -628,12 +640,25 @@ fn drawHud(
         .admitted_path => &.{ "ENTER SEED HERO", "ARROWS MOVE HERO", "ARROWS MOVE FROM HERE" },
         .none => &.{ "ENTER SEED HERO", "ARROWS MOVE HERO", "RAW START STAYS" },
     };
+    const nav_title = if (dialog_overlay.line_count != 0) "NAV / DIAL" else "NAV";
     try drawHudTextCard(
         canvas,
         nav_card,
-        "NAV",
+        nav_title,
         .{ .r = 112, .g = 196, .b = 255, .a = 255 },
         nav_lines,
+    );
+}
+
+fn drawDialogOverlay(canvas: *sdl.Canvas, rect: sdl.Rect, dialog_overlay: DialogOverlayDisplay) !void {
+    try drawHudTextCardWithMetrics(
+        canvas,
+        rect,
+        dialog_overlay.title,
+        dialog_overlay.accent,
+        2,
+        2,
+        dialog_overlay.lines[0..dialog_overlay.line_count],
     );
 }
 

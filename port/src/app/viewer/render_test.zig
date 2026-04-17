@@ -2,6 +2,7 @@ const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
 const runtime_locomotion = @import("../../runtime/locomotion.zig");
+const runtime_update = @import("../../runtime/update.zig");
 const state = @import("../../runtime/room_state.zig");
 const runtime_query = @import("../../runtime/world_query.zig");
 const room_fixtures = @import("../../testing/room_fixtures.zig");
@@ -426,7 +427,7 @@ fn renderZeroFragmentTrace(
     var trace: sdl.CanvasTrace = .{};
     errdefer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .{});
     return trace;
 }
 
@@ -495,7 +496,7 @@ test "viewer render path draws the guarded 11/10 fragment comparison panel and f
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .{});
 
     try std.testing.expect(panel.focus != null);
     try std.testing.expect(debug_layout.comparison != null);
@@ -534,7 +535,7 @@ test "viewer render path surfaces fragment-room control hints for both navigatio
     var fragment_nav_trace: sdl.CanvasTrace = .{};
     defer fragment_nav_trace.deinit(allocator);
     var fragment_nav_canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &fragment_nav_trace);
-    try render.renderDebugView(&fragment_nav_canvas, raw_snapshot, raw_catalog, raw_selection, .{}, .fragment_navigation);
+    try render.renderDebugView(&fragment_nav_canvas, raw_snapshot, raw_catalog, raw_selection, .{}, .fragment_navigation, .{});
 
     try std.testing.expect(hasTraceText(fragment_nav_trace, "TAB HERO CTRL"));
     try std.testing.expect(hasTraceText(fragment_nav_trace, "LEFT RIGHT RANK"));
@@ -554,7 +555,7 @@ test "viewer render path surfaces fragment-room control hints for both navigatio
     var locomotion_trace: sdl.CanvasTrace = .{};
     defer locomotion_trace.deinit(allocator);
     var locomotion_canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &locomotion_trace);
-    try render.renderDebugView(&locomotion_canvas, seeded_snapshot, seeded_catalog, seeded_selection, seeded_display, .locomotion);
+    try render.renderDebugView(&locomotion_canvas, seeded_snapshot, seeded_catalog, seeded_selection, seeded_display, .locomotion, .{});
 
     try std.testing.expect(hasTraceText(locomotion_trace, "TAB FRAG NAV"));
     try std.testing.expect(hasTraceText(locomotion_trace, "ARROWS MOVE HERO"));
@@ -588,7 +589,7 @@ test "viewer render path exposes a deterministic owning-zone rect for the focuse
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .{});
 
     try std.testing.expect(zone_rect.x <= focus_rect.x);
     try std.testing.expect(zone_rect.y <= focus_rect.y);
@@ -618,7 +619,7 @@ test "viewer render path keeps the selected cell pinned at the head of the compa
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .{});
 
     try std.testing.expect(selection.ranked_index.? >= fragment_compare.max_fragment_comparison_entries);
     try std.testing.expectEqual(focus.x, panel.entries[0].x);
@@ -751,7 +752,7 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode);
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .{});
 
     try std.testing.expect(selection.focus == null);
     try std.testing.expectEqual(@as(?sdl.Rect, null), layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, false).comparison_frame);
@@ -761,6 +762,51 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     try std.testing.expect(hasTraceText(trace, "RAW START INVALID"));
     try std.testing.expect(hasTraceText(trace, "CELL 3/7 MAPPED_CELL_EMPTY"));
     try std.testing.expect(hasPresent(trace));
+}
+
+test "viewer render path draws the bounded Sendell dialog overlay during acknowledgement states" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded3636();
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(std.testing.allocator);
+    try runtime_session.submitHeroIntent(.cast_lightning);
+    _ = try runtime_update.tick(room, &runtime_session);
+
+    const snapshot = viewer_shell.buildRenderSnapshot(room, runtime_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+    const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
+    const dialog_overlay = viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session);
+    const dialog_rect = layout.computeDialogOverlayRect(
+        layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, selection.focus != null),
+    );
+
+    var trace: sdl.CanvasTrace = .{};
+    defer trace.deinit(allocator);
+    var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
+
+    try render.renderDebugView(
+        &canvas,
+        snapshot,
+        catalog,
+        selection,
+        .{},
+        viewer_shell.initialInteractionState(catalog).control_mode,
+        dialog_overlay,
+    );
+
+    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, dialog_rect, .{ .r = 10, .g = 15, .b = 20, .a = 236 }));
+    try std.testing.expect(hasTraceText(trace, "SENDELL DIAL"));
+    try std.testing.expect(hasTraceText(trace, "CURRENT DIAL 513"));
+    try std.testing.expect(hasTraceText(trace, "ACK 1 PENDING"));
+    try std.testing.expect(hasTraceText(trace, "NAV / DIAL"));
+
+    try runtime_session.submitHeroIntent(.advance_story);
+    _ = try runtime_update.tick(room, &runtime_session);
+    const second_overlay = viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session);
+    try std.testing.expectEqual(@as(usize, 4), second_overlay.line_count);
+    try std.testing.expectEqualStrings("CURRENT DIAL 514", second_overlay.lines[0]);
 }
 
 test "viewer render path fails fast when a required brick preview is missing" {
@@ -783,5 +829,5 @@ test "viewer render path fails fast when a required brick preview is missing" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try std.testing.expectError(error.ViewerBrickPreviewMissing, render.renderDebugView(&canvas, missing_snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode));
+    try std.testing.expectError(error.ViewerBrickPreviewMissing, render.renderDebugView(&canvas, missing_snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .{}));
 }

@@ -28,6 +28,7 @@ python3 tools/codex_memory.py add-task-event --stream viewer-prep --status block
 - `project_brief.md` and `current_focus.md` are the only always-loaded Markdown files.
 - Subsystem packs own durable current-state truth for their subsystem; do not turn them into append-only changelogs.
 - Typed JSONL files are the only structured history layer.
+- When a JSONL history file already exists in `HEAD`, validation treats it as append-only. Restore old rows and append new ones; do not rewrite timestamped history in place.
 - Default canonical memory pickup excludes `sidequest/` and `LM_TASKS/` until those streams are explicitly promoted into the checked-in path.
 - `--include-history` keeps chronological `## Recent History` by default; `--history-mode relevant` is the opt-in ranked alternative for path/subsystem queries.
 - `python3 tools/codex_memory.py context --include-excluded-history` is the opt-in escape hatch when you explicitly need excluded durable history.

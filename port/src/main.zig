@@ -90,6 +90,7 @@ fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         interaction.fragment_selection,
         locomotion_status,
         interaction.control_mode,
+        viewer_shell.formatSendellDialogOverlayDisplay(&room, runtime_session),
     ) catch |err| {
         diagnostics.reportError(stderr, sdlErrorMessage(err));
         return err;
@@ -113,39 +114,18 @@ fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
                 interaction,
                 locomotion_status,
             ),
-            .key_down => |key| {
-                const key_result = try viewer_shell.handleKeyDown(
-                    &room,
-                    &runtime_session,
-                    fragment_catalog,
-                    interaction,
-                    locomotion_status,
-                    key,
-                );
-                interaction = key_result.interaction;
-                locomotion_status = key_result.locomotion_status;
-                if (key_result.should_tick_world) {
-                    const tick_result = try runtime_update.tick(&room, &runtime_session);
-                    locomotion_status = tick_result.locomotion_status;
-                    if (tick_result.consumed_hero_intent or key_result.should_print_locomotion_diagnostic) {
-                        try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
-                    }
-                } else if (key_result.should_print_locomotion_diagnostic) {
-                    try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
-                }
-                try stderr.flush();
-                try renderCurrentFrame(
-                    allocator,
-                    &canvas,
-                    stderr,
-                    &room,
-                    runtime_session,
-                    &render,
-                    &fragment_catalog,
-                    interaction,
-                    locomotion_status,
-                );
-            },
+            .key_down => |key| try processKeyDownEvent(
+                allocator,
+                &canvas,
+                stderr,
+                &room,
+                &runtime_session,
+                &render,
+                &fragment_catalog,
+                &interaction,
+                &locomotion_status,
+                key,
+            ),
             .other => {},
         }
     }
@@ -239,8 +219,69 @@ fn renderCurrentFrame(
         interaction.fragment_selection,
         locomotion_status,
         interaction.control_mode,
+        viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session),
     ) catch |err| {
         diagnostics.reportError(stderr, sdlErrorMessage(err));
         return err;
     };
+}
+
+fn processKeyDownEvent(
+    allocator: std.mem.Allocator,
+    canvas: *sdl.Canvas,
+    stderr: anytype,
+    room: *const viewer_shell.RoomSnapshot,
+    runtime_session: *viewer_shell.Session,
+    render: *viewer_shell.RenderSnapshot,
+    fragment_catalog: *viewer_shell.FragmentComparisonCatalog,
+    interaction: *viewer_shell.ViewerInteractionState,
+    locomotion_status: *viewer_shell.ViewerLocomotionStatus,
+    key: viewer_shell.ViewerKey,
+) !void {
+    const key_result = try viewer_shell.handleKeyDown(
+        room,
+        runtime_session,
+        fragment_catalog.*,
+        interaction.*,
+        locomotion_status.*,
+        key,
+    );
+    interaction.* = key_result.interaction;
+    locomotion_status.* = key_result.locomotion_status;
+    try applyScheduledWorldStep(stderr, room, runtime_session, locomotion_status, key_result);
+    try stderr.flush();
+    try renderCurrentFrame(
+        allocator,
+        canvas,
+        stderr,
+        room,
+        runtime_session.*,
+        render,
+        fragment_catalog,
+        interaction.*,
+        locomotion_status.*,
+    );
+}
+
+fn applyScheduledWorldStep(
+    stderr: anytype,
+    room: *const viewer_shell.RoomSnapshot,
+    runtime_session: *viewer_shell.Session,
+    locomotion_status: *viewer_shell.ViewerLocomotionStatus,
+    key_result: viewer_shell.ViewerKeyDownResult,
+) !void {
+    switch (key_result.post_key_action) {
+        .none => {
+            if (key_result.should_print_locomotion_diagnostic) {
+                try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
+            }
+        },
+        .advance_world => {
+            const tick_result = try runtime_update.tick(room, runtime_session);
+            locomotion_status.* = tick_result.locomotion_status;
+            if (tick_result.consumed_hero_intent or key_result.should_print_locomotion_diagnostic) {
+                try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
+            }
+        },
+    }
 }
