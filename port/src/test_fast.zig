@@ -10,6 +10,8 @@ test {
     _ = @import("runtime/locomotion_test.zig");
     _ = @import("runtime/object_behavior.zig");
     _ = @import("runtime/object_behavior_test.zig");
+    _ = @import("runtime/room_entry_state.zig");
+    _ = @import("runtime/transition.zig");
     _ = @import("runtime/update.zig");
     _ = @import("runtime/update_test.zig");
     _ = @import("runtime/world_query.zig");

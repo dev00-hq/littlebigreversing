@@ -413,7 +413,7 @@ pub fn loadRoomSnapshotUncheckedForTests(
     return loadRoomSnapshotInternal(allocator, resolved, scene_entry_index, background_entry_index, .skip);
 }
 
-pub fn resolveGuardedViewerRoomEntriesForCube(
+pub fn resolveGuardedTransitionRoomEntriesForCube(
     allocator: std.mem.Allocator,
     resolved: paths_mod.ResolvedPaths,
     destination_cube: i16,
@@ -1201,28 +1201,28 @@ test "inspectRoomFragmentZoneDiagnostics explains the 219 219 invalid fragment-z
     try std.testing.expectEqual(@as(?i32, 320), third.z_axis.origin_remainder);
 }
 
-test "resolveGuardedViewerRoomEntriesForCube keeps the bounded current-state same-index mapping explicit" {
+test "resolveGuardedTransitionRoomEntriesForCube keeps the bounded current-state same-index mapping explicit" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
     try std.testing.expectEqual(
         ResolvedRoomEntries{ .scene_entry_index = 2, .background_entry_index = 2 },
-        try resolveGuardedViewerRoomEntriesForCube(allocator, resolved, 0),
+        try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 0),
     );
     try std.testing.expectEqual(
         ResolvedRoomEntries{ .scene_entry_index = 19, .background_entry_index = 19 },
-        try resolveGuardedViewerRoomEntriesForCube(allocator, resolved, 17),
+        try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 17),
     );
 }
 
-test "resolveGuardedViewerRoomEntriesForCube rejects negative cubes" {
+test "resolveGuardedTransitionRoomEntriesForCube rejects negative cubes" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
     try std.testing.expectError(
         error.UnsupportedDestinationCube,
-        resolveGuardedViewerRoomEntriesForCube(allocator, resolved, -1),
+        resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, -1),
     );
 }

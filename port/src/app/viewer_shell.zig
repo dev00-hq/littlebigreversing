@@ -1,10 +1,10 @@
 const std = @import("std");
 const diagnostics = @import("../foundation/diagnostics.zig");
 const paths_mod = @import("../foundation/paths.zig");
-const reference_metadata = @import("../generated/reference_metadata.zig");
 const sdl = @import("../platform/sdl.zig");
 const runtime_locomotion = @import("../runtime/locomotion.zig");
 const runtime_object_behavior = @import("../runtime/object_behavior.zig");
+const room_entry_state = @import("../runtime/room_entry_state.zig");
 const runtime_session = @import("../runtime/session.zig");
 const runtime_query = @import("../runtime/world_query.zig");
 const world_geometry = @import("../runtime/world_geometry.zig");
@@ -102,9 +102,6 @@ pub const locomotion_fixture_cell = GridCell{ .x = 39, .z = 6 };
 const sendell_scene_entry: usize = 36;
 const sendell_background_entry: usize = 36;
 const sendell_object_index: usize = 2;
-const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
-const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
-const sendell_seed_magic_level: u8 = 2;
 
 pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs {
     var asset_root_override: ?[]u8 = null;
@@ -154,18 +151,8 @@ pub fn initSession(allocator: std.mem.Allocator, room: *const RoomSnapshot) !Ses
         room.scene.objects,
         room.scene.object_behavior_seeds,
     );
-    applyRoomEntryState(room, &current_session);
+    room_entry_state.applyRoomEntryState(room, &current_session);
     return current_session;
-}
-
-pub fn applyRoomEntryState(room: *const RoomSnapshot, current_session: *Session) void {
-    if (room.scene.entry_index != sendell_scene_entry or room.background.entry_index != sendell_background_entry) {
-        return;
-    }
-
-    current_session.setMagicLevelAndRefill(sendell_seed_magic_level);
-    current_session.setGameVar(sendell_ball_flag_index, 0);
-    current_session.setGameVar(lightning_spell_flag_index, 1);
 }
 
 pub fn buildRenderSnapshot(room: *const RoomSnapshot, current_session: Session) RenderSnapshot {
