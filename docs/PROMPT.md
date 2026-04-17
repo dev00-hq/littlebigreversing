@@ -45,11 +45,13 @@ Acceptance:
 Validation:
 
 - From native PowerShell, prefer:
-  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build stage-viewer`
+  - Use `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-fast` plus the smallest targeted tool probes as the default slice-grade loop.
+  - Add `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build stage-viewer` when the slice touches staged binaries or viewer startup plumbing.
   - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- audit-life-programs --json --scene-entry 2 --scene-entry 5 --scene-entry 11 --scene-entry 44`
   - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- audit-life-programs --json --all-scene-entries`
+  - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-fast`
   - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room 2 2 --json`
   - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room 11 10 --json`
   - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-room 44 2 --json`
-  - `py -3 .\scripts\verify_viewer.py --fast`
-  - `py -3 .\scripts\verify_viewer.py`
+  - Use `py -3 .\scripts\verify_viewer.py --fast` only for broader staged-binary end-to-end checks when the slice changes guarded viewer startup, launch assertions, or room-admission behavior.
+  - Use `py -3 .\scripts\verify_viewer.py` for milestone closeout and canonical Windows acceptance.

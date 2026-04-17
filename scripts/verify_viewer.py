@@ -482,6 +482,7 @@ def main(argv: list[str] | None = None) -> int:
     test_step = "test-fast" if args.fast else "test"
 
     run_zig_step(["build", test_step], f"zig build {test_step}")
+    run_zig_step(["build", "test-cli-integration"], "zig build test-cli-integration")
     run_zig_step(["build", "stage-viewer"], "zig build stage-viewer")
     ensure_staged_binaries()
 

@@ -15,6 +15,10 @@ pub fn tick(
     room: *const room_state.RoomSnapshot,
     current_session: *runtime_session.Session,
 ) !TickResult {
+    if (current_session.pendingRoomTransition() != null) {
+        return error.PendingRoomTransitionRequiresCommit;
+    }
+
     const pending_hero_intent = current_session.pendingHeroIntent();
     const consumed_hero_intent = pending_hero_intent != null;
     const locomotion_status: locomotion.LocomotionStatus = if (pending_hero_intent) |intent| switch (intent) {
@@ -28,22 +32,22 @@ pub fn tick(
         },
     } else try locomotion.inspectCurrentStatus(room, current_session.*);
     const zone_effect_summary = try zone_effects.applyPostLocomotionEffects(current_session, locomotion_status);
-    const behavior_summary = try object_behavior.stepSupportedObjects(room, current_session);
-    current_session.advanceFrameIndex();
-
-    if (consumed_hero_intent) {
+    if (zone_effect_summary.triggered_room_transition) {
         return .{
             .locomotion_status = locomotion_status,
-            .consumed_hero_intent = true,
-            .triggered_room_transition = zone_effect_summary.triggered_room_transition,
-            .updated_object_count = behavior_summary.updated_object_count,
+            .consumed_hero_intent = consumed_hero_intent,
+            .triggered_room_transition = true,
+            .updated_object_count = 0,
         };
     }
 
+    const behavior_summary = try object_behavior.stepSupportedObjects(room, current_session);
+    current_session.advanceFrameIndex();
+
     return .{
         .locomotion_status = locomotion_status,
-        .consumed_hero_intent = false,
-        .triggered_room_transition = zone_effect_summary.triggered_room_transition,
+        .consumed_hero_intent = consumed_hero_intent,
+        .triggered_room_transition = false,
         .updated_object_count = behavior_summary.updated_object_count,
     };
 }

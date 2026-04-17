@@ -1,4 +1,5 @@
 test {
+    _ = @import("main.zig");
     _ = @import("foundation/paths.zig");
     _ = @import("app/viewer_shell.zig");
     _ = @import("app/viewer_shell_test.zig");

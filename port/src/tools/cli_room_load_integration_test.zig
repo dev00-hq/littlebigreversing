@@ -172,6 +172,50 @@ test "inspect-room widened guarded admissions stay covered outside the fast shar
     );
 }
 
+test "inspect-room subprocess emits machine-facing JSON for the bounded Sendell 36/36 pair" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-room",
+        "36",
+        "36",
+        "--json",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    try expectExited(result.term, 0);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+
+    const root = parsed.value;
+    try expectJsonString(try requireJsonField(root, "command"), "inspect-room");
+
+    const scene = try requireJsonField(root, "scene");
+    try expectJsonInteger(try requireJsonField(scene, "entry_index"), 36);
+    try expectJsonInteger(try requireJsonField(scene, "classic_loader_scene_number"), 34);
+    try expectJsonString(try requireJsonField(scene, "scene_kind"), "interior");
+    try expectJsonInteger(try requireJsonField(scene, "object_count"), 6);
+    try expectJsonInteger(try requireJsonField(scene, "zone_count"), 6);
+
+    const background = try requireJsonField(root, "background");
+    try expectJsonInteger(try requireJsonField(background, "entry_index"), 36);
+    try expectJsonInteger(
+        try requireJsonField(try requireJsonField(background, "fragments"), "fragment_count"),
+        0,
+    );
+    try expectJsonInteger(
+        try requireJsonField(try requireJsonField(background, "linkage"), "grm_entry_index"),
+        151,
+    );
+    try expectJsonInteger(
+        try requireJsonField(try requireJsonField(background, "bricks"), "preview_count"),
+        62,
+    );
+}
+
 test "inspect-hqr subprocess enriches BODY.HQR json entries with metadata overlays" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
@@ -348,6 +392,56 @@ test "inspect-room-intelligence subprocess emits machine-facing JSON for the can
         else => return error.ExpectedJsonArray,
     }
     try expectJsonInteger(try requireJsonField(try requireJsonField(hero_life, "audit"), "instruction_count"), 47);
+}
+
+test "inspect-room-intelligence keeps guarded 2/2 change-cube semantics machine-facing" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-room-intelligence",
+        "--scene-entry",
+        "2",
+        "--background-entry",
+        "2",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    try expectExited(result.term, 0);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+
+    const zones = try requireJsonField(parsed.value, "zones");
+    const change_cube_zone = switch (zones) {
+        .array => |array| blk: {
+            for (array.items) |zone| {
+                const semantics = try requireJsonField(zone, "semantics");
+                const kind = try requireJsonField(semantics, "kind");
+                switch (kind) {
+                    .string => |value| {
+                        if (std.mem.eql(u8, value, "change_cube")) break :blk zone;
+                    },
+                    else => return error.ExpectedJsonString,
+                }
+            }
+            return error.MissingJsonField;
+        },
+        else => return error.ExpectedJsonArray,
+    };
+
+    try expectJsonString(try requireJsonField(change_cube_zone, "zone_type"), "change_cube");
+    const semantics = try requireJsonField(change_cube_zone, "semantics");
+    try expectJsonString(try requireJsonField(semantics, "kind"), "change_cube");
+    try expectJsonInteger(try requireJsonField(semantics, "destination_cube"), 0);
+    try expectJsonInteger(try requireJsonField(semantics, "destination_x"), 2560);
+    try expectJsonInteger(try requireJsonField(semantics, "destination_y"), 2048);
+    try expectJsonInteger(try requireJsonField(semantics, "destination_z"), 3072);
+    try expectJsonInteger(try requireJsonField(semantics, "yaw"), 0);
+    try expectJsonBool(try requireJsonField(semantics, "test_brick"), false);
+    try expectJsonBool(try requireJsonField(semantics, "dont_readjust_twinsen"), false);
+    try expectJsonBool(try requireJsonField(semantics, "initially_on"), true);
 }
 
 test "inspect-room-intelligence subprocess keeps validation failures in JSON for non-interior rooms" {

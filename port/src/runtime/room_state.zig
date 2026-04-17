@@ -317,6 +317,11 @@ pub const RoomFragmentZoneDiagnostics = struct {
     }
 };
 
+pub const ResolvedRoomEntries = struct {
+    scene_entry_index: usize,
+    background_entry_index: usize,
+};
+
 const WorldPointSnapshot = world_geometry.WorldPointSnapshot;
 
 pub fn heroStartWorldPoint(room: *const RoomSnapshot) WorldPointSnapshot {
@@ -406,6 +411,40 @@ pub fn loadRoomSnapshotUncheckedForTests(
 ) !RoomSnapshot {
     if (!builtin.is_test) @compileError("loadRoomSnapshotUncheckedForTests is only available in test builds");
     return loadRoomSnapshotInternal(allocator, resolved, scene_entry_index, background_entry_index, .skip);
+}
+
+pub fn resolveGuardedViewerRoomEntriesForCube(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    destination_cube: i16,
+) !ResolvedRoomEntries {
+    if (destination_cube < 0) return error.UnsupportedDestinationCube;
+
+    // Current-state room transitions stay bounded to same-index room pairs whose
+    // scene entry matches the classic save-header cube -> raw-scene mapping.
+    const cube_index = std.math.cast(usize, destination_cube) orelse return error.UnsupportedDestinationCube;
+    const scene_entry_index = cube_index + 2;
+    const background_entry_index = scene_entry_index;
+
+    var room = loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index) catch |err| switch (err) {
+        error.ViewerUnsupportedSceneLife,
+        error.ViewerSceneMustBeInterior,
+        error.InvalidFragmentZoneBounds,
+        error.InvalidFragmentZoneIndex,
+        error.FragmentZoneIndexOutOfRange,
+        error.FragmentZoneFootprintMismatch,
+        => return error.UnsupportedDestinationCube,
+        else => return err,
+    };
+    defer room.deinit(allocator);
+
+    const classic_loader_scene_number = room.scene.classic_loader_scene_number orelse return error.UnsupportedDestinationCube;
+    if (classic_loader_scene_number != cube_index) return error.UnsupportedDestinationCube;
+
+    return .{
+        .scene_entry_index = scene_entry_index,
+        .background_entry_index = background_entry_index,
+    };
 }
 
 pub fn inspectRoomFragmentZoneDiagnostics(
@@ -1160,4 +1199,30 @@ test "inspectRoomFragmentZoneDiagnostics explains the 219 219 invalid fragment-z
     try std.testing.expectEqual(@as(?i32, 80), third.x_axis.origin_remainder);
     try std.testing.expectEqual(false, third.z_axis.origin_aligned.?);
     try std.testing.expectEqual(@as(?i32, 320), third.z_axis.origin_remainder);
+}
+
+test "resolveGuardedViewerRoomEntriesForCube keeps the bounded current-state same-index mapping explicit" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    try std.testing.expectEqual(
+        ResolvedRoomEntries{ .scene_entry_index = 2, .background_entry_index = 2 },
+        try resolveGuardedViewerRoomEntriesForCube(allocator, resolved, 0),
+    );
+    try std.testing.expectEqual(
+        ResolvedRoomEntries{ .scene_entry_index = 19, .background_entry_index = 19 },
+        try resolveGuardedViewerRoomEntriesForCube(allocator, resolved, 17),
+    );
+}
+
+test "resolveGuardedViewerRoomEntriesForCube rejects negative cubes" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    try std.testing.expectError(
+        error.UnsupportedDestinationCube,
+        resolveGuardedViewerRoomEntriesForCube(allocator, resolved, -1),
+    );
 }

@@ -86,7 +86,7 @@ Use explicit replan gates after the evidence baseline, the first-viewer gate, th
 
 - Status: crossed.
 - Keep the runtime-backed interior viewer path on Windows validated through `scripts/verify_viewer.py`, with `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]`, `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as the current supported guarded room/load set.
-- Keep `scripts/verify_viewer.py --fast` as the additive daily local loop, not as a replacement for the canonical bare script.
+- Keep `zig build test-fast` plus targeted tool probes as the default slice-grade loop, use `scripts/verify_viewer.py --fast` for broader staged-binary end-to-end checks, and keep the bare script as the canonical milestone acceptance gate.
 - Keep `SCENE.HQR[44]` plus `LBA_BKG.HQR[2]` as the explicit guarded exterior negative `inspect-room` / viewer-load case.
 - Preserve `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` as the canonical fragment-bearing guarded evidence pair.
 - Treat viewer-local composition snapshots, `BRK`-backed previews, fragment comparison, HUD/legend cues, and provenance overlays as evidence surfaces on top of a landed runtime path, not as proof that the repo is still pre-viewer.
@@ -142,7 +142,7 @@ Expose a small set of first-class commands early:
 ### Foundation and Decode Tests
 
 - `zig build` and `zig build test` pass for the checked-in workspace and decode/runtime baseline.
-- `zig build test-fast` is the daily local loop and excludes only the isolated all-scene life-audit inventory shard.
+- `zig build test-fast` is the default slice-grade local loop and excludes the isolated all-scene life-audit inventory shard plus the slower asset-backed CLI room/load integration shard.
 - `zig build test-life-audit-all` holds the slow all-scene life-audit inventory coverage that still rolls up under `zig build test`.
 - Invalid asset roots and missing canonical files fail with explicit diagnostics.
 - HQR header and table parsing match known fixture bytes.
@@ -152,7 +152,7 @@ Expose a small set of first-class commands early:
 ### Viewer Gate Tests
 
 - `scripts/verify_viewer.py` is the canonical Windows acceptance gate for the landed viewer/runtime path.
-- `scripts/verify_viewer.py --fast` reuses the same staged `lba2-tool` / `lba2` assertions but swaps in `zig build test-fast` for daily iteration.
+- `scripts/verify_viewer.py --fast` reuses the same staged `lba2-tool` / `lba2` assertions but swaps in `zig build test-fast`; use it for broader end-to-end checks when a slice touches staged binaries, guarded viewer startup, or runtime admission, not as the default slice-grade loop.
 - `SCENE.HQR[19]` plus `LBA_BKG.HQR[19]`, `SCENE.HQR[2]` plus `LBA_BKG.HQR[2]`, and `SCENE.HQR[11]` plus `LBA_BKG.HQR[10]` are guarded positive `inspect-room` and viewer-launch cases.
 - `SCENE.HQR[44]` plus `LBA_BKG.HQR[2]` remains the explicit guarded `ViewerSceneMustBeInterior` rejection case for `inspect-room` and viewer launch.
 - Fragment-bearing `11/10` evidence is now covered on the canonical guarded CLI/runtime seam.

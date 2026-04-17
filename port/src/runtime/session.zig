@@ -157,6 +157,38 @@ pub const Session = struct {
         self.owns_object_behaviors = false;
     }
 
+    pub fn replaceRoomLocalState(
+        self: *Session,
+        allocator: std.mem.Allocator,
+        hero_world_position: world_geometry.WorldPointSnapshot,
+        objects: []const ObjectState,
+        behavior_seeds: []const ObjectBehaviorSeedState,
+    ) !void {
+        const owned_objects = try allocator.dupe(ObjectState, objects);
+        errdefer allocator.free(owned_objects);
+        const owned_object_behaviors = try copyObjectBehaviorStates(allocator, behavior_seeds);
+        errdefer {
+            for (owned_object_behaviors) |object_behavior| allocator.free(object_behavior.life_bytes);
+            allocator.free(owned_object_behaviors);
+        }
+
+        if (self.owns_objects) allocator.free(self.objects);
+        if (self.owns_object_behaviors) {
+            for (self.object_behaviors) |object_behavior| allocator.free(object_behavior.life_bytes);
+            allocator.free(self.object_behaviors);
+        }
+
+        self.hero.world_position = hero_world_position;
+        self.pending_hero_intent = null;
+        self.current_dialog_id = null;
+        self.objects = owned_objects;
+        self.object_behaviors = owned_object_behaviors;
+        self.bonus_spawn_event_count = 0;
+        self.pending_room_transition = null;
+        self.owns_objects = true;
+        self.owns_object_behaviors = true;
+    }
+
     pub fn heroWorldPosition(self: Session) world_geometry.WorldPointSnapshot {
         return self.hero.world_position;
     }
@@ -542,4 +574,52 @@ test "runtime render snapshots consume session state without duplicating guarded
     try std.testing.expectEqual(@as(i16, 1987), room.scene.hero_start.x);
     try std.testing.expectEqual(@as(i16, 512), room.scene.hero_start.y);
     try std.testing.expectEqual(@as(i16, 3743), room.scene.hero_start.z);
+}
+
+test "runtime session can replace room-local state while preserving durable runtime state" {
+    const source_room = try room_fixtures.guarded1919();
+    const destination_room = try room_fixtures.guarded22();
+
+    var runtime_session = try Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(source_room),
+        source_room.scene.objects,
+        source_room.scene.object_behavior_seeds,
+    );
+    defer runtime_session.deinit(std.testing.allocator);
+
+    runtime_session.advanceFrameIndex();
+    runtime_session.setCubeVar(7, 3);
+    runtime_session.setGameVar(9, 12);
+    runtime_session.setMagicLevelAndRefill(2);
+    runtime_session.setMagicPoint(17);
+    try runtime_session.setCurrentDialogId(513);
+    try runtime_session.setPendingRoomTransition(.{
+        .source_zone_index = 0,
+        .destination_cube = 0,
+        .destination_world_position = .{ .x = 2560, .y = 2048, .z = 3072 },
+        .yaw = 0,
+        .test_brick = false,
+        .dont_readjust_twinsen = false,
+    });
+
+    try runtime_session.replaceRoomLocalState(
+        std.testing.allocator,
+        .{ .x = 2560, .y = 2048, .z = 3072 },
+        destination_room.scene.objects,
+        destination_room.scene.object_behavior_seeds,
+    );
+
+    try std.testing.expectEqual(@as(usize, 1), runtime_session.frame_index);
+    try std.testing.expectEqual(@as(u8, 3), runtime_session.cubeVar(7));
+    try std.testing.expectEqual(@as(i16, 12), runtime_session.gameVar(9));
+    try std.testing.expectEqual(@as(u8, 2), runtime_session.magicLevel());
+    try std.testing.expectEqual(@as(u8, 17), runtime_session.magicPoint());
+    try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
+    try std.testing.expectEqual(@as(?PendingRoomTransition, null), runtime_session.pendingRoomTransition());
+    try std.testing.expectEqual(@as(i32, 2560), runtime_session.heroWorldPosition().x);
+    try std.testing.expectEqual(@as(i32, 2048), runtime_session.heroWorldPosition().y);
+    try std.testing.expectEqual(@as(i32, 3072), runtime_session.heroWorldPosition().z);
+    try std.testing.expectEqual(destination_room.scene.objects.len, runtime_session.objectSnapshots().len);
+    try std.testing.expectEqual(destination_room.scene.object_behavior_seeds.len, runtime_session.objectBehaviorStates().len);
 }

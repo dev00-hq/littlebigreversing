@@ -171,6 +171,23 @@ test "runtime zone effects record a generic change-cube transition from guarded 
     try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);
 }
 
+test "runtime zone effects fail fast when multiple change-cube transitions trigger in one step" {
+    const room = try room_fixtures.guarded22();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+
+    var zone_membership: runtime_query.ContainingZoneSet = .{};
+    try zone_membership.append(room.scene.zones[0]);
+    try zone_membership.append(room.scene.zones[0]);
+
+    try std.testing.expectError(
+        error.MultipleRoomTransitionsTriggered,
+        zone_effects.applyContainingZoneEffects(&current_session, zone_membership.slice()),
+    );
+    try std.testing.expectEqual(@as(?runtime_session.PendingRoomTransition, null), current_session.pendingRoomTransition());
+}
+
 test "runtime update tick reaches guarded 2/2 change-cube from the baked raw start via a bounded zone-recovery nudge" {
     const room = try room_fixtures.guarded22();
 
@@ -184,6 +201,7 @@ test "runtime update tick reaches guarded 2/2 change-cube from the baked raw sta
     try std.testing.expect(tick_result.consumed_hero_intent);
     try std.testing.expect(tick_result.triggered_room_transition);
     try std.testing.expectEqual(@as(usize, 0), tick_result.updated_object_count);
+    try std.testing.expectEqual(@as(usize, 0), current_session.frame_index);
 
     switch (tick_result.locomotion_status) {
         .last_zone_recovery_accepted => |value| {
@@ -211,6 +229,25 @@ test "runtime update tick reaches guarded 2/2 change-cube from the baked raw sta
     try std.testing.expectEqual(semantics.yaw, transition.yaw);
     try std.testing.expectEqual(semantics.test_brick, transition.test_brick);
     try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);
+}
+
+test "runtime update tick fails fast until a pending room transition is committed" {
+    const room = try room_fixtures.guarded22();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    try current_session.submitHeroIntent(.{ .move_cardinal = .east });
+
+    const first_tick = try runtime_update.tick(room, &current_session);
+    try std.testing.expect(first_tick.triggered_room_transition);
+    const expected_transition = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
+
+    try std.testing.expectError(
+        error.PendingRoomTransitionRequiresCommit,
+        runtime_update.tick(room, &current_session),
+    );
+    try std.testing.expectEqual(@as(usize, 0), current_session.frame_index);
+    try std.testing.expectEqual(expected_transition, current_session.pendingRoomTransition().?);
 }
 
 test "runtime update tick advances the bounded Sendell room-36 story-state sequence" {

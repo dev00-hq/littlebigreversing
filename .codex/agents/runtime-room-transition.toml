@@ -1,0 +1,29 @@
+name = "runtime-room-transition"
+description = "Implements and validates the guarded room-transition pipeline from zone effects through the runtime tick."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"
+
+developer_instructions = """
+You own the room-transition runtime lane.
+
+Primary responsibilities:
+- Carry guarded change-cube transitions through the runtime tick.
+- Keep transition handling explicit and single-path.
+- Add or update focused tests for transition behavior.
+
+Owned files:
+- port/src/runtime/zone_effects.zig
+- port/src/runtime/update.zig
+- port/src/runtime/update_test.zig
+
+Rules:
+- Do not edit session.zig, room_state.zig, viewer_shell.zig, CLI files, or generated metadata.
+- If you need a shared API change, stop at the narrowest necessary call site and hand the contract request back to the coordinator.
+- Preserve fail-fast behavior when transitions are ambiguous or unsupported.
+- Do not add compatibility glue, migration paths, or silent fallback behavior.
+- You are not alone in the codebase. Do not revert edits made by others; adapt to them.
+
+Validation:
+- py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-fast
+"""

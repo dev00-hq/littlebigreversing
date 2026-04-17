@@ -5,10 +5,15 @@ const catalog = @import("assets/catalog.zig");
 const diagnostics = @import("foundation/diagnostics.zig");
 const paths = @import("foundation/paths.zig");
 const process = @import("foundation/process.zig");
+const reference_metadata = @import("generated/reference_metadata.zig");
 const sdl = @import("platform/sdl.zig");
 const locomotion = @import("runtime/locomotion.zig");
 const room_state = @import("runtime/room_state.zig");
+const runtime_session_mod = @import("runtime/session.zig");
 const runtime_update = @import("runtime/update.zig");
+
+const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
+const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
 
 pub fn main() !void {
     return process.runWithArgs(run);
@@ -36,7 +41,7 @@ fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         return err;
     };
 
-    const room = room_state.loadRoomSnapshot(
+    var room = room_state.loadRoomSnapshot(
         allocator,
         resolved,
         parsed.scene_entry,
@@ -125,6 +130,7 @@ fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
                 &interaction,
                 &locomotion_status,
                 key,
+                resolved,
             ),
             .other => {},
         }
@@ -230,13 +236,14 @@ fn processKeyDownEvent(
     allocator: std.mem.Allocator,
     canvas: *sdl.Canvas,
     stderr: anytype,
-    room: *const viewer_shell.RoomSnapshot,
+    room: *viewer_shell.RoomSnapshot,
     runtime_session: *viewer_shell.Session,
     render: *viewer_shell.RenderSnapshot,
     fragment_catalog: *viewer_shell.FragmentComparisonCatalog,
     interaction: *viewer_shell.ViewerInteractionState,
     locomotion_status: *viewer_shell.ViewerLocomotionStatus,
     key: viewer_shell.ViewerKey,
+    resolved: paths.ResolvedPaths,
 ) !void {
     const key_result = try viewer_shell.handleKeyDown(
         room,
@@ -248,7 +255,15 @@ fn processKeyDownEvent(
     );
     interaction.* = key_result.interaction;
     locomotion_status.* = key_result.locomotion_status;
-    try applyScheduledWorldStep(stderr, room, runtime_session, locomotion_status, key_result);
+    try applyScheduledWorldStep(
+        allocator,
+        resolved,
+        stderr,
+        room,
+        runtime_session,
+        locomotion_status,
+        key_result,
+    );
     try stderr.flush();
     try renderCurrentFrame(
         allocator,
@@ -264,8 +279,10 @@ fn processKeyDownEvent(
 }
 
 fn applyScheduledWorldStep(
+    allocator: std.mem.Allocator,
+    resolved: paths.ResolvedPaths,
     stderr: anytype,
-    room: *const viewer_shell.RoomSnapshot,
+    room: *viewer_shell.RoomSnapshot,
     runtime_session: *viewer_shell.Session,
     locomotion_status: *viewer_shell.ViewerLocomotionStatus,
     key_result: viewer_shell.ViewerKeyDownResult,
@@ -278,10 +295,341 @@ fn applyScheduledWorldStep(
         },
         .advance_world => {
             const tick_result = try runtime_update.tick(room, runtime_session);
-            locomotion_status.* = tick_result.locomotion_status;
-            if (tick_result.consumed_hero_intent or key_result.should_print_locomotion_diagnostic) {
+            if (tick_result.triggered_room_transition) {
+                _ = try commitPendingRoomTransition(
+                    allocator,
+                    resolved,
+                    stderr,
+                    room,
+                    runtime_session,
+                    locomotion_status,
+                    tick_result.locomotion_status,
+                );
                 try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
+            } else {
+                locomotion_status.* = tick_result.locomotion_status;
+                if (tick_result.consumed_hero_intent or key_result.should_print_locomotion_diagnostic) {
+                    try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
+                }
             }
         },
     }
+}
+
+fn commitPendingRoomTransition(
+    allocator: std.mem.Allocator,
+    resolved: paths.ResolvedPaths,
+    stderr: anytype,
+    room: *viewer_shell.RoomSnapshot,
+    runtime_session: *viewer_shell.Session,
+    locomotion_status: *viewer_shell.ViewerLocomotionStatus,
+    pre_commit_locomotion_status: viewer_shell.ViewerLocomotionStatus,
+) !bool {
+    const transition = runtime_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
+    const source_scene_entry_index = room.scene.entry_index;
+    const source_background_entry_index = room.background.entry_index;
+    if (unsupportedPendingRoomTransitionReason(transition)) |reason| {
+        try rejectPendingRoomTransition(
+            stderr,
+            runtime_session,
+            locomotion_status,
+            pre_commit_locomotion_status,
+            source_scene_entry_index,
+            source_background_entry_index,
+            transition.destination_cube,
+            reason,
+        );
+        return false;
+    }
+
+    const destination_entries = room_state.resolveGuardedViewerRoomEntriesForCube(
+        allocator,
+        resolved,
+        transition.destination_cube,
+    ) catch |err| switch (err) {
+        error.UnsupportedDestinationCube => {
+            try rejectPendingRoomTransition(
+                stderr,
+                runtime_session,
+                locomotion_status,
+                pre_commit_locomotion_status,
+                source_scene_entry_index,
+                source_background_entry_index,
+                transition.destination_cube,
+                "unsupported_destination_cube",
+            );
+            return false;
+        },
+        else => return err,
+    };
+    var next_room = try room_state.loadRoomSnapshot(
+        allocator,
+        resolved,
+        destination_entries.scene_entry_index,
+        destination_entries.background_entry_index,
+    );
+    var next_room_owned = true;
+    errdefer if (next_room_owned) next_room.deinit(allocator);
+
+    var transition_probe_session = try runtime_session_mod.Session.initWithObjects(
+        allocator,
+        transition.destination_world_position,
+        next_room.scene.objects,
+        next_room.scene.object_behavior_seeds,
+    );
+    defer transition_probe_session.deinit(allocator);
+    const destination_locomotion_status = locomotion.inspectCurrentStatus(&next_room, transition_probe_session) catch |err| switch (err) {
+        error.LocomotionStatusInvalidPosition => {
+            next_room_owned = false;
+            next_room.deinit(allocator);
+            try rejectPendingRoomTransition(
+                stderr,
+                runtime_session,
+                locomotion_status,
+                pre_commit_locomotion_status,
+                source_scene_entry_index,
+                source_background_entry_index,
+                transition.destination_cube,
+                "unsupported_destination_world_position",
+            );
+            return false;
+        },
+        else => return err,
+    };
+
+    try runtime_session.replaceRoomLocalState(
+        allocator,
+        transition.destination_world_position,
+        next_room.scene.objects,
+        next_room.scene.object_behavior_seeds,
+    );
+    viewer_shell.applyRoomEntryState(&next_room, runtime_session);
+
+    next_room_owned = false;
+    room.deinit(allocator);
+    room.* = next_room;
+    locomotion_status.* = destination_locomotion_status;
+    try stderr.print(
+        "event=room_transition_committed source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} destination_scene_entry_index={d} destination_background_entry_index={d} hero_x={d} hero_y={d} hero_z={d}\n",
+        .{
+            source_scene_entry_index,
+            source_background_entry_index,
+            transition.destination_cube,
+            destination_entries.scene_entry_index,
+            destination_entries.background_entry_index,
+            transition.destination_world_position.x,
+            transition.destination_world_position.y,
+            transition.destination_world_position.z,
+        },
+    );
+    try viewer_shell.printStartupDiagnostics(stderr, allocator, resolved, room);
+    return true;
+}
+
+fn unsupportedPendingRoomTransitionReason(
+    transition: runtime_session_mod.PendingRoomTransition,
+) ?[]const u8 {
+    if (transition.yaw != 0) return "unsupported_yaw";
+    if (transition.test_brick) return "unsupported_test_brick";
+    if (transition.dont_readjust_twinsen) return "unsupported_dont_readjust_twinsen";
+    return null;
+}
+
+fn rejectPendingRoomTransition(
+    stderr: anytype,
+    runtime_session: *viewer_shell.Session,
+    locomotion_status: *viewer_shell.ViewerLocomotionStatus,
+    pre_commit_locomotion_status: viewer_shell.ViewerLocomotionStatus,
+    source_scene_entry_index: usize,
+    source_background_entry_index: usize,
+    destination_cube: i16,
+    reason: []const u8,
+) !void {
+    runtime_session.clearPendingRoomTransition();
+    locomotion_status.* = pre_commit_locomotion_status;
+    const hero_position = runtime_session.heroWorldPosition();
+    try stderr.print(
+        "event=room_transition_rejected source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} reason={s} hero_x={d} hero_y={d} hero_z={d}\n",
+        .{
+            source_scene_entry_index,
+            source_background_entry_index,
+            destination_cube,
+            reason,
+            hero_position.x,
+            hero_position.y,
+            hero_position.z,
+        },
+    );
+}
+
+test "unsupported pending room-transition semantics stay diagnostic-only and keep the current room live" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 36, 36);
+    defer room.deinit(allocator);
+
+    var runtime_session = try viewer_shell.initSession(allocator, &room);
+    defer runtime_session.deinit(allocator);
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, runtime_session);
+
+    const transition_zone = blk: {
+        for (room.scene.zones) |zone| {
+            if (zone.kind == .change_cube) break :blk zone;
+        }
+        return error.MissingChangeCubeZone;
+    };
+    const semantics = switch (transition_zone.semantics) {
+        .change_cube => |value| value,
+        else => return error.ExpectedChangeCubeSemantics,
+    };
+    try runtime_session.setPendingRoomTransition(.{
+        .source_zone_index = transition_zone.index,
+        .destination_cube = semantics.destination_cube,
+        .destination_world_position = .{
+            .x = semantics.destination_x,
+            .y = semantics.destination_y,
+            .z = semantics.destination_z,
+        },
+        .yaw = semantics.yaw,
+        .test_brick = semantics.test_brick,
+        .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
+    });
+
+    var output: std.ArrayList(u8) = .empty;
+    defer output.deinit(allocator);
+
+    try std.testing.expectEqual(
+        false,
+        try commitPendingRoomTransition(
+            allocator,
+            resolved,
+            output.writer(allocator),
+            &room,
+            &runtime_session,
+            &locomotion_status,
+            locomotion_status,
+        ),
+    );
+    try std.testing.expectEqual(@as(usize, 36), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 36), room.background.entry_index);
+    try std.testing.expectEqual(@as(?runtime_session_mod.PendingRoomTransition, null), runtime_session.pendingRoomTransition());
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_rejected") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "reason=unsupported_yaw") != null);
+}
+
+test "viewer scheduler rejects the guarded 2/2 room transition when the destination pose is unsupported" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 2);
+    defer room.deinit(allocator);
+
+    var runtime_session = try viewer_shell.initSession(allocator, &room);
+    defer runtime_session.deinit(allocator);
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, runtime_session);
+    const initial_render = viewer_shell.buildRenderSnapshot(&room, runtime_session);
+    var initial_catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, initial_render);
+    defer initial_catalog.deinit(allocator);
+    const initial_interaction = viewer_shell.initialInteractionState(initial_catalog);
+    try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, initial_interaction.control_mode);
+
+    const move_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        initial_catalog,
+        initial_interaction,
+        locomotion_status,
+        .right,
+    );
+    locomotion_status = move_result.locomotion_status;
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, move_result.post_key_action);
+
+    var output: std.ArrayList(u8) = .empty;
+    defer output.deinit(allocator);
+
+    try applyScheduledWorldStep(
+        allocator,
+        resolved,
+        output.writer(allocator),
+        &room,
+        &runtime_session,
+        &locomotion_status,
+        move_result,
+    );
+
+    const raw_start = room_state.heroStartWorldPoint(&room);
+    try std.testing.expectEqual(@as(?runtime_session_mod.PendingRoomTransition, null), runtime_session.pendingRoomTransition());
+    try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 2), room.background.entry_index);
+    try std.testing.expectEqual(raw_start.x + locomotion.raw_invalid_zone_entry_step_xz, runtime_session.heroWorldPosition().x);
+    try std.testing.expectEqual(raw_start.y, runtime_session.heroWorldPosition().y);
+    try std.testing.expectEqual(raw_start.z, runtime_session.heroWorldPosition().z);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_rejected") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "reason=unsupported_destination_world_position") != null);
+}
+
+test "committed room transitions reapply canonical destination room-entry seeding" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer room.deinit(allocator);
+
+    var destination_room = try room_state.loadRoomSnapshot(allocator, resolved, 36, 36);
+    defer destination_room.deinit(allocator);
+
+    var expected_destination_session = try viewer_shell.initSession(allocator, &destination_room);
+    defer expected_destination_session.deinit(allocator);
+    const destination_world_position = try viewer_shell.seedSessionToLocomotionFixture(
+        &destination_room,
+        &expected_destination_session,
+    );
+
+    var runtime_session = try viewer_shell.initSession(allocator, &room);
+    defer runtime_session.deinit(allocator);
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, runtime_session);
+    runtime_session.setMagicLevelAndRefill(5);
+    runtime_session.setGameVar(sendell_ball_flag_index, 9);
+    runtime_session.setGameVar(lightning_spell_flag_index, 0);
+    try runtime_session.setPendingRoomTransition(.{
+        .source_zone_index = 0,
+        .destination_cube = 34,
+        .destination_world_position = destination_world_position,
+        .yaw = 0,
+        .test_brick = false,
+        .dont_readjust_twinsen = false,
+    });
+
+    var output: std.ArrayList(u8) = .empty;
+    defer output.deinit(allocator);
+
+    try std.testing.expectEqual(
+        true,
+        try commitPendingRoomTransition(
+            allocator,
+            resolved,
+            output.writer(allocator),
+            &room,
+            &runtime_session,
+            &locomotion_status,
+            locomotion_status,
+        ),
+    );
+    try std.testing.expectEqual(@as(usize, 36), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 36), room.background.entry_index);
+    try std.testing.expectEqual(@as(u8, 2), runtime_session.magicLevel());
+    try std.testing.expectEqual(expected_destination_session.magicPoint(), runtime_session.magicPoint());
+    try std.testing.expectEqual(
+        expected_destination_session.gameVar(sendell_ball_flag_index),
+        runtime_session.gameVar(sendell_ball_flag_index),
+    );
+    try std.testing.expectEqual(
+        expected_destination_session.gameVar(lightning_spell_flag_index),
+        runtime_session.gameVar(lightning_spell_flag_index),
+    );
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_committed") != null);
 }

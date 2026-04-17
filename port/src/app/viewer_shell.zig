@@ -154,8 +154,18 @@ pub fn initSession(allocator: std.mem.Allocator, room: *const RoomSnapshot) !Ses
         room.scene.objects,
         room.scene.object_behavior_seeds,
     );
-    seedSupportedStoryState(room, &current_session);
+    applyRoomEntryState(room, &current_session);
     return current_session;
+}
+
+pub fn applyRoomEntryState(room: *const RoomSnapshot, current_session: *Session) void {
+    if (room.scene.entry_index != sendell_scene_entry or room.background.entry_index != sendell_background_entry) {
+        return;
+    }
+
+    current_session.setMagicLevelAndRefill(sendell_seed_magic_level);
+    current_session.setGameVar(sendell_ball_flag_index, 0);
+    current_session.setGameVar(lightning_spell_flag_index, 1);
 }
 
 pub fn buildRenderSnapshot(room: *const RoomSnapshot, current_session: Session) RenderSnapshot {
@@ -432,16 +442,6 @@ pub fn handleKeyDown(
             };
         },
     }
-}
-
-fn seedSupportedStoryState(room: *const RoomSnapshot, current_session: *Session) void {
-    if (room.scene.entry_index != sendell_scene_entry or room.background.entry_index != sendell_background_entry) {
-        return;
-    }
-
-    current_session.setMagicLevelAndRefill(sendell_seed_magic_level);
-    current_session.setGameVar(sendell_ball_flag_index, 0);
-    current_session.setGameVar(lightning_spell_flag_index, 1);
 }
 
 pub fn renderDebugViewWithSelection(

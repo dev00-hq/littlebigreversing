@@ -24,6 +24,7 @@ const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.i
 const sendell_red_ball_magic_level: u8 = 3;
 const supported_magic_bonus_option_flag: i16 = 64;
 const supported_magic_bonus_sprite_index: i16 = 5;
+const track_wait_ticks_per_second: u8 = 10;
 
 const RuntimeFunctionValue = union(enum) {
     s8_value: i8,
@@ -194,6 +195,20 @@ fn executeScene1919Object2Life(
                     continue;
                 }
             },
+            .LM_OR_IF => {
+                const condition = switch (instruction.operands) {
+                    .condition => |value| value,
+                    else => return error.UnsupportedObjectBehaviorLifeOperands,
+                };
+                if (try evaluateScene1919Object2Condition(room, condition, current_session, object_behavior.*)) {
+                    instruction_index = instructionIndexForOffset(
+                        life_program.LifeInstruction,
+                        seed.life_instructions,
+                        try resolveAbsoluteOffset(condition.jump_offset),
+                    ) orelse return error.UnsupportedObjectBehaviorLifeJumpTarget;
+                    continue;
+                }
+            },
             .LM_ELSE => {
                 const target_offset = switch (instruction.operands) {
                     .i16_value => |value| value,
@@ -307,7 +322,17 @@ fn executeScene1919Object2Track(
                 };
                 object_behavior.current_track_label = operands.label;
             },
-            .sample => {},
+            .sample,
+            .sample_stop,
+            .sample_always,
+            .speed,
+            .frequence,
+            => {
+                _ = try expectTrackI16Operand(instruction);
+            },
+            .volume => {
+                _ = try expectTrackU8Operand(instruction);
+            },
             .sprite => {
                 const sprite = switch (instruction.operands) {
                     .i16_value => |value| value,
@@ -315,17 +340,13 @@ fn executeScene1919Object2Track(
                 };
                 object_behavior.current_sprite = sprite;
             },
-            .wait_nb_dizieme => {
-                const operands = switch (instruction.operands) {
-                    .wait_timer => |value| value,
-                    else => return error.UnsupportedObjectBehaviorTrackOperands,
-                };
+            .wait_nb_second, .wait_nb_dizieme => {
                 object_behavior.current_track_resume_offset = nextInstructionOffset(
                     track_program.TrackInstruction,
                     instructions,
                     instruction_index,
                 );
-                object_behavior.wait_ticks_remaining = operands.raw_count;
+                object_behavior.wait_ticks_remaining = try trackWaitTicks(instruction);
                 return;
             },
             .stop,
@@ -458,6 +479,36 @@ fn currentHeroScenarioZone(
     return current_zone;
 }
 
+fn expectTrackI16Operand(instruction: track_program.TrackInstruction) !i16 {
+    return switch (instruction.operands) {
+        .i16_value => |value| value,
+        else => error.UnsupportedObjectBehaviorTrackOperands,
+    };
+}
+
+fn expectTrackU8Operand(instruction: track_program.TrackInstruction) !u8 {
+    return switch (instruction.operands) {
+        .u8_value => |value| value,
+        else => error.UnsupportedObjectBehaviorTrackOperands,
+    };
+}
+
+fn trackWaitTicks(instruction: track_program.TrackInstruction) !u8 {
+    const operands = switch (instruction.operands) {
+        .wait_timer => |value| value,
+        else => return error.UnsupportedObjectBehaviorTrackOperands,
+    };
+
+    return switch (instruction.opcode) {
+        .wait_nb_dizieme => operands.raw_count,
+        .wait_nb_second => {
+            const ticks: u16 = @as(u16, operands.raw_count) * track_wait_ticks_per_second;
+            return std.math.cast(u8, ticks) orelse error.UnsupportedObjectBehaviorTrackWaitRange;
+        },
+        else => error.UnsupportedScene1919Object2TrackOpcode,
+    };
+}
+
 fn classicZoneContainsWorldPoint(
     zone: room_state.ZoneBoundsSnapshot,
     world_position: world_geometry.WorldPointSnapshot,
@@ -556,4 +607,73 @@ fn instructionIndexForOffset(
         if (instruction.offset == target_offset) return instruction_index;
     }
     return null;
+}
+
+test "runtime object behavior track interpreter accepts bounded audio-control no-ops and second waits" {
+    var object_state = runtime_session.ObjectBehaviorState{
+        .index = 2,
+        .current_track_offset = 0,
+        .current_track_resume_offset = 0,
+        .current_track_label = null,
+        .current_sprite = 137,
+        .wait_ticks_remaining = 0,
+        .last_hit_by = 0,
+        .sendell_ball_phase = .idle,
+        .emitted_bonus_count = 0,
+        .bonus_exhausted = false,
+        .life_bytes = try std.testing.allocator.dupe(u8, &.{}),
+    };
+    defer std.testing.allocator.free(object_state.life_bytes);
+
+    const instructions = [_]track_program.TrackInstruction{
+        .{ .offset = 0, .opcode = .label, .byte_length = 2, .operands = .{ .label = .{ .label = 4 } } },
+        .{ .offset = 2, .opcode = .sample_stop, .byte_length = 3, .operands = .{ .i16_value = 446 } },
+        .{ .offset = 5, .opcode = .speed, .byte_length = 3, .operands = .{ .i16_value = 1500 } },
+        .{ .offset = 8, .opcode = .volume, .byte_length = 2, .operands = .{ .u8_value = 20 } },
+        .{ .offset = 10, .opcode = .frequence, .byte_length = 3, .operands = .{ .i16_value = 700 } },
+        .{ .offset = 13, .opcode = .sample_always, .byte_length = 3, .operands = .{ .i16_value = 446 } },
+        .{ .offset = 16, .opcode = .wait_nb_second, .byte_length = 6, .operands = .{ .wait_timer = .{ .raw_count = 2, .deadline_timestamp = 0 } } },
+        .{ .offset = 22, .opcode = .sprite, .byte_length = 3, .operands = .{ .i16_value = 144 } },
+        .{ .offset = 25, .opcode = .end, .byte_length = 1, .operands = .{ .none = {} } },
+    };
+
+    try executeScene1919Object2Track(&instructions, &object_state);
+    try std.testing.expectEqual(@as(?u8, 4), object_state.current_track_label);
+    try std.testing.expectEqual(@as(i16, 137), object_state.current_sprite);
+    try std.testing.expectEqual(@as(?i16, 22), object_state.current_track_resume_offset);
+    try std.testing.expectEqual(@as(u8, 20), object_state.wait_ticks_remaining);
+
+    for (0..20) |_| {
+        try executeScene1919Object2Track(&instructions, &object_state);
+    }
+
+    try std.testing.expectEqual(@as(i16, 144), object_state.current_sprite);
+    try std.testing.expectEqual(@as(?i16, null), object_state.current_track_resume_offset);
+    try std.testing.expectEqual(@as(u8, 0), object_state.wait_ticks_remaining);
+}
+
+test "runtime object behavior track interpreter fails fast on overflowing second waits" {
+    var object_state = runtime_session.ObjectBehaviorState{
+        .index = 2,
+        .current_track_offset = 0,
+        .current_track_resume_offset = 0,
+        .current_track_label = null,
+        .current_sprite = 137,
+        .wait_ticks_remaining = 0,
+        .last_hit_by = 0,
+        .sendell_ball_phase = .idle,
+        .emitted_bonus_count = 0,
+        .bonus_exhausted = false,
+        .life_bytes = try std.testing.allocator.dupe(u8, &.{}),
+    };
+    defer std.testing.allocator.free(object_state.life_bytes);
+
+    const instructions = [_]track_program.TrackInstruction{
+        .{ .offset = 0, .opcode = .wait_nb_second, .byte_length = 6, .operands = .{ .wait_timer = .{ .raw_count = 26, .deadline_timestamp = 0 } } },
+    };
+
+    try std.testing.expectError(
+        error.UnsupportedObjectBehaviorTrackWaitRange,
+        executeScene1919Object2Track(&instructions, &object_state),
+    );
 }

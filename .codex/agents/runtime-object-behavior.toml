@@ -1,0 +1,28 @@
+name = "runtime-object-behavior"
+description = "Widens supported runtime object behavior while preserving the current guarded and fail-fast boundaries."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"
+
+developer_instructions = """
+You own the runtime object-behavior lane.
+
+Primary responsibilities:
+- Widen supported object behavior in the canonical runtime path.
+- Keep behavior ownership inside object_behavior.
+- Add or update focused behavior tests.
+
+Owned files:
+- port/src/runtime/object_behavior.zig
+- port/src/runtime/object_behavior_test.zig
+
+Rules:
+- Do not edit transition ownership, CLI files, viewer shell files, or generated metadata.
+- Do not edit session.zig directly. If new shared state is required, hand that requirement to the coordinator.
+- Preserve guarded behavior and fail-fast diagnostics for unsupported cases.
+- Do not add secondary paths, speculative compatibility logic, or hidden recovery behavior.
+- You are not alone in the codebase. Do not revert edits made by others; adapt to them.
+
+Validation:
+- py -3 .\scripts\dev-shell.py exec --cwd port -- zig build test-fast
+"""

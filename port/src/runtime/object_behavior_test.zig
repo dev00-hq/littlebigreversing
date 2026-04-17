@@ -1,6 +1,7 @@
 const std = @import("std");
 const reference_metadata = @import("../generated/reference_metadata.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
+const track_program = @import("../game_data/scene/track_program.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 const room_state = @import("room_state.zig");
 const object_behavior = @import("object_behavior.zig");
@@ -85,4 +86,216 @@ test "runtime object behavior applies the supported Sendell room-36 story sequen
     try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(sendell_ball_flag_index));
     try std.testing.expectEqual(@as(?i16, 287), current_session.currentDialogId());
     try std.testing.expectEqual(runtime_session.SendellBallPhase.completed, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
+}
+
+test "runtime object behavior supports LM_OR_IF control flow on guarded 19/19 object 2" {
+    const room = try room_fixtures.guarded1919();
+
+    var life_bytes = [_]u8{
+        @intFromEnum(life_program.LifeOpcode.LM_OR_IF),
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        @intFromEnum(life_program.LifeOpcode.LM_SET_VAR_CUBE),
+        0,
+        0,
+        @intFromEnum(life_program.LifeOpcode.LM_END),
+        @intFromEnum(life_program.LifeOpcode.LM_SET_VAR_CUBE),
+        0,
+        0,
+        @intFromEnum(life_program.LifeOpcode.LM_END),
+    };
+    var track_bytes = [_]u8{
+        @intFromEnum(track_program.TrackOpcode.end),
+    };
+    var life_instructions = [_]life_program.LifeInstruction{
+        .{
+            .offset = 0,
+            .opcode = .LM_OR_IF,
+            .byte_length = 7,
+            .operands = .{ .condition = .{
+                .function = .{
+                    .offset = 1,
+                    .function = .LF_VAR_CUBE,
+                    .byte_length = 2,
+                    .return_type = .RET_U8,
+                    .operands = .{ .u8_value = 0 },
+                },
+                .comparison = .{
+                    .offset = 3,
+                    .comparator = .LT_EQUAL,
+                    .byte_length = 2,
+                    .return_type = .RET_U8,
+                    .literal = .{ .u8_value = 1 },
+                },
+                .jump_offset = 11,
+            } },
+        },
+        .{
+            .offset = 7,
+            .opcode = .LM_SET_VAR_CUBE,
+            .byte_length = 3,
+            .operands = .{ .u8_pair = .{
+                .first = 1,
+                .second = 3,
+            } },
+        },
+        .{
+            .offset = 10,
+            .opcode = .LM_END,
+            .byte_length = 1,
+            .operands = .{ .none = {} },
+        },
+        .{
+            .offset = 11,
+            .opcode = .LM_SET_VAR_CUBE,
+            .byte_length = 3,
+            .operands = .{ .u8_pair = .{
+                .first = 1,
+                .second = 9,
+            } },
+        },
+        .{
+            .offset = 14,
+            .opcode = .LM_END,
+            .byte_length = 1,
+            .operands = .{ .none = {} },
+        },
+    };
+    var track_instructions = [_]track_program.TrackInstruction{
+        .{
+            .offset = 0,
+            .opcode = .end,
+            .byte_length = 1,
+            .operands = .{ .none = {} },
+        },
+    };
+    var synthetic_seeds = [_]room_state.ObjectBehaviorSeedSnapshot{
+        .{
+            .index = 2,
+            .sprite = room.scene.object_behavior_seeds[0].sprite,
+            .track_bytes = track_bytes[0..],
+            .track_instructions = track_instructions[0..],
+            .life_bytes = life_bytes[0..],
+            .life_instructions = life_instructions[0..],
+        },
+    };
+    var synthetic_room = room.*;
+    synthetic_room.scene.object_behavior_seeds = synthetic_seeds[0..];
+
+    var false_session = try runtime_session.Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(&synthetic_room),
+        synthetic_room.scene.objects,
+        synthetic_room.scene.object_behavior_seeds,
+    );
+    defer false_session.deinit(std.testing.allocator);
+
+    _ = try object_behavior.stepSupportedObjects(&synthetic_room, &false_session);
+    try std.testing.expectEqual(@as(u8, 3), false_session.cubeVar(1));
+
+    var true_session = try runtime_session.Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(&synthetic_room),
+        synthetic_room.scene.objects,
+        synthetic_room.scene.object_behavior_seeds,
+    );
+    defer true_session.deinit(std.testing.allocator);
+    true_session.setCubeVar(0, 1);
+
+    _ = try object_behavior.stepSupportedObjects(&synthetic_room, &true_session);
+    try std.testing.expectEqual(@as(u8, 9), true_session.cubeVar(1));
+}
+
+test "runtime object behavior treats TM_SAMPLE_STOP as a non-blocking guarded 19/19 track opcode" {
+    const room = try room_fixtures.guarded1919();
+
+    var life_bytes = [_]u8{
+        @intFromEnum(life_program.LifeOpcode.LM_SET_TRACK),
+        0,
+        0,
+        @intFromEnum(life_program.LifeOpcode.LM_END),
+    };
+    var track_bytes = [_]u8{
+        @intFromEnum(track_program.TrackOpcode.label),
+        1,
+        @intFromEnum(track_program.TrackOpcode.sample_stop),
+        0,
+        0,
+        @intFromEnum(track_program.TrackOpcode.sprite),
+        144,
+        0,
+        @intFromEnum(track_program.TrackOpcode.stop),
+    };
+    var life_instructions = [_]life_program.LifeInstruction{
+        .{
+            .offset = 0,
+            .opcode = .LM_SET_TRACK,
+            .byte_length = 3,
+            .operands = .{ .i16_value = 0 },
+        },
+        .{
+            .offset = 3,
+            .opcode = .LM_END,
+            .byte_length = 1,
+            .operands = .{ .none = {} },
+        },
+    };
+    var track_instructions = [_]track_program.TrackInstruction{
+        .{
+            .offset = 0,
+            .opcode = .label,
+            .byte_length = 2,
+            .operands = .{ .label = .{ .label = 1 } },
+        },
+        .{
+            .offset = 2,
+            .opcode = .sample_stop,
+            .byte_length = 3,
+            .operands = .{ .i16_value = 0 },
+        },
+        .{
+            .offset = 5,
+            .opcode = .sprite,
+            .byte_length = 3,
+            .operands = .{ .i16_value = 144 },
+        },
+        .{
+            .offset = 8,
+            .opcode = .stop,
+            .byte_length = 1,
+            .operands = .{ .none = {} },
+        },
+    };
+    var synthetic_seeds = [_]room_state.ObjectBehaviorSeedSnapshot{
+        .{
+            .index = 2,
+            .sprite = room.scene.object_behavior_seeds[0].sprite,
+            .track_bytes = track_bytes[0..],
+            .track_instructions = track_instructions[0..],
+            .life_bytes = life_bytes[0..],
+            .life_instructions = life_instructions[0..],
+        },
+    };
+    var synthetic_room = room.*;
+    synthetic_room.scene.object_behavior_seeds = synthetic_seeds[0..];
+
+    var current_session = try runtime_session.Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(&synthetic_room),
+        synthetic_room.scene.objects,
+        synthetic_room.scene.object_behavior_seeds,
+    );
+    defer current_session.deinit(std.testing.allocator);
+
+    _ = try object_behavior.stepSupportedObjects(&synthetic_room, &current_session);
+
+    const state = current_session.objectBehaviorStateByIndex(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    try std.testing.expectEqual(@as(?i16, 0), state.current_track_offset);
+    try std.testing.expectEqual(@as(?u8, 1), state.current_track_label);
+    try std.testing.expectEqual(@as(i16, 144), state.current_sprite);
+    try std.testing.expectEqual(@as(?i16, null), state.current_track_resume_offset);
 }
