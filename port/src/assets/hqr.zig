@@ -31,6 +31,56 @@ pub const ParsedEntry = struct {
     byte_length: u32,
 };
 
+// Reuse one open classic archive plus its offset table across a broader load
+// without exposing a copyable resource owner to callers.
+pub const ClassicArchiveSession = opaque {
+    pub fn init(allocator: std.mem.Allocator, absolute_path: []const u8) !*ClassicArchiveSession {
+        var file = try std.fs.openFileAbsolute(absolute_path, .{});
+        errdefer file.close();
+
+        const size = try file.getEndPos();
+        const table = try loadClassicTableFromFile(allocator, &file, size);
+        errdefer allocator.free(table.offsets);
+
+        const session_impl = try allocator.create(ClassicArchiveSessionImpl);
+        errdefer allocator.destroy(session_impl);
+
+        session_impl.* = .{
+            .allocator = allocator,
+            .file = file,
+            .size = size,
+            .table_end = table.table_end,
+            .classic_offsets = table.offsets,
+        };
+        return @ptrCast(session_impl);
+    }
+
+    pub fn deinit(self: *ClassicArchiveSession) void {
+        const session_impl = self.impl();
+        session_impl.allocator.free(session_impl.classic_offsets);
+        session_impl.file.close();
+        session_impl.allocator.destroy(session_impl);
+    }
+
+    pub fn readEntryToBytes(self: *ClassicArchiveSession, allocator: std.mem.Allocator, classic_index: usize) ![]u8 {
+        const session_impl = self.impl();
+        const entry = try parseClassicEntryRangeFromOffsets(session_impl.size, session_impl.table_end, session_impl.classic_offsets, classic_index);
+        return readParsedEntryFromFile(allocator, &session_impl.file, entry);
+    }
+
+    fn impl(self: *ClassicArchiveSession) *ClassicArchiveSessionImpl {
+        return @ptrCast(@alignCast(self));
+    }
+};
+
+const ClassicArchiveSessionImpl = struct {
+    allocator: std.mem.Allocator,
+    file: std.fs.File,
+    size: u64,
+    table_end: u32,
+    classic_offsets: []u32,
+};
+
 pub const ResourceHeader = struct {
     size_file: u32,
     compressed_size_file: u32,
@@ -222,18 +272,10 @@ fn extractEntryToBytesCachedByKind(
 }
 
 fn readRawClassicEntryFromFile(allocator: std.mem.Allocator, absolute_path: []const u8, classic_index: usize) ![]u8 {
-    var file = try std.fs.openFileAbsolute(absolute_path, .{});
-    defer file.close();
+    const session = try ClassicArchiveSession.init(allocator, absolute_path);
+    defer session.deinit();
 
-    const size = try file.getEndPos();
-    const entry = try parseClassicEntryRangeFromFile(&file, size, classic_index);
-    const bytes = try allocator.alloc(u8, entry.byte_length);
-    errdefer allocator.free(bytes);
-
-    try file.seekTo(entry.offset);
-    const read = try file.readAll(bytes);
-    if (read != bytes.len) return error.UnexpectedEndOfFile;
-    return bytes;
+    return session.readEntryToBytes(allocator, classic_index);
 }
 
 pub fn extractEntryToPath(
@@ -300,6 +342,46 @@ fn parseClassicEntryRangeFromFile(file: *std.fs.File, size: u64, classic_index: 
     const table_end = std.mem.readInt(u32, &header, .little);
     if (table_end < 8 or table_end % 4 != 0 or table_end > size) return error.InvalidTableHeader;
 
+    return parseClassicEntryRangeWithHeader(file, size, table_end, classic_index);
+}
+
+const ClassicTable = struct {
+    table_end: u32,
+    offsets: []u32,
+};
+
+fn loadClassicTableFromFile(allocator: std.mem.Allocator, file: *std.fs.File, size: u64) !ClassicTable {
+    if (size < 8) return error.InvalidArchiveSize;
+
+    var header: [4]u8 = undefined;
+    const header_read = try file.preadAll(&header, 0);
+    if (header_read != header.len) return error.UnexpectedEndOfFile;
+    const table_end = std.mem.readInt(u32, &header, .little);
+    if (table_end < 8 or table_end % 4 != 0 or table_end > size) return error.InvalidTableHeader;
+
+    const table_bytes = try allocator.alloc(u8, @intCast(table_end));
+    defer allocator.free(table_bytes);
+    const table_read = try file.preadAll(table_bytes, 0);
+    if (table_read != table_bytes.len) return error.UnexpectedEndOfFile;
+
+    const entry_count: usize = @intCast(table_end / 4);
+    const offsets = try allocator.alloc(u32, entry_count);
+    errdefer allocator.free(offsets);
+
+    for (0..entry_count) |index| {
+        const base = index * 4;
+        offsets[index] = std.mem.readInt(u32, table_bytes[base..][0..4], .little);
+    }
+
+    return .{
+        .table_end = table_end,
+        .offsets = offsets,
+    };
+}
+
+fn parseClassicEntryRangeWithHeader(file: *std.fs.File, size: u64, table_end: u32, classic_index: usize) !ParsedEntry {
+    var header: [4]u8 = undefined;
+
     const entry_table_offset = @as(u64, @intCast(classic_index)) * 4;
     if (entry_table_offset >= table_end) return error.EntryIndexOutOfRange;
 
@@ -324,6 +406,40 @@ fn parseClassicEntryRangeFromFile(file: *std.fs.File, size: u64, classic_index: 
         .offset = offset,
         .byte_length = @intCast(next_offset - offset),
     };
+}
+
+fn parseClassicEntryRangeFromOffsets(size: u64, table_end: u32, offsets: []const u32, classic_index: usize) !ParsedEntry {
+    if (classic_index >= offsets.len) return error.EntryIndexOutOfRange;
+
+    const offset = offsets[classic_index];
+    if (offset == 0) return error.EntryIndexOutOfRange;
+
+    const offset_u64: u64 = offset;
+    if (offset_u64 < table_end or offset_u64 > size) return error.InvalidArchiveOffset;
+
+    var next_offset: u64 = size;
+    for (offsets[classic_index + 1 ..]) |candidate| {
+        if (candidate == 0 or candidate <= offset) continue;
+        const candidate_u64: u64 = candidate;
+        if (candidate_u64 > size) return error.InvalidArchiveOffset;
+        next_offset = @min(next_offset, candidate_u64);
+    }
+    if (next_offset < offset_u64) return error.InvalidArchiveOffset;
+
+    return .{
+        .index = classic_index,
+        .offset = offset,
+        .byte_length = @intCast(next_offset - offset_u64),
+    };
+}
+
+fn readParsedEntryFromFile(allocator: std.mem.Allocator, file: *std.fs.File, entry: ParsedEntry) ![]u8 {
+    const bytes = try allocator.alloc(u8, entry.byte_length);
+    errdefer allocator.free(bytes);
+
+    const read = try file.preadAll(bytes, entry.offset);
+    if (read != bytes.len) return error.UnexpectedEndOfFile;
+    return bytes;
 }
 
 fn parseTable(allocator: std.mem.Allocator, size: u64, reader_ctx: anytype) ![]ParsedEntry {

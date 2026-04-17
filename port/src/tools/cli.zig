@@ -85,6 +85,109 @@ const RoomSceneSummary = struct {
     patch_count: usize,
 };
 
+const inspect_room_intelligence_timings_env_var = "LBA2_INSPECT_ROOM_INTELLIGENCE_TIMINGS";
+
+const InspectRoomIntelligenceTimings = struct {
+    enabled: bool,
+    output_path: ?[]const u8,
+    timer: std.time.Timer = undefined,
+    phase_start_ns: u64 = 0,
+    selection_ns: u64 = 0,
+    scene_load_ns: u64 = 0,
+    background_load_ns: u64 = 0,
+    validation_ns: u64 = 0,
+    augmentation_ns: u64 = 0,
+    augmentation_ran: bool = false,
+    serialization_ns: u64 = 0,
+
+    fn init(allocator: std.mem.Allocator, output_path: ?[]const u8) !InspectRoomIntelligenceTimings {
+        if (!(try inspectRoomIntelligenceTimingsEnabled(allocator))) {
+            return .{
+                .enabled = false,
+                .output_path = output_path,
+            };
+        }
+
+        return .{
+            .enabled = true,
+            .output_path = output_path,
+            .timer = try std.time.Timer.start(),
+        };
+    }
+
+    fn markSelection(self: *InspectRoomIntelligenceTimings) void {
+        if (!self.enabled) return;
+        self.selection_ns = self.finishPhase();
+    }
+
+    fn markSceneLoad(self: *InspectRoomIntelligenceTimings) void {
+        if (!self.enabled) return;
+        self.scene_load_ns = self.finishPhase();
+    }
+
+    fn markBackgroundLoad(self: *InspectRoomIntelligenceTimings) void {
+        if (!self.enabled) return;
+        self.background_load_ns = self.finishPhase();
+    }
+
+    fn markValidation(self: *InspectRoomIntelligenceTimings) void {
+        if (!self.enabled) return;
+        self.validation_ns = self.finishPhase();
+    }
+
+    fn markAugmentation(self: *InspectRoomIntelligenceTimings) void {
+        if (!self.enabled) return;
+        self.augmentation_ran = true;
+        self.augmentation_ns = self.finishPhase();
+    }
+
+    fn markSerialization(self: *InspectRoomIntelligenceTimings) void {
+        if (!self.enabled) return;
+        self.serialization_ns = self.finishPhase();
+    }
+
+    fn flush(self: *InspectRoomIntelligenceTimings) void {
+        if (!self.enabled) return;
+
+        var stderr_buffer: [512]u8 = undefined;
+        var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+        const stderr = &stderr_writer.interface;
+        stderr.print(
+            "inspect_room_intelligence_timings env_var={s} output={s} selection_ms={d} scene_load_ms={d} background_load_ms={d} validation_ms={d} augmentation_ms={d} augmentation_ran={} serialization_ms={d} total_ms={d}\n",
+            .{
+                inspect_room_intelligence_timings_env_var,
+                if (self.output_path != null) "file" else "stdout",
+                self.selection_ns / std.time.ns_per_ms,
+                self.scene_load_ns / std.time.ns_per_ms,
+                self.background_load_ns / std.time.ns_per_ms,
+                self.validation_ns / std.time.ns_per_ms,
+                self.augmentation_ns / std.time.ns_per_ms,
+                self.augmentation_ran,
+                self.serialization_ns / std.time.ns_per_ms,
+                self.timer.read() / std.time.ns_per_ms,
+            },
+        ) catch return;
+        stderr.flush() catch return;
+    }
+
+    fn finishPhase(self: *InspectRoomIntelligenceTimings) u64 {
+        const now = self.timer.read();
+        const elapsed = now - self.phase_start_ns;
+        self.phase_start_ns = now;
+        return elapsed;
+    }
+};
+
+fn inspectRoomIntelligenceTimingsEnabled(allocator: std.mem.Allocator) !bool {
+    const value = std.process.getEnvVarOwned(allocator, inspect_room_intelligence_timings_env_var) catch |err| switch (err) {
+        error.EnvironmentVariableNotFound => return false,
+        else => return err,
+    };
+    defer allocator.free(value);
+
+    return !std.mem.eql(u8, value, "0") and !std.ascii.eqlIgnoreCase(value, "false");
+}
+
 const RoomBackgroundLinkageSummary = struct {
     remapped_cube_index: usize,
     gri_entry_index: usize,
@@ -1266,6 +1369,9 @@ fn inspectRoomIntelligence(
     resolved: paths_mod.ResolvedPaths,
     parsed: ParsedArgs,
 ) !void {
+    var phase_timings = try InspectRoomIntelligenceTimings.init(allocator, parsed.output_path);
+    defer phase_timings.flush();
+
     const scene_selector: room_intelligence.Selector = if (parsed.scene_name) |scene_name|
         .{ .name = scene_name }
     else
@@ -1315,6 +1421,7 @@ fn inspectRoomIntelligence(
         return error.MachineReadableReported;
     };
     defer background_selection.deinit(allocator);
+    phase_timings.markSelection();
 
     const scene_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
     defer allocator.free(scene_path);
@@ -1336,6 +1443,7 @@ fn inspectRoomIntelligence(
         return error.MachineReadableReported;
     };
     defer scene.deinit(allocator);
+    phase_timings.markSceneLoad();
 
     const background_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, "LBA_BKG.HQR" });
     defer allocator.free(background_path);
@@ -1357,6 +1465,7 @@ fn inspectRoomIntelligence(
         return error.MachineReadableReported;
     };
     defer background.deinit(allocator);
+    phase_timings.markBackgroundLoad();
 
     var validation = room_intelligence.inspectValidation(
         allocator,
@@ -1379,9 +1488,10 @@ fn inspectRoomIntelligence(
         return error.MachineReadableReported;
     };
     defer validation.deinit(allocator);
+    phase_timings.markValidation();
 
-    const augmentation = if (validation.viewer_loadable)
-        room_state.buildRoomIntelligenceAugmentation(allocator, scene, background) catch |err| {
+    const augmentation = if (validation.viewer_loadable) blk: {
+        const resolved_augmentation = room_state.buildRoomIntelligenceAugmentation(allocator, scene, background) catch |err| {
             try emitInspectRoomIntelligenceFailure(
                 allocator,
                 parsed.output_path,
@@ -1396,9 +1506,10 @@ fn inspectRoomIntelligence(
                 },
             );
             return error.MachineReadableReported;
-        }
-    else
-        null;
+        };
+        phase_timings.markAugmentation();
+        break :blk resolved_augmentation;
+    } else null;
     defer if (augmentation) |resolved_augmentation| resolved_augmentation.deinit(allocator);
 
     const payload: room_intelligence.PayloadView = .{
@@ -1428,6 +1539,7 @@ fn inspectRoomIntelligence(
     };
     defer allocator.free(json);
     try writeInspectRoomIntelligenceJson(parsed.output_path, json);
+    phase_timings.markSerialization();
 }
 
 fn emitInspectRoomIntelligenceFailure(

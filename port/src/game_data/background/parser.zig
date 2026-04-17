@@ -56,7 +56,10 @@ pub fn loadBackgroundMetadata(
 ) !model.BackgroundMetadata {
     if (entry_index == 0) return error.InvalidBackgroundEntryIndex;
 
-    const header_raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, 0);
+    const archive_session = try hqr.ClassicArchiveSession.init(allocator, absolute_path);
+    defer archive_session.deinit();
+
+    const header_raw = try archive_session.readEntryToBytes(allocator, 0);
     defer allocator.free(header_raw);
     const header_compressed_header = try hqr.parseResourceHeader(header_raw);
     const header_payload = try hqr.decodeResourceEntryBytes(allocator, header_raw);
@@ -64,7 +67,7 @@ pub fn loadBackgroundMetadata(
     const bkg_header = try parseBkgHeaderPayload(header_payload);
 
     const tab_all_cube_entry_index = @as(usize, bkg_header.brk_start) + @as(usize, bkg_header.max_brk);
-    const tab_all_cube_raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, tab_all_cube_entry_index);
+    const tab_all_cube_raw = try archive_session.readEntryToBytes(allocator, tab_all_cube_entry_index);
     defer allocator.free(tab_all_cube_raw);
     const tab_all_cube_compressed_header = try hqr.parseResourceHeader(tab_all_cube_raw);
     const tab_all_cube_payload = try hqr.decodeResourceEntryBytes(allocator, tab_all_cube_raw);
@@ -73,7 +76,7 @@ pub fn loadBackgroundMetadata(
 
     const remapped_cube_index = tab_all_cube_selection.entry.num;
     const gri_entry_index = @as(usize, bkg_header.gri_start) + remapped_cube_index;
-    const gri_raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, gri_entry_index);
+    const gri_raw = try archive_session.readEntryToBytes(allocator, gri_entry_index);
     defer allocator.free(gri_raw);
     const gri_compressed_header = try hqr.parseResourceHeader(gri_raw);
     const gri_payload = try hqr.decodeResourceEntryBytes(allocator, gri_raw);
@@ -83,7 +86,7 @@ pub fn loadBackgroundMetadata(
 
     const grm_entry_index = @as(usize, bkg_header.grm_start) + @as(usize, gri.header.my_grm);
     const bll_entry_index = @as(usize, bkg_header.bll_start) + @as(usize, gri.header.my_bll);
-    const bll_raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, bll_entry_index);
+    const bll_raw = try archive_session.readEntryToBytes(allocator, bll_entry_index);
     defer allocator.free(bll_raw);
     const bll_compressed_header = try hqr.parseResourceHeader(bll_raw);
     const bll_payload = try hqr.decodeResourceEntryBytes(allocator, bll_raw);
@@ -92,10 +95,10 @@ pub fn loadBackgroundMetadata(
     errdefer bll.deinit(allocator);
 
     try validateGridAgainstLibrary(gri.grid, bll.library);
-    const fragment_range = try detectFragmentRange(allocator, absolute_path, bkg_header, remapped_cube_index, gri.header.my_grm);
-    var fragments = try loadFragmentLibrary(allocator, absolute_path, bll.library, fragment_range);
+    const fragment_range = try detectFragmentRange(allocator, archive_session, bkg_header, remapped_cube_index, gri.header.my_grm);
+    var fragments = try loadFragmentLibrary(allocator, archive_session, bll.library, fragment_range);
     errdefer fragments.deinit(allocator);
-    var bricks = try loadBrickPreviewLibrary(allocator, absolute_path, bkg_header, gri.grid, bll.library, fragments);
+    var bricks = try loadBrickPreviewLibrary(allocator, absolute_path, archive_session, bkg_header, gri.grid, bll.library, fragments);
     errdefer bricks.deinit(allocator);
 
     return .{
@@ -130,14 +133,17 @@ pub fn loadBackgroundEntryCount(
     allocator: std.mem.Allocator,
     absolute_path: []const u8,
 ) !usize {
-    const header_raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, 0);
+    const archive_session = try hqr.ClassicArchiveSession.init(allocator, absolute_path);
+    defer archive_session.deinit();
+
+    const header_raw = try archive_session.readEntryToBytes(allocator, 0);
     defer allocator.free(header_raw);
     const header_payload = try hqr.decodeResourceEntryBytes(allocator, header_raw);
     defer allocator.free(header_payload);
     const bkg_header = try parseBkgHeaderPayload(header_payload);
 
     const tab_all_cube_entry_index = @as(usize, bkg_header.brk_start) + @as(usize, bkg_header.max_brk);
-    const tab_all_cube_raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, tab_all_cube_entry_index);
+    const tab_all_cube_raw = try archive_session.readEntryToBytes(allocator, tab_all_cube_entry_index);
     defer allocator.free(tab_all_cube_raw);
     const tab_all_cube_payload = try hqr.decodeResourceEntryBytes(allocator, tab_all_cube_raw);
     defer allocator.free(tab_all_cube_payload);
@@ -809,7 +815,7 @@ fn validateGridAgainstLibrary(grid: model.GridComposition, library: model.Layout
 
 fn loadFragmentLibrary(
     allocator: std.mem.Allocator,
-    absolute_path: []const u8,
+    archive_session: *hqr.ClassicArchiveSession,
     library: model.LayoutLibrary,
     range: FragmentRange,
 ) !model.FragmentLibrary {
@@ -825,7 +831,7 @@ fn loadFragmentLibrary(
 
     for (0..range.count) |relative_index| {
         const entry_index = range.start_index + relative_index;
-        const raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, entry_index);
+        const raw = try archive_session.readEntryToBytes(allocator, entry_index);
         defer allocator.free(raw);
         const payload = try hqr.decodeResourceEntryBytes(allocator, raw);
         defer allocator.free(payload);
@@ -851,7 +857,7 @@ fn loadFragmentLibrary(
 
 fn detectFragmentRange(
     allocator: std.mem.Allocator,
-    absolute_path: []const u8,
+    archive_session: *hqr.ClassicArchiveSession,
     bkg_header: model.BkgHeader,
     remapped_cube_index: usize,
     current_my_grm: u8,
@@ -865,7 +871,7 @@ fn detectFragmentRange(
     var next_fragment_index = total_fragment_count;
     if (remapped_cube_index + 1 < total_grid_count) {
         const next_gri_entry_index = @as(usize, bkg_header.gri_start) + remapped_cube_index + 1;
-        const next_my_grm = try loadGriMyGrm(allocator, absolute_path, next_gri_entry_index);
+        const next_my_grm = try loadGriMyGrm(allocator, archive_session, next_gri_entry_index);
         if (next_my_grm < current_my_grm) return error.InvalidBackgroundFragmentOrdering;
         if (next_my_grm == current_my_grm) {
             next_fragment_index = current_fragment_index;
@@ -886,10 +892,10 @@ fn detectFragmentRange(
 
 fn loadGriMyGrm(
     allocator: std.mem.Allocator,
-    absolute_path: []const u8,
+    archive_session: *hqr.ClassicArchiveSession,
     gri_entry_index: usize,
 ) !u8 {
-    const raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, gri_entry_index);
+    const raw = try archive_session.readEntryToBytes(allocator, gri_entry_index);
     defer allocator.free(raw);
     const payload = try hqr.decodeResourceEntryBytes(allocator, raw);
     defer allocator.free(payload);
@@ -910,6 +916,7 @@ fn validateFragmentAgainstLibrary(fragment: model.Fragment, library: model.Layou
 fn loadBrickPreviewLibrary(
     allocator: std.mem.Allocator,
     absolute_path: []const u8,
+    archive_session: *hqr.ClassicArchiveSession,
     bkg_header: model.BkgHeader,
     grid: model.GridComposition,
     library: model.LayoutLibrary,
@@ -949,7 +956,7 @@ fn loadBrickPreviewLibrary(
         if (brick_index > bkg_header.max_brk) return error.InvalidBrickIndex;
 
         const entry_index = @as(usize, bkg_header.brk_start) + brick_index - 1;
-        const raw = try hqr.extractClassicEntryToBytes(allocator, absolute_path, entry_index);
+        const raw = try archive_session.readEntryToBytes(allocator, entry_index);
         defer allocator.free(raw);
         const payload = try hqr.decodeResourceEntryBytes(allocator, raw);
         defer allocator.free(payload);
