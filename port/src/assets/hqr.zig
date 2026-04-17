@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const paths_mod = @import("../foundation/paths.zig");
 const fixture_bytes = @import("../testing/fixtures.zig");
 const asset_fixtures = @import("fixtures.zig");
@@ -37,6 +38,12 @@ pub const ResourceHeader = struct {
 };
 
 const resource_header_size = 10;
+
+// Test binaries repeatedly decode the same real archive entries; cache raw bytes
+// by archive path and entry index so broad asset-backed suites stay incremental.
+var test_entry_cache_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+var test_entry_cache_mutex: std.Thread.Mutex = .{};
+var test_entry_cache = std.StringHashMap([]const u8).init(std.heap.page_allocator);
 
 pub fn loadArchive(allocator: std.mem.Allocator, absolute_path: []const u8) !HqrArchive {
     var file = try std.fs.openFileAbsolute(absolute_path, .{});
@@ -87,6 +94,7 @@ pub fn listNonEmptyEntryIndices(allocator: std.mem.Allocator, absolute_path: []c
 }
 
 pub fn extractEntryToBytes(allocator: std.mem.Allocator, absolute_path: []const u8, entry_index: usize) ![]u8 {
+    if (builtin.is_test) return extractEntryToBytesMemoized(allocator, absolute_path, entry_index);
     return readRawEntryFromFile(allocator, absolute_path, entry_index);
 }
 
@@ -98,6 +106,7 @@ pub fn decodeEntryToBytes(allocator: std.mem.Allocator, absolute_path: []const u
 }
 
 pub fn extractClassicEntryToBytes(allocator: std.mem.Allocator, absolute_path: []const u8, classic_index: usize) ![]u8 {
+    if (builtin.is_test) return extractClassicEntryToBytesMemoized(allocator, absolute_path, classic_index);
     return readRawClassicEntryFromFile(allocator, absolute_path, classic_index);
 }
 
@@ -151,6 +160,64 @@ fn readRawEntryFromFile(allocator: std.mem.Allocator, absolute_path: []const u8,
     try file.seekTo(entry.offset);
     const read = try file.readAll(bytes);
     if (read != bytes.len) return error.UnexpectedEndOfFile;
+    return bytes;
+}
+
+fn extractEntryToBytesMemoized(allocator: std.mem.Allocator, absolute_path: []const u8, entry_index: usize) ![]u8 {
+    return extractEntryToBytesCachedByKind(allocator, absolute_path, entry_index, .raw);
+}
+
+fn extractClassicEntryToBytesMemoized(allocator: std.mem.Allocator, absolute_path: []const u8, classic_index: usize) ![]u8 {
+    return extractEntryToBytesCachedByKind(allocator, absolute_path, classic_index, .classic);
+}
+
+const CachedEntryKind = enum {
+    raw,
+    classic,
+};
+
+fn buildCachedEntryKeyAlloc(
+    allocator: std.mem.Allocator,
+    absolute_path: []const u8,
+    entry_index: usize,
+    kind: CachedEntryKind,
+) ![]u8 {
+    return std.fmt.allocPrint(allocator, "{s}:{s}:{d}", .{ @tagName(kind), absolute_path, entry_index });
+}
+
+fn extractEntryToBytesCachedByKind(
+    allocator: std.mem.Allocator,
+    absolute_path: []const u8,
+    entry_index: usize,
+    kind: CachedEntryKind,
+) ![]u8 {
+    const lookup_key = try buildCachedEntryKeyAlloc(allocator, absolute_path, entry_index, kind);
+    defer allocator.free(lookup_key);
+
+    test_entry_cache_mutex.lock();
+    if (test_entry_cache.get(lookup_key)) |cached| {
+        test_entry_cache_mutex.unlock();
+        return allocator.dupe(u8, cached);
+    }
+    test_entry_cache_mutex.unlock();
+
+    const bytes = switch (kind) {
+        .raw => try readRawEntryFromFile(allocator, absolute_path, entry_index),
+        .classic => try readRawClassicEntryFromFile(allocator, absolute_path, entry_index),
+    };
+    errdefer allocator.free(bytes);
+
+    test_entry_cache_mutex.lock();
+    defer test_entry_cache_mutex.unlock();
+    if (test_entry_cache.get(lookup_key)) |cached| {
+        allocator.free(bytes);
+        return allocator.dupe(u8, cached);
+    }
+
+    const cache_allocator = test_entry_cache_arena.allocator();
+    const owned_key = try cache_allocator.dupe(u8, lookup_key);
+    const owned_bytes = try cache_allocator.dupe(u8, bytes);
+    try test_entry_cache.put(owned_key, owned_bytes);
     return bytes;
 }
 
