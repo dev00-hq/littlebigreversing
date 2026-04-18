@@ -43,7 +43,7 @@
 - Use the provided environment context to determine whether the current shell is PowerShell or Linux Bash; do not rely on a Bash-evaluated PowerShell redirection snippet.
 
 ## On Linux Bash
-- Prefer these tools: ripgrep (rg), ast-grep (sg), jq (json processor), fzf (fuzzy finder)
+- Prefer these tools: ripgrep (rg), ast-grep (sg), jq (json processor)
 
 ## On Powershell
 - Prefer bundled bash helpers (`bash -lc`), always set the `workdir` parameter. Fallback to native Powershell.
