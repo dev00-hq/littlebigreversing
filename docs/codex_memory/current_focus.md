@@ -10,16 +10,13 @@
 
 ## Active Streams
 
-- Phase 4 Branch A remains current.
+- Phase 5 runtime/gameplay widening is current, with Phase 4 Branch A already settled.
 - Guarded viewer/load widening stays on `19/19`, `2/2`, and `11/10`, with differentiated `raw_invalid_start` hints and bounded `2/2` recovery.
-- Runtime owns hero intent consumption, mutable object positions, generic pending `change_cube` transitions, and post-key world-step scheduling for guarded viewer rooms.
-- Pending `change_cube` transitions now distinguish provisional zone-relative points from final landing points, and guarded interiors own a bounded Y-only post-load adjustment.
+- Runtime owns hero intent consumption, mutable object positions, and generic pending `change_cube` scheduling for guarded viewer rooms.
+- Pending `change_cube` transitions now distinguish provisional zone-relative points from final landing points.
 - The guarded `2/2` public exit is Frida + `cdb` backed as an exterior-facing `ChangeCube` handoff, and tests keep `2/2` pinned to one enabled cube-`0` public-door seam, so the port rejects it as `unsupported_exterior_destination_cube`.
-- `RoomSnapshot` now preserves hero program bytes and typed zone semantics.
-- `inspect-room-intelligence` now resolves scene/background names from checked-in generated Zig metadata.
 - Guarded `19/19` object-`2` is stateful behind the runtime tick: mutable life bytes, bounded bonus events, later reward loop.
 - The structural life boundary now has the machine-readable `life-catalog-v2` surface from production enums.
-- Sendell room `36` keeps a typed `sendell_summary.json` lane plus a bounded story-state slice.
 - Offline decoded-interior ranking is widened; same-index fragment-zone triage stays explicit.
 
 ## Blocked Items
@@ -32,9 +29,9 @@
 
 ## Next Actions
 
-- Keep the widened Branch-A boundary in code, tests, and docs.
+- Keep the widened Branch-A boundary stable as the settled foundation for Phase 5 runtime/gameplay work.
 - Keep the bounded `2/2` raw-zone recovery seam separate from future exterior-transition work.
-- Keep Sendell room `36` separate from the guarded `19/19` sewer reward loop and anchored to `MagicLevel`, `MagicPoint`, and `FLAG_BOULE_SENDELL`.
+- Choose the next bounded Phase 5 seam from either a real interior-to-interior transition candidate or the existing guarded gameplay slices (`19/19` object-`2`, room `36` story state).
 - Capture the classic dialog pager state behind the visible room-`36` page turns.
 - Consider the canonical investigative layers to choose the next guarded runtime widening target.
 

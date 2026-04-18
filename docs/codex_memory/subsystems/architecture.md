@@ -16,33 +16,33 @@ Own repo direction, Codex memory workflow, and the boundary between the Zig port
 ## Current Parity Status
 
 - The Zig port remains decode-first and fail-fast.
-- `life_audit.zig` owns offline decoded-interior ranking and the canonical all-scenes life inventory.
-- Viewer input stops at intent submission; runtime owns pending intent consumption.
-- Runtime owns mutable object positions on the live viewer/app path, while `RoomSnapshot` stays immutable decode state.
-- Guarded `19/19` carries an explicit immutable object-behavior seed for object `2`, while runtime owns the mutable life-byte copy and later reward-loop state.
-- The life decoder now has a machine-readable `life-catalog-v2` surface.
-- `inspect-room-intelligence` scene/background naming now comes from `port/src/generated/room_metadata.zig`.
 - `inspect-room-intelligence` is the canonical repo-local room/scene inspection surface.
 - `cdb-agent` is the approved debugger/live-trace layer, and `ghb` is the approved Ghidra layer.
-- The original-runtime split is stable: Tavern uses FRA, Scene11 uses debugger snapshots, and Sendell writes `sendell_summary.json`.
-- Runtime also owns a bounded Sendell room-`36` seam: viewer input submits `cast_lightning` / `advance_story`, object behavior advances the red-ball slice, and the app loop schedules the step.
+- Viewer input stops at intent submission; runtime owns mutable gameplay state and pending transition consumption.
+- The original-runtime split is stable: Tavern uses FRA, Scene11 uses debugger snapshots, and room-transition seam proof now mixes Frida plus `cdb` only when watcher evidence is insufficient.
 
 ## Known Traps
 
-- `docs/PROMPT.md` can lag; prefer subsystem packs and typed history.
 - `sidequest/` and `LM_TASKS/` are independent workstreams unless a prompt explicitly widens scope.
 - Dump-driven rankings and temporary seed-admission probes are evidence only, not supported runtime behavior.
 - `work/` artifacts can lag the real worktree; verify code, `git status`, and asset paths before trusting generated outputs.
 - The typed JSONL history files under `docs/codex_memory/` are append-only; corrections must append.
-- Prefer native Windows Git for repo-state checks; Bash-under-`/mnt/d` can over-report dirtiness.
-- In PowerShell-hosted sessions, prefer single-quoted `bash -lc` payloads.
-- If room-name labels need to change, regenerate `port/src/generated/room_metadata.zig`; do not revive `.hqd` reads.
-- Keep the tiny top-level Zig test roots under `port/src/`; direct subdirectory roots can fail with `import of file outside module path`.
 - `scripts/verify_viewer.py` is the canonical Windows acceptance gate for the port path.
-- Original-runtime evidence helpers are not default port pickup; use `life_scripts.md` for those tasks.
-- Sendell proof menus need held-key input; keep that quirk in `life_scripts.md` instead of generalizing it into the port path.
-- On the current Sendell proof lane, use `0x00499E98` as the direct `ListVarGame` base, not Ghidra `DAT_00499E96`.
-- On the Sendell proof lane, `CurrentDial`, `TypeAnswer`, `Value`, and `PtrPrg` can stay fixed across visible page turns. Use typed summary plus screenshots, with `PtrPrgWindow` as the coarse phase signature.
+- Original-runtime evidence helpers are not default port pickup; use `life_scripts.md` and `ISSUES.md` for those tasks.
+- For room-transition proof, do not generalize from a door, save lane, or watcher until the exact seam is pinned in tests and live evidence.
+
+## Reverse / Porting Slice Checklist
+
+- Name the proof surface before coding: room pair, zone index, trigger path, player mode, and any manual steps needed.
+- Keep decode semantics, runtime semantics, and final gameplay semantics separate until the classic execution path proves they collapse.
+- Do not rename raw fields to `final_*` or treat decoded payloads as resolved runtime state without seam-level evidence.
+- Start with asset or decode inspection, then pin the matching port seam with tests, then use original-runtime probes on that exact seam.
+- Scope claims and code to the exact seam that is proved; do not generalize from one observed door, zone, or save lane to a room-wide or cube-wide rule.
+- Prefer seam-keyed runtime policy over broad classifiers until more than one seam proves the abstraction.
+- When live play is involved, capture both machine evidence and visual evidence; screenshots are part of the proof, not optional garnish.
+- Escalate instrumentation by need: watcher for coarse behavior, Frida for sequencing, `cdb-agent` or `cdb` for exact write ownership.
+- If hooks on hot instructions are crash-prone, back off and combine safer probes instead of forcing invasive instrumentation.
+- Treat typed JSONL history as append-only and record what was proved, what remains unproved, and the exact next boundary.
 
 ## Canonical Entry Points
 

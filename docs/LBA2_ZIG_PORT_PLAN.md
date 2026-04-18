@@ -11,7 +11,6 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 - `docs/LBA2_ZIG_PORT_PLAN.md` owns active roadmap phases, replan gates, and acceptance checks on the current execution path.
 - `docs/codex_memory/current_focus.md` owns active repo state, current blockers, and the operating focus for the checked-in tree.
 - Relevant subsystem packs under `docs/codex_memory/subsystems/` own durable current-state facts for their subsystem.
-- `docs/PROMPT.md` owns only the next narrow slice to execute.
 - `docs/PORTING_REPORT.md`, the evidence memos, and other research notes remain supporting context, not execution owners.
 - Canonical current-state pickup does not depend on `sidequest/` or `LM_TASKS/`; treat those as independent workstreams unless they are explicitly promoted.
 - `inspect-room-intelligence`, `cdb-agent`, and the local `ghb` repo at `D:\repos\ghb` are the canonical investigative layers for locating, ranking, and falsifying runtime hypotheses; `inspect-room-intelligence` is the canonical repo-local machine-facing per-room/per-scene inspection surface, but those layers still generate evidence and do not define supported runtime behavior on their own.
@@ -135,7 +134,7 @@ Expose a small set of first-class commands early:
 
 - The first-viewer gate is already complete; do not reframe the repo as if it were still waiting for a foundation/bootstrap package.
 - The current strategic gate outcome is Phase 4 branch A for `LM_DEFAULT` and `LM_END_SWITCH`.
-- Keep the next widening question on runtime/gameplay choice, not on whether the switch-family markers are still unsupported.
+- Keep the next widening question on Phase 5 runtime/gameplay choice, not on whether the switch-family markers are still unsupported.
 
 ## Test Plan
 
