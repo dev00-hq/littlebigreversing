@@ -38,9 +38,15 @@ pub const BonusSpawnEvent = struct {
     quantity: u8,
 };
 
+pub const PendingRoomTransitionDestinationPositionKind = enum {
+    provisional_zone_relative,
+    final_landing,
+};
+
 pub const PendingRoomTransition = struct {
     source_zone_index: usize,
     destination_cube: i16,
+    destination_world_position_kind: PendingRoomTransitionDestinationPositionKind,
     destination_world_position: world_geometry.WorldPointSnapshot,
     yaw: i32,
     test_brick: bool,
@@ -521,6 +527,7 @@ test "runtime session keeps pending room transitions explicit and single-slot" {
     const expected_transition = PendingRoomTransition{
         .source_zone_index = 0,
         .destination_cube = 42,
+        .destination_world_position_kind = .final_landing,
         .destination_world_position = .{
             .x = 2560,
             .y = 2048,
@@ -597,6 +604,7 @@ test "runtime session can replace room-local state while preserving durable runt
     try runtime_session.setPendingRoomTransition(.{
         .source_zone_index = 0,
         .destination_cube = 0,
+        .destination_world_position_kind = .final_landing,
         .destination_world_position = .{ .x = 2560, .y = 2048, .z = 3072 },
         .yaw = 0,
         .test_brick = false,

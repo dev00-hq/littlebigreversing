@@ -444,6 +444,71 @@ test "inspect-room-intelligence keeps guarded 2/2 change-cube semantics machine-
     try expectJsonBool(try requireJsonField(semantics, "initially_on"), true);
 }
 
+test "inspect-room-intelligence keeps the guarded 2/2 public door as the only enabled cube-0 change-cube seam" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-room-intelligence",
+        "--scene-entry",
+        "2",
+        "--background-entry",
+        "2",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    try expectExited(result.term, 0);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+
+    const zones = try requireJsonField(parsed.value, "zones");
+    const matching_zone = switch (zones) {
+        .array => |array| blk: {
+            var found: ?std.json.Value = null;
+            var count: usize = 0;
+            for (array.items) |zone| {
+                const zone_type = try requireJsonField(zone, "zone_type");
+                switch (zone_type) {
+                    .string => |value| if (!std.mem.eql(u8, value, "change_cube")) continue,
+                    else => return error.ExpectedJsonString,
+                }
+
+                const semantics = try requireJsonField(zone, "semantics");
+                try expectJsonString(try requireJsonField(semantics, "kind"), "change_cube");
+                const destination_cube = try requireJsonField(semantics, "destination_cube");
+                const initially_on = try requireJsonField(semantics, "initially_on");
+                switch (destination_cube) {
+                    .integer => |value| {
+                        if (value != 0) continue;
+                    },
+                    else => return error.ExpectedJsonInteger,
+                }
+                switch (initially_on) {
+                    .bool => |value| {
+                        if (!value) continue;
+                    },
+                    else => return error.ExpectedJsonBool,
+                }
+
+                count += 1;
+                found = zone;
+            }
+            try std.testing.expectEqual(@as(usize, 1), count);
+            break :blk found orelse return error.MissingJsonField;
+        },
+        else => return error.ExpectedJsonArray,
+    };
+
+    try expectJsonInteger(try requireJsonField(matching_zone, "x0"), 9728);
+    try expectJsonInteger(try requireJsonField(matching_zone, "y0"), 1024);
+    try expectJsonInteger(try requireJsonField(matching_zone, "z0"), 512);
+    try expectJsonInteger(try requireJsonField(matching_zone, "x1"), 10239);
+    try expectJsonInteger(try requireJsonField(matching_zone, "y1"), 2815);
+    try expectJsonInteger(try requireJsonField(matching_zone, "z1"), 1535);
+}
+
 test "inspect-room-intelligence subprocess keeps validation failures in JSON for non-interior rooms" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);

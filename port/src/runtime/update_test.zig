@@ -149,6 +149,11 @@ test "runtime zone effects record a generic change-cube transition from guarded 
 
     var current_session = try initSession(room);
     defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{
+        .x = 9756,
+        .y = 1024,
+        .z = 782,
+    });
 
     var zone_membership: runtime_query.ContainingZoneSet = .{};
     try zone_membership.append(room.scene.zones[0]);
@@ -163,12 +168,34 @@ test "runtime zone effects record a generic change-cube transition from guarded 
 
     try std.testing.expectEqual(room.scene.zones[0].index, transition.source_zone_index);
     try std.testing.expectEqual(semantics.destination_cube, transition.destination_cube);
-    try std.testing.expectEqual(semantics.destination_x, transition.destination_world_position.x);
-    try std.testing.expectEqual(semantics.destination_y, transition.destination_world_position.y);
-    try std.testing.expectEqual(semantics.destination_z, transition.destination_world_position.z);
+    try std.testing.expectEqual(runtime_session.PendingRoomTransitionDestinationPositionKind.provisional_zone_relative, transition.destination_world_position_kind);
+    try std.testing.expectEqual(@as(i32, 2588), transition.destination_world_position.x);
+    try std.testing.expectEqual(@as(i32, 2048), transition.destination_world_position.y);
+    try std.testing.expectEqual(@as(i32, 3342), transition.destination_world_position.z);
     try std.testing.expectEqual(semantics.yaw, transition.yaw);
     try std.testing.expectEqual(semantics.test_brick, transition.test_brick);
     try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);
+}
+
+test "guarded 2/2 has one enabled cube-0 change-cube seam and it is zone 0" {
+    const room = try room_fixtures.guarded22();
+
+    var matching_zone_count: usize = 0;
+    var matching_zone_index: ?usize = null;
+    for (room.scene.zones) |zone| {
+        const semantics = switch (zone.semantics) {
+            .change_cube => |value| value,
+            else => continue,
+        };
+        if (!semantics.initially_on) continue;
+        if (semantics.destination_cube != 0) continue;
+        matching_zone_count += 1;
+        matching_zone_index = zone.index;
+    }
+
+    try std.testing.expectEqual(@as(usize, 1), matching_zone_count);
+    try std.testing.expectEqual(@as(?usize, room.scene.zones[0].index), matching_zone_index);
+    try std.testing.expectEqual(@as(usize, 0), room.scene.zones[0].index);
 }
 
 test "runtime zone effects fail fast when multiple change-cube transitions trigger in one step" {
@@ -223,9 +250,10 @@ test "runtime update tick reaches guarded 2/2 change-cube from the baked raw sta
 
     try std.testing.expectEqual(room.scene.zones[0].index, transition.source_zone_index);
     try std.testing.expectEqual(semantics.destination_cube, transition.destination_cube);
-    try std.testing.expectEqual(semantics.destination_x, transition.destination_world_position.x);
-    try std.testing.expectEqual(semantics.destination_y, transition.destination_world_position.y);
-    try std.testing.expectEqual(semantics.destination_z, transition.destination_world_position.z);
+    try std.testing.expectEqual(runtime_session.PendingRoomTransitionDestinationPositionKind.provisional_zone_relative, transition.destination_world_position_kind);
+    try std.testing.expectEqual(@as(i32, 2588), transition.destination_world_position.x);
+    try std.testing.expectEqual(@as(i32, 2048), transition.destination_world_position.y);
+    try std.testing.expectEqual(@as(i32, 3342), transition.destination_world_position.z);
     try std.testing.expectEqual(semantics.yaw, transition.yaw);
     try std.testing.expectEqual(semantics.test_brick, transition.test_brick);
     try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);

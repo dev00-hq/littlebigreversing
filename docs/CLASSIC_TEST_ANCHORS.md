@@ -16,11 +16,13 @@ Observed rules:
 - `GereZoneChangeCube()` treats `Info5` as `ZONE_TEST_BRICK`, `Info6` as `ZONE_DONT_REAJUST_POS_TWINSEN`, and `Info7 & ZONE_ON` as the live enabled bit.
 - `LM_CHANGE_CUBE` does not compute a zone-relative position. It sets `NewCube` and `FlagChgCube = 2`, which makes `ChangeCube()` use the saved start position path.
 - `LM_SET_CHANGE_CUBE` toggles change-cube zones by matching `Type == 0` and `Info4 == selector`.
+- On the exact public house-door seam that the port models as guarded `2/2`, Frida plus a `cdb` write breakpoint on `0x00499E40` showed `NewCube` stays `0`, observed pulse writes include `LBA2+0x11AEB` / `0x11B2F`, and the first post-load hero landing is exterior-facing near `(18442,250,5660)`.
 
 Port implications:
 
 - Keep `ChangeCubeSemantics.test_brick`, `dont_readjust_twinsen`, `initially_on`, destination world position, and yaw source-backed to the classic `Info*` fields.
 - Keep runtime room-transition assertions generic. They should prove pending transition metadata and bounded trigger reachability, not claim full handoff parity before the port owns real room loading.
+- The guarded `2/2` public exit now has exact-seam Frida + `cdb` proof that it is an exterior-facing `ChangeCube` handoff rather than a same-index interior room hop, and the checked-in room/load tests keep `2/2` pinned to one enabled cube-`0` change-cube seam for that public door.
 
 Current repo test anchors:
 

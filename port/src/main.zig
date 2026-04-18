@@ -376,6 +376,7 @@ test "unsupported pending room-transition semantics stay diagnostic-only and kee
     try runtime_session.setPendingRoomTransition(.{
         .source_zone_index = transition_zone.index,
         .destination_cube = semantics.destination_cube,
+        .destination_world_position_kind = .provisional_zone_relative,
         .destination_world_position = .{
             .x = semantics.destination_x,
             .y = semantics.destination_y,
@@ -409,7 +410,7 @@ test "unsupported pending room-transition semantics stay diagnostic-only and kee
     try std.testing.expect(std.mem.indexOf(u8, output.items, "reason=unsupported_yaw") != null);
 }
 
-test "viewer scheduler rejects the guarded 2/2 room transition when the destination pose is unsupported" {
+test "viewer scheduler rejects the guarded 2/2 public exit as an unsupported exterior destination" {
     const allocator = std.testing.allocator;
     const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -458,7 +459,7 @@ test "viewer scheduler rejects the guarded 2/2 room transition when the destinat
     try std.testing.expectEqual(raw_start.y, runtime_session.heroWorldPosition().y);
     try std.testing.expectEqual(raw_start.z, runtime_session.heroWorldPosition().z);
     try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_rejected") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "reason=unsupported_destination_world_position") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "reason=unsupported_exterior_destination_cube") != null);
 }
 
 test "committed room transitions reapply canonical destination room-entry seeding" {
@@ -488,6 +489,7 @@ test "committed room transitions reapply canonical destination room-entry seedin
     try runtime_session.setPendingRoomTransition(.{
         .source_zone_index = 0,
         .destination_cube = 34,
+        .destination_world_position_kind = .final_landing,
         .destination_world_position = destination_world_position,
         .yaw = 0,
         .test_brick = false,
