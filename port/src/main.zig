@@ -8,6 +8,7 @@ const process = @import("foundation/process.zig");
 const reference_metadata = @import("generated/reference_metadata.zig");
 const sdl = @import("platform/sdl.zig");
 const locomotion = @import("runtime/locomotion.zig");
+const runtime_object_behavior = @import("runtime/object_behavior.zig");
 const room_state = @import("runtime/room_state.zig");
 const runtime_session_mod = @import("runtime/session.zig");
 const runtime_transition = @import("runtime/transition.zig");
@@ -72,6 +73,7 @@ fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     try viewer_shell.printStartupDiagnostics(stderr, allocator, resolved, &room);
     try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status);
     var render = viewer_shell.buildRenderSnapshot(&room, runtime_session);
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
     var fragment_catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, render);
     defer fragment_catalog.deinit(allocator);
     var interaction = viewer_shell.initialInteractionState(fragment_catalog);
@@ -96,7 +98,7 @@ fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         interaction.fragment_selection,
         locomotion_status,
         interaction.control_mode,
-        viewer_shell.formatSendellDialogOverlayDisplay(&room, runtime_session),
+        viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session),
     ) catch |err| {
         diagnostics.reportError(stderr, sdlErrorMessage(err));
         return err;
@@ -216,6 +218,7 @@ fn renderCurrentFrame(
 ) !void {
     const next_render = viewer_shell.buildRenderSnapshot(room, runtime_session);
     const next_catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, next_render);
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
     fragment_catalog.deinit(allocator);
     render.* = next_render;
     fragment_catalog.* = next_catalog;
@@ -226,7 +229,7 @@ fn renderCurrentFrame(
         interaction.fragment_selection,
         locomotion_status,
         interaction.control_mode,
-        viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session),
+        viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session),
     ) catch |err| {
         diagnostics.reportError(stderr, sdlErrorMessage(err));
         return err;
@@ -295,6 +298,7 @@ fn applyScheduledWorldStep(
             }
         },
         .advance_world => {
+            const previous_bonus_event_count = runtime_session.bonusSpawnEvents().len;
             const tick_result = try runtime_update.tick(room, runtime_session);
             if (tick_result.triggered_room_transition) {
                 const transition_result = try runtime_transition.applyPendingRoomTransition(
@@ -316,8 +320,42 @@ fn applyScheduledWorldStep(
                 if (tick_result.consumed_hero_intent or key_result.should_print_locomotion_diagnostic) {
                     try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
                 }
+                try printNewBonusSpawnEvents(
+                    stderr,
+                    room,
+                    runtime_session.*,
+                    previous_bonus_event_count,
+                );
             }
         },
+    }
+}
+
+fn printNewBonusSpawnEvents(
+    stderr: anytype,
+    room: *const viewer_shell.RoomSnapshot,
+    runtime_session: viewer_shell.Session,
+    previous_bonus_event_count: usize,
+) !void {
+    const events = runtime_session.bonusSpawnEvents();
+    if (events.len <= previous_bonus_event_count) return;
+
+    for (events[previous_bonus_event_count..]) |event| {
+        const behavior_state = runtime_session.objectBehaviorStateByIndex(event.source_object_index);
+        try stderr.print(
+            "event=bonus_spawn scene_entry_index={d} background_entry_index={d} frame_index={d} source_object_index={d} kind={s} sprite_index={d} quantity={d} emitted_bonus_count={d} bonus_exhausted={}\n",
+            .{
+                room.scene.entry_index,
+                room.background.entry_index,
+                event.frame_index,
+                event.source_object_index,
+                @tagName(event.kind),
+                event.sprite_index,
+                event.quantity,
+                if (behavior_state) |state| state.emitted_bonus_count else @as(u8, 0),
+                if (behavior_state) |state| state.bonus_exhausted else false,
+            },
+        );
     }
 }
 
@@ -525,4 +563,48 @@ test "committed room transitions reapply canonical destination room-entry seedin
         runtime_session.gameVar(lightning_spell_flag_index),
     );
     try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_committed") != null);
+}
+
+test "main bonus spawn diagnostics print the bounded 19/19 object-2 reward event" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer room.deinit(allocator);
+
+    var runtime_session = try viewer_shell.initSession(allocator, &room);
+    defer runtime_session.deinit(allocator);
+    runtime_session.setHeroWorldPosition(.{
+        .x = 2500,
+        .y = 1000,
+        .z = 1000,
+    });
+
+    var output: std.ArrayList(u8) = .empty;
+    defer output.deinit(allocator);
+
+    _ = try runtime_object_behavior.stepSupportedObjects(&room, &runtime_session);
+    runtime_session.advanceFrameIndex();
+    const primed_state = runtime_session.objectBehaviorStateByIndexPtr(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    primed_state.last_hit_by = 1;
+
+    var previous_bonus_event_count: usize = runtime_session.bonusSpawnEvents().len;
+    var step_index: usize = 0;
+    while (step_index < 16) : (step_index += 1) {
+        _ = try runtime_object_behavior.stepSupportedObjects(&room, &runtime_session);
+        try printNewBonusSpawnEvents(output.writer(allocator), &room, runtime_session, previous_bonus_event_count);
+        previous_bonus_event_count = runtime_session.bonusSpawnEvents().len;
+        runtime_session.advanceFrameIndex();
+        if (std.mem.indexOf(u8, output.items, "event=bonus_spawn") != null) {
+            break;
+        }
+    }
+
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=bonus_spawn") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "scene_entry_index=19 background_entry_index=19") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "source_object_index=2") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "kind=magic") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "quantity=5") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "emitted_bonus_count=1") != null);
 }

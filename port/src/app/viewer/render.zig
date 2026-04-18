@@ -58,6 +58,7 @@ pub const LocomotionStatusDisplayBuffer = struct {
 
 pub const DialogOverlayDisplay = struct {
     title: []const u8 = "",
+    nav_title: []const u8 = "NAV / OVERLAY",
     line_count: usize = 0,
     lines: [4][]const u8 = .{ "", "", "", "" },
     accent: sdl.Color = .{ .r = 255, .g = 196, .b = 92, .a = 255 },
@@ -640,7 +641,7 @@ fn drawHud(
         .admitted_path => &.{ "ENTER SEED HERO", "ARROWS MOVE HERO", "ARROWS MOVE FROM HERE" },
         .none => &.{ "ENTER SEED HERO", "ARROWS MOVE HERO", "RAW START STAYS" },
     };
-    const nav_title = if (dialog_overlay.line_count != 0) "NAV / DIAL" else "NAV";
+    const nav_title = if (dialog_overlay.line_count != 0) dialog_overlay.nav_title else "NAV";
     try drawHudTextCard(
         canvas,
         nav_card,

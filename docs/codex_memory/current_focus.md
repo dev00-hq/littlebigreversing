@@ -16,14 +16,14 @@
 - Original-runtime debug control now has reusable probe helpers: `debug_compass.py`, `heading_inject.py`, `waypoint_step_probe.py`, with `collision_observer.py` narrowed to `persistent_collision_pin` vs `transient_pin_then_escape`.
 - Pending `change_cube` transitions now distinguish provisional zone-relative points from final landing points.
 - The guarded `2/2` public exit is Frida + `cdb` backed as an exterior-facing `ChangeCube` handoff, and tests keep `2/2` pinned to one enabled cube-`0` public-door seam, so the port rejects it as `unsupported_exterior_destination_cube`.
-- Guarded `19/19` object-`2` is stateful behind the runtime tick: mutable life bytes, bounded bonus events, later reward loop.
+- Guarded `19/19` object-`2` is stateful behind the runtime tick: mutable life bytes, bounded bonus events, later reward loop, and viewer/main reward diagnostics.
 
 ## Blocked Items
 
-- The guarded `19/19` object-`2` slice still stops at bounded bonus-event emission; motion, pickup, UI, and save/load parity are pending.
+- The guarded `19/19` object-`2` slice now reaches bounded reward diagnostics; motion, pickup, and save/load parity are still pending.
 - The guarded `2/2` `change_cube` slice is not an interior room-handoff proof anymore; parity there now depends on future exterior-transition work.
 - The bounded Sendell room-`36` slice still lacks page-level dialog timing/state ownership and save/load parity.
-- The wall-mapping / wall-walk spike did not earn promotion to `main`; room-scale wall overlays are deferred.
+- The wall-mapping spike did not earn promotion to `main`; room-scale wall overlays are deferred.
 - `inspect-room 219 219 --json` still fails with `InvalidFragmentZoneBounds`.
 - Canonical Windows checks still depend on the extracted asset tree and SDL2 layout.
 

@@ -2,6 +2,7 @@ const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
 const runtime_locomotion = @import("../../runtime/locomotion.zig");
+const runtime_object_behavior = @import("../../runtime/object_behavior.zig");
 const runtime_update = @import("../../runtime/update.zig");
 const state = @import("../../runtime/room_state.zig");
 const runtime_query = @import("../../runtime/world_query.zig");
@@ -777,7 +778,8 @@ test "viewer render path draws the bounded Sendell dialog overlay during acknowl
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
-    const dialog_overlay = viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session);
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    const dialog_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
     const dialog_rect = layout.computeDialogOverlayRect(
         layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, selection.focus != null),
     );
@@ -804,9 +806,68 @@ test "viewer render path draws the bounded Sendell dialog overlay during acknowl
 
     try runtime_session.submitHeroIntent(.advance_story);
     _ = try runtime_update.tick(room, &runtime_session);
-    const second_overlay = viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session);
+    const second_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
     try std.testing.expectEqual(@as(usize, 4), second_overlay.line_count);
     try std.testing.expectEqualStrings("CURRENT DIAL 514", second_overlay.lines[0]);
+}
+
+test "viewer render path draws the bounded 19/19 reward overlay after object-2 emits a bonus event" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded1919();
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(std.testing.allocator);
+    runtime_session.setHeroWorldPosition(.{
+        .x = 2500,
+        .y = 1000,
+        .z = 1000,
+    });
+    _ = try runtime_object_behavior.stepSupportedObjects(room, &runtime_session);
+    runtime_session.advanceFrameIndex();
+    const primed_state = runtime_session.objectBehaviorStateByIndexPtr(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    primed_state.last_hit_by = 1;
+
+    var reward_tick: ?usize = null;
+    var tick_index: usize = 1;
+    while (tick_index < 16) : (tick_index += 1) {
+        _ = try runtime_object_behavior.stepSupportedObjects(room, &runtime_session);
+        runtime_session.advanceFrameIndex();
+        if (runtime_session.bonusSpawnEvents().len != 0) {
+            reward_tick = tick_index + 1;
+            break;
+        }
+    }
+    try std.testing.expectEqual(@as(?usize, 13), reward_tick);
+
+    const snapshot = viewer_shell.buildRenderSnapshot(room, runtime_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+    const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
+    const overlay_rect = layout.computeDialogOverlayRect(
+        layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, selection.focus != null),
+    );
+
+    var trace: sdl.CanvasTrace = .{};
+    defer trace.deinit(allocator);
+    var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
+
+    try render.renderDebugView(
+        &canvas,
+        snapshot,
+        catalog,
+        selection,
+        .{},
+        viewer_shell.initialInteractionState(catalog).control_mode,
+        overlay,
+    );
+
+    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, overlay_rect, .{ .r = 10, .g = 15, .b = 20, .a = 236 }));
+    try std.testing.expect(hasTraceText(trace, "OBJ2 LOOP"));
+    try std.testing.expect(hasTraceText(trace, overlay.lines[1]));
+    try std.testing.expect(hasTraceText(trace, overlay.lines[3]));
+    try std.testing.expect(hasTraceText(trace, "NAV / REWARD"));
 }
 
 test "viewer render path fails fast when a required brick preview is missing" {

@@ -61,6 +61,13 @@ pub const ScreenPoint = layout.ScreenPoint;
 pub const ViewerLocomotionStatusDisplay = render.LocomotionStatusDisplay;
 pub const ViewerLocomotionStatusDisplayBuffer = render.LocomotionStatusDisplayBuffer;
 pub const ViewerDialogOverlayDisplay = render.DialogOverlayDisplay;
+pub const ViewerDialogOverlayDisplayBuffer = struct {
+    line_0: [32]u8 = undefined,
+    line_1: [32]u8 = undefined,
+    line_2: [32]u8 = undefined,
+    line_3: [32]u8 = undefined,
+    aux_0: [8]u8 = undefined,
+};
 pub const ViewerLocomotionSchematicCue = render.LocomotionSchematicCue;
 pub const ViewerLocomotionSchematicMoveOption = render.LocomotionSchematicMoveOption;
 pub const ViewerLocomotionRejectedStage = runtime_locomotion.LocomotionRejectedStage;
@@ -102,6 +109,9 @@ pub const locomotion_fixture_cell = GridCell{ .x = 39, .z = 6 };
 const sendell_scene_entry: usize = 36;
 const sendell_background_entry: usize = 36;
 const sendell_object_index: usize = 2;
+const reward_scene_entry: usize = 19;
+const reward_background_entry: usize = 19;
+const reward_object_index: usize = 2;
 
 pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs {
     var asset_root_override: ?[]u8 = null;
@@ -452,6 +462,16 @@ pub fn renderDebugViewWithSelection(
     );
 }
 
+pub fn formatGameplayOverlayDisplay(
+    buffer: *ViewerDialogOverlayDisplayBuffer,
+    room: *const RoomSnapshot,
+    current_session: Session,
+) ViewerDialogOverlayDisplay {
+    const sendell_overlay = formatSendellDialogOverlayDisplay(room, current_session);
+    if (sendell_overlay.line_count != 0) return sendell_overlay;
+    return formatScene1919RewardOverlayDisplay(buffer, room, current_session);
+}
+
 pub fn formatSendellDialogOverlayDisplay(
     room: *const RoomSnapshot,
     current_session: Session,
@@ -466,6 +486,7 @@ pub fn formatSendellDialogOverlayDisplay(
     return switch (object_behavior.sendell_ball_phase) {
         .awaiting_first_dialog_ack => .{
             .title = "SENDELL DIAL",
+            .nav_title = "NAV / DIAL",
             .line_count = 4,
             .lines = .{
                 "CURRENT DIAL 513",
@@ -476,6 +497,7 @@ pub fn formatSendellDialogOverlayDisplay(
         },
         .awaiting_second_dialog_ack => .{
             .title = "SENDELL DIAL",
+            .nav_title = "NAV / DIAL",
             .line_count = 4,
             .lines = .{
                 "CURRENT DIAL 514",
@@ -488,6 +510,7 @@ pub fn formatSendellDialogOverlayDisplay(
             if (dialog_id != 287) break :blk .{};
             break :blk .{
                 .title = "SENDELL DIAL",
+                .nav_title = "NAV / DIAL",
                 .line_count = 4,
                 .lines = .{
                     "CURRENT DIAL 287",
@@ -498,6 +521,72 @@ pub fn formatSendellDialogOverlayDisplay(
             };
         },
         else => .{},
+    };
+}
+
+pub fn formatScene1919RewardOverlayDisplay(
+    buffer: *ViewerDialogOverlayDisplayBuffer,
+    room: *const RoomSnapshot,
+    current_session: Session,
+) ViewerDialogOverlayDisplay {
+    if (room.scene.entry_index != reward_scene_entry or room.background.entry_index != reward_background_entry) {
+        return .{};
+    }
+
+    const object_behavior = current_session.objectBehaviorStateByIndex(reward_object_index) orelse return .{};
+    const events = current_session.bonusSpawnEvents();
+    if (events.len == 0 and object_behavior.emitted_bonus_count == 0) return .{};
+
+    const latest_event = if (events.len == 0) null else events[events.len - 1];
+
+    const line_0 = std.fmt.bufPrint(
+        &buffer.line_0,
+        "TRACK {s} SPR {d}",
+        .{
+            formatOptionalTrackLabel(&buffer.aux_0, object_behavior.current_track_label),
+            object_behavior.current_sprite,
+        },
+    ) catch unreachable;
+    const line_1 = std.fmt.bufPrint(
+        &buffer.line_1,
+        "BONUS {d} {s}",
+        .{
+            object_behavior.emitted_bonus_count,
+            if (object_behavior.bonus_exhausted) "SPENT" else "READY",
+        },
+    ) catch unreachable;
+    const line_2 = std.fmt.bufPrint(
+        &buffer.line_2,
+        "CUBE0 {d} CUBE1 {d}",
+        .{
+            current_session.cubeVar(0),
+            current_session.cubeVar(1),
+        },
+    ) catch unreachable;
+    const line_3 = if (latest_event) |event|
+        std.fmt.bufPrint(
+            &buffer.line_3,
+            "LAST {s} {d}@{d}",
+            .{
+                runtimeBonusKindLabel(event.kind),
+                event.quantity,
+                event.frame_index,
+            },
+        ) catch unreachable
+    else
+        "LAST NONE";
+
+    return .{
+        .title = "OBJ2 LOOP",
+        .nav_title = "NAV / REWARD",
+        .line_count = 4,
+        .lines = .{
+            line_0,
+            line_1,
+            line_2,
+            line_3,
+        },
+        .accent = .{ .r = 160, .g = 220, .b = 120, .a = 255 },
     };
 }
 
@@ -885,6 +974,19 @@ fn shortDirectionLabel(direction: CardinalDirection) []const u8 {
         .east => "E",
         .south => "S",
         .west => "W",
+    };
+}
+
+fn formatOptionalTrackLabel(buffer: []u8, track_label: ?u8) []const u8 {
+    return if (track_label) |value|
+        std.fmt.bufPrint(buffer, "{d}", .{value}) catch unreachable
+    else
+        "NONE";
+}
+
+fn runtimeBonusKindLabel(kind: runtime_session.RuntimeBonusKind) []const u8 {
+    return switch (kind) {
+        .magic => "MAG",
     };
 }
 

@@ -2,6 +2,7 @@ const std = @import("std");
 const paths_mod = @import("../foundation/paths.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 const runtime_locomotion = @import("../runtime/locomotion.zig");
+const runtime_object_behavior = @import("../runtime/object_behavior.zig");
 const runtime_update = @import("../runtime/update.zig");
 const runtime_query = @import("../runtime/world_query.zig");
 const fragment_compare = @import("viewer/fragment_compare.zig");
@@ -1269,4 +1270,67 @@ test "viewer Sendell dialog overlay is transient and scheduler-owned" {
     try std.testing.expectEqual(@as(usize, 4), completed_overlay.line_count);
     try std.testing.expectEqualStrings("CURRENT DIAL 287", completed_overlay.lines[0]);
     try std.testing.expectEqualStrings("STORY COMPLETE", completed_overlay.lines[1]);
+}
+
+test "viewer 19/19 reward overlay reflects the bounded object-2 bonus loop" {
+    const room = try room_fixtures.guarded1919();
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(std.testing.allocator);
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    try std.testing.expectEqual(@as(usize, 0), viewer_shell.formatScene1919RewardOverlayDisplay(&overlay_buffer, room, runtime_session).line_count);
+
+    runtime_session.setHeroWorldPosition(.{
+        .x = 2500,
+        .y = 1000,
+        .z = 1000,
+    });
+    _ = try runtime_object_behavior.stepSupportedObjects(room, &runtime_session);
+    runtime_session.advanceFrameIndex();
+    const primed_state = runtime_session.objectBehaviorStateByIndexPtr(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    primed_state.last_hit_by = 1;
+
+    var reward_tick: ?usize = null;
+    var tick_index: usize = 1;
+    while (tick_index < 16) : (tick_index += 1) {
+        _ = try runtime_object_behavior.stepSupportedObjects(room, &runtime_session);
+        runtime_session.advanceFrameIndex();
+        if (runtime_session.bonusSpawnEvents().len != 0) {
+            reward_tick = tick_index + 1;
+            break;
+        }
+    }
+
+    try std.testing.expectEqual(@as(?usize, 13), reward_tick);
+    const rewarded_state = runtime_session.objectBehaviorStateByIndex(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
+    try std.testing.expectEqualStrings("OBJ2 LOOP", overlay.title);
+    try std.testing.expectEqualStrings("NAV / REWARD", overlay.nav_title);
+    try std.testing.expectEqual(@as(usize, 4), overlay.line_count);
+    var expected_line_0: [32]u8 = undefined;
+    var expected_track: [8]u8 = undefined;
+    const expected_line_0_slice = std.fmt.bufPrint(
+        &expected_line_0,
+        "TRACK {s} SPR {d}",
+        .{
+            if (rewarded_state.current_track_label) |value|
+                std.fmt.bufPrint(&expected_track, "{d}", .{value}) catch unreachable
+            else
+                "NONE",
+            rewarded_state.current_sprite,
+        },
+    ) catch unreachable;
+    var expected_line_2: [32]u8 = undefined;
+    const expected_line_2_slice = std.fmt.bufPrint(
+        &expected_line_2,
+        "CUBE0 {d} CUBE1 {d}",
+        .{
+            runtime_session.cubeVar(0),
+            runtime_session.cubeVar(1),
+        },
+    ) catch unreachable;
+    try std.testing.expectEqualStrings(expected_line_0_slice, overlay.lines[0]);
+    try std.testing.expectEqualStrings("BONUS 1 READY", overlay.lines[1]);
+    try std.testing.expectEqualStrings(expected_line_2_slice, overlay.lines[2]);
+    try std.testing.expectEqualStrings("LAST MAG 5@12", overlay.lines[3]);
 }
