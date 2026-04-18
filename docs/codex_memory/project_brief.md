@@ -8,7 +8,7 @@ Reverse-engineering and port-planning workspace for Twinsen's Little Big Adventu
 
 - `docs/`: checked-in research, plans, subsystem memory packs, and reference memos
 - `tools/`: repo-local utilities for memory, phase0, and MBN corpus work
-- `tools/life_trace/`: original-runtime Tavern and Scene11 evidence lanes
+- `tools/life_trace/`: original-runtime evidence, debug-control probes, and save-driven automation helpers
 - `reference/`: imported classic source, preserved tooling, and external source material
 - `work/`: rebuildable generated outputs and extracted assets
 - `port/`: canonical modern port implementation
