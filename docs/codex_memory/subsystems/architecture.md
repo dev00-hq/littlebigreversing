@@ -29,8 +29,8 @@ Own repo direction, Codex memory workflow, and the boundary between the Zig port
 - `scripts/verify_viewer.py` is the canonical Windows acceptance gate for the port path.
 - Original-runtime evidence helpers are not default port pickup; use `life_scripts.md` and `ISSUES.md`.
 - For room-transition proof, do not generalize from a door, save lane, or watcher until the exact seam is pinned in tests and live evidence.
-- Do not treat `collision_observer.py` as a blocked/moved oracle. Step outcome is authoritative; collision observation only explains persistent pin versus transient pin.
-- Do not promote raw scene-object placements into floor-truth spawn positions. On guarded `19/19`, reward spawning resolves through the nearest admitted standable cell.
+- Do not treat `collision_observer.py` as a blocked/moved oracle. Step outcome is authoritative.
+- Do not promote raw scene-object placements into floor-truth spawn positions. On guarded `19/19`, the canonical seam is multi-bonus scatter/rebound, not a one-point spawn claim.
 - The deferred wall-mapping / wall-walk spike is not canonical repo state. It lives on a side branch and should not re-enter `main` without a fresh bounded justification.
 
 ## Reverse / Porting Slice Checklist
@@ -66,4 +66,4 @@ Own repo direction, Codex memory workflow, and the boundary between the Zig port
 
 ## Open Unknowns
 
-- Whether the next runtime widening slice should pay down `19/19` reward parity or deepen the Sendell/story scheduler path first.
+- Whether the next runtime widening slice should target the remaining guarded `19/19` pickup-surface gap or deepen the Sendell/story scheduler path first.

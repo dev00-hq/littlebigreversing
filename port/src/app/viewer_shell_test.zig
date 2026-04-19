@@ -1332,7 +1332,7 @@ test "viewer 19/19 reward overlay reflects the bounded object-2 bonus loop" {
     try std.testing.expectEqualStrings(expected_line_0_slice, overlay.lines[0]);
     try std.testing.expectEqualStrings("DROP 10 LIVE", overlay.lines[1]);
     try std.testing.expectEqualStrings(expected_line_2_slice, overlay.lines[2]);
-    try std.testing.expectEqualStrings("LAST MAG 1@12", overlay.lines[3]);
+    try std.testing.expectEqualStrings("LAST MAG 5@12", overlay.lines[3]);
 }
 
 test "viewer 19/19 reward overlay shows bounded pickup resolution once the magic bonus is collected" {
@@ -1378,5 +1378,5 @@ test "viewer 19/19 reward overlay shows bounded pickup resolution once the magic
 
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
     try std.testing.expectEqualStrings("DROP 9 LIVE", overlay.lines[1]);
-    try std.testing.expectEqualStrings("PICK MAG 1@16", overlay.lines[3]);
+    try std.testing.expectEqualStrings("PICK MAG 5@16", overlay.lines[3]);
 }
