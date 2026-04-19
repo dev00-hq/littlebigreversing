@@ -1,5 +1,6 @@
 const locomotion = @import("locomotion.zig");
 const object_behavior = @import("object_behavior.zig");
+const reward_collectibles = @import("reward_collectibles.zig");
 const room_state = @import("room_state.zig");
 const runtime_session = @import("session.zig");
 const zone_effects = @import("zone_effects.zig");
@@ -41,6 +42,7 @@ pub fn tick(
         };
     }
 
+    try reward_collectibles.resolveHeroRewardPickups(room, current_session);
     const behavior_summary = try object_behavior.stepSupportedObjects(room, current_session);
     current_session.advanceFrameIndex();
 

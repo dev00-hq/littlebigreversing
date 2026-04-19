@@ -5,6 +5,7 @@ const track_program = @import("../game_data/scene/track_program.zig");
 const room_state = @import("room_state.zig");
 const runtime_session = @import("session.zig");
 const world_geometry = @import("world_geometry.zig");
+const runtime_query = @import("world_query.zig");
 
 pub const UpdateSummary = struct {
     updated_object_count: usize = 0,
@@ -24,7 +25,30 @@ const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.i
 const sendell_red_ball_magic_level: u8 = 3;
 const supported_magic_bonus_option_flag: i16 = 64;
 const supported_magic_bonus_sprite_index: i16 = 5;
+const supported_magic_bonus_instance_count: usize = 10;
+const supported_magic_bonus_quantity_per_instance: u8 = 1;
+const supported_reward_motion_ticks: u8 = 3;
+const supported_reward_motion_arc_height: i32 = 160;
 const track_wait_ticks_per_second: u8 = 10;
+
+const supported_reward_origin_world_position = world_geometry.WorldPointSnapshot{
+    .x = 21760,
+    .y = 6656,
+    .z = 3584,
+};
+
+const supported_reward_scatter_cells = [_]world_geometry.GridCell{
+    .{ .x = 39, .z = 6 },
+    .{ .x = 40, .z = 6 },
+    .{ .x = 41, .z = 6 },
+    .{ .x = 42, .z = 6 },
+    .{ .x = 43, .z = 6 },
+    .{ .x = 39, .z = 7 },
+    .{ .x = 40, .z = 7 },
+    .{ .x = 41, .z = 7 },
+    .{ .x = 42, .z = 7 },
+    .{ .x = 43, .z = 7 },
+};
 
 const RuntimeFunctionValue = union(enum) {
     s8_value: i8,
@@ -279,7 +303,7 @@ fn executeScene1919Object2Life(
                     .u8_value => |value| value == 0,
                     else => return error.UnsupportedObjectBehaviorLifeOperands,
                 };
-                try appendSupportedBonusSpawn(seed, current_session, object_behavior, exhaust_after_use);
+                try appendSupportedBonusSpawn(room, seed, current_session, object_behavior, exhaust_after_use);
             },
             .LM_END_COMPORTEMENT,
             .LM_END,
@@ -569,6 +593,7 @@ fn nextInstructionOffset(
 }
 
 fn appendSupportedBonusSpawn(
+    room: *const room_state.RoomSnapshot,
     seed: room_state.ObjectBehaviorSeedSnapshot,
     current_session: *runtime_session.Session,
     object_behavior: *runtime_session.ObjectBehaviorState,
@@ -579,17 +604,48 @@ fn appendSupportedBonusSpawn(
         return error.UnsupportedScene1919Object2BonusFlags;
     }
 
-    const quantity = if (seed.bonus_quantity == 0) @as(u8, 1) else seed.bonus_quantity;
-    try current_session.appendBonusSpawnEvent(.{
-        .frame_index = current_session.frame_index,
-        .source_object_index = seed.index,
-        .kind = .magic,
-        .sprite_index = supported_magic_bonus_sprite_index,
-        .quantity = quantity,
-    });
-    if (object_behavior.emitted_bonus_count < std.math.maxInt(u8)) {
-        object_behavior.emitted_bonus_count += 1;
+    if (supported_reward_scatter_cells.len != supported_magic_bonus_instance_count) {
+        return error.UnsupportedScene1919Object2RewardScatterLayout;
     }
+
+    var total_emitted_count: u16 = object_behavior.emitted_bonus_count;
+    for (supported_reward_scatter_cells, 0..) |cell, scatter_index| {
+        const surface = try runtime_query.init(room).cellTopSurface(cell.x, cell.z);
+        const landing_world_position = runtime_query.gridCellCenterWorldPosition(
+            cell.x,
+            cell.z,
+            surface.top_y,
+        );
+
+        try current_session.appendBonusSpawnEvent(.{
+            .frame_index = current_session.frame_index,
+            .source_object_index = seed.index,
+            .kind = .magic,
+            .sprite_index = supported_magic_bonus_sprite_index,
+            .quantity = supported_magic_bonus_quantity_per_instance,
+        });
+        try current_session.appendRewardCollectible(.{
+            .spawn_frame_index = current_session.frame_index,
+            .source_object_index = seed.index,
+            .kind = .magic,
+            .sprite_index = supported_magic_bonus_sprite_index,
+            .quantity = supported_magic_bonus_quantity_per_instance,
+            .admitted_surface_cell = cell,
+            .admitted_surface_top_y = surface.top_y,
+            .scatter_slot = std.math.cast(u8, scatter_index) orelse return error.UnsupportedScene1919Object2RewardScatterLayout,
+            .rebound_count = 0,
+            .settled = false,
+            .motion_start_world_position = supported_reward_origin_world_position,
+            .motion_target_world_position = landing_world_position,
+            .motion_total_ticks = supported_reward_motion_ticks,
+            .motion_ticks_remaining = supported_reward_motion_ticks,
+            .motion_arc_height = supported_reward_motion_arc_height,
+            .world_position = supported_reward_origin_world_position,
+        });
+        total_emitted_count = @min(total_emitted_count + 1, std.math.maxInt(u8));
+    }
+    object_behavior.emitted_bonus_count = @intCast(total_emitted_count);
+    object_behavior.bonus_exhausted = true;
     if (exhaust_after_use) object_behavior.bonus_exhausted = true;
 }
 

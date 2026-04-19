@@ -126,6 +126,12 @@ pub const LocalNeighborTopologyProbe = struct {
     }
 };
 
+pub const AdmittedStandableFooting = struct {
+    cell: GridCell,
+    surface: CellTopSurface,
+    world_bounds: WorldBounds,
+};
+
 pub const ObservedTopYDeltaBucket = struct {
     delta: i32,
     count: usize,
@@ -614,6 +620,25 @@ pub const WorldQuery = struct {
         };
     }
 
+    pub fn admittedStandableFootingAtWorldPoint(
+        self: WorldQuery,
+        world_position: WorldPointSnapshot,
+    ) !AdmittedStandableFooting {
+        const probe = self.probeCellAtWorldPoint(world_position.x, world_position.z);
+        return switch (exactStatusForProbe(probe, world_position.y)) {
+            .valid => .{
+                .cell = probe.cell.?,
+                .surface = probe.surface.?,
+                .world_bounds = gridCellWorldBounds(probe.cell.?.x, probe.cell.?.z),
+            },
+            .mapped_cell_out_of_bounds => error.WorldPointOutOfBounds,
+            .mapped_cell_empty => error.WorldCellEmpty,
+            .mapped_cell_missing_top_surface => error.WorldCellMissingTopSurface,
+            .mapped_cell_blocked => error.WorldCellNotStandable,
+            .surface_height_mismatch => error.WorldPointSurfaceHeightMismatch,
+        };
+    }
+
     pub fn summarizeObservedNeighborPatterns(
         self: WorldQuery,
         allocator: std.mem.Allocator,
@@ -1084,6 +1109,21 @@ pub fn gridCellCenterWorldPosition(
         .y = world_y,
         .z = bounds.min_z + @divFloor(world_grid_span_xz, 2),
     };
+}
+
+pub fn nearestStandableCenterWorldPosition(
+    room: *const room_state.RoomSnapshot,
+    world_x: i32,
+    world_z: i32,
+) !WorldPointSnapshot {
+    const query = init(room);
+    const candidate = try query.findNearestCandidateForHypothesis(
+        world_x,
+        world_z,
+        .canonical_axis_aligned_512,
+        .standable,
+    );
+    return gridCellCenterWorldPosition(candidate.cell.x, candidate.cell.z, candidate.surface.top_y);
 }
 
 fn buildMappingEvaluation(

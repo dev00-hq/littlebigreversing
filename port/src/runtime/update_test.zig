@@ -11,6 +11,25 @@ const runtime_update = @import("update.zig");
 const zone_effects = @import("zone_effects.zig");
 
 const fixture_cell = locomotion.GridCell{ .x = 39, .z = 6 };
+const reward_origin_world_position = locomotion.WorldPointSnapshot{
+    .x = 21760,
+    .y = 6656,
+    .z = 3584,
+};
+const reward_floor_top_y: i32 = 25 * runtime_query.world_grid_span_y;
+const reward_staging_cell = locomotion.GridCell{ .x = 39, .z = 10 };
+const reward_scatter_cells = [_]locomotion.GridCell{
+    .{ .x = 39, .z = 6 },
+    .{ .x = 40, .z = 6 },
+    .{ .x = 41, .z = 6 },
+    .{ .x = 42, .z = 6 },
+    .{ .x = 43, .z = 6 },
+    .{ .x = 39, .z = 7 },
+    .{ .x = 40, .z = 7 },
+    .{ .x = 41, .z = 7 },
+    .{ .x = 42, .z = 7 },
+    .{ .x = 43, .z = 7 },
+};
 const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
 const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
 
@@ -46,6 +65,48 @@ fn zoneSetContainsIndex(
         if (zone.index == zone_index) return true;
     }
     return false;
+}
+
+fn rewardLandingWorldPosition(cell: locomotion.GridCell) locomotion.WorldPointSnapshot {
+    return .{
+        .x = @as(i32, @intCast(cell.x)) * runtime_query.world_grid_span_xz + @divFloor(runtime_query.world_grid_span_xz, 2),
+        .y = reward_floor_top_y,
+        .z = @as(i32, @intCast(cell.z)) * runtime_query.world_grid_span_xz + @divFloor(runtime_query.world_grid_span_xz, 2),
+    };
+}
+
+fn rewardStagingWorldPosition() locomotion.WorldPointSnapshot {
+    return rewardLandingWorldPosition(reward_staging_cell);
+}
+
+fn primeScene1919RewardBurst(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+) !usize {
+    _ = try object_behavior.stepSupportedObjects(room, current_session);
+    current_session.advanceFrameIndex();
+    const primed_state = current_session.objectBehaviorStateByIndexPtr(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    primed_state.last_hit_by = 1;
+
+    var reward_tick: ?usize = null;
+    var tick_index: usize = 1;
+    while (tick_index < 16) : (tick_index += 1) {
+        _ = try object_behavior.stepSupportedObjects(room, current_session);
+        current_session.advanceFrameIndex();
+        if (current_session.bonusSpawnEvents().len != 0) {
+            reward_tick = tick_index + 1;
+            break;
+        }
+    }
+
+    return reward_tick orelse return error.MissingScene1919RewardBurst;
+}
+
+fn allRewardsSettled(current_session: runtime_session.Session) bool {
+    for (current_session.rewardCollectibles()) |collectible| {
+        if (!collectible.settled) return false;
+    }
+    return true;
 }
 
 test "runtime update tick advances frame ownership and supported object behavior even without hero intent" {
@@ -107,41 +168,156 @@ test "runtime object behavior frame progression advances the later 19/19 object 
         .z = 1000,
     });
 
-    _ = try object_behavior.stepSupportedObjects(room, &current_session);
-    current_session.advanceFrameIndex();
-    const primed_state = current_session.objectBehaviorStateByIndexPtr(2) orelse return error.MissingRuntimeObjectBehaviorState;
-    primed_state.last_hit_by = 1;
+    const reward_tick = try primeScene1919RewardBurst(room, &current_session);
 
-    var reward_tick: ?usize = null;
-    var tick_index: usize = 1;
-    while (tick_index < 16) : (tick_index += 1) {
-        _ = try object_behavior.stepSupportedObjects(room, &current_session);
-        current_session.advanceFrameIndex();
-        if (current_session.bonusSpawnEvents().len != 0) {
-            reward_tick = tick_index + 1;
-            break;
-        }
+    try std.testing.expectEqual(@as(usize, 13), reward_tick);
+    try std.testing.expectEqual(@as(u8, 1), current_session.cubeVar(1));
+    try std.testing.expectEqual(reward_scatter_cells.len, current_session.bonusSpawnEvents().len);
+    try std.testing.expectEqual(reward_scatter_cells.len, current_session.rewardCollectibles().len);
+
+    for (current_session.bonusSpawnEvents()) |bonus_event| {
+        try std.testing.expectEqual(@as(usize, 12), bonus_event.frame_index);
+        try std.testing.expectEqual(@as(usize, 2), bonus_event.source_object_index);
+        try std.testing.expectEqual(runtime_session.RuntimeBonusKind.magic, bonus_event.kind);
+        try std.testing.expectEqual(@as(i16, 5), bonus_event.sprite_index);
+        try std.testing.expectEqual(@as(u8, 1), bonus_event.quantity);
     }
 
-    try std.testing.expectEqual(@as(?usize, 13), reward_tick);
-    try std.testing.expectEqual(@as(u8, 1), current_session.cubeVar(1));
-    try std.testing.expectEqual(@as(usize, 1), current_session.bonusSpawnEvents().len);
-
-    const bonus_event = current_session.bonusSpawnEvents()[0];
-    try std.testing.expectEqual(@as(usize, 12), bonus_event.frame_index);
-    try std.testing.expectEqual(@as(usize, 2), bonus_event.source_object_index);
-    try std.testing.expectEqual(runtime_session.RuntimeBonusKind.magic, bonus_event.kind);
-    try std.testing.expectEqual(@as(i16, 5), bonus_event.sprite_index);
-    try std.testing.expectEqual(@as(u8, 5), bonus_event.quantity);
+    for (current_session.rewardCollectibles(), reward_scatter_cells, 0..) |reward_collectible, expected_cell, scatter_index| {
+        const expected_landing_position = rewardLandingWorldPosition(expected_cell);
+        try std.testing.expectEqual(@as(usize, 12), reward_collectible.spawn_frame_index);
+        try std.testing.expectEqual(@as(usize, 2), reward_collectible.source_object_index);
+        try std.testing.expectEqual(runtime_session.RuntimeBonusKind.magic, reward_collectible.kind);
+        try std.testing.expectEqual(@as(i16, 5), reward_collectible.sprite_index);
+        try std.testing.expectEqual(@as(u8, 1), reward_collectible.quantity);
+        try std.testing.expectEqual(expected_cell, reward_collectible.admitted_surface_cell);
+        try std.testing.expectEqual(reward_floor_top_y, reward_collectible.admitted_surface_top_y);
+        try std.testing.expectEqual(@as(u8, @intCast(scatter_index)), reward_collectible.scatter_slot);
+        try std.testing.expectEqual(@as(u8, 0), reward_collectible.rebound_count);
+        try std.testing.expect(!reward_collectible.settled);
+        try std.testing.expectEqual(reward_origin_world_position, reward_collectible.world_position);
+        try std.testing.expectEqual(reward_origin_world_position, reward_collectible.motion_start_world_position);
+        try std.testing.expectEqual(expected_landing_position, reward_collectible.motion_target_world_position);
+    }
 
     const rewarded_state = current_session.objectBehaviorStateByIndex(2) orelse return error.MissingRuntimeObjectBehaviorState;
-    try std.testing.expectEqual(@as(u8, 1), rewarded_state.emitted_bonus_count);
+    try std.testing.expectEqual(@as(u8, reward_scatter_cells.len), rewarded_state.emitted_bonus_count);
+    try std.testing.expect(rewarded_state.bonus_exhausted);
     try std.testing.expectEqual(@as(u8, @intFromEnum(life_program.LifeOpcode.LM_SNIF)), rewarded_state.life_bytes[51]);
 
     _ = try object_behavior.stepSupportedObjects(room, &current_session);
     current_session.advanceFrameIndex();
     const recovered_state = current_session.objectBehaviorStateByIndex(2) orelse return error.MissingRuntimeObjectBehaviorState;
     try std.testing.expectEqual(@as(u8, @intFromEnum(life_program.LifeOpcode.LM_SWIF)), recovered_state.life_bytes[51]);
+    try std.testing.expectEqual(reward_scatter_cells.len, current_session.bonusSpawnEvents().len);
+}
+
+test "runtime update tick keeps 19/19 sewer bonuses unpickable until their bounded scatter settles" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setMagicLevelAndRefill(3);
+    current_session.setMagicPoint(10);
+    current_session.setHeroWorldPosition(.{
+        .x = 2500,
+        .y = 1000,
+        .z = 1000,
+    });
+
+    const reward_tick = try primeScene1919RewardBurst(room, &current_session);
+
+    try std.testing.expectEqual(@as(usize, 13), reward_tick);
+    try std.testing.expectEqual(@as(u8, 10), current_session.magicPoint());
+    try std.testing.expectEqual(reward_scatter_cells.len, current_session.rewardCollectibles().len);
+    try std.testing.expectEqual(@as(usize, 0), current_session.rewardPickupEvents().len);
+
+    const first_landing_position = rewardLandingWorldPosition(reward_scatter_cells[0]);
+    current_session.setHeroWorldPosition(first_landing_position);
+    const first_tick = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expect(!first_tick.triggered_room_transition);
+    try std.testing.expectEqual(@as(u8, 10), current_session.magicPoint());
+    try std.testing.expectEqual(reward_scatter_cells.len, current_session.rewardCollectibles().len);
+    try std.testing.expectEqual(@as(usize, 0), current_session.rewardPickupEvents().len);
+    try std.testing.expect(!current_session.rewardCollectibles()[0].settled);
+    try std.testing.expect(!std.meta.eql(current_session.rewardCollectibles()[0].world_position, reward_origin_world_position));
+    try std.testing.expect(!std.meta.eql(current_session.rewardCollectibles()[0].world_position, first_landing_position));
+}
+
+test "runtime update tick resolves one settled 19/19 magic bonus per pickup and increases magic by the per-bonus amount" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setMagicLevelAndRefill(3);
+    current_session.setMagicPoint(10);
+    current_session.setHeroWorldPosition(.{
+        .x = 2500,
+        .y = 1000,
+        .z = 1000,
+    });
+
+    _ = try primeScene1919RewardBurst(room, &current_session);
+    while (!allRewardsSettled(current_session)) {
+        current_session.setHeroWorldPosition(rewardStagingWorldPosition());
+        _ = try runtime_update.tick(room, &current_session);
+    }
+
+    const first_landing_position = current_session.rewardCollectibles()[0].world_position;
+    try std.testing.expectEqual(
+        runtime_query.MoveTargetStatus.allowed,
+        runtime_query.init(room).evaluateHeroMoveTarget(first_landing_position).status,
+    );
+    current_session.setHeroWorldPosition(first_landing_position);
+    const pickup_tick = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expect(!pickup_tick.triggered_room_transition);
+    try std.testing.expectEqual(@as(u8, 12), current_session.magicPoint());
+    try std.testing.expectEqual(reward_scatter_cells.len - 1, current_session.rewardCollectibles().len);
+    try std.testing.expectEqual(@as(usize, 1), current_session.rewardPickupEvents().len);
+
+    const pickup_event = current_session.rewardPickupEvents()[0];
+    try std.testing.expectEqual(@as(usize, 16), pickup_event.pickup_frame_index);
+    try std.testing.expectEqual(@as(usize, 2), pickup_event.source_object_index);
+    try std.testing.expectEqual(runtime_session.RuntimeBonusKind.magic, pickup_event.kind);
+    try std.testing.expectEqual(@as(i16, 5), pickup_event.sprite_index);
+    try std.testing.expectEqual(@as(u8, 1), pickup_event.quantity);
+    try std.testing.expectEqual(first_landing_position, pickup_event.world_position);
+}
+
+test "runtime update tick denies full-magic pickup on settled 19/19 sewer bonuses and rebounds them in place" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setMagicLevelAndRefill(3);
+    current_session.setHeroWorldPosition(.{
+        .x = 2500,
+        .y = 1000,
+        .z = 1000,
+    });
+
+    _ = try primeScene1919RewardBurst(room, &current_session);
+    while (!allRewardsSettled(current_session)) {
+        current_session.setHeroWorldPosition(rewardStagingWorldPosition());
+        _ = try runtime_update.tick(room, &current_session);
+    }
+
+    const first_landing_position = current_session.rewardCollectibles()[0].world_position;
+    current_session.setHeroWorldPosition(first_landing_position);
+    const denied_tick = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expect(!denied_tick.triggered_room_transition);
+    try std.testing.expectEqual(@as(u8, 60), current_session.magicPoint());
+    try std.testing.expectEqual(reward_scatter_cells.len, current_session.rewardCollectibles().len);
+    try std.testing.expectEqual(@as(usize, 0), current_session.rewardPickupEvents().len);
+    try std.testing.expect(!current_session.rewardCollectibles()[0].settled);
+    try std.testing.expect(!std.meta.eql(current_session.rewardCollectibles()[0].motion_target_world_position, first_landing_position));
+
+    current_session.setHeroWorldPosition(rewardStagingWorldPosition());
+    _ = try runtime_update.tick(room, &current_session);
+    try std.testing.expect(!std.meta.eql(current_session.rewardCollectibles()[0].world_position, first_landing_position));
 }
 
 test "runtime zone effects record a generic change-cube transition from guarded 2/2 zone semantics" {

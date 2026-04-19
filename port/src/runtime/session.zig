@@ -38,6 +38,34 @@ pub const BonusSpawnEvent = struct {
     quantity: u8,
 };
 
+pub const RewardCollectible = struct {
+    spawn_frame_index: usize,
+    source_object_index: usize,
+    kind: RuntimeBonusKind,
+    sprite_index: i16,
+    quantity: u8,
+    admitted_surface_cell: world_geometry.GridCell,
+    admitted_surface_top_y: i32,
+    scatter_slot: u8,
+    rebound_count: u8,
+    settled: bool,
+    motion_start_world_position: world_geometry.WorldPointSnapshot,
+    motion_target_world_position: world_geometry.WorldPointSnapshot,
+    motion_total_ticks: u8,
+    motion_ticks_remaining: u8,
+    motion_arc_height: i32,
+    world_position: world_geometry.WorldPointSnapshot,
+};
+
+pub const RewardPickupEvent = struct {
+    pickup_frame_index: usize,
+    source_object_index: usize,
+    kind: RuntimeBonusKind,
+    sprite_index: i16,
+    quantity: u8,
+    world_position: world_geometry.WorldPointSnapshot,
+};
+
 pub const PendingRoomTransitionDestinationPositionKind = enum {
     provisional_zone_relative,
     final_landing,
@@ -54,6 +82,8 @@ pub const PendingRoomTransition = struct {
 };
 
 const max_bonus_spawn_events = 16;
+const max_reward_collectibles = 16;
+const max_reward_pickup_events = 16;
 const max_game_vars = 256;
 
 pub const SendellBallPhase = enum(u8) {
@@ -90,6 +120,10 @@ pub const Session = struct {
     object_behaviors: []ObjectBehaviorState,
     bonus_spawn_event_count: usize,
     bonus_spawn_events: [max_bonus_spawn_events]BonusSpawnEvent,
+    reward_collectible_count: usize,
+    reward_collectibles: [max_reward_collectibles]RewardCollectible,
+    reward_pickup_event_count: usize,
+    reward_pickup_events: [max_reward_pickup_events]RewardPickupEvent,
     pending_room_transition: ?PendingRoomTransition,
     owns_objects: bool,
     owns_object_behaviors: bool,
@@ -110,6 +144,10 @@ pub const Session = struct {
             .object_behaviors = &.{},
             .bonus_spawn_event_count = 0,
             .bonus_spawn_events = undefined,
+            .reward_collectible_count = 0,
+            .reward_collectibles = undefined,
+            .reward_pickup_event_count = 0,
+            .reward_pickup_events = undefined,
             .pending_room_transition = null,
             .owns_objects = false,
             .owns_object_behaviors = false,
@@ -142,6 +180,10 @@ pub const Session = struct {
             .object_behaviors = owned_object_behaviors,
             .bonus_spawn_event_count = 0,
             .bonus_spawn_events = undefined,
+            .reward_collectible_count = 0,
+            .reward_collectibles = undefined,
+            .reward_pickup_event_count = 0,
+            .reward_pickup_events = undefined,
             .pending_room_transition = null,
             .owns_objects = true,
             .owns_object_behaviors = true,
@@ -157,6 +199,8 @@ pub const Session = struct {
         self.objects = &.{};
         self.object_behaviors = &.{};
         self.bonus_spawn_event_count = 0;
+        self.reward_collectible_count = 0;
+        self.reward_pickup_event_count = 0;
         self.current_dialog_id = null;
         self.pending_room_transition = null;
         self.owns_objects = false;
@@ -190,6 +234,8 @@ pub const Session = struct {
         self.objects = owned_objects;
         self.object_behaviors = owned_object_behaviors;
         self.bonus_spawn_event_count = 0;
+        self.reward_collectible_count = 0;
+        self.reward_pickup_event_count = 0;
         self.pending_room_transition = null;
         self.owns_objects = true;
         self.owns_object_behaviors = true;
@@ -282,6 +328,19 @@ pub const Session = struct {
         return self.bonus_spawn_events[0..self.bonus_spawn_event_count];
     }
 
+    pub fn rewardCollectibles(self: Session) []const RewardCollectible {
+        return self.reward_collectibles[0..self.reward_collectible_count];
+    }
+
+    pub fn rewardCollectiblePtrAt(self: *Session, collectible_index: usize) ?*RewardCollectible {
+        if (collectible_index >= self.reward_collectible_count) return null;
+        return &self.reward_collectibles[collectible_index];
+    }
+
+    pub fn rewardPickupEvents(self: Session) []const RewardPickupEvent {
+        return self.reward_pickup_events[0..self.reward_pickup_event_count];
+    }
+
     pub fn pendingRoomTransition(self: Session) ?PendingRoomTransition {
         return self.pending_room_transition;
     }
@@ -335,6 +394,31 @@ pub const Session = struct {
         }
         self.bonus_spawn_events[self.bonus_spawn_event_count] = event;
         self.bonus_spawn_event_count += 1;
+    }
+
+    pub fn appendRewardCollectible(self: *Session, collectible: RewardCollectible) !void {
+        if (self.reward_collectible_count >= self.reward_collectibles.len) {
+            return error.RewardCollectibleCapacityExceeded;
+        }
+        self.reward_collectibles[self.reward_collectible_count] = collectible;
+        self.reward_collectible_count += 1;
+    }
+
+    pub fn appendRewardPickupEvent(self: *Session, event: RewardPickupEvent) !void {
+        if (self.reward_pickup_event_count >= self.reward_pickup_events.len) {
+            return error.RewardPickupEventCapacityExceeded;
+        }
+        self.reward_pickup_events[self.reward_pickup_event_count] = event;
+        self.reward_pickup_event_count += 1;
+    }
+
+    pub fn removeRewardCollectibleAt(self: *Session, collectible_index: usize) !void {
+        if (collectible_index >= self.reward_collectible_count) return error.UnknownRewardCollectibleIndex;
+        const last_index = self.reward_collectible_count - 1;
+        if (collectible_index != last_index) {
+            self.reward_collectibles[collectible_index] = self.reward_collectibles[last_index];
+        }
+        self.reward_collectible_count = last_index;
     }
 
     pub fn setPendingRoomTransition(

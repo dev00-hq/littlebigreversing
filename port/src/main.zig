@@ -9,6 +9,7 @@ const reference_metadata = @import("generated/reference_metadata.zig");
 const sdl = @import("platform/sdl.zig");
 const locomotion = @import("runtime/locomotion.zig");
 const runtime_object_behavior = @import("runtime/object_behavior.zig");
+const runtime_query = @import("runtime/world_query.zig");
 const room_state = @import("runtime/room_state.zig");
 const runtime_session_mod = @import("runtime/session.zig");
 const runtime_transition = @import("runtime/transition.zig");
@@ -299,6 +300,7 @@ fn applyScheduledWorldStep(
         },
         .advance_world => {
             const previous_bonus_event_count = runtime_session.bonusSpawnEvents().len;
+            const previous_reward_pickup_event_count = runtime_session.rewardPickupEvents().len;
             const tick_result = try runtime_update.tick(room, runtime_session);
             if (tick_result.triggered_room_transition) {
                 const transition_result = try runtime_transition.applyPendingRoomTransition(
@@ -325,6 +327,12 @@ fn applyScheduledWorldStep(
                     room,
                     runtime_session.*,
                     previous_bonus_event_count,
+                );
+                try printNewRewardPickupEvents(
+                    stderr,
+                    room,
+                    runtime_session.*,
+                    previous_reward_pickup_event_count,
                 );
             }
         },
@@ -354,6 +362,33 @@ fn printNewBonusSpawnEvents(
                 event.quantity,
                 if (behavior_state) |state| state.emitted_bonus_count else @as(u8, 0),
                 if (behavior_state) |state| state.bonus_exhausted else false,
+            },
+        );
+    }
+}
+
+fn printNewRewardPickupEvents(
+    stderr: anytype,
+    room: *const viewer_shell.RoomSnapshot,
+    runtime_session: viewer_shell.Session,
+    previous_reward_pickup_event_count: usize,
+) !void {
+    const events = runtime_session.rewardPickupEvents();
+    if (events.len <= previous_reward_pickup_event_count) return;
+
+    for (events[previous_reward_pickup_event_count..]) |event| {
+        try stderr.print(
+            "event=bonus_pickup scene_entry_index={d} background_entry_index={d} frame_index={d} source_object_index={d} kind={s} sprite_index={d} quantity={d} hero_magic_level={d} hero_magic_point={d}\n",
+            .{
+                room.scene.entry_index,
+                room.background.entry_index,
+                event.pickup_frame_index,
+                event.source_object_index,
+                @tagName(event.kind),
+                event.sprite_index,
+                event.quantity,
+                runtime_session.magicLevel(),
+                runtime_session.magicPoint(),
             },
         );
     }
@@ -605,6 +640,64 @@ test "main bonus spawn diagnostics print the bounded 19/19 object-2 reward event
     try std.testing.expect(std.mem.indexOf(u8, output.items, "scene_entry_index=19 background_entry_index=19") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.items, "source_object_index=2") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.items, "kind=magic") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "quantity=5") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "emitted_bonus_count=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "quantity=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "emitted_bonus_count=10") != null);
+}
+
+test "main bonus pickup diagnostics print the bounded 19/19 magic reward resolution" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 19, 19);
+    defer room.deinit(allocator);
+
+    var runtime_session = try viewer_shell.initSession(allocator, &room);
+    defer runtime_session.deinit(allocator);
+    runtime_session.setMagicLevelAndRefill(3);
+    runtime_session.setMagicPoint(10);
+    runtime_session.setHeroWorldPosition(.{
+        .x = 2500,
+        .y = 1000,
+        .z = 1000,
+    });
+
+    var output: std.ArrayList(u8) = .empty;
+    defer output.deinit(allocator);
+
+    _ = try runtime_object_behavior.stepSupportedObjects(&room, &runtime_session);
+    runtime_session.advanceFrameIndex();
+    const primed_state = runtime_session.objectBehaviorStateByIndexPtr(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    primed_state.last_hit_by = 1;
+
+    while (runtime_session.rewardCollectibles().len == 0) {
+        _ = try runtime_object_behavior.stepSupportedObjects(&room, &runtime_session);
+        runtime_session.advanceFrameIndex();
+    }
+
+    while (true) {
+        var settled = true;
+        for (runtime_session.rewardCollectibles()) |collectible| {
+            if (!collectible.settled) {
+                settled = false;
+                break;
+            }
+        }
+        if (settled) break;
+
+        runtime_session.setHeroWorldPosition(runtime_query.gridCellCenterWorldPosition(39, 10, 25 * runtime_query.world_grid_span_y));
+        _ = try runtime_update.tick(&room, &runtime_session);
+    }
+
+    runtime_session.setHeroWorldPosition(runtime_session.rewardCollectibles()[0].world_position);
+    const previous_reward_pickup_event_count = runtime_session.rewardPickupEvents().len;
+    _ = try runtime_update.tick(&room, &runtime_session);
+    try printNewRewardPickupEvents(output.writer(allocator), &room, runtime_session, previous_reward_pickup_event_count);
+
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=bonus_pickup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "scene_entry_index=19 background_entry_index=19") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "source_object_index=2") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "kind=magic") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "quantity=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "hero_magic_point=12") != null);
 }

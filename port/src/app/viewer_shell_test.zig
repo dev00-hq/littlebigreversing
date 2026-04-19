@@ -1330,7 +1330,53 @@ test "viewer 19/19 reward overlay reflects the bounded object-2 bonus loop" {
         },
     ) catch unreachable;
     try std.testing.expectEqualStrings(expected_line_0_slice, overlay.lines[0]);
-    try std.testing.expectEqualStrings("BONUS 1 READY", overlay.lines[1]);
+    try std.testing.expectEqualStrings("DROP 10 LIVE", overlay.lines[1]);
     try std.testing.expectEqualStrings(expected_line_2_slice, overlay.lines[2]);
-    try std.testing.expectEqualStrings("LAST MAG 5@12", overlay.lines[3]);
+    try std.testing.expectEqualStrings("LAST MAG 1@12", overlay.lines[3]);
+}
+
+test "viewer 19/19 reward overlay shows bounded pickup resolution once the magic bonus is collected" {
+    const room = try room_fixtures.guarded1919();
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(std.testing.allocator);
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    runtime_session.setMagicLevelAndRefill(3);
+    runtime_session.setMagicPoint(10);
+    runtime_session.setHeroWorldPosition(.{
+        .x = 2500,
+        .y = 1000,
+        .z = 1000,
+    });
+
+    _ = try runtime_object_behavior.stepSupportedObjects(room, &runtime_session);
+    runtime_session.advanceFrameIndex();
+    const primed_state = runtime_session.objectBehaviorStateByIndexPtr(2) orelse return error.MissingRuntimeObjectBehaviorState;
+    primed_state.last_hit_by = 1;
+
+    while (runtime_session.rewardCollectibles().len == 0) {
+        _ = try runtime_object_behavior.stepSupportedObjects(room, &runtime_session);
+        runtime_session.advanceFrameIndex();
+    }
+
+    while (true) {
+        var settled = true;
+        for (runtime_session.rewardCollectibles()) |collectible| {
+            if (!collectible.settled) {
+                settled = false;
+                break;
+            }
+        }
+        if (settled) break;
+
+        runtime_session.setHeroWorldPosition(runtime_query.gridCellCenterWorldPosition(39, 10, 25 * runtime_query.world_grid_span_y));
+        _ = try runtime_update.tick(room, &runtime_session);
+    }
+
+    runtime_session.setHeroWorldPosition(runtime_session.rewardCollectibles()[0].world_position);
+    _ = try runtime_update.tick(room, &runtime_session);
+
+    const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
+    try std.testing.expectEqualStrings("DROP 9 LIVE", overlay.lines[1]);
+    try std.testing.expectEqualStrings("PICK MAG 1@16", overlay.lines[3]);
 }

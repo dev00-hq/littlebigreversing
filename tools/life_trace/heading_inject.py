@@ -58,6 +58,9 @@ const ADDR = {
 };
 
 const OFF = {
+  oldX: 0x08,
+  oldY: 0x0c,
+  oldZ: 0x10,
   x: 0x3e,
   y: 0x42,
   z: 0x46,
@@ -85,6 +88,9 @@ function readSnapshot() {
     module_name: mainModule.name,
     module_base: base.toString(),
     hero_base: hero.toString(),
+    old_x: readS32(hero.add(OFF.oldX)),
+    old_y: readS32(hero.add(OFF.oldY)),
+    old_z: readS32(hero.add(OFF.oldZ)),
     x: readS32(hero.add(OFF.x)),
     y: readS32(hero.add(OFF.y)),
     z: readS32(hero.add(OFF.z)),
@@ -119,12 +125,28 @@ function applyHeading(targetBeta, syncBoundAngle, setOldBeta) {
   return readSnapshot();
 }
 
+function applyTeleport(targetX, targetY, targetZ, syncOldPosition) {
+  const hero = heroAddr();
+  hero.add(OFF.x).writeS32(targetX);
+  hero.add(OFF.y).writeS32(targetY);
+  hero.add(OFF.z).writeS32(targetZ);
+  if (syncOldPosition) {
+    hero.add(OFF.oldX).writeS32(targetX);
+    hero.add(OFF.oldY).writeS32(targetY);
+    hero.add(OFF.oldZ).writeS32(targetZ);
+  }
+  return readSnapshot();
+}
+
 rpc.exports = {
   snapshot() {
     return readSnapshot();
   },
   applyheading(targetBeta, syncBoundAngle, setOldBeta) {
     return applyHeading(targetBeta, !!syncBoundAngle, !!setOldBeta);
+  },
+  applyteleport(targetX, targetY, targetZ, syncOldPosition) {
+    return applyTeleport(targetX, targetY, targetZ, !!syncOldPosition);
   },
 };
 """
@@ -240,6 +262,35 @@ class HeadingInjector:
         verified["set_old_beta"] = set_old_beta
         verified["sustain_ms"] = sustain_ms
         verified["interval_ms"] = interval_ms
+        return verified
+
+    def teleport_xyz(
+        self,
+        target_x: int,
+        target_y: int,
+        target_z: int,
+        *,
+        sync_old_position: bool = True,
+    ) -> dict[str, Any]:
+        self.connect()
+        snapshot = self._script.exports_sync.applyteleport(
+            int(target_x),
+            int(target_y),
+            int(target_z),
+            sync_old_position,
+        )
+        verified = enrich_snapshot(snapshot)
+        verified["target_position"] = {
+            "x": int(target_x),
+            "y": int(target_y),
+            "z": int(target_z),
+        }
+        verified["sync_old_position"] = sync_old_position
+        verified["final_delta_position"] = {
+            "x": (None if verified.get("x") is None else int(verified["x"]) - int(target_x)),
+            "y": (None if verified.get("y") is None else int(verified["y"]) - int(target_y)),
+            "z": (None if verified.get("z") is None else int(verified["z"]) - int(target_z)),
+        }
         return verified
 
 

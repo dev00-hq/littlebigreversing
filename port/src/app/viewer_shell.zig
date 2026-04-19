@@ -535,9 +535,12 @@ pub fn formatScene1919RewardOverlayDisplay(
 
     const object_behavior = current_session.objectBehaviorStateByIndex(reward_object_index) orelse return .{};
     const events = current_session.bonusSpawnEvents();
-    if (events.len == 0 and object_behavior.emitted_bonus_count == 0) return .{};
+    const collectibles = current_session.rewardCollectibles();
+    const pickup_events = current_session.rewardPickupEvents();
+    if (events.len == 0 and object_behavior.emitted_bonus_count == 0 and pickup_events.len == 0) return .{};
 
     const latest_event = if (events.len == 0) null else events[events.len - 1];
+    const latest_pickup_event = if (pickup_events.len == 0) null else pickup_events[pickup_events.len - 1];
 
     const line_0 = std.fmt.bufPrint(
         &buffer.line_0,
@@ -549,10 +552,18 @@ pub fn formatScene1919RewardOverlayDisplay(
     ) catch unreachable;
     const line_1 = std.fmt.bufPrint(
         &buffer.line_1,
-        "BONUS {d} {s}",
+        "{s} {d} {s}",
         .{
-            object_behavior.emitted_bonus_count,
-            if (object_behavior.bonus_exhausted) "SPENT" else "READY",
+            if (collectibles.len != 0) "DROP" else "BONUS",
+            if (collectibles.len != 0) collectibles.len else object_behavior.emitted_bonus_count,
+            if (collectibles.len != 0)
+                "LIVE"
+            else if (pickup_events.len != 0)
+                "TAKEN"
+            else if (object_behavior.bonus_exhausted)
+                "SPENT"
+            else
+                "READY",
         },
     ) catch unreachable;
     const line_2 = std.fmt.bufPrint(
@@ -563,7 +574,17 @@ pub fn formatScene1919RewardOverlayDisplay(
             current_session.cubeVar(1),
         },
     ) catch unreachable;
-    const line_3 = if (latest_event) |event|
+    const line_3 = if (latest_pickup_event) |event|
+        std.fmt.bufPrint(
+            &buffer.line_3,
+            "PICK {s} {d}@{d}",
+            .{
+                runtimeBonusKindLabel(event.kind),
+                event.quantity,
+                event.pickup_frame_index,
+            },
+        ) catch unreachable
+    else if (latest_event) |event|
         std.fmt.bufPrint(
             &buffer.line_3,
             "LAST {s} {d}@{d}",

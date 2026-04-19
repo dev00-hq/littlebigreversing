@@ -31,6 +31,30 @@ Current repo test anchors:
 - `port/src/app/viewer/state_test.zig`: guarded room fixtures preserve typed change-cube metadata.
 - `port/src/runtime/update_test.zig`: generic pending room-transition fields match zone semantics, including the bounded `2/2` zone-recovery seam.
 
+## Reward Resolution
+
+Classic source anchors:
+
+- `../lba-reference-repos/lba2-classic-community/SOURCES/GERELIFE.CPP`: `LM_GIVE_BONUS`.
+- `../lba-reference-repos/lba2-classic-community/SOURCES/EXTRA.CPP`: `WhichBonus`, `GiveExtraBonus`, `ExtraBonus`, and the takable extra resolution path for `SPRITE_MAGIE`.
+
+Observed rules:
+
+- `LM_GIVE_BONUS` does not directly mutate hero magic or inventory. It calls `GiveExtraBonus(ptrobj)`, which resolves the allowed bonus kind from the option-flag mask and spawns a takable extra first.
+- Magic pickup resolution happens later through the extra system. On hero contact, `SPRITE_MAGIE` raises `MagicPoint` by `Divers * 2`, capped at `MagicLevel * 20`, and only then is the extra consumed.
+
+Port implications:
+
+- Treat guarded `19/19` object-`2` reward resolution as a two-step contract: bounded collectible spawn first, bounded hero pickup second.
+- Do not claim generic inventory or save/load parity from this slice.
+- Under the guarded room model, raw scene-object placements are still not admitted floor-truth anchors, so the current port lands the emitted collectible on the nearest admitted standable cell instead of using the raw object point as a pickup-valid world position.
+
+Current repo test anchors:
+
+- `port/src/runtime/update_test.zig`: guarded `19/19` reward emission appends one magic collectible and later pickup resolves it into `MagicPoint`.
+- `port/src/app/viewer_shell_test.zig`: the guarded `19/19` overlay distinguishes live reward drops from collected rewards.
+- `port/src/main.zig`: bounded `bonus_pickup` diagnostics print the resolved guarded `19/19` magic reward.
+
 ## Save/Load Payload Structure
 
 Classic source anchors:
