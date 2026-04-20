@@ -222,6 +222,28 @@ Repo-scoped memory for tests.
         if obsolete:
             self.write(paths.docs_dir / "handoff.md", "# obsolete\n")
 
+    def test_repo_owner_map_covers_current_runtime_and_tool_surfaces(self) -> None:
+        repo_root = Path(__file__).resolve().parent.parent
+        paths = codex_memory.MemoryPaths.defaults(repo_root)
+        rules = codex_memory.load_index(paths)[1]
+
+        expected = {
+            "port/src/app/viewer_shell.zig": "architecture",
+            "port/src/runtime/object_behavior.zig": "architecture",
+            "port/src/generated/reference_metadata.zig": "intelligence",
+            "port/src/testing/room_fixtures.zig": "assets",
+            "tools/life_trace/trace_life.py": "life_scripts",
+            "tools/generate_room_metadata.py": "intelligence",
+            "tools/build_scene_crosswalk.py": "phase0_baseline",
+        }
+
+        for repo_path, subsystem in expected.items():
+            with self.subTest(repo_path=repo_path):
+                self.assertEqual(
+                    [subsystem],
+                    codex_memory.resolve_subsystems(repo_path, rules),
+                )
+
     def test_validate_accepts_v2_tree(self) -> None:
         paths = self.make_paths()
         self.scaffold(paths)
