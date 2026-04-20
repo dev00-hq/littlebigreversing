@@ -27,13 +27,10 @@ from life_trace_shared import (
     DEFAULT_GAME_EXE,
     DEFAULT_RUN_ROOT,
     DEFAULT_SAVE_SOURCE_ROOT,
+    DIRECT_SAVE_POST_SPLASH_SETTLE_DELAY_SEC,
     ExeSwitchState,
     FraProbeRuntime,
     JsonlWriter,
-    LOAD_GAME_MAIN_MENU_MOVE_DELAY_SEC,
-    LOAD_GAME_MENU_SETTLE_DELAY_SEC,
-    LOAD_GAME_POST_ADELINE_MENU_DELAY_SEC,
-    LOAD_GAME_SOLE_SAVE_SETTLE_DELAY_SEC,
     PersistedBranchTraceEvent,
     PersistedDoLifeReturnEvent,
     PersistedErrorEvent,
@@ -64,7 +61,7 @@ from life_trace_shared import (
     serialize_persisted_event,
     load_callsite_index,
 )
-from life_trace_windows import WindowInfo
+from life_trace_windows import WindowFrameSignature, WindowInfo
 import life_trace_runtime as runtime
 import scenes.tavern as tavern_scene
 from scenes.registry import (
@@ -88,9 +85,9 @@ from scenes.scene11 import (
     determine_scene11_snapshot_verdict,
     drive_scene11_launch_startup,
     load_scene11_run_summary,
+    resolve_direct_launch_save,
     scene11_object_status,
     scene11_runtime_pair_owner,
-    stage_scene11_load_game_save,
     summarize_scene11_runtime_mismatch,
     write_scene11_run_summary,
 )
@@ -100,7 +97,6 @@ from scenes.tavern import (
     TavernTraceController,
     cleanup_tavern_launch,
     drive_tavern_launch_startup,
-    stage_tavern_load_game_save,
 )
 
 

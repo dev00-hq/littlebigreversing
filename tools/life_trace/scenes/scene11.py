@@ -25,10 +25,9 @@ from life_trace_shared import (
 from life_trace_windows import CaptureError, WindowCapture, WindowInfo, WindowInput
 from scenes.base import StructuredSceneSpec
 from scenes.load_game import (
-    cleanup_staged_load_game_save,
     default_source_save_path,
-    drive_single_save_load_game_startup,
-    stage_single_load_game_save,
+    drive_direct_save_launch_startup,
+    resolve_direct_launch_save,
 )
 
 
@@ -139,31 +138,16 @@ COMPARISON_SNAPSHOT = Scene11ObjectSnapshotSpec(
     expected_opcode=SCENE11_PAIR_PRESET.comparison_opcode or 0x76,
 )
 
-
-def stage_scene11_load_game_save(
-    args: argparse.Namespace,
-    writer: JsonlWriter,
-    launch_path: Path,
-) -> tuple[Path, Path]:
-    return stage_single_load_game_save(
-        args,
-        writer,
-        launch_path,
-        lane_name="scene11-pair",
-        default_source=default_source_save_path("02-voisin.LBA"),
-    )
-
-
 def drive_scene11_launch_startup(
     writer: JsonlWriter,
     pid: int,
     *,
     post_load_settle_delay_sec: float = 5.0,
-    post_load_status_message: str = "waited for the sole staged save to settle before capturing the debugger snapshot lane",
+    post_load_status_message: str = "waited for the direct-launch save to settle before capturing the debugger snapshot lane",
     capture: WindowCapture | None = None,
     window_input: WindowInput | None = None,
 ) -> None:
-    drive_single_save_load_game_startup(
+    drive_direct_save_launch_startup(
         writer,
         pid,
         scene_label="Scene11",
@@ -182,12 +166,18 @@ def prepare_scene11_launch(
     launch_path: Path,
     pid: int,
 ) -> None:
-    stage_scene11_load_game_save(args, writer, launch_path)
+    del launch_path
+    resolve_direct_launch_save(
+        args,
+        writer,
+        lane_name="scene11-pair",
+        default_source=default_source_save_path("02-voisin.LBA"),
+    )
     drive_scene11_launch_startup(writer, pid)
 
 
 def cleanup_scene11_launch(args: argparse.Namespace, writer: JsonlWriter, launch_path: Path) -> None:
-    cleanup_staged_load_game_save(args, writer, launch_path)
+    del args, writer, launch_path
 
 
 def object_record_address(object_index: int) -> int:

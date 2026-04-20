@@ -20,11 +20,10 @@ from life_trace_shared import (
 )
 from life_trace_windows import CaptureError, WindowCapture
 from scenes.base import StructuredSceneControllerBase, StructuredSceneSpec
-from scenes.load_game import default_source_save_path
+from scenes.load_game import default_source_save_path, resolve_direct_launch_save
 from scenes.scene11 import (
     cleanup_scene11_launch,
     drive_scene11_launch_startup,
-    stage_scene11_load_game_save,
 )
 
 
@@ -56,11 +55,17 @@ def prepare_scene11_live_launch(
     launch_path: Path,
     pid: int,
 ) -> None:
-    stage_scene11_load_game_save(args, writer, launch_path)
+    del launch_path
+    resolve_direct_launch_save(
+        args,
+        writer,
+        lane_name="scene11-live-pair",
+        default_source=default_source_save_path("02-voisin.LBA"),
+    )
     drive_scene11_launch_startup(
         writer,
         pid,
-        post_load_status_message="waited for the sole staged save to settle before Scene11 live pre-attach settle polls",
+        post_load_status_message="waited for the direct-launch save to settle before Scene11 live pre-attach settle polls",
     )
 
     capture = WindowCapture()

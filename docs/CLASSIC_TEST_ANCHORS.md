@@ -76,7 +76,7 @@ Port implications:
 
 Current repo test anchors:
 
-- `tools/test_life_trace.py`: single-slot `Load Game` staging and cleanup tests keep `current.lba`, staged named saves, and `autosave.lba` handling explicit, but they do not validate classic payload layout.
+- `tools/test_life_trace.py`: direct-save launch tests now pin the canonical original-runtime startup path (`LBA2.EXE <save>.LBA` plus Adeline-splash `Enter`), but they do not validate classic save payload layout.
 - `tools/test_life_trace.py`: Sendell summary tests keep persisted-style story-state fields such as `MagicLevel`, `MagicPoint`, and inventory-backed state separate from dialog UI state, but they are adjacent evidence rather than `SaveContexte()` layout tests.
 - Missing port-side gate to add when serializer work begins: a golden round-trip test that pins header boundaries, screenshot placement, and the first `SaveContexte()` fields before claiming save/load parity.
 
@@ -94,11 +94,13 @@ Observed rules:
 - `NumObjSpeak` is temporary speaker-routing state for live voice playback and is reset to `-1` immediately after `PlaySpeakVoc()` configures the sample.
 - Dialog progress is timer/input-driven in `NextDialCar()`, `Dial()`, and `MyDial()`. The meaningful durable mutations happen through surrounding script effects, not through persisted dialog-page state.
 - `LM_END_MESSAGE` and `LM_END_MESSAGE_OBJ` do not add a separate durable dialog-state contract; they only advance the script stream.
+- On the live room-36 Sendell seam, the visible second page is not reflected in settled `CurrentDial`, `TypeAnswer`, `Value`, `PtrPrg`, the sampled `CurrentDial` neighborhood cluster, or the sampled `PtrPrg` target buffer. A live process-memory scan found the full English sentence already decoded in memory as one readable text record, which means the visible split is renderer pagination inside one decoded record rather than a durable dialog-id transition.
 
 Port implications:
 
 - Keep `CurrentDial` evidence-only until the port owns a real dialog/UI subsystem.
 - Do not treat `CurrentDial` alone as the room-36 dialog-progression oracle. The current direct-read lane can keep it stable while the visible `TypeAnswer` / `Value` lane still advances.
+- Do not treat visible room-36 page 2 as `dialog id 514` without new proof. The current checked-in classic evidence supports one decoded record paginated by the renderer, not a settled `513 -> 514` payload change.
 - Keep bounded Sendell room `36` runtime tests focused on story-state deltas, not faux persistence of classic dialog pagination or speaker-routing state.
 - Save/load parity should not serialize transient dialog-page or live speaker-routing state by default.
 

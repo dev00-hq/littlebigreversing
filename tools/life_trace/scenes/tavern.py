@@ -27,10 +27,9 @@ from life_trace_shared import (
 from life_trace_windows import WindowCapture, WindowInfo, WindowInput
 from scenes.base import StructuredSceneControllerBase, StructuredSceneSpec
 from scenes.load_game import (
-    cleanup_staged_load_game_save,
     default_source_save_path,
-    drive_single_save_load_game_startup,
-    stage_single_load_game_save,
+    drive_direct_save_launch_startup,
+    resolve_direct_launch_save,
 )
 
 
@@ -48,21 +47,6 @@ TAVERN_TRACE_PRESET = TracePreset(
     launch_save=str(default_source_save_path("inside-tavern.LBA")),
 )
 
-
-def stage_tavern_load_game_save(
-    args: argparse.Namespace,
-    writer: JsonlWriter,
-    launch_path: Path,
-) -> tuple[Path, Path]:
-    return stage_single_load_game_save(
-        args,
-        writer,
-        launch_path,
-        lane_name="tavern-trace",
-        default_source=default_source_save_path("inside-tavern.LBA"),
-    )
-
-
 def drive_tavern_launch_startup(
     writer: JsonlWriter,
     pid: int,
@@ -70,7 +54,7 @@ def drive_tavern_launch_startup(
     capture: WindowCapture | None = None,
     window_input: WindowInput | None = None,
 ) -> None:
-    drive_single_save_load_game_startup(
+    drive_direct_save_launch_startup(
         writer,
         pid,
         scene_label="Tavern",
@@ -82,12 +66,18 @@ def drive_tavern_launch_startup(
 
 
 def prepare_tavern_launch(args: argparse.Namespace, writer: JsonlWriter, launch_path: Path, pid: int) -> None:
-    stage_tavern_load_game_save(args, writer, launch_path)
+    del launch_path
+    resolve_direct_launch_save(
+        args,
+        writer,
+        lane_name="tavern-trace",
+        default_source=default_source_save_path("inside-tavern.LBA"),
+    )
     drive_tavern_launch_startup(writer, pid)
 
 
 def cleanup_tavern_launch(args: argparse.Namespace, writer: JsonlWriter, launch_path: Path) -> None:
-    cleanup_staged_load_game_save(args, writer, launch_path)
+    del args, writer, launch_path
 
 
 class TavernTraceController(StructuredSceneControllerBase):

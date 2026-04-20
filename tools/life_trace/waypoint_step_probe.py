@@ -20,9 +20,9 @@ from heading_inject import HeadingInjector
 from life_trace_shared import JsonlWriter
 from life_trace_windows import WindowCapture, WindowInput
 from scenes.load_game import (
-    cleanup_staged_load_game_save,
-    drive_single_save_load_game_startup,
-    stage_single_load_game_save,
+    direct_launch_argv,
+    drive_direct_save_launch_startup,
+    resolve_direct_launch_save,
 )
 
 
@@ -246,30 +246,29 @@ def main() -> int:
 
     proc = None
     try:
-        proc = subprocess.Popen([str(EXE)], cwd=str(EXE.parent))
-        write_status(
-            state="launching",
-            pid=proc.pid,
-            launch_save=args.launch_save,
-            target_beta=target_beta,
-            target_beta_debug=None if target_beta is None else describe_beta(target_beta),
-        )
         launch_args = SimpleNamespace(launch_save=args.launch_save)
-        stage_single_load_game_save(
+        launch_save = resolve_direct_launch_save(
             launch_args,
             writer,
-            EXE,
             lane_name=run_id,
             default_source=Path(args.launch_save),
         )
-        drive_single_save_load_game_startup(
+        proc = subprocess.Popen(direct_launch_argv(EXE, launch_save), cwd=str(EXE.parent))
+        write_status(
+            state="launching",
+            pid=proc.pid,
+            launch_save=str(launch_save),
+            target_beta=target_beta,
+            target_beta_debug=None if target_beta is None else describe_beta(target_beta),
+        )
+        drive_direct_save_launch_startup(
             writer,
             proc.pid,
-            scene_label=f"{run_id}:{Path(args.launch_save).name}",
+            scene_label=f"{run_id}:{launch_save.name}",
             adeline_enter_delay_sec=8.0,
             startup_window_timeout_sec=args.startup_window_timeout_sec,
             post_load_settle_delay_sec=args.post_load_settle_sec,
-            post_load_status_message="staged save loaded; running single heading+burst step",
+            post_load_status_message="direct-launch save loaded; running single heading+burst step",
             capture=capture,
             window_input=window_input,
         )
@@ -396,10 +395,6 @@ def main() -> int:
         SUMMARY_PATH.write_text(json.dumps(summary, indent=2), encoding="utf-8")
         write_status(state="completed", summary_path=str(SUMMARY_PATH), verdict=classification["verdict"])
     finally:
-        try:
-            cleanup_staged_load_game_save(SimpleNamespace(), writer, EXE)
-        except Exception:
-            pass
         writer.close()
         if proc is not None:
             kill_lba2()

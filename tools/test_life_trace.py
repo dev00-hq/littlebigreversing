@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "life_trace"))
 
 import capture_sendell_ball
 import life_trace_debugger
+import life_trace_runtime as runtime
 import scene11_compare
 import save_profiles
 import trace_life
@@ -261,6 +262,30 @@ class LifeTraceSchemaTest(unittest.TestCase):
         }
         with self.assertRaises(msgspec.ValidationError):
             trace_life.convert_agent_event(payload)
+
+
+class LifeTraceRuntimeLaunchTest(unittest.TestCase):
+    def test_build_owned_launch_argv_uses_direct_save_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            launch_path = temp_root / "LBA2.EXE"
+            save_path = temp_root / "0008-sendell-ball.LBA"
+            launch_path.write_bytes(b"")
+            save_path.write_bytes(b"")
+
+            argv = runtime.build_owned_launch_argv(launch_path, str(save_path))
+
+        self.assertEqual([str(launch_path), str(save_path)], argv)
+
+    def test_build_owned_launch_argv_without_save_keeps_bare_exe(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            launch_path = temp_root / "LBA2.EXE"
+            launch_path.write_bytes(b"")
+
+            argv = runtime.build_owned_launch_argv(launch_path, None)
+
+        self.assertEqual([str(launch_path)], argv)
 
     def test_negative_wrong_field_type_is_rejected(self) -> None:
         payload = json.loads(SCREENSHOT_LINE)
@@ -605,64 +630,54 @@ class LifeTraceSchemaTest(unittest.TestCase):
 
 
 class TavernStartupAutomationTest(unittest.TestCase):
-    def test_stage_tavern_load_game_save_keeps_current_and_stages_one_slot(self) -> None:
+    def test_resolve_direct_launch_save_uses_explicit_launch_save(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            launch_dir = Path(temp_dir) / "LBA2"
-            save_dir = launch_dir / "SAVE"
-            save_dir.mkdir(parents=True)
-            launch_path = launch_dir / "LBA2.EXE"
-            launch_path.write_bytes(b"exe")
             source_path = Path(temp_dir) / "inside-tavern.LBA"
             source_path.write_bytes(b"inside-tavern-save")
-            current_path = save_dir / "current.lba"
-            current_path.write_bytes(b"current-save")
-            stray_path = save_dir / "autosave.lba"
-            stray_path.write_bytes(b"stray")
             args = argparse.Namespace(launch_save=str(source_path))
 
             writer = trace_life.JsonlWriter(Path(temp_dir))
             try:
-                staged_source, staged_destination = trace_life.stage_tavern_load_game_save(args, writer, launch_path)
+                resolved = trace_life.resolve_direct_launch_save(
+                    args,
+                    writer,
+                    lane_name="tavern-trace",
+                    default_source=source_path,
+                )
             finally:
                 writer.close()
 
-            self.assertEqual(source_path, staged_source)
-            self.assertEqual(save_dir / "inside-tavern.LBA", staged_destination)
-            self.assertEqual(b"inside-tavern-save", staged_destination.read_bytes())
-            self.assertEqual(b"current-save", current_path.read_bytes())
-            self.assertFalse(stray_path.exists())
+            self.assertEqual(source_path.resolve(), resolved)
+            self.assertEqual(str(source_path.resolve()), args.launch_save)
 
             lines = read_jsonl_lines(writer.enriched_output_path)
-            messages = [line["message"] for line in lines]
-            self.assertIn(
-                "restored canonical SAVE contents before staging the run fixture; removed autosave.lba",
-                messages,
-            )
-            self.assertIn("staged inside-tavern.LBA into SAVE as the sole Load Game slot", messages)
+            self.assertEqual("resolved direct launch save inside-tavern.LBA", lines[0]["message"])
 
-    def test_stage_tavern_load_game_save_missing_fixture_is_an_explicit_blocker(self) -> None:
+    def test_resolve_direct_launch_save_missing_fixture_is_an_explicit_blocker(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            launch_dir = Path(temp_dir) / "LBA2"
-            save_dir = launch_dir / "SAVE"
-            save_dir.mkdir(parents=True)
-            launch_path = launch_dir / "LBA2.EXE"
-            launch_path.write_bytes(b"exe")
             args = argparse.Namespace(launch_save=str(Path(temp_dir) / "missing-tavern-save.LBA"))
 
             writer = trace_life.JsonlWriter(Path(temp_dir))
             try:
                 with self.assertRaises(RuntimeError) as raised:
-                    trace_life.stage_tavern_load_game_save(args, writer, launch_path)
+                    trace_life.resolve_direct_launch_save(
+                        args,
+                        writer,
+                        lane_name="tavern-trace",
+                        default_source=Path(temp_dir) / "inside-tavern.LBA",
+                    )
             finally:
                 writer.close()
 
-            self.assertIn("tavern-trace source save is missing", str(raised.exception))
-            self.assertIn("ask the user to generate the savegame", str(raised.exception))
+            self.assertIn("tavern-trace direct launch save is missing", str(raised.exception))
+            self.assertIn("canonical launch path", str(raised.exception))
 
-    def test_drive_tavern_launch_startup_drives_adeline_and_load_game(self) -> None:
+    def test_drive_tavern_launch_startup_uses_direct_save_launch(self) -> None:
         class FakeWindowCapture:
             def __init__(self) -> None:
                 self.wait_calls: list[tuple[int, float]] = []
+                self.signature_calls: list[tuple[int, float]] = []
+                self.signature_index = 0
 
             def wait_for_window(self, pid: int, timeout_sec: float = 10.0) -> trace_life.WindowInfo:
                 self.wait_calls.append((pid, timeout_sec))
@@ -674,6 +689,36 @@ class TavernStartupAutomationTest(unittest.TestCase):
                     right=800,
                     bottom=600,
                 )
+
+            def capture_frame_signature(self, pid: int, *, timeout_sec: float = 10.0, pixel_stride: int = 32, luma_threshold: int = 12):
+                del pixel_stride, luma_threshold
+                self.signature_calls.append((pid, timeout_sec))
+                signatures = [
+                    trace_life.WindowFrameSignature(checksum=111, mean_luma=0, lit_samples=0, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=333, mean_luma=16, lit_samples=96, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=333, mean_luma=16, lit_samples=96, sample_count=256),
+                ]
+                signature = signatures[min(self.signature_index, len(signatures) - 1)]
+                self.signature_index += 1
+                return trace_life.WindowInfo(
+                    hwnd=0x1234,
+                    title="LBA2",
+                    left=0,
+                    top=0,
+                    right=800,
+                    bottom=600,
+                ), signature
 
         class FakeWindowInput:
             def __init__(self) -> None:
@@ -690,7 +735,11 @@ class TavernStartupAutomationTest(unittest.TestCase):
             capture = FakeWindowCapture()
             window_input = FakeWindowInput()
             try:
-                with mock.patch.object(trace_life.time, "sleep") as mocked_sleep:
+                monotonic_values = iter(value * 0.1 for value in range(256))
+                with (
+                    mock.patch.object(trace_life.time, "sleep") as mocked_sleep,
+                    mock.patch.object(trace_life.time, "monotonic", side_effect=lambda: next(monotonic_values)),
+                ):
                     trace_life.drive_tavern_launch_startup(
                         writer,
                         4321,
@@ -703,95 +752,57 @@ class TavernStartupAutomationTest(unittest.TestCase):
             self.assertEqual(
                 [
                     ("enter", 0x1234),
-                    ("down", 0x1234),
-                    ("down", 0x1234),
-                    ("enter", 0x1234),
-                    ("enter", 0x1234),
                 ],
                 window_input.actions,
             )
-            self.assertEqual(
-                [(4321, trace_life.TAVERN_STARTUP_WINDOW_TIMEOUT_SEC)] * 5,
-                capture.wait_calls,
-            )
+            self.assertEqual([(4321, trace_life.TAVERN_STARTUP_WINDOW_TIMEOUT_SEC)] * 2, capture.wait_calls)
             self.assertEqual(
                 [
-                    mock.call(trace_life.TAVERN_ADELINE_ENTER_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_POST_ADELINE_MENU_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_MAIN_MENU_MOVE_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_MAIN_MENU_MOVE_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_MENU_SETTLE_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_MAIN_MENU_MOVE_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_SOLE_SAVE_SETTLE_DELAY_SEC),
+                    mock.call(trace_life.DIRECT_SAVE_POST_SPLASH_SETTLE_DELAY_SEC),
                 ],
-                mocked_sleep.call_args_list,
+                mocked_sleep.call_args_list[-1:],
             )
+            splash_polls = mocked_sleep.call_args_list[:-1]
+            self.assertGreaterEqual(len(splash_polls), 2)
+            self.assertTrue(all(call == mock.call(0.1) for call in splash_polls))
 
             lines = read_jsonl_lines(writer.enriched_output_path)
             messages = [line["message"] for line in lines if line.get("kind") == "status" and "message" in line]
-            self.assertIn("driving Tavern startup through Adeline and Load Game", messages)
+            self.assertIn("driving Tavern startup through direct save launch", messages)
             self.assertIn("sent Enter to continue past the Adeline splash", messages)
-            self.assertIn("moved selection from Resume Game to New Game", messages)
-            self.assertIn("moved selection from New Game to Load Game", messages)
-            self.assertIn("sent Enter to open Load Game", messages)
-            self.assertIn("sent Enter to load the sole staged save", messages)
-            self.assertIn("waited for the sole staged save to settle before attaching fra probe", messages)
-
-    def test_cleanup_tavern_launch_restores_canonical_save_folder(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            launch_dir = Path(temp_dir) / "LBA2"
-            save_dir = launch_dir / "SAVE"
-            save_dir.mkdir(parents=True)
-            launch_path = launch_dir / "LBA2.EXE"
-            launch_path.write_bytes(b"exe")
-            (save_dir / "current.lba").write_bytes(b"current")
-            staged_path = save_dir / "inside-tavern.LBA"
-            staged_path.write_bytes(b"fixture")
-            (save_dir / "autosave.lba").write_bytes(b"autosave")
-            args = argparse.Namespace(staged_load_game_save_path=str(staged_path))
-
-            writer = trace_life.JsonlWriter(Path(temp_dir))
-            try:
-                trace_life.cleanup_tavern_launch(args, writer, launch_path)
-            finally:
-                writer.close()
-
-            self.assertTrue((save_dir / "current.lba").exists())
-            self.assertFalse(staged_path.exists())
-            self.assertFalse((save_dir / "autosave.lba").exists())
+            self.assertIn("waited for the direct-launch save to settle before attaching fra probe", messages)
 
 
 class Scene11StartupAutomationTest(unittest.TestCase):
-    def test_stage_scene11_load_game_save_uses_launch_save_override(self) -> None:
+    def test_resolve_direct_launch_save_uses_scene11_launch_override(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            launch_dir = Path(temp_dir) / "LBA2"
-            save_dir = launch_dir / "SAVE"
-            save_dir.mkdir(parents=True)
-            launch_path = launch_dir / "LBA2.EXE"
-            launch_path.write_bytes(b"exe")
             source_path = Path(temp_dir) / "explicit-scene11-save.LBA"
             source_path.write_bytes(b"scene11-save")
-            destination_path = save_dir / "explicit-scene11-save.LBA"
-            (save_dir / "current.lba").write_bytes(b"old-current-save")
             args = argparse.Namespace(launch_save=str(source_path))
 
             writer = trace_life.JsonlWriter(Path(temp_dir))
             try:
-                staged_source, staged_destination = trace_life.stage_scene11_load_game_save(args, writer, launch_path)
+                resolved = trace_life.resolve_direct_launch_save(
+                    args,
+                    writer,
+                    lane_name="scene11-pair",
+                    default_source=source_path,
+                )
             finally:
                 writer.close()
 
-            self.assertEqual(source_path, staged_source)
-            self.assertEqual(destination_path, staged_destination)
-            self.assertEqual(b"scene11-save", destination_path.read_bytes())
+            self.assertEqual(source_path.resolve(), resolved)
+            self.assertEqual(str(source_path.resolve()), args.launch_save)
 
             lines = read_jsonl_lines(writer.enriched_output_path)
-            self.assertEqual("staged explicit-scene11-save.LBA into SAVE as the sole Load Game slot", lines[0]["message"])
+            self.assertEqual("resolved direct launch save explicit-scene11-save.LBA", lines[0]["message"])
 
-    def test_drive_scene11_launch_startup_drives_load_game_single_slot_sequence(self) -> None:
+    def test_drive_scene11_launch_startup_uses_direct_save_launch(self) -> None:
         class FakeWindowCapture:
             def __init__(self) -> None:
                 self.wait_calls: list[tuple[int, float]] = []
+                self.signature_calls: list[tuple[int, float]] = []
+                self.signature_index = 0
 
             def wait_for_window(self, pid: int, timeout_sec: float = 10.0) -> trace_life.WindowInfo:
                 self.wait_calls.append((pid, timeout_sec))
@@ -803,6 +814,36 @@ class Scene11StartupAutomationTest(unittest.TestCase):
                     right=800,
                     bottom=600,
                 )
+
+            def capture_frame_signature(self, pid: int, *, timeout_sec: float = 10.0, pixel_stride: int = 32, luma_threshold: int = 12):
+                del pixel_stride, luma_threshold
+                self.signature_calls.append((pid, timeout_sec))
+                signatures = [
+                    trace_life.WindowFrameSignature(checksum=111, mean_luma=0, lit_samples=0, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=333, mean_luma=16, lit_samples=96, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=333, mean_luma=16, lit_samples=96, sample_count=256),
+                ]
+                signature = signatures[min(self.signature_index, len(signatures) - 1)]
+                self.signature_index += 1
+                return trace_life.WindowInfo(
+                    hwnd=0x1234,
+                    title="LBA2",
+                    left=0,
+                    top=0,
+                    right=800,
+                    bottom=600,
+                ), signature
 
         class FakeWindowInput:
             def __init__(self) -> None:
@@ -819,7 +860,11 @@ class Scene11StartupAutomationTest(unittest.TestCase):
             capture = FakeWindowCapture()
             window_input = FakeWindowInput()
             try:
-                with mock.patch.object(trace_life.time, "sleep") as mocked_sleep:
+                monotonic_values = iter(value * 0.1 for value in range(256))
+                with (
+                    mock.patch.object(trace_life.time, "sleep") as mocked_sleep,
+                    mock.patch.object(trace_life.time, "monotonic", side_effect=lambda: next(monotonic_values)),
+                ):
                     trace_life.drive_scene11_launch_startup(
                         writer,
                         4321,
@@ -832,40 +877,28 @@ class Scene11StartupAutomationTest(unittest.TestCase):
             self.assertEqual(
                 [
                     ("enter", 0x1234),
-                    ("down", 0x1234),
-                    ("down", 0x1234),
-                    ("enter", 0x1234),
-                    ("enter", 0x1234),
                 ],
                 window_input.actions,
             )
             self.assertEqual(
-                [(4321, trace_life.SCENE11_STARTUP_WINDOW_TIMEOUT_SEC)] * 5,
+                [(4321, trace_life.SCENE11_STARTUP_WINDOW_TIMEOUT_SEC)] * 2,
                 capture.wait_calls,
             )
             self.assertEqual(
                 [
-                    mock.call(trace_life.SCENE11_ADELINE_ENTER_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_POST_ADELINE_MENU_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_MAIN_MENU_MOVE_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_MAIN_MENU_MOVE_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_MENU_SETTLE_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_MAIN_MENU_MOVE_DELAY_SEC),
-                    mock.call(trace_life.LOAD_GAME_SOLE_SAVE_SETTLE_DELAY_SEC),
+                    mock.call(trace_life.DIRECT_SAVE_POST_SPLASH_SETTLE_DELAY_SEC),
                 ],
-                mocked_sleep.call_args_list,
+                mocked_sleep.call_args_list[-1:],
             )
+            splash_polls = mocked_sleep.call_args_list[:-1]
+            self.assertGreaterEqual(len(splash_polls), 2)
+            self.assertTrue(all(call == mock.call(0.1) for call in splash_polls))
 
             lines = read_jsonl_lines(writer.enriched_output_path)
             messages = [line["message"] for line in lines if line.get("kind") == "status" and "message" in line]
-            self.assertIn("driving Scene11 startup through Adeline and Load Game", messages)
+            self.assertIn("driving Scene11 startup through direct save launch", messages)
             self.assertIn("sent Enter to continue past the Adeline splash", messages)
-            self.assertIn("moved selection from Resume Game to New Game", messages)
-            self.assertIn("moved selection from New Game to Load Game", messages)
-            self.assertIn("sent Enter to open Load Game", messages)
-            self.assertIn("waited for the Load Game menu to settle", messages)
-            self.assertIn("sent Enter to load the sole staged save", messages)
-            self.assertIn("waited for the sole staged save to settle before capturing the debugger snapshot lane", messages)
+            self.assertIn("waited for the direct-launch save to settle before capturing the debugger snapshot lane", messages)
 
 
 class TavernFinalizeStatusTest(unittest.TestCase):
@@ -1489,7 +1522,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                         magic_point_u8=40,
                         sendell_inventory_value_s16=0,
                         inventory_model_id_s16=-1,
-                        current_dial_s32=513,
+                        current_dial_s32=3,
                     ),
                     "after_f_cast": self._sendell_checkpoint(
                         "after_f_cast",
@@ -1502,7 +1535,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                         magic_point_u8=60,
                         sendell_inventory_value_s16=1,
                         inventory_model_id_s16=0,
-                        current_dial_s32=513,
+                        current_dial_s32=3,
                     ),
                     "dialog_1": self._sendell_checkpoint(
                         "dialog_1",
@@ -1515,7 +1548,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                         magic_point_u8=60,
                         sendell_inventory_value_s16=1,
                         inventory_model_id_s16=0,
-                        current_dial_s32=513,
+                        current_dial_s32=3,
                     ),
                     "dialog_2": self._sendell_checkpoint(
                         "dialog_2",
@@ -1528,7 +1561,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                         magic_point_u8=60,
                         sendell_inventory_value_s16=1,
                         inventory_model_id_s16=0,
-                        current_dial_s32=513,
+                        current_dial_s32=3,
                     ),
                     "post_dialog_room": self._sendell_checkpoint(
                         "post_dialog_room",
@@ -1541,7 +1574,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
                         magic_point_u8=60,
                         sendell_inventory_value_s16=1,
                         inventory_model_id_s16=0,
-                        current_dial_s32=513,
+                        current_dial_s32=3,
                     ),
                 }
 
@@ -1580,7 +1613,7 @@ class HelperCallsiteEnrichmentTest(unittest.TestCase):
             summary["transitions"]["story_state_transition"]["sendell_inventory_value"],
         )
         self.assertEqual(
-            [513],
+            [3],
             summary["transitions"]["current_dial_transition"]["observed_unique_values"],
         )
 

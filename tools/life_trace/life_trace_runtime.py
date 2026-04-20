@@ -29,6 +29,7 @@ from life_trace_shared import (
     normalize_script_message,
 )
 from life_trace_windows import WindowCapture
+from scenes.load_game import direct_launch_argv
 from scenes.base import StructuredSceneController
 from scenes.registry import get_structured_scene_spec
 
@@ -104,6 +105,22 @@ TASKKILL_NOT_FOUND_MARKERS = (
     "no tasks are running",
     "no hay tareas en ejec",
 )
+
+
+def resolve_launch_save_path(launch_save: str | None) -> Path | None:
+    if launch_save is None:
+        return None
+    launch_save_path = Path(launch_save)
+    if not launch_save_path.exists():
+        raise RuntimeError(f"launch save path does not exist: {launch_save_path}")
+    return launch_save_path
+
+
+def build_owned_launch_argv(launch_path: Path, launch_save: str | None) -> list[str]:
+    launch_save_path = resolve_launch_save_path(launch_save)
+    if launch_save_path is None:
+        return [str(launch_path)]
+    return direct_launch_argv(launch_path, launch_save_path)
 
 
 def ensure_staged_frida(repo_root: Path) -> tuple[Path, Path, Path]:
@@ -629,12 +646,7 @@ def run_direct_frida_trace(
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
-            spawn_argv = [str(launch_path)]
-            if args.launch_save is not None:
-                launch_save_path = Path(args.launch_save)
-                if not launch_save_path.exists():
-                    raise RuntimeError(f"launch save path does not exist: {launch_save_path}")
-                spawn_argv.append(str(launch_save_path))
+            spawn_argv = build_owned_launch_argv(launch_path, args.launch_save)
             spawned_pid = device.spawn(spawn_argv, cwd=str(launch_path.parent))
             pid = spawned_pid
         else:
@@ -812,7 +824,7 @@ def run_structured_trace_via_frida(
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
             launched_process = subprocess.Popen(
-                [str(launch_path)],
+                build_owned_launch_argv(launch_path, args.launch_save),
                 cwd=str(launch_path.parent),
             )
             pid = int(launched_process.pid)
@@ -831,12 +843,7 @@ def run_structured_trace_via_frida(
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
-            spawn_argv = [str(launch_path)]
-            if args.launch_save is not None:
-                launch_save_path = Path(args.launch_save)
-                if not launch_save_path.exists():
-                    raise RuntimeError(f"launch save path does not exist: {launch_save_path}")
-                spawn_argv.append(str(launch_save_path))
+            spawn_argv = build_owned_launch_argv(launch_path, args.launch_save)
             spawned_pid = device.spawn(spawn_argv, cwd=str(launch_path.parent))
             pid = spawned_pid
         else:
@@ -1081,7 +1088,7 @@ def run_structured_trace_via_fra(
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
             launched_process = subprocess.Popen(
-                [str(launch_path)],
+                build_owned_launch_argv(launch_path, args.launch_save),
                 cwd=str(launch_path.parent),
             )
             pid = int(launched_process.pid)
@@ -1115,13 +1122,8 @@ def run_structured_trace_via_fra(
                 "json",
                 "--cwd",
                 str(launch_path.parent),
-                str(launch_path),
             ]
-            if args.launch_save is not None:
-                launch_save_path = Path(args.launch_save)
-                if not launch_save_path.exists():
-                    raise RuntimeError(f"launch save path does not exist: {launch_save_path}")
-                spawn_args.append(str(launch_save_path))
+            spawn_args.extend(build_owned_launch_argv(launch_path, args.launch_save))
             target_record = run_fra_json(fra_launcher, *spawn_args)
             fra_spawned_target = True
         else:
@@ -1392,7 +1394,7 @@ def run_structured_debugger_snapshot(
     try:
         preflight_owned_launch_processes(writer, args.process)
         launched_process = subprocess.Popen(
-            [str(launch_path)],
+            build_owned_launch_argv(launch_path, args.launch_save),
             cwd=str(launch_path.parent),
         )
         spawned_pid = int(launched_process.pid)

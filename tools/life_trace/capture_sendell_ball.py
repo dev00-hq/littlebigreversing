@@ -10,8 +10,8 @@ from life_trace_debugger import CdbMemoryReader, DebuggerReadError, resolve_cdb_
 from life_trace_shared import (
     DEFAULT_GAME_EXE,
     DEFAULT_RUN_ROOT,
+    DIRECT_SAVE_POST_SPLASH_SETTLE_DELAY_SEC,
     JsonlWriter,
-    LOAD_GAME_SOLE_SAVE_SETTLE_DELAY_SEC,
     PersistedErrorEvent,
     PersistedMemorySnapshotEvent,
     PersistedScreenshotErrorEvent,
@@ -23,17 +23,18 @@ from life_trace_shared import (
 )
 from life_trace_windows import CaptureError, InputError, WindowCapture, WindowInput
 from scenes.load_game import (
-    cleanup_staged_load_game_save,
     default_source_save_path,
-    drive_single_save_load_game_startup,
-    stage_single_load_game_save,
+    direct_launch_argv,
+    drive_direct_save_launch_startup,
+    resolve_direct_launch_save,
 )
 
 
 PTR_PRG_GLOBAL = 0x004976D0
 TYPE_ANSWER_GLOBAL = 0x004976D4
 VALUE_GLOBAL = 0x00497D44
-CURRENT_DIAL_GLOBAL = 0x00475630
+# The pinned decoder CurrentDial global from the room-36 dialog proof lane.
+CURRENT_DIAL_GLOBAL = 0x004CCF10
 MAGIC_LEVEL_GLOBAL = 0x0049A0A4
 MAGIC_POINT_GLOBAL = 0x0049A0A5
 LIST_VAR_GAME_GLOBAL = 0x00499E98
@@ -131,7 +132,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--post-load-settle-sec",
         type=float,
-        default=LOAD_GAME_SOLE_SAVE_SETTLE_DELAY_SEC,
+        default=DIRECT_SAVE_POST_SPLASH_SETTLE_DELAY_SEC,
         help="Extra settle time after the staged save loads.",
     )
     parser.add_argument(
@@ -873,20 +874,17 @@ def main() -> int:
     if not launch_path.exists():
         raise RuntimeError(f"launch path does not exist: {launch_path}")
 
-    staged_args = argparse.Namespace(launch_save=args.launch_save, staged_load_game_save_path=None)
-    launch_save_path = Path(args.launch_save).resolve()
     writer = JsonlWriter(
         Path(args.run_root),
         mode="sendell-ball-room",
         process_name="LBA2.EXE",
         launch_path=str(launch_path),
-        launch_save=str(launch_save_path),
+        launch_save=str(Path(args.launch_save).resolve()),
         run_id=args.run_id,
     )
     capture = WindowCapture()
     window_input = WindowInput()
     launched_process: subprocess.Popen[str] | None = None
-    staged = False
     pid: int | None = None
     capture_variant_name = capture_variant(args.menu, args.menu_phase)
     checkpoint_order: list[str] = []
@@ -899,8 +897,18 @@ def main() -> int:
             checkpoint_order.append(checkpoint_name)
             checkpoint_captures[checkpoint_name] = checkpoint
 
+        launch_args = argparse.Namespace(launch_save=args.launch_save)
+        launch_save_path = resolve_direct_launch_save(
+            launch_args,
+            writer,
+            lane_name="sendell-ball-room",
+            default_source=default_source_save_path(DEFAULT_SAVE_NAME),
+        )
         preflight_owned_launch_processes(writer, ("LBA2.EXE", "cdb.exe"))
-        launched_process = subprocess.Popen([str(launch_path)], cwd=str(launch_path.parent))
+        launched_process = subprocess.Popen(
+            direct_launch_argv(launch_path, launch_save_path),
+            cwd=str(launch_path.parent),
+        )
         pid = launched_process.pid
         writer.write_event(
             PersistedStatusEvent(
@@ -913,22 +921,14 @@ def main() -> int:
             )
         )
 
-        stage_single_load_game_save(
-            staged_args,
-            writer,
-            launch_path,
-            lane_name="sendell-ball-room",
-            default_source=default_source_save_path(DEFAULT_SAVE_NAME),
-        )
-        staged = True
-        drive_single_save_load_game_startup(
+        drive_direct_save_launch_startup(
             writer,
             pid,
             scene_label="Sendell's Ball",
             adeline_enter_delay_sec=args.adeline_enter_delay_sec,
             startup_window_timeout_sec=args.startup_window_timeout_sec,
             post_load_settle_delay_sec=args.post_load_settle_sec,
-            post_load_status_message="waited for the staged Sendell's Ball save to settle before checkpoint capture",
+            post_load_status_message="waited for the direct-launch Sendell's Ball save to settle before checkpoint capture",
             capture=capture,
             window_input=window_input,
         )
@@ -1095,15 +1095,6 @@ def main() -> int:
                 )
         return 1
     finally:
-        if staged:
-            try:
-                cleanup_staged_load_game_save(staged_args, writer, launch_path)
-            except Exception as cleanup_error:
-                writer.write_event(
-                    PersistedErrorEvent(
-                        description=f"failed to restore canonical SAVE contents: {cleanup_error}",
-                    )
-                )
         if launched_process is not None and pid is not None and not args.keep_process:
             try:
                 terminate_process(writer, launched_process, pid=pid)

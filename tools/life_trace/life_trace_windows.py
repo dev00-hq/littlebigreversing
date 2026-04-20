@@ -28,6 +28,14 @@ class WindowInfo:
         return self.bottom - self.top
 
 
+@dataclass(frozen=True)
+class WindowFrameSignature:
+    checksum: int
+    mean_luma: int
+    lit_samples: int
+    sample_count: int
+
+
 class CaptureError(RuntimeError):
     pass
 
@@ -220,6 +228,49 @@ class WindowCapture:
 
     def capture(self, pid: int, output_path: Path, timeout_sec: float = 10.0) -> WindowInfo:
         window = self.wait_for_window(pid, timeout_sec=timeout_sec)
+        raw = self._capture_window_bgra(window)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(self.encode_png_rgba(window.width, window.height, raw))
+        if not output_path.exists():
+            raise CaptureError(f"capture file was not written: {output_path}")
+        return window
+
+    def capture_frame_signature(
+        self,
+        pid: int,
+        *,
+        timeout_sec: float = 10.0,
+        pixel_stride: int = 32,
+        luma_threshold: int = 12,
+    ) -> tuple[WindowInfo, WindowFrameSignature]:
+        window = self.wait_for_window(pid, timeout_sec=timeout_sec)
+        raw = self._capture_window_bgra(window)
+        stride = max(1, int(pixel_stride)) * 4
+        checksum = 1
+        total_luma = 0
+        lit_samples = 0
+        sample_count = 0
+
+        for index in range(0, len(raw), stride):
+            blue = raw[index]
+            green = raw[index + 1]
+            red = raw[index + 2]
+            luma = (red * 3 + green * 4 + blue) // 8
+            total_luma += luma
+            if luma >= luma_threshold:
+                lit_samples += 1
+            checksum = zlib.adler32(bytes((red, green, blue)), checksum)
+            sample_count += 1
+
+        mean_luma = total_luma // sample_count if sample_count else 0
+        return window, WindowFrameSignature(
+            checksum=checksum & 0xFFFFFFFF,
+            mean_luma=mean_luma,
+            lit_samples=lit_samples,
+            sample_count=sample_count,
+        )
+
+    def _capture_window_bgra(self, window: WindowInfo) -> bytes:
         width = window.width
         height = window.height
         if width <= 0 or height <= 0:
@@ -272,12 +323,7 @@ class WindowCapture:
             )
             if rows != height:
                 raise CaptureError(f"GetDIBits returned {rows}, expected {height}")
-
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_bytes(self.encode_png_rgba(width, height, raw.raw))
-            if not output_path.exists():
-                raise CaptureError(f"capture file was not written: {output_path}")
-            return window
+            return raw.raw
         finally:
             self.gdi32.SelectObject(mem_dc, old_object)
             self.gdi32.DeleteObject(bitmap)
