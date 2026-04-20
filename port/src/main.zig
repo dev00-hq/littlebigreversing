@@ -640,7 +640,7 @@ test "main bonus spawn diagnostics print the bounded 19/19 object-2 reward event
     try std.testing.expect(std.mem.indexOf(u8, output.items, "scene_entry_index=19 background_entry_index=19") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.items, "source_object_index=2") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.items, "kind=magic") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "quantity=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "quantity=5") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.items, "emitted_bonus_count=10") != null);
 }
 

@@ -3,6 +3,7 @@ const paths_mod = @import("../foundation/paths.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 const runtime_locomotion = @import("../runtime/locomotion.zig");
 const runtime_object_behavior = @import("../runtime/object_behavior.zig");
+const runtime_session_mod = @import("../runtime/session.zig");
 const runtime_update = @import("../runtime/update.zig");
 const runtime_query = @import("../runtime/world_query.zig");
 const fragment_compare = @import("viewer/fragment_compare.zig");
@@ -1219,7 +1220,13 @@ test "viewer key handling routes Sendell room story input through queued runtime
 
     const cast_tick = try runtime_update.tick(room, &runtime_session);
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
-    try std.testing.expectEqual(@as(?i16, 513), runtime_session.currentDialogId());
+    try std.testing.expectEqual(@as(?i16, 3), runtime_session.currentDialogId());
+    const first_slice = runtime_object_behavior.currentSendellDialogSlice(runtime_session).?;
+    try std.testing.expectEqual(@as(u8, 1), first_slice.page_number);
+    try std.testing.expectEqualStrings(
+        "You just found Sendell's Ball. Now you have reached a new level of magic: Red Ball. It will also enable ",
+        first_slice.visible_text,
+    );
 
     const advance_result = try viewer_shell.handleKeyDown(
         room,
@@ -1236,7 +1243,10 @@ test "viewer key handling routes Sendell room story input through queued runtime
     _ = try runtime_update.tick(room, &runtime_session);
     try std.testing.expectEqual(@as(u8, 3), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 60), runtime_session.magicPoint());
-    try std.testing.expectEqual(@as(?i16, 514), runtime_session.currentDialogId());
+    try std.testing.expectEqual(@as(?i16, 3), runtime_session.currentDialogId());
+    const second_slice = runtime_object_behavior.currentSendellDialogSlice(runtime_session).?;
+    try std.testing.expectEqual(@as(u8, 2), second_slice.page_number);
+    try std.testing.expectEqualStrings("Sendell to contact you in case of danger.", second_slice.visible_text);
 }
 
 test "viewer Sendell dialog overlay is transient and scheduler-owned" {
@@ -1252,16 +1262,21 @@ test "viewer Sendell dialog overlay is transient and scheduler-owned" {
     const first_overlay = viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session);
     try std.testing.expectEqualStrings("SENDELL DIAL", first_overlay.title);
     try std.testing.expectEqual(@as(usize, 4), first_overlay.line_count);
-    try std.testing.expectEqualStrings("CURRENT DIAL 513", first_overlay.lines[0]);
-    try std.testing.expectEqualStrings("ACK 1 PENDING", first_overlay.lines[1]);
+    try std.testing.expectEqualStrings("CURRENT DIAL 3", first_overlay.lines[0]);
+    try std.testing.expectEqualStrings(
+        "You just found Sendell's Ball. Now you have reached a new level of magic: Red Ball. It will also enable ",
+        first_overlay.lines[1],
+    );
+    try std.testing.expectEqualStrings("Sendell to contact you in case of danger.", first_overlay.lines[2]);
 
     try runtime_session.submitHeroIntent(.advance_story);
     _ = try runtime_update.tick(room, &runtime_session);
 
     const second_overlay = viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session);
     try std.testing.expectEqual(@as(usize, 4), second_overlay.line_count);
-    try std.testing.expectEqualStrings("CURRENT DIAL 514", second_overlay.lines[0]);
-    try std.testing.expectEqualStrings("ACK 2 PENDING", second_overlay.lines[1]);
+    try std.testing.expectEqualStrings("CURRENT DIAL 3", second_overlay.lines[0]);
+    try std.testing.expectEqualStrings("Sendell to contact you in case of danger.", second_overlay.lines[1]);
+    try std.testing.expectEqualStrings("<END>", second_overlay.lines[2]);
 
     try runtime_session.submitHeroIntent(.advance_story);
     _ = try runtime_update.tick(room, &runtime_session);

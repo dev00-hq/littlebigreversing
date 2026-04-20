@@ -17,36 +17,36 @@ Own the offline life-program decoder boundary and original-runtime evidence lane
 - `life_audit.zig` plus `audit-life-programs` is the canonical structural inventory.
 - `LM_DEFAULT` and `LM_END_SWITCH` are currently supported in the offline decoder as one-byte structural markers.
 - `zig build tool -- inspect-life-catalog --json` is the machine-readable structural catalog for `LM_*`, `LF_*`, and `LT_*`.
-- Guarded `19/19` object `2` still has a stateful reward loop and diagnostics, and the sewer chest seam is now settled as seam-local multi-bonus emission: `10` magic extras, per-extra `Divers=5`, internal gain `Divers * 2`, and denied full-magic pickups rebound.
-- `tools/life_trace/trace_life.py` is the shared original-runtime entrypoint, and `capture_sendell_ball.py` owns staged room-`36` runs.
+- Guarded `19/19` object `2` still has a stateful reward loop, and the sewer chest seam is settled as seam-local multi-bonus emission with live-backed `Divers=5` semantics.
+- `tools/life_trace/trace_life.py` is the shared original-runtime entrypoint, and room-`36` capture uses direct save launch plus `Enter`.
+- The bounded room-`36` correction keeps dialog id `3` across both visible Sendell pages and now uses the shared decoded-record next-page-cursor split instead of a fake `513 -> 514` step.
 - `debug_compass.py`, `heading_inject.py`, and `waypoint_step_probe.py` are debug-control helpers.
 - `collision_observer.py` is diagnostic-only: it distinguishes persistent from transient pins and does not replace step outcome.
 
 ## Known Traps
 
-- Do not reuse the old guarded-unsupported-life mental model for `2/2` or `11/10`; those pairs now decode and load through the guarded seam.
-- Keep the Tavern hot path slim. Rich loop-time reads can bring back intermittent `Application Error` crashes.
+- Do not reuse the old guarded-unsupported-life model for `2/2` or `11/10`; both now decode and load through the guarded seam.
 - Tavern proves live behavior; Scene11 proves ownership through debugger snapshots.
-- On the debug-control lane, do not promote collision evidence into controller truth. `waypoint_step_probe.py` outcome stays canonical.
+- On the debug-control lane, do not promote collision evidence into controller truth. `waypoint_step_probe.py` outcome is canonical.
 - Do not treat the guarded `19/19` reward slice as generic pickup or save/load parity.
-- Do not generalize `LM_GIVE_BONUS` from the sewer-chest evidence; only the guarded `19/19` seam is proved.
+- Do not generalize `LM_GIVE_BONUS` from the sewer-chest evidence; only guarded `19/19` is proved.
 - Do not reuse raw scene-object coordinates as final spawn/landing truth on `19/19`; the chest bonuses scatter and bounce instead of sharing one spot.
-- The remaining `19/19` pickup-surface question is narrower than the reward-model work. Current port gating still uses admitted footing plus same `top_y` and proximity.
 - Scene11 is a mismatch, not a startup failure.
 - Scene11 runtime-owner discovery is state-sensitive; the useful discriminator is non-null `global_ptr_prg`.
-- Do not ask for arbitrary "Scene11" or "Sendell" saves; use `work/saves/save_profiles.json`.
 - `trace_life.py --launch` hard-kills pre-existing `LBA2.EXE` and `cdb.exe`.
-- On Sendell's Ball, behavior and inventory menus are hold surfaces.
-- On the current Sendell lane, `CurrentDial=513` is not a progression oracle.
+- Do not revive the staged single-slot `Load Game` harness. Direct save launch is the canonical path.
+- On the current Sendell lane, the old `0x00475630` / `CurrentDial=513` read is a trap. Use the pinned decoder `CurrentDial` global at `0x004CCF10`; live page-1/page-2 verification kept it at `3`.
+- On the current room-36 Sendell lane, visible page 2 is renderer pagination inside one decoded text record, not a `513 -> 514` transition.
+- Do not reintroduce `514` as the visible second Sendell page without new classic proof.
 
 ## Canonical Entry Points
 
 - `tools/life_trace/trace_life.py`
 - `tools/life_trace/capture_sendell_ball.py`
+- `tools/life_trace/dialog_text_dump.py`
 - `tools/life_trace/debug_compass.py`
 - `tools/life_trace/heading_inject.py`
 - `tools/life_trace/waypoint_step_probe.py`
-- `tools/life_trace/collision_observer.py`
 - `port/src/game_data/scene/life_audit.zig`
 
 ## Important Files
@@ -56,11 +56,10 @@ Own the offline life-program decoder boundary and original-runtime evidence lane
 ## Test / Probe Commands
 
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-life-catalog --json`
-- `py -3 .\tools\life_trace\trace_life.py --mode tavern-trace --launch --timeout-sec 120`
 - `py -3 .\tools\life_trace\heading_inject.py --heading N`
 - `py -3 .\tools\life_trace\waypoint_step_probe.py --launch-save .\work\tmp_probe_inputs\straight-line-walk-livecopy.LBA --heading W --move-key down`
 
 ## Open Unknowns
 
-- Which classic pager state distinguishes visible room-36 page turns when `CurrentDial`, `TypeAnswer=4`, `Value=11`, and `PtrPrg` stay fixed.
+- Whether the proved next-page-cursor rule should be widened beyond the already-proved two-page seams before a full classic dialog renderer exists.
 - Whether classic pickup on guarded `19/19` requires the same connected admitted surface/floor band, or whether the current gate is already sufficient.

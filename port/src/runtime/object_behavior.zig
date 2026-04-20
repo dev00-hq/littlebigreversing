@@ -2,6 +2,7 @@ const std = @import("std");
 const reference_metadata = @import("../generated/reference_metadata.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const track_program = @import("../game_data/scene/track_program.zig");
+const dialog_pagination = @import("dialog_pagination.zig");
 const room_state = @import("room_state.zig");
 const runtime_session = @import("session.zig");
 const world_geometry = @import("world_geometry.zig");
@@ -17,9 +18,12 @@ const supported_object_index: usize = 2;
 const sendell_scene_entry_index: usize = 36;
 const sendell_background_entry_index: usize = 36;
 const sendell_object_index: usize = 2;
-const sendell_first_dialog_id: i16 = 513;
-const sendell_second_dialog_id: i16 = 514;
+const sendell_first_dialog_id: i16 = 3;
 const sendell_completion_dialog_id: i16 = 287;
+const sendell_dialog_record_text =
+    "You just found Sendell's Ball. Now you have reached a new level of magic: Red Ball. It will also enable " ++
+    "Sendell to contact you in case of danger.";
+const sendell_page_boundary_offset = ("You just found Sendell's Ball. Now you have reached a new level of magic: Red Ball. It will also enable ").len;
 const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
 const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
 const sendell_red_ball_magic_level: u8 = 3;
@@ -55,6 +59,12 @@ const RuntimeFunctionValue = union(enum) {
     s8_value: i8,
     u8_value: u8,
     s16_value: i16,
+};
+
+pub const SendellDialogSlice = struct {
+    page_number: u8,
+    visible_text: []const u8,
+    next_text: []const u8,
 };
 
 pub fn stepSupportedObjects(
@@ -115,6 +125,26 @@ pub fn sendellStoryAwaitsAdvance(
     };
 }
 
+pub fn currentSendellDialogSlice(current_session: runtime_session.Session) ?SendellDialogSlice {
+    const dialog_id = current_session.currentDialogId() orelse return null;
+    if (dialog_id != sendell_first_dialog_id) return null;
+    const object_behavior = current_session.objectBehaviorStateByIndex(sendell_object_index) orelse return null;
+    const split = dialog_pagination.splitTextAtCursor(sendell_dialog_record_text, sendell_page_boundary_offset);
+    return switch (object_behavior.sendell_ball_phase) {
+        .awaiting_first_dialog_ack => .{
+            .page_number = 1,
+            .visible_text = split.text_before_cursor,
+            .next_text = split.text_from_cursor,
+        },
+        .awaiting_second_dialog_ack => .{
+            .page_number = 2,
+            .visible_text = split.text_from_cursor,
+            .next_text = "",
+        },
+        else => null,
+    };
+}
+
 fn stepScene1919Object2(
     room: *const room_state.RoomSnapshot,
     seed: room_state.ObjectBehaviorSeedSnapshot,
@@ -168,7 +198,7 @@ fn applyScene3636AdvanceStory(
     const object_behavior = current_session.objectBehaviorStateByIndexPtr(sendell_object_index) orelse return error.MissingRuntimeObjectBehaviorState;
     switch (object_behavior.sendell_ball_phase) {
         .awaiting_first_dialog_ack => {
-            try transitionCurrentDialogId(current_session, sendell_second_dialog_id);
+            try setCurrentDialogId(current_session, sendell_first_dialog_id);
             current_session.setMagicLevelAndRefill(sendell_red_ball_magic_level);
             object_behavior.sendell_ball_phase = .awaiting_second_dialog_ack;
         },

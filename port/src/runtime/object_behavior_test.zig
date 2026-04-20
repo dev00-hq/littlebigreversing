@@ -5,6 +5,7 @@ const track_program = @import("../game_data/scene/track_program.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 const room_state = @import("room_state.zig");
 const object_behavior = @import("object_behavior.zig");
+const dialog_pagination = @import("dialog_pagination.zig");
 const runtime_session = @import("session.zig");
 
 const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
@@ -72,20 +73,50 @@ test "runtime object behavior applies the supported Sendell room-36 story sequen
     try object_behavior.applyHeroIntent(room, &current_session, .cast_lightning);
     try std.testing.expectEqual(@as(u8, 2), current_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 0), current_session.magicPoint());
-    try std.testing.expectEqual(@as(?i16, 513), current_session.currentDialogId());
+    try std.testing.expectEqual(@as(?i16, 3), current_session.currentDialogId());
+    const first_slice = object_behavior.currentSendellDialogSlice(current_session).?;
+    try std.testing.expectEqual(@as(u8, 1), first_slice.page_number);
+    try std.testing.expectEqualStrings(
+        "You just found Sendell's Ball. Now you have reached a new level of magic: Red Ball. It will also enable ",
+        first_slice.visible_text,
+    );
+    try std.testing.expectEqualStrings("Sendell to contact you in case of danger.", first_slice.next_text);
     try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_first_dialog_ack, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
 
     try object_behavior.applyHeroIntent(room, &current_session, .advance_story);
     try std.testing.expectEqual(@as(u8, 3), current_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 60), current_session.magicPoint());
     try std.testing.expectEqual(@as(i16, 0), current_session.gameVar(sendell_ball_flag_index));
-    try std.testing.expectEqual(@as(?i16, 514), current_session.currentDialogId());
+    try std.testing.expectEqual(@as(?i16, 3), current_session.currentDialogId());
+    const second_slice = object_behavior.currentSendellDialogSlice(current_session).?;
+    try std.testing.expectEqual(@as(u8, 2), second_slice.page_number);
+    try std.testing.expectEqualStrings("Sendell to contact you in case of danger.", second_slice.visible_text);
+    try std.testing.expectEqualStrings("", second_slice.next_text);
     try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_second_dialog_ack, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
 
     try object_behavior.applyHeroIntent(room, &current_session, .advance_story);
     try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(sendell_ball_flag_index));
     try std.testing.expectEqual(@as(?i16, 287), current_session.currentDialogId());
+    try std.testing.expectEqual(@as(?object_behavior.SendellDialogSlice, null), object_behavior.currentSendellDialogSlice(current_session));
     try std.testing.expectEqual(runtime_session.SendellBallPhase.completed, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
+}
+
+test "runtime dialog pagination derives the same boundary on the newgame pharmacy warning record" {
+    const full_text =
+        "Twinsen, rush to the downtown pharmacy and find a cure for the Dino-Fly ! " ++
+        "He has just crashed in the garden and looks injured.";
+    const split = dialog_pagination.splitTextAtCursor(
+        full_text,
+        ("Twinsen, rush to the downtown pharmacy and find a cure for the Dino-Fly ! " ++
+            "He has just crashed in the ").len,
+    );
+
+    try std.testing.expectEqualStrings(
+        "Twinsen, rush to the downtown pharmacy and find a cure for the Dino-Fly ! He has just crashed in the ",
+        split.text_before_cursor,
+    );
+    try std.testing.expectEqualStrings("garden and looks injured.", split.text_from_cursor);
+    try std.testing.expect(split.cursor_is_next_page_boundary);
 }
 
 test "runtime object behavior supports LM_OR_IF control flow on guarded 19/19 object 2" {

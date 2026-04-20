@@ -23,15 +23,14 @@ Own repo direction, Codex memory workflow, and the boundary between the Zig port
 
 ## Known Traps
 
-- `sidequest/` and `LM_TASKS/` are independent workstreams unless a prompt explicitly widens scope.
 - Dump-driven rankings and temporary seed-admission probes are evidence only, not supported runtime behavior.
-- `work/` artifacts can lag the real worktree; verify code, `git status`, and asset paths before trusting generated outputs.
-- `scripts/verify_viewer.py` is the canonical Windows acceptance gate for the port path.
 - Original-runtime evidence helpers are not default port pickup; use `life_scripts.md` and `ISSUES.md`.
+- `context --path` needs `INDEX.md`; unmapped paths fail.
 - For room-transition proof, do not generalize from a door, save lane, or watcher until the exact seam is pinned in tests and live evidence.
 - Do not treat `collision_observer.py` as a blocked/moved oracle. Step outcome is authoritative.
-- Do not promote raw scene-object placements into floor-truth spawn positions. On guarded `19/19`, the canonical seam is multi-bonus scatter/rebound, not a one-point spawn claim.
-- The deferred wall-mapping / wall-walk spike is not canonical repo state. It lives on a side branch and should not re-enter `main` without a fresh bounded justification.
+- On room `36/36`, do not treat visible page turns as durable dialog-id transitions. Current evidence says the second Sendell page is renderer pagination inside one decoded text record, with `CurrentDial=3` and stable `PtText`.
+- A second live seam on `newgame.LBA` now shows the same `PtText`-stable / `PtDial`-advancing pattern, so the bounded runtime correction has been promoted from a Sendell-only split into a reusable decoded-record next-page-cursor helper for proved two-page seams. It is still not a full generic classic dialog decoder/paginator.
+- The static room-36 decoder globals are pinned; the risk is ownership, not address discovery.
 
 ## Reverse / Porting Slice Checklist
 
@@ -66,4 +65,4 @@ Own repo direction, Codex memory workflow, and the boundary between the Zig port
 
 ## Open Unknowns
 
-- Whether the next runtime widening slice should target the remaining guarded `19/19` pickup-surface gap or deepen the Sendell/story scheduler path first.
+- How far the new next-page-cursor helper should be promoted beyond the already-proved two-page seams before building a full generic dialog renderer.

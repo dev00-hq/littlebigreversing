@@ -780,6 +780,11 @@ test "viewer render path draws the bounded Sendell dialog overlay during acknowl
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
     var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
     const dialog_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
+    try std.testing.expectEqualStrings(
+        "You just found Sendell's Ball. Now you have reached a new level of magic: Red Ball. It will also enable ",
+        dialog_overlay.lines[1],
+    );
+    try std.testing.expectEqualStrings("Sendell to contact you in case of danger.", dialog_overlay.lines[2]);
     const dialog_rect = layout.computeDialogOverlayRect(
         layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, selection.focus != null),
     );
@@ -800,15 +805,17 @@ test "viewer render path draws the bounded Sendell dialog overlay during acknowl
 
     try std.testing.expect(hasTraceRectOp(trace, .fill_rect, dialog_rect, .{ .r = 10, .g = 15, .b = 20, .a = 236 }));
     try std.testing.expect(hasTraceText(trace, "SENDELL DIAL"));
-    try std.testing.expect(hasTraceText(trace, "CURRENT DIAL 513"));
-    try std.testing.expect(hasTraceText(trace, "ACK 1 PENDING"));
+    try std.testing.expect(hasTraceText(trace, "CURRENT DIAL 3"));
+    try std.testing.expect(hasTraceText(trace, "Sendell to contact you in case of danger."));
     try std.testing.expect(hasTraceText(trace, "NAV / DIAL"));
 
     try runtime_session.submitHeroIntent(.advance_story);
     _ = try runtime_update.tick(room, &runtime_session);
     const second_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
     try std.testing.expectEqual(@as(usize, 4), second_overlay.line_count);
-    try std.testing.expectEqualStrings("CURRENT DIAL 514", second_overlay.lines[0]);
+    try std.testing.expectEqualStrings("CURRENT DIAL 3", second_overlay.lines[0]);
+    try std.testing.expectEqualStrings("Sendell to contact you in case of danger.", second_overlay.lines[1]);
+    try std.testing.expectEqualStrings("<END>", second_overlay.lines[2]);
 }
 
 test "viewer render path draws the bounded 19/19 reward overlay after object-2 emits a bonus event" {

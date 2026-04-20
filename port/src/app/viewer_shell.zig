@@ -62,10 +62,10 @@ pub const ViewerLocomotionStatusDisplay = render.LocomotionStatusDisplay;
 pub const ViewerLocomotionStatusDisplayBuffer = render.LocomotionStatusDisplayBuffer;
 pub const ViewerDialogOverlayDisplay = render.DialogOverlayDisplay;
 pub const ViewerDialogOverlayDisplayBuffer = struct {
-    line_0: [32]u8 = undefined,
-    line_1: [32]u8 = undefined,
-    line_2: [32]u8 = undefined,
-    line_3: [32]u8 = undefined,
+    line_0: [160]u8 = undefined,
+    line_1: [160]u8 = undefined,
+    line_2: [160]u8 = undefined,
+    line_3: [160]u8 = undefined,
     aux_0: [8]u8 = undefined,
 };
 pub const ViewerLocomotionSchematicCue = render.LocomotionSchematicCue;
@@ -109,6 +109,8 @@ pub const locomotion_fixture_cell = GridCell{ .x = 39, .z = 6 };
 const sendell_scene_entry: usize = 36;
 const sendell_background_entry: usize = 36;
 const sendell_object_index: usize = 2;
+const sendell_first_dialog_id: i16 = 3;
+const sendell_completion_dialog_id: i16 = 287;
 const reward_scene_entry: usize = 19;
 const reward_background_entry: usize = 19;
 const reward_object_index: usize = 2;
@@ -482,32 +484,41 @@ pub fn formatSendellDialogOverlayDisplay(
 
     const dialog_id = current_session.currentDialogId() orelse return .{};
     const object_behavior = current_session.objectBehaviorStateByIndex(sendell_object_index) orelse return .{};
+    const dialog_slice = runtime_object_behavior.currentSendellDialogSlice(current_session);
 
     return switch (object_behavior.sendell_ball_phase) {
-        .awaiting_first_dialog_ack => .{
-            .title = "SENDELL DIAL",
-            .nav_title = "NAV / DIAL",
-            .line_count = 4,
-            .lines = .{
-                "CURRENT DIAL 513",
-                "ACK 1 PENDING",
-                "ENTER ACK NOW",
-                "MAG 2/0 FLAG 0",
-            },
+        .awaiting_first_dialog_ack => blk: {
+            const slice = dialog_slice orelse break :blk .{};
+            if (dialog_id != sendell_first_dialog_id or slice.page_number != 1) break :blk .{};
+            break :blk .{
+                .title = "SENDELL DIAL",
+                .nav_title = "NAV / DIAL",
+                .line_count = 4,
+                .lines = .{
+                    "CURRENT DIAL 3",
+                    slice.visible_text,
+                    slice.next_text,
+                    "ENTER ACK NOW",
+                },
+            };
         },
-        .awaiting_second_dialog_ack => .{
-            .title = "SENDELL DIAL",
-            .nav_title = "NAV / DIAL",
-            .line_count = 4,
-            .lines = .{
-                "CURRENT DIAL 514",
-                "ACK 2 PENDING",
-                "ENTER CLAIM BALL",
-                "MAG 3/60 FLAG 0",
-            },
+        .awaiting_second_dialog_ack => blk: {
+            const slice = dialog_slice orelse break :blk .{};
+            if (dialog_id != sendell_first_dialog_id or slice.page_number != 2) break :blk .{};
+            break :blk .{
+                .title = "SENDELL DIAL",
+                .nav_title = "NAV / DIAL",
+                .line_count = 4,
+                .lines = .{
+                    "CURRENT DIAL 3",
+                    slice.visible_text,
+                    "<END>",
+                    "ENTER CLAIM BALL",
+                },
+            };
         },
         .completed => blk: {
-            if (dialog_id != 287) break :blk .{};
+            if (dialog_id != sendell_completion_dialog_id) break :blk .{};
             break :blk .{
                 .title = "SENDELL DIAL",
                 .nav_title = "NAV / DIAL",
