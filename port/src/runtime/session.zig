@@ -12,6 +12,7 @@ pub const HeroWorldDelta = struct {
 
 pub const HeroIntent = union(enum) {
     move_cardinal: world_geometry.CardinalDirection,
+    default_action,
     cast_lightning,
     advance_story,
 };
@@ -28,6 +29,7 @@ pub const ObjectState = room_state.ObjectPositionSnapshot;
 pub const ObjectBehaviorSeedState = room_state.ObjectBehaviorSeedSnapshot;
 pub const RuntimeBonusKind = enum {
     magic,
+    little_key,
 };
 
 pub const BonusSpawnEvent = struct {
@@ -116,6 +118,7 @@ pub const Session = struct {
     game_vars: [max_game_vars]i16,
     magic_level: u8,
     magic_point: u8,
+    little_key_count: u8,
     current_dialog_id: ?i16,
     objects: []ObjectState,
     object_behaviors: []ObjectBehaviorState,
@@ -140,6 +143,7 @@ pub const Session = struct {
             .game_vars = [_]i16{0} ** max_game_vars,
             .magic_level = 0,
             .magic_point = 0,
+            .little_key_count = 0,
             .current_dialog_id = null,
             .objects = &.{},
             .object_behaviors = &.{},
@@ -176,6 +180,7 @@ pub const Session = struct {
             .game_vars = [_]i16{0} ** max_game_vars,
             .magic_level = 0,
             .magic_point = 0,
+            .little_key_count = 0,
             .current_dialog_id = null,
             .objects = owned_objects,
             .object_behaviors = owned_object_behaviors,
@@ -288,6 +293,10 @@ pub const Session = struct {
         return self.magic_point;
     }
 
+    pub fn littleKeyCount(self: Session) u8 {
+        return self.little_key_count;
+    }
+
     pub fn currentDialogId(self: Session) ?i16 {
         return self.current_dialog_id;
     }
@@ -299,6 +308,22 @@ pub const Session = struct {
 
     pub fn setMagicPoint(self: *Session, value: u8) void {
         self.magic_point = value;
+    }
+
+    pub fn setLittleKeyCount(self: *Session, value: u8) void {
+        self.little_key_count = value;
+    }
+
+    pub fn addLittleKeysSaturating(self: *Session, delta: u8) void {
+        const current: u16 = self.little_key_count;
+        const addition: u16 = delta;
+        self.little_key_count = @intCast(@min(current + addition, std.math.maxInt(u8)));
+    }
+
+    pub fn consumeLittleKey(self: *Session) bool {
+        if (self.little_key_count == 0) return false;
+        self.little_key_count -= 1;
+        return true;
     }
 
     pub fn setCurrentDialogId(self: *Session, dialog_id: i16) !void {
@@ -492,6 +517,7 @@ test "runtime session initializes mutable hero state from an explicit world-posi
     try std.testing.expectEqual(@as(i16, 0), runtime_session.gameVar(0));
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
+    try std.testing.expectEqual(@as(u8, 0), runtime_session.littleKeyCount());
     try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
     try std.testing.expectEqual(@as(usize, 0), runtime_session.objectSnapshots().len);
     try std.testing.expectEqual(@as(usize, 0), runtime_session.objectBehaviorStates().len);
@@ -583,6 +609,28 @@ test "runtime session tracks mutable game vars and magic state separately from c
     try std.testing.expectEqual(@as(u8, 3), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.cubeVar(3));
+}
+
+test "runtime session tracks little keys as durable inventory state" {
+    var runtime_session = Session.init(.{
+        .x = 1987,
+        .y = 512,
+        .z = 3743,
+    });
+
+    runtime_session.setLittleKeyCount(1);
+    runtime_session.addLittleKeysSaturating(2);
+
+    try std.testing.expectEqual(@as(u8, 3), runtime_session.littleKeyCount());
+
+    runtime_session.setLittleKeyCount(254);
+    runtime_session.addLittleKeysSaturating(3);
+    try std.testing.expectEqual(@as(u8, 255), runtime_session.littleKeyCount());
+
+    try std.testing.expect(runtime_session.consumeLittleKey());
+    try std.testing.expectEqual(@as(u8, 254), runtime_session.littleKeyCount());
+    runtime_session.setLittleKeyCount(0);
+    try std.testing.expect(!runtime_session.consumeLittleKey());
 }
 
 test "runtime session keeps transient current dialog state explicit and single-slot" {
@@ -685,6 +733,7 @@ test "runtime session can replace room-local state while preserving durable runt
     runtime_session.setGameVar(9, 12);
     runtime_session.setMagicLevelAndRefill(2);
     runtime_session.setMagicPoint(17);
+    runtime_session.setLittleKeyCount(1);
     try runtime_session.setCurrentDialogId(42);
     try runtime_session.setPendingRoomTransition(.{
         .source_zone_index = 0,
@@ -708,6 +757,7 @@ test "runtime session can replace room-local state while preserving durable runt
     try std.testing.expectEqual(@as(i16, 12), runtime_session.gameVar(9));
     try std.testing.expectEqual(@as(u8, 2), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 17), runtime_session.magicPoint());
+    try std.testing.expectEqual(@as(u8, 1), runtime_session.littleKeyCount());
     try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
     try std.testing.expectEqual(@as(?PendingRoomTransition, null), runtime_session.pendingRoomTransition());
     try std.testing.expectEqual(@as(i32, 2560), runtime_session.heroWorldPosition().x);

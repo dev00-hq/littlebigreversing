@@ -4,18 +4,19 @@
 
 - Keep `codex-memory-v2` canonical.
 - Keep guarded load set stable: `19/19`, `2/2`, `11/10`; `44/2` rejects as exterior.
-- Keep `LM_DEFAULT`, `LM_END_SWITCH`, `life_audit`, `room_state`, `cdb-agent`, and `ghb` on current owner boundaries.
+- Keep `LM_DEFAULT`, `LM_END_SWITCH`, `life_audit`, `room_state`, and debugger tools on current owner boundaries.
 - Keep validation additive: `zig build test-fast`, `zig build test-cli-integration`, tool-only same-index triage.
-- Keep debug control on `debug_compass` + `heading_inject` + `waypoint_step_probe`.
 
 ## Active Streams
 
 - Phase 5 runtime/gameplay widening is current, with Phase 4 Branch A already settled.
 - Viewer/load widening stays on `19/19`, `2/2`, and `11/10`.
-- Original-runtime launch uses direct save launch (`LBA2.EXE <save>.LBA`) plus `Enter`; the EA-logo gate is skipped.
+- Original runtime uses direct save launch (`LBA2.EXE <save>.LBA`) plus `Enter`.
 - Guarded `2/2` public exit is backed as exterior-facing `ChangeCube`; the port rejects it as `unsupported_exterior_destination_cube`.
 - `3/3` blockers stay rejected; live zone-`1` cube-`19` handoff lands in a Tralu's-dungeon-looking scene, not the intended cellar target.
-- `0013-weapon.LBA` secret-room door is scene-2 zone `0`; cube `1 -> 0` lands at `(2562,2048,3322)` after shadow readjustment, while reverse `0 -> 1` consumes `NbLittleKeys` first and readjusts `NewPos=(9725,1278,1098)` to `(9725,1024,1098)`.
+- `0013` door is scene-2 zone `0`: cube `1 -> 0` lands `(2562,2048,3322)` after shadow; reverse `2/0 -> 2/1` consumes one key and lands `(9725,1024,1098)`.
+- `0013` key source is scene `2/1` default action: `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0`, then `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
+- `0013` key spawn/pickup is Frida poll-only proved: `SPRITE_CLE` at `(3072,3072,5120)`, `Divers=1`, then `NbLittleKeys 0 -> 1`; pickup writer is `0x0041737c`, not `LM_GIVE_BONUS`.
 - Guarded `19/19` object-`2` is stateful; sewer chest is bounded multi-bonus with live-backed `Divers=5`.
 
 ## Blocked Items
@@ -29,10 +30,10 @@
 
 ## Next Actions
 
-- Use `waypoint_step_probe.py` as the step primitive for debug-control work.
 - Reopen wall mapping only if a bounded navigation slice proves it is the bottleneck.
 - For cellar work, stay on the scene-2 zone-`0` secret-room seam; do not promote the `3/3` zone-`1` dungeon handoff.
-- Use `secret_room_door_watch.py` for cellar-door snapshots; inspect scene-2 life/object key-door logic before porting reverse `0 -> 1`.
+- Use `secret_room_door_watch.py` for door snapshots; prefer Frida/read-only over CDB for manual key-source loops.
+- If more opcode fidelity is needed, prove `LM_FOUND_OBJECT 0` with a narrower non-crashing hook; otherwise source branch plus poll-only `SPRITE_CLE` proof is enough.
 - Otherwise choose the next bounded Phase 5 seam from an existing guarded gameplay slice.
 - Treat guarded `19/19` reward-model work as settled unless a pickup-surface bug or contradiction appears.
 - Use `dialog_text_dump.py` for further room-36 live proof.

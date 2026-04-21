@@ -1,5 +1,6 @@
 const std = @import("std");
 const reference_metadata = @import("../generated/reference_metadata.zig");
+const paths = @import("../foundation/paths.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const track_program = @import("../game_data/scene/track_program.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
@@ -106,6 +107,49 @@ test "runtime object behavior applies the supported Sendell room-36 story sequen
     try std.testing.expectEqual(@as(?i16, null), current_session.currentDialogId());
     try std.testing.expectEqual(@as(?object_behavior.SendellDialogSlice, null), object_behavior.currentSendellDialogSlice(current_session));
     try std.testing.expectEqual(runtime_session.SendellBallPhase.completed, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
+}
+
+test "runtime object behavior applies guarded 2/1 default action to spawn the live-backed secret-room key" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{ .x = 1280, .y = 2048, .z = 5376 });
+
+    try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
+
+    try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(0));
+    try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+    try std.testing.expectEqual(@as(usize, 1), current_session.bonusSpawnEvents().len);
+    try std.testing.expectEqual(@as(usize, 1), current_session.rewardCollectibles().len);
+
+    const spawn_event = current_session.bonusSpawnEvents()[0];
+    try std.testing.expectEqual(@as(usize, 7), spawn_event.source_object_index);
+    try std.testing.expectEqual(runtime_session.RuntimeBonusKind.little_key, spawn_event.kind);
+    try std.testing.expectEqual(@as(i16, 6), spawn_event.sprite_index);
+    try std.testing.expectEqual(@as(u8, 1), spawn_event.quantity);
+
+    const key = current_session.rewardCollectibles()[0];
+    try std.testing.expectEqual(@as(usize, 7), key.source_object_index);
+    try std.testing.expectEqual(runtime_session.RuntimeBonusKind.little_key, key.kind);
+    try std.testing.expectEqual(@as(i16, 6), key.sprite_index);
+    try std.testing.expectEqual(@as(u8, 1), key.quantity);
+    try std.testing.expectEqual(@as(i32, 3072), key.motion_start_world_position.x);
+    try std.testing.expectEqual(@as(i32, 3072), key.motion_start_world_position.y);
+    try std.testing.expectEqual(@as(i32, 5120), key.motion_start_world_position.z);
+    try std.testing.expectEqual(@as(i32, 3826), key.motion_target_world_position.x);
+    try std.testing.expectEqual(@as(i32, 2144), key.motion_target_world_position.y);
+    try std.testing.expectEqual(@as(i32, 4366), key.motion_target_world_position.z);
+    try std.testing.expect(!key.settled);
+
+    try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
+    try std.testing.expectEqual(@as(usize, 1), current_session.rewardCollectibles().len);
+    try std.testing.expectEqual(@as(usize, 1), current_session.bonusSpawnEvents().len);
 }
 
 test "runtime dialog pagination derives the same boundary on the newgame pharmacy warning record" {

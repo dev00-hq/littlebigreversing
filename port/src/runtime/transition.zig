@@ -407,6 +407,58 @@ test "guarded scene-2 secret-room door commits through the live-backed cube-0 la
     }
 }
 
+test "guarded scene-2 reverse secret-room door commits through the live-backed cube-1 landing" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    var destination_room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer destination_room.deinit(allocator);
+    const destination_query = runtime_query.init(&destination_room);
+    const live_provisional_position = locomotion.WorldPointSnapshot{ .x = 9725, .y = 1278, .z = 1098 };
+    const landing_evaluation = destination_query.evaluateHeroMoveTarget(live_provisional_position);
+    try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_height_mismatch, landing_evaluation.status);
+    try std.testing.expect(landing_evaluation.raw_cell.cell != null);
+    try std.testing.expectEqual(runtime_query.Standability.standable, landing_evaluation.raw_cell.standability.?);
+
+    var current_session = try viewer_shell.initSession(allocator, &room);
+    defer current_session.deinit(allocator);
+    current_session.setLittleKeyCount(0);
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
+    try current_session.setPendingRoomTransition(.{
+        .source_zone_index = 0,
+        .destination_cube = 1,
+        .destination_world_position_kind = .provisional_zone_relative,
+        .destination_world_position = live_provisional_position,
+        .yaw = 0,
+        .test_brick = false,
+        .dont_readjust_twinsen = false,
+    });
+
+    const transition_result = try applyPendingRoomTransition(
+        allocator,
+        resolved,
+        &room,
+        &current_session,
+        &locomotion_status,
+        locomotion_status,
+    );
+    switch (transition_result) {
+        .committed => |value| {
+            try std.testing.expectEqual(@as(usize, 2), value.source_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 0), value.source_background_entry_index);
+            try std.testing.expectEqual(@as(i16, 1), value.destination_cube);
+            try std.testing.expectEqual(@as(usize, 2), value.destination_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 1), value.destination_background_entry_index);
+            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9725, .y = 1024, .z = 1098 }, value.hero_position);
+        },
+        .rejected => return error.UnexpectedRejectedRoomTransition,
+    }
+}
+
 test "guarded 3/3 resolves but rejects its two current interior destinations at post-load landing" {
     try expectGuarded33ChangeCubeRejection(1, 19, .unsupported_destination_post_load_adjustment);
     try expectGuarded33ChangeCubeRejection(8, 20, .unsupported_destination_post_load_adjustment);

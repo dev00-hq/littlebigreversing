@@ -378,7 +378,7 @@ fn printNewRewardPickupEvents(
 
     for (events[previous_reward_pickup_event_count..]) |event| {
         try stderr.print(
-            "event=bonus_pickup scene_entry_index={d} background_entry_index={d} frame_index={d} source_object_index={d} kind={s} sprite_index={d} quantity={d} hero_magic_level={d} hero_magic_point={d}\n",
+            "event=bonus_pickup scene_entry_index={d} background_entry_index={d} frame_index={d} source_object_index={d} kind={s} sprite_index={d} quantity={d} hero_magic_level={d} hero_magic_point={d} hero_little_keys={d}\n",
             .{
                 room.scene.entry_index,
                 room.background.entry_index,
@@ -389,6 +389,7 @@ fn printNewRewardPickupEvents(
                 event.quantity,
                 runtime_session.magicLevel(),
                 runtime_session.magicPoint(),
+                runtime_session.littleKeyCount(),
             },
         );
     }

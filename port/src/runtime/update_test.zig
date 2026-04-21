@@ -288,6 +288,49 @@ test "runtime update tick resolves the first settled 19/19 magic bonus into the 
     try std.testing.expectEqual(first_landing_position, pickup_event.world_position);
 }
 
+test "runtime update tick resolves a settled little-key collectible into the key inventory counter" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+
+    const key_position = rewardLandingWorldPosition(reward_scatter_cells[0]);
+    try current_session.appendRewardCollectible(.{
+        .spawn_frame_index = current_session.frame_index,
+        .source_object_index = 7,
+        .kind = .little_key,
+        .sprite_index = 6,
+        .quantity = 1,
+        .admitted_surface_cell = reward_scatter_cells[0],
+        .admitted_surface_top_y = reward_floor_top_y,
+        .scatter_slot = 0,
+        .rebound_count = 0,
+        .settled = true,
+        .motion_start_world_position = key_position,
+        .motion_target_world_position = key_position,
+        .motion_total_ticks = 0,
+        .motion_ticks_remaining = 0,
+        .motion_arc_height = 0,
+        .world_position = key_position,
+    });
+    current_session.setHeroWorldPosition(key_position);
+
+    const pickup_tick = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expect(!pickup_tick.triggered_room_transition);
+    try std.testing.expectEqual(@as(u8, 1), current_session.littleKeyCount());
+    try std.testing.expectEqual(@as(usize, 0), current_session.rewardCollectibles().len);
+    try std.testing.expectEqual(@as(usize, 1), current_session.rewardPickupEvents().len);
+
+    const pickup_event = current_session.rewardPickupEvents()[0];
+    try std.testing.expectEqual(@as(usize, 0), pickup_event.pickup_frame_index);
+    try std.testing.expectEqual(@as(usize, 7), pickup_event.source_object_index);
+    try std.testing.expectEqual(runtime_session.RuntimeBonusKind.little_key, pickup_event.kind);
+    try std.testing.expectEqual(@as(i16, 6), pickup_event.sprite_index);
+    try std.testing.expectEqual(@as(u8, 1), pickup_event.quantity);
+    try std.testing.expectEqual(key_position, pickup_event.world_position);
+}
+
 test "runtime update tick denies the remaining settled 19/19 sewer bonuses after the first accepted cap-fill pickup" {
     const room = try room_fixtures.guarded1919();
 
@@ -345,7 +388,7 @@ test "runtime zone effects record a generic change-cube transition from guarded 
 
     var zone_membership: runtime_query.ContainingZoneSet = .{};
     try zone_membership.append(room.scene.zones[0]);
-    const effect_summary = try zone_effects.applyContainingZoneEffects(&current_session, zone_membership.slice());
+    const effect_summary = try zone_effects.applyContainingZoneEffects(room, &current_session, zone_membership.slice());
 
     try std.testing.expect(effect_summary.triggered_room_transition);
     const transition = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
@@ -406,7 +449,7 @@ test "runtime zone effects preserve the live source offset on the scene-2 secret
 
         var zone_membership: runtime_query.ContainingZoneSet = .{};
         try zone_membership.append(door_zone);
-        const effect_summary = try zone_effects.applyContainingZoneEffects(&current_session, zone_membership.slice());
+        const effect_summary = try zone_effects.applyContainingZoneEffects(&room, &current_session, zone_membership.slice());
 
         try std.testing.expect(effect_summary.triggered_room_transition);
         const transition = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
@@ -418,6 +461,38 @@ test "runtime zone effects preserve the live source offset on the scene-2 secret
         try std.testing.expectEqual(semantics.test_brick, transition.test_brick);
         try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);
     }
+}
+
+test "runtime zone effects consume one key for the live-backed reverse secret-room door" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{ .x = 3056, .y = 2048, .z = 3659 });
+
+    const without_key = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
+    try std.testing.expect(!without_key.triggered_room_transition);
+    try std.testing.expectEqual(@as(?runtime_session.PendingRoomTransition, null), current_session.pendingRoomTransition());
+    try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+
+    current_session.setLittleKeyCount(1);
+    const with_key = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
+
+    try std.testing.expect(with_key.triggered_room_transition);
+    try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+    const transition = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
+    try std.testing.expectEqual(@as(usize, 0), transition.source_zone_index);
+    try std.testing.expectEqual(@as(i16, 1), transition.destination_cube);
+    try std.testing.expectEqual(runtime_session.PendingRoomTransitionDestinationPositionKind.provisional_zone_relative, transition.destination_world_position_kind);
+    try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9725, .y = 1278, .z = 1098 }, transition.destination_world_position);
+    try std.testing.expectEqual(@as(i32, 0), transition.yaw);
+    try std.testing.expect(!transition.test_brick);
+    try std.testing.expect(!transition.dont_readjust_twinsen);
 }
 
 test "guarded 2/2 has one enabled cube-0 change-cube seam and it is zone 0" {
@@ -453,7 +528,7 @@ test "runtime zone effects fail fast when multiple change-cube transitions trigg
 
     try std.testing.expectError(
         error.MultipleRoomTransitionsTriggered,
-        zone_effects.applyContainingZoneEffects(&current_session, zone_membership.slice()),
+        zone_effects.applyContainingZoneEffects(room, &current_session, zone_membership.slice()),
     );
     try std.testing.expectEqual(@as(?runtime_session.PendingRoomTransition, null), current_session.pendingRoomTransition());
 }

@@ -205,6 +205,7 @@ pub fn applyPendingHeroIntent(
     return switch (intent) {
         .move_cardinal => |direction| applyStep(room, current_session, direction),
         .cast_lightning,
+        .default_action,
         .advance_story,
         => error.UnsupportedHeroIntentForLocomotion,
     };

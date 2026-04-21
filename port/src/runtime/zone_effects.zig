@@ -7,23 +7,47 @@ pub const EffectSummary = struct {
     triggered_room_transition: bool = false,
 };
 
+const secret_room_scene_entry_index: usize = 2;
+const secret_room_cellar_background_entry_index: usize = 0;
+const secret_room_reverse_door_destination_cube: i16 = 1;
+const secret_room_reverse_door_source_zone_index: usize = 0;
+const secret_room_reverse_door_trigger_min_x: i32 = 3000;
+const secret_room_reverse_door_trigger_max_x: i32 = 3128;
+const secret_room_reverse_door_trigger_min_y: i32 = 2048;
+const secret_room_reverse_door_trigger_max_y: i32 = 2048;
+const secret_room_reverse_door_trigger_min_z: i32 = 3600;
+const secret_room_reverse_door_trigger_max_z: i32 = 3712;
+const secret_room_reverse_door_provisional_destination = world_geometry.WorldPointSnapshot{
+    .x = 9725,
+    .y = 1278,
+    .z = 1098,
+};
+
 pub fn applyPostLocomotionEffects(
+    room: *const room_state.RoomSnapshot,
     current_session: *runtime_session.Session,
     locomotion_status: locomotion.LocomotionStatus,
 ) !EffectSummary {
     return switch (locomotion_status) {
-        .last_move_accepted => |value| applyContainingZoneEffects(current_session, value.zone_membership.slice()),
-        .last_zone_recovery_accepted => |value| applyContainingZoneEffects(current_session, value.zone_membership.slice()),
+        .last_move_accepted => |value| applyContainingZoneEffects(room, current_session, value.zone_membership.slice()),
+        .last_zone_recovery_accepted => |value| applyContainingZoneEffects(room, current_session, value.zone_membership.slice()),
         else => .{},
     };
 }
 
 pub fn applyContainingZoneEffects(
+    room: *const room_state.RoomSnapshot,
     current_session: *runtime_session.Session,
     zones: []const room_state.ZoneBoundsSnapshot,
 ) !EffectSummary {
     var pending_transition: ?runtime_session.PendingRoomTransition = null;
+    var consumes_little_key = false;
     const hero_world_position = current_session.heroWorldPosition();
+
+    if (secretRoomReverseDoorTransition(room, current_session.*)) |transition| {
+        pending_transition = transition;
+        consumes_little_key = true;
+    }
 
     for (zones) |zone| {
         switch (zone.semantics) {
@@ -50,10 +74,44 @@ pub fn applyContainingZoneEffects(
 
     if (pending_transition) |transition| {
         try current_session.setPendingRoomTransition(transition);
+        if (consumes_little_key and !current_session.consumeLittleKey()) return error.MissingLittleKeyForSecretRoomDoor;
         return .{ .triggered_room_transition = true };
     }
 
     return .{};
+}
+
+fn secretRoomReverseDoorTransition(
+    room: *const room_state.RoomSnapshot,
+    current_session: runtime_session.Session,
+) ?runtime_session.PendingRoomTransition {
+    if (room.scene.entry_index != secret_room_scene_entry_index or
+        room.background.entry_index != secret_room_cellar_background_entry_index or
+        current_session.littleKeyCount() == 0)
+    {
+        return null;
+    }
+
+    const hero_world_position = current_session.heroWorldPosition();
+    if (hero_world_position.x < secret_room_reverse_door_trigger_min_x or
+        hero_world_position.x > secret_room_reverse_door_trigger_max_x or
+        hero_world_position.y < secret_room_reverse_door_trigger_min_y or
+        hero_world_position.y > secret_room_reverse_door_trigger_max_y or
+        hero_world_position.z < secret_room_reverse_door_trigger_min_z or
+        hero_world_position.z > secret_room_reverse_door_trigger_max_z)
+    {
+        return null;
+    }
+
+    return .{
+        .source_zone_index = secret_room_reverse_door_source_zone_index,
+        .destination_cube = secret_room_reverse_door_destination_cube,
+        .destination_world_position_kind = .provisional_zone_relative,
+        .destination_world_position = secret_room_reverse_door_provisional_destination,
+        .yaw = 0,
+        .test_brick = false,
+        .dont_readjust_twinsen = false,
+    };
 }
 
 fn classicZoneChangeCubeDestinationWorldPosition(

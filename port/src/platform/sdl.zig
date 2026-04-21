@@ -125,6 +125,7 @@ pub const Key = enum {
     down,
     enter,
     tab,
+    w,
     f,
 };
 
@@ -330,6 +331,7 @@ pub const Canvas = struct {
                 sdl.SDLK_DOWN => .{ .key_down = .down },
                 sdl.SDLK_RETURN => .{ .key_down = .enter },
                 sdl.SDLK_TAB => .{ .key_down = .tab },
+                sdl.SDLK_w => .{ .key_down = .w },
                 sdl.SDLK_f => .{ .key_down = .f },
                 else => .other,
             };

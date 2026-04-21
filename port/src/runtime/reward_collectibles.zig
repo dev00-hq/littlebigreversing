@@ -123,6 +123,7 @@ fn heroPickupResolution(
             .denied_capacity
         else
             .allowed,
+        .little_key => .allowed,
     };
 }
 
@@ -185,6 +186,7 @@ fn applyRewardPickup(
             const next_magic = @min(current_magic + quantity_delta, max_magic);
             current_session.setMagicPoint(@intCast(next_magic));
         },
+        .little_key => current_session.addLittleKeysSaturating(collectible.quantity),
     }
 }
 

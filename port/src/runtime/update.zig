@@ -25,6 +25,7 @@ pub fn tick(
     const locomotion_status: locomotion.LocomotionStatus = if (pending_hero_intent) |intent| switch (intent) {
         .move_cardinal => try locomotion.applyPendingHeroIntent(room, current_session),
         .cast_lightning,
+        .default_action,
         .advance_story,
         => blk: {
             _ = current_session.consumeHeroIntent() orelse return error.MissingPendingHeroIntent;
@@ -32,7 +33,7 @@ pub fn tick(
             break :blk try locomotion.inspectCurrentStatus(room, current_session.*);
         },
     } else try locomotion.inspectCurrentStatus(room, current_session.*);
-    const zone_effect_summary = try zone_effects.applyPostLocomotionEffects(current_session, locomotion_status);
+    const zone_effect_summary = try zone_effects.applyPostLocomotionEffects(room, current_session, locomotion_status);
     if (zone_effect_summary.triggered_room_transition) {
         return .{
             .locomotion_status = locomotion_status,

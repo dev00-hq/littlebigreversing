@@ -439,6 +439,14 @@ pub fn handleKeyDown(
                 .post_key_action = .advance_world,
             };
         },
+        .w => {
+            try current_session.submitHeroIntent(.default_action);
+            return .{
+                .interaction = interaction,
+                .locomotion_status = locomotion_status,
+                .post_key_action = .advance_world,
+            };
+        },
     }
 }
 
@@ -1006,6 +1014,7 @@ fn formatOptionalTrackLabel(buffer: []u8, track_label: ?u8) []const u8 {
 fn runtimeBonusKindLabel(kind: runtime_session.RuntimeBonusKind) []const u8 {
     return switch (kind) {
         .magic => "MAG",
+        .little_key => "KEY",
     };
 }
 

@@ -15,6 +15,13 @@ pub const UpdateSummary = struct {
 const supported_scene_entry_index: usize = 19;
 const supported_background_entry_index: usize = 19;
 const supported_object_index: usize = 2;
+const secret_room_scene_entry_index: usize = 2;
+const secret_room_background_entry_index: usize = 1;
+const secret_room_key_source_index: usize = 7;
+const secret_room_key_scenario_zone_num: i16 = 0;
+const secret_room_key_var_game_index: u8 = 0;
+const secret_room_key_sprite_index: i16 = 6;
+const secret_room_key_quantity: u8 = 1;
 const sendell_scene_entry_index: usize = 36;
 const sendell_background_entry_index: usize = 36;
 const sendell_object_index: usize = 2;
@@ -52,6 +59,18 @@ const supported_reward_scatter_cells = [_]world_geometry.GridCell{
     .{ .x = 41, .z = 7 },
     .{ .x = 42, .z = 7 },
     .{ .x = 43, .z = 7 },
+};
+
+const secret_room_key_motion_start_world_position = world_geometry.WorldPointSnapshot{
+    .x = 3072,
+    .y = 3072,
+    .z = 5120,
+};
+
+const secret_room_key_motion_target_world_position = world_geometry.WorldPointSnapshot{
+    .x = 3826,
+    .y = 2144,
+    .z = 4366,
 };
 
 const RuntimeFunctionValue = union(enum) {
@@ -103,6 +122,7 @@ pub fn applyHeroIntent(
 ) !void {
     switch (intent) {
         .cast_lightning => try applyScene3636CastLightning(room, current_session),
+        .default_action => try applySecretRoomDefaultAction(room, current_session),
         .advance_story => try applyScene3636AdvanceStory(room, current_session),
         .move_cardinal => return error.UnsupportedObjectBehaviorHeroIntent,
     }
@@ -189,6 +209,66 @@ fn applyScene3636CastLightning(
 
     current_session.setMagicPoint(0);
     object_behavior.sendell_ball_phase = .awaiting_dialog_open;
+}
+
+fn applySecretRoomDefaultAction(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+) !void {
+    if (room.scene.entry_index != secret_room_scene_entry_index or room.background.entry_index != secret_room_background_entry_index) {
+        return error.UnsupportedObjectBehaviorHeroIntent;
+    }
+    const query = runtime_query.init(room);
+    if (current_session.gameVar(secret_room_key_var_game_index) != 0 or hasSecretRoomKeyCollectible(current_session.*)) return;
+    if (!try heroInsideSecretRoomKeyScenarioZone(query, current_session.heroWorldPosition())) return;
+
+    const hero_position = current_session.heroWorldPosition();
+    const hero_cell = try query.gridCellAtWorldPoint(hero_position.x, hero_position.z);
+
+    try current_session.appendBonusSpawnEvent(.{
+        .frame_index = current_session.frame_index,
+        .source_object_index = secret_room_key_source_index,
+        .kind = .little_key,
+        .sprite_index = secret_room_key_sprite_index,
+        .quantity = secret_room_key_quantity,
+    });
+    try current_session.appendRewardCollectible(.{
+        .spawn_frame_index = current_session.frame_index,
+        .source_object_index = secret_room_key_source_index,
+        .kind = .little_key,
+        .sprite_index = secret_room_key_sprite_index,
+        .quantity = secret_room_key_quantity,
+        .admitted_surface_cell = hero_cell,
+        .admitted_surface_top_y = hero_position.y,
+        .scatter_slot = 0,
+        .rebound_count = 0,
+        .settled = false,
+        .motion_start_world_position = secret_room_key_motion_start_world_position,
+        .motion_target_world_position = secret_room_key_motion_target_world_position,
+        .motion_total_ticks = supported_reward_motion_ticks,
+        .motion_ticks_remaining = supported_reward_motion_ticks,
+        .motion_arc_height = supported_reward_motion_arc_height,
+        .world_position = secret_room_key_motion_start_world_position,
+    });
+    current_session.setGameVar(secret_room_key_var_game_index, 1);
+}
+
+fn hasSecretRoomKeyCollectible(current_session: runtime_session.Session) bool {
+    for (current_session.rewardCollectibles()) |collectible| {
+        if (collectible.kind == .little_key and collectible.sprite_index == secret_room_key_sprite_index) return true;
+    }
+    return false;
+}
+
+fn heroInsideSecretRoomKeyScenarioZone(
+    query: runtime_query.WorldQuery,
+    hero_position: world_geometry.WorldPointSnapshot,
+) !bool {
+    const zones = try query.containingZonesAtWorldPoint(hero_position);
+    for (zones.slice()) |zone| {
+        if (zone.kind == .scenario and zone.num == secret_room_key_scenario_zone_num) return true;
+    }
+    return false;
 }
 
 fn applyScene3636AdvanceStory(
