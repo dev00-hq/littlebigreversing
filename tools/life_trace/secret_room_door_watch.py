@@ -15,24 +15,33 @@ PROCESS_VM_READ = 0x0010
 PROCESS_QUERY_INFORMATION = 0x0400
 DEFAULT_PROCESS_NAME = "LBA2.EXE"
 
-WATCH_FIELDS = {
-    "scene_kind": 0x00497040,
-    "transition_mode": 0x00497F08,
-    "transition_variant": 0x00497F18,
-    "active_cube": 0x00497F04,
-    "new_cube": 0x0047561C,
-    "new_pos_x": 0x00497F1C,
-    "new_pos_y": 0x00497F20,
-    "new_pos_z": 0x00497F24,
-    "hero_count": 0x0049A198,
-    "hero_x": 0x0049A1DA,
-    "hero_y": 0x0049A1DE,
-    "hero_z": 0x0049A1E2,
-    "hero_beta": 0x0049A1EA,
-    "candidate_x": 0x0049A0A8,
-    "candidate_y": 0x0049A0AC,
-    "candidate_z": 0x0049A0B0,
-}
+
+@dataclass(frozen=True)
+class WatchField:
+    name: str
+    address: int
+    size: int = 4
+
+
+WATCH_FIELDS = (
+    WatchField("scene_kind", 0x00497040),
+    WatchField("transition_mode", 0x00497F08),
+    WatchField("transition_variant", 0x00497F18),
+    WatchField("active_cube", 0x00497F04),
+    WatchField("new_cube", 0x0047561C),
+    WatchField("new_pos_x", 0x00497F1C),
+    WatchField("new_pos_y", 0x00497F20),
+    WatchField("new_pos_z", 0x00497F24),
+    WatchField("nb_little_keys", 0x0049A0A6, 1),
+    WatchField("hero_count", 0x0049A198),
+    WatchField("hero_x", 0x0049A1DA),
+    WatchField("hero_y", 0x0049A1DE),
+    WatchField("hero_z", 0x0049A1E2),
+    WatchField("hero_beta", 0x0049A1EA),
+    WatchField("candidate_x", 0x0049A0A8),
+    WatchField("candidate_y", 0x0049A0AC),
+    WatchField("candidate_z", 0x0049A0B0),
+)
 
 
 @dataclass(frozen=True)
@@ -86,18 +95,22 @@ class ProcessReader:
             self.kernel32.CloseHandle(self.handle)
             self.handle = 0
 
-    def read_i32(self, address: int) -> int:
-        buffer = ctypes.create_string_buffer(4)
+    def read_int(self, address: int, size: int) -> int:
+        if size not in {1, 4}:
+            raise ValueError(f"unsupported read size: {size}")
+        buffer = ctypes.create_string_buffer(size)
         read = ctypes.c_size_t()
         ok = self.kernel32.ReadProcessMemory(
             self.handle,
             ctypes.c_void_p(address),
             buffer,
-            4,
+            size,
             ctypes.byref(read),
         )
-        if not ok or read.value != 4:
+        if not ok or read.value != size:
             raise ctypes.WinError(ctypes.get_last_error())
+        if size == 1:
+            return buffer.raw[0]
         return struct.unpack("<i", buffer.raw)[0]
 
     def __enter__(self) -> "ProcessReader":
@@ -175,8 +188,8 @@ def zone_membership(x: int, y: int, z: int, zones: Iterable[WatchZone] = WATCH_Z
     ]
 
 
-def snapshot(read_i32: Callable[[int], int], zones: Iterable[WatchZone] = WATCH_ZONES) -> dict[str, object]:
-    values = {name: read_i32(address) for name, address in WATCH_FIELDS.items()}
+def snapshot(read_int: Callable[[int, int], int], zones: Iterable[WatchZone] = WATCH_ZONES) -> dict[str, object]:
+    values = {field.name: read_int(field.address, field.size) for field in WATCH_FIELDS}
     values["zones"] = zone_membership(
         int(values["hero_x"]),
         int(values["hero_y"]),
@@ -196,6 +209,7 @@ def record_key(row: dict[str, object]) -> tuple[object, ...]:
         row["new_pos_x"],
         row["new_pos_y"],
         row["new_pos_z"],
+        row["nb_little_keys"],
         row["hero_x"],
         row["hero_y"],
         row["hero_z"],
@@ -214,7 +228,7 @@ def watch(reader: ProcessReader, out_path: Path, *, duration_sec: float, poll_se
         while True:
             row = {
                 "t": round(time.time() - started, 3),
-                **snapshot(reader.read_i32),
+                **snapshot(reader.read_int),
             }
             key = record_key(row)
             if key != last_key:

@@ -18,11 +18,13 @@ SPEC.loader.exec_module(secret_room_door_watch)
 class FakeReader:
     def __init__(self, values: dict[str, int]) -> None:
         self.by_address = {
-            address: values[name]
-            for name, address in secret_room_door_watch.WATCH_FIELDS.items()
+            field.address: values[field.name]
+            for field in secret_room_door_watch.WATCH_FIELDS
         }
+        self.read_sizes: dict[int, int] = {}
 
-    def read_i32(self, address: int) -> int:
+    def read_int(self, address: int, size: int) -> int:
+        self.read_sizes[address] = size
         return self.by_address[address]
 
 
@@ -37,6 +39,7 @@ class SecretRoomDoorWatchTests(unittest.TestCase):
             "new_pos_x": 2562,
             "new_pos_y": 2049,
             "new_pos_z": 3322,
+            "nb_little_keys": 1,
             "hero_count": 9,
             "hero_x": 9730,
             "hero_y": 1025,
@@ -66,13 +69,15 @@ class SecretRoomDoorWatchTests(unittest.TestCase):
         values = self.base_values()
         reader = FakeReader(values)
 
-        snap = secret_room_door_watch.snapshot(reader.read_i32)
+        snap = secret_room_door_watch.snapshot(reader.read_int)
 
         self.assertEqual(1, snap["active_cube"])
         self.assertEqual(-1, snap["new_cube"])
         self.assertEqual(2562, snap["new_pos_x"])
         self.assertEqual(2049, snap["new_pos_y"])
         self.assertEqual(3322, snap["new_pos_z"])
+        self.assertEqual(1, snap["nb_little_keys"])
+        self.assertEqual(1, reader.read_sizes[0x0049A0A6])
         self.assertEqual(9730, snap["hero_x"])
         self.assertEqual(
             [
@@ -88,10 +93,22 @@ class SecretRoomDoorWatchTests(unittest.TestCase):
 
     def test_record_key_changes_when_new_position_changes(self) -> None:
         values = self.base_values()
-        first = secret_room_door_watch.snapshot(FakeReader(values).read_i32)
+        first = secret_room_door_watch.snapshot(FakeReader(values).read_int)
         changed = dict(values)
         changed["new_pos_z"] = 3584
-        second = secret_room_door_watch.snapshot(FakeReader(changed).read_i32)
+        second = secret_room_door_watch.snapshot(FakeReader(changed).read_int)
+
+        self.assertNotEqual(
+            secret_room_door_watch.record_key(first),
+            secret_room_door_watch.record_key(second),
+        )
+
+    def test_record_key_changes_when_key_count_changes(self) -> None:
+        values = self.base_values()
+        first = secret_room_door_watch.snapshot(FakeReader(values).read_int)
+        changed = dict(values)
+        changed["nb_little_keys"] = 0
+        second = secret_room_door_watch.snapshot(FakeReader(changed).read_int)
 
         self.assertNotEqual(
             secret_room_door_watch.record_key(first),
@@ -116,6 +133,7 @@ class SecretRoomDoorWatchTests(unittest.TestCase):
         self.assertEqual(1, rows_written)
         self.assertEqual(1, len(lines))
         self.assertIn('"active_cube":1', lines[0])
+        self.assertIn('"nb_little_keys":1', lines[0])
         self.assertIn('"new_pos_z":3322', lines[0])
 
 
