@@ -110,7 +110,6 @@ const sendell_scene_entry: usize = 36;
 const sendell_background_entry: usize = 36;
 const sendell_object_index: usize = 2;
 const sendell_first_dialog_id: i16 = 3;
-const sendell_completion_dialog_id: i16 = 287;
 const reward_scene_entry: usize = 19;
 const reward_background_entry: usize = 19;
 const reward_object_index: usize = 2;
@@ -482,14 +481,15 @@ pub fn formatSendellDialogOverlayDisplay(
         return .{};
     }
 
-    const dialog_id = current_session.currentDialogId() orelse return .{};
     const object_behavior = current_session.objectBehaviorStateByIndex(sendell_object_index) orelse return .{};
+    const dialog_id = current_session.currentDialogId();
     const dialog_slice = runtime_object_behavior.currentSendellDialogSlice(current_session);
 
     return switch (object_behavior.sendell_ball_phase) {
         .awaiting_first_dialog_ack => blk: {
+            const stable_dialog_id = dialog_id orelse break :blk .{};
             const slice = dialog_slice orelse break :blk .{};
-            if (dialog_id != sendell_first_dialog_id or slice.page_number != 1) break :blk .{};
+            if (stable_dialog_id != sendell_first_dialog_id or slice.page_number != 1) break :blk .{};
             break :blk .{
                 .title = "SENDELL DIAL",
                 .nav_title = "NAV / DIAL",
@@ -503,8 +503,9 @@ pub fn formatSendellDialogOverlayDisplay(
             };
         },
         .awaiting_second_dialog_ack => blk: {
+            const stable_dialog_id = dialog_id orelse break :blk .{};
             const slice = dialog_slice orelse break :blk .{};
-            if (dialog_id != sendell_first_dialog_id or slice.page_number != 2) break :blk .{};
+            if (stable_dialog_id != sendell_first_dialog_id or slice.page_number != 2) break :blk .{};
             break :blk .{
                 .title = "SENDELL DIAL",
                 .nav_title = "NAV / DIAL",
@@ -514,20 +515,6 @@ pub fn formatSendellDialogOverlayDisplay(
                     slice.visible_text,
                     "<END>",
                     "ENTER CLAIM BALL",
-                },
-            };
-        },
-        .completed => blk: {
-            if (dialog_id != sendell_completion_dialog_id) break :blk .{};
-            break :blk .{
-                .title = "SENDELL DIAL",
-                .nav_title = "NAV / DIAL",
-                .line_count = 4,
-                .lines = .{
-                    "CURRENT DIAL 287",
-                    "STORY COMPLETE",
-                    "NO ACK PENDING",
-                    "MAG 3/60 FLAG 1",
                 },
             };
         },

@@ -14,7 +14,6 @@
 - Guarded viewer/load widening stays on `19/19`, `2/2`, and `11/10`, with differentiated `raw_invalid_start` hints.
 - Original-runtime debug control now uses `debug_compass.py`, `heading_inject.py`, and `waypoint_step_probe.py`.
 - Original-runtime launch now uses direct save launch (`LBA2.EXE <save>.LBA`) plus `Enter`.
-- Pending `change_cube` transitions distinguish provisional zone-relative points from final landing points.
 - The guarded `2/2` public exit is Frida + `cdb` backed as an exterior-facing `ChangeCube` handoff, and tests keep `2/2` pinned to one enabled cube-`0` public-door seam, so the port rejects it as `unsupported_exterior_destination_cube`.
 - Guarded `19/19` object-`2` is stateful behind the runtime tick, and the sewer chest seam is now a bounded multi-bonus path with live-backed `Divers=5` semantics plus full-magic denial/rebound.
 
@@ -22,7 +21,7 @@
 
 - Guarded `19/19` still has one open fidelity gap: pickup gating is admitted footing plus same-`top_y` and proximity, not a proved same-surface/floor-band rule.
 - The guarded `2/2` `change_cube` slice is not an interior room-handoff proof anymore; parity there now depends on future exterior-transition work.
-- On room `36/36`, visible page 2 is renderer pagination inside one decoded text record, not a new payload. The port keeps dialog id `3` across both visible pages; save/load parity is still open.
+- On room `36/36`, page 2 is renderer pagination inside one decoded record. The port keeps dialog id `3` across both pages, clears back to room control after the second acknowledgment, and separates fresh entry from loaded-state reconstruction. Only mid-dialog save/load proof remains open.
 - Wall mapping is deferred.
 - `inspect-room 219 219 --json` still fails with `InvalidFragmentZoneBounds`.
 
@@ -33,7 +32,7 @@
 - Choose the next bounded Phase 5 seam from either a real interior-to-interior transition candidate or the existing guarded gameplay slices.
 - Treat guarded `19/19` reward-model work as settled unless a pickup-surface bug or contradiction appears.
 - Keep room-`36` work on the live decoded-text lane until the port owns a real decoder / paginator.
-- Use `dialog_text_dump.py` as the canonical live proof tool for `CurrentDial` / `PtText` / `PtDial` before making further room-36 claims.
+- Use `dialog_text_dump.py` as the canonical live room-36 proof tool before making further claims.
 
 ## Relevant Subsystem Packs
 

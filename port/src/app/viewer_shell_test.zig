@@ -1219,7 +1219,8 @@ test "viewer key handling routes Sendell room story input through queued runtime
     try std.testing.expectEqual(runtime_locomotion.HeroIntent.cast_lightning, runtime_session.pendingHeroIntent().?);
 
     const cast_tick = try runtime_update.tick(room, &runtime_session);
-    try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
+    try std.testing.expectEqual(@as(u8, 3), runtime_session.magicLevel());
+    try std.testing.expectEqual(@as(u8, 60), runtime_session.magicPoint());
     try std.testing.expectEqual(@as(?i16, 3), runtime_session.currentDialogId());
     const first_slice = runtime_object_behavior.currentSendellDialogSlice(runtime_session).?;
     try std.testing.expectEqual(@as(u8, 1), first_slice.page_number);
@@ -1282,9 +1283,7 @@ test "viewer Sendell dialog overlay is transient and scheduler-owned" {
     _ = try runtime_update.tick(room, &runtime_session);
 
     const completed_overlay = viewer_shell.formatSendellDialogOverlayDisplay(room, runtime_session);
-    try std.testing.expectEqual(@as(usize, 4), completed_overlay.line_count);
-    try std.testing.expectEqualStrings("CURRENT DIAL 287", completed_overlay.lines[0]);
-    try std.testing.expectEqualStrings("STORY COMPLETE", completed_overlay.lines[1]);
+    try std.testing.expectEqual(@as(usize, 0), completed_overlay.line_count);
 }
 
 test "viewer 19/19 reward overlay reflects the bounded object-2 bonus loop" {

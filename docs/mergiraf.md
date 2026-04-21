@@ -1,6 +1,6 @@
 # Mergiraf Setup
 
-This repository supports a narrow Mergiraf pilot for `*.zig` and `*.json` files only.
+This repository supports a narrow Mergiraf pilot for `*.zig`, `*.json`, and `*.py` files only.
 
 ## Prerequisites
 
@@ -23,6 +23,7 @@ These checks should report `merge: mergiraf`:
 ```powershell
 git check-attr merge -- port/src/main.zig
 git check-attr merge -- docs/ingame_keyboard_layout.json
+git check-attr merge -- scripts/verify_viewer.py
 ```
 
 These checks should keep the default merge behavior:
@@ -30,7 +31,7 @@ These checks should keep the default merge behavior:
 ```powershell
 git check-attr merge -- docs/LBA2_ZIG_PORT_PLAN.md
 git check-attr merge -- docs/codex_memory/task_events.jsonl
-git check-attr merge -- scripts/verify_viewer.py
+git check-attr merge -- AGENTS.md
 ```
 
 ## Temporary Bypass

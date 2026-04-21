@@ -88,6 +88,7 @@ const max_game_vars = 256;
 
 pub const SendellBallPhase = enum(u8) {
     idle,
+    awaiting_dialog_open,
     awaiting_first_dialog_ack,
     awaiting_second_dialog_ack,
     completed,

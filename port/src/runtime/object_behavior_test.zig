@@ -73,6 +73,13 @@ test "runtime object behavior applies the supported Sendell room-36 story sequen
     try object_behavior.applyHeroIntent(room, &current_session, .cast_lightning);
     try std.testing.expectEqual(@as(u8, 2), current_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 0), current_session.magicPoint());
+    try std.testing.expectEqual(@as(?i16, null), current_session.currentDialogId());
+    try std.testing.expectEqual(@as(?object_behavior.SendellDialogSlice, null), object_behavior.currentSendellDialogSlice(current_session));
+    try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_dialog_open, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
+
+    _ = try object_behavior.stepSupportedObjects(room, &current_session);
+    try std.testing.expectEqual(@as(u8, 3), current_session.magicLevel());
+    try std.testing.expectEqual(@as(u8, 60), current_session.magicPoint());
     try std.testing.expectEqual(@as(?i16, 3), current_session.currentDialogId());
     const first_slice = object_behavior.currentSendellDialogSlice(current_session).?;
     try std.testing.expectEqual(@as(u8, 1), first_slice.page_number);
@@ -96,7 +103,7 @@ test "runtime object behavior applies the supported Sendell room-36 story sequen
 
     try object_behavior.applyHeroIntent(room, &current_session, .advance_story);
     try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(sendell_ball_flag_index));
-    try std.testing.expectEqual(@as(?i16, 287), current_session.currentDialogId());
+    try std.testing.expectEqual(@as(?i16, null), current_session.currentDialogId());
     try std.testing.expectEqual(@as(?object_behavior.SendellDialogSlice, null), object_behavior.currentSendellDialogSlice(current_session));
     try std.testing.expectEqual(runtime_session.SendellBallPhase.completed, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
 }

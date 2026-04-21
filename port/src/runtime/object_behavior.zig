@@ -19,7 +19,6 @@ const sendell_scene_entry_index: usize = 36;
 const sendell_background_entry_index: usize = 36;
 const sendell_object_index: usize = 2;
 const sendell_first_dialog_id: i16 = 3;
-const sendell_completion_dialog_id: i16 = 287;
 const sendell_dialog_record_text =
     "You just found Sendell's Ball. Now you have reached a new level of magic: Red Ball. It will also enable " ++
     "Sendell to contact you in case of danger.";
@@ -131,6 +130,7 @@ pub fn currentSendellDialogSlice(current_session: runtime_session.Session) ?Send
     const object_behavior = current_session.objectBehaviorStateByIndex(sendell_object_index) orelse return null;
     const split = dialog_pagination.splitTextAtCursor(sendell_dialog_record_text, sendell_page_boundary_offset);
     return switch (object_behavior.sendell_ball_phase) {
+        .awaiting_dialog_open,
         .awaiting_first_dialog_ack => .{
             .page_number = 1,
             .visible_text = split.text_before_cursor,
@@ -161,6 +161,11 @@ fn stepScene3636Object2(
 ) !void {
     const object_behavior = current_session.objectBehaviorStateByIndexPtr(seed.index) orelse return error.MissingRuntimeObjectBehaviorState;
     object_behavior.current_sprite = seed.sprite;
+    if (object_behavior.sendell_ball_phase == .awaiting_dialog_open) {
+        current_session.setMagicLevelAndRefill(sendell_red_ball_magic_level);
+        try setCurrentDialogId(current_session, sendell_first_dialog_id);
+        object_behavior.sendell_ball_phase = .awaiting_first_dialog_ack;
+    }
 }
 
 fn applyScene3636CastLightning(
@@ -183,8 +188,7 @@ fn applyScene3636CastLightning(
     if (current_session.magicPoint() != expected_full_magic) return error.SendellRequiresFullMagic;
 
     current_session.setMagicPoint(0);
-    try setCurrentDialogId(current_session, sendell_first_dialog_id);
-    object_behavior.sendell_ball_phase = .awaiting_first_dialog_ack;
+    object_behavior.sendell_ball_phase = .awaiting_dialog_open;
 }
 
 fn applyScene3636AdvanceStory(
@@ -199,11 +203,10 @@ fn applyScene3636AdvanceStory(
     switch (object_behavior.sendell_ball_phase) {
         .awaiting_first_dialog_ack => {
             try setCurrentDialogId(current_session, sendell_first_dialog_id);
-            current_session.setMagicLevelAndRefill(sendell_red_ball_magic_level);
             object_behavior.sendell_ball_phase = .awaiting_second_dialog_ack;
         },
         .awaiting_second_dialog_ack => {
-            try transitionCurrentDialogId(current_session, sendell_completion_dialog_id);
+            current_session.clearCurrentDialogId();
             current_session.setGameVar(sendell_ball_flag_index, 1);
             object_behavior.sendell_ball_phase = .completed;
         },
@@ -212,11 +215,6 @@ fn applyScene3636AdvanceStory(
 }
 
 fn setCurrentDialogId(current_session: *runtime_session.Session, dialog_id: i16) !void {
-    current_session.clearCurrentDialogId();
-    try current_session.setCurrentDialogId(dialog_id);
-}
-
-fn transitionCurrentDialogId(current_session: *runtime_session.Session, dialog_id: i16) !void {
     current_session.clearCurrentDialogId();
     try current_session.setCurrentDialogId(dialog_id);
 }

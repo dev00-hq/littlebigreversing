@@ -15,7 +15,6 @@ Own repo direction, Codex memory workflow, and the boundary between the Zig port
 
 ## Current Parity Status
 
-- The Zig port remains decode-first and fail-fast.
 - `inspect-room-intelligence` is the canonical repo-local room/scene inspection surface.
 - `cdb-agent` is the approved debugger/live-trace layer, and `ghb` is the approved Ghidra layer.
 - Viewer input stops at intent submission; runtime owns mutable gameplay state and pending transition consumption.
@@ -28,9 +27,9 @@ Own repo direction, Codex memory workflow, and the boundary between the Zig port
 - `context --path` needs `INDEX.md`; unmapped paths fail.
 - For room-transition proof, do not generalize from a door, save lane, or watcher until the exact seam is pinned in tests and live evidence.
 - Do not treat `collision_observer.py` as a blocked/moved oracle. Step outcome is authoritative.
-- On room `36/36`, do not treat visible page turns as durable dialog-id transitions. Current evidence says the second Sendell page is renderer pagination inside one decoded text record, with `CurrentDial=3` and stable `PtText`.
-- A second live seam on `newgame.LBA` now shows the same `PtText`-stable / `PtDial`-advancing pattern, so the bounded runtime correction has been promoted from a Sendell-only split into a reusable decoded-record next-page-cursor helper for proved two-page seams. It is still not a full generic classic dialog decoder/paginator.
-- The static room-36 decoder globals are pinned; the risk is ownership, not address discovery.
+- On room `36/36`, do not treat visible page turns as durable dialog-id transitions. The second Sendell page is renderer pagination inside one decoded text record, with `CurrentDial=3` and stable `PtText`.
+- A second live seam on `newgame.LBA` shows the same `PtText`-stable / `PtDial`-advancing pattern, so the bounded runtime correction is now a reusable decoded-record next-page-cursor helper for proved two-page seams. It is still not a full generic dialog renderer.
+- On room `36/36`, keep fresh entry and loaded-state reconstruction separate. `applyRoomEntryState()` seeds the fresh room; `reconstructLoadedRoomState()` rebuilds only the proved durable Sendell phases.
 
 ## Reverse / Porting Slice Checklist
 
