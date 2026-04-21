@@ -323,7 +323,7 @@ pub fn validateBackgroundEntryIndex(
     defer allocator.free(background_path);
 
     const entry_count = try background_data.loadBackgroundEntryCount(allocator, background_path);
-    if (entry_index == 0 or entry_index >= entry_count) return error.UnknownBackgroundEntryIndex;
+    if (entry_index >= entry_count) return error.UnknownBackgroundEntryIndex;
 }
 
 pub fn inspectValidation(

@@ -54,8 +54,6 @@ pub fn loadBackgroundMetadata(
     absolute_path: []const u8,
     entry_index: usize,
 ) !model.BackgroundMetadata {
-    if (entry_index == 0) return error.InvalidBackgroundEntryIndex;
-
     const archive_session = try hqr.ClassicArchiveSession.init(allocator, absolute_path);
     defer archive_session.deinit();
 

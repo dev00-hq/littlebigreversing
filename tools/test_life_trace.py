@@ -706,8 +706,10 @@ class TavernStartupAutomationTest(unittest.TestCase):
                     trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
                     trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
                     trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
-                    trace_life.WindowFrameSignature(checksum=333, mean_luma=16, lit_samples=96, sample_count=256),
-                    trace_life.WindowFrameSignature(checksum=333, mean_luma=16, lit_samples=96, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=333, mean_luma=220, lit_samples=240, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=333, mean_luma=220, lit_samples=240, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=444, mean_luma=80, lit_samples=192, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=444, mean_luma=80, lit_samples=192, sample_count=256),
                 ]
                 signature = signatures[min(self.signature_index, len(signatures) - 1)]
                 self.signature_index += 1
@@ -831,8 +833,10 @@ class Scene11StartupAutomationTest(unittest.TestCase):
                     trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
                     trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
                     trace_life.WindowFrameSignature(checksum=222, mean_luma=32, lit_samples=128, sample_count=256),
-                    trace_life.WindowFrameSignature(checksum=333, mean_luma=16, lit_samples=96, sample_count=256),
-                    trace_life.WindowFrameSignature(checksum=333, mean_luma=16, lit_samples=96, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=333, mean_luma=220, lit_samples=240, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=333, mean_luma=220, lit_samples=240, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=444, mean_luma=80, lit_samples=192, sample_count=256),
+                    trace_life.WindowFrameSignature(checksum=444, mean_luma=80, lit_samples=192, sample_count=256),
                 ]
                 signature = signatures[min(self.signature_index, len(signatures) - 1)]
                 self.signature_index += 1

@@ -555,13 +555,18 @@ pub const WorldQuery = struct {
         return self.probeCellAtWorldPointWithHypothesis(world_x, world_z, .canonical_axis_aligned_512);
     }
 
+    pub fn probeCellAtWorldPointForWorldY(self: WorldQuery, world_x: i32, world_z: i32, world_y: i32) WorldPointCellProbe {
+        return self.probeCellAtWorldPointWithHypothesisForWorldY(world_x, world_z, world_y, .canonical_axis_aligned_512);
+    }
+
     pub fn evaluateHeroMoveTarget(
         self: WorldQuery,
         target_world_position: WorldPointSnapshot,
     ) MoveTargetEvaluation {
-        const raw_cell = self.probeCellAtWorldPoint(
+        const raw_cell = self.probeCellAtWorldPointForWorldY(
             target_world_position.x,
             target_world_position.z,
+            target_world_position.y,
         );
         return .{
             .target_world_position = target_world_position,
@@ -624,7 +629,7 @@ pub const WorldQuery = struct {
         self: WorldQuery,
         world_position: WorldPointSnapshot,
     ) !AdmittedStandableFooting {
-        const probe = self.probeCellAtWorldPoint(world_position.x, world_position.z);
+        const probe = self.probeCellAtWorldPointForWorldY(world_position.x, world_position.z, world_position.y);
         return switch (exactStatusForProbe(probe, world_position.y)) {
             .valid => .{
                 .cell = probe.cell.?,
@@ -636,6 +641,23 @@ pub const WorldQuery = struct {
             .mapped_cell_missing_top_surface => error.WorldCellMissingTopSurface,
             .mapped_cell_blocked => error.WorldCellNotStandable,
             .surface_height_mismatch => error.WorldPointSurfaceHeightMismatch,
+        };
+    }
+
+    pub fn classicShadowAdjustedLanding(
+        self: WorldQuery,
+        provisional_world_position: WorldPointSnapshot,
+    ) !WorldPointSnapshot {
+        const cell = try self.gridCellAtWorldPoint(
+            provisional_world_position.x,
+            provisional_world_position.z,
+        );
+        const surface = try self.cellSurfaceAtOrBelowWorldY(cell, provisional_world_position.y);
+        if (standabilityForSurface(surface) != .standable) return error.WorldCellNotStandable;
+        return .{
+            .x = provisional_world_position.x,
+            .y = surface.top_y,
+            .z = provisional_world_position.z,
         };
     }
 
@@ -812,6 +834,41 @@ pub const WorldQuery = struct {
         return null;
     }
 
+    fn cellSurfaceAtOrBelowWorldY(self: WorldQuery, cell: GridCell, world_y: i32) !CellTopSurface {
+        const cell_index = try self.cellIndex(cell.x, cell.z);
+        const occupancy = self.room.background.composition.level_occupancy_grid[cell_index];
+        if (occupancy == 0) return error.WorldCellEmpty;
+
+        var level: usize = if (world_y <= 0)
+            0
+        else
+            @min(@as(usize, @intCast(@divFloor(world_y - 1, world_grid_span_y))), 24);
+
+        while (true) {
+            const level_bit = @as(u32, 1) << @intCast(level);
+            if ((occupancy & level_bit) != 0) {
+                const level_index = (cell_index * 25) + level;
+                const below_mask = if (level == 24)
+                    occupancy
+                else
+                    occupancy & ((@as(u32, 1) << @intCast(level + 1)) - 1);
+                return .{
+                    .cell = cell,
+                    .total_height = @intCast(level + 1),
+                    .top_y = @as(i32, @intCast(level + 1)) * world_grid_span_y,
+                    .stack_depth = @intCast(@popCount(below_mask)),
+                    .top_floor_type = self.room.background.composition.level_floor_type_grid[level_index],
+                    .top_shape = self.room.background.composition.level_shape_grid[level_index],
+                    .top_shape_class = self.room.background.composition.level_shape_class_grid[level_index],
+                    .top_brick_index = self.room.background.composition.level_brick_index_grid[level_index],
+                };
+            }
+            if (level == 0) break;
+            level -= 1;
+        }
+        return error.WorldCellEmpty;
+    }
+
     fn probeNeighborAtCell(
         self: WorldQuery,
         origin_surface: CellTopSurface,
@@ -949,6 +1006,16 @@ pub const WorldQuery = struct {
         world_z: i32,
         hypothesis: MappingHypothesis,
     ) WorldPointCellProbe {
+        return self.probeCellAtWorldPointWithHypothesisForWorldY(world_x, world_z, std.math.maxInt(i32), hypothesis);
+    }
+
+    fn probeCellAtWorldPointWithHypothesisForWorldY(
+        self: WorldQuery,
+        world_x: i32,
+        world_z: i32,
+        world_y: i32,
+        hypothesis: MappingHypothesis,
+    ) WorldPointCellProbe {
         if (world_x < 0 or world_z < 0) {
             return .{
                 .world_x = world_x,
@@ -1003,7 +1070,7 @@ pub const WorldQuery = struct {
                 .standability = null,
             };
         };
-        const surface = CellTopSurface{
+        const top_surface = CellTopSurface{
             .cell = cell,
             .total_height = self.room.background.composition.height_grid[cell_index],
             .top_y = topSurfaceY(tile.total_height),
@@ -1013,6 +1080,29 @@ pub const WorldQuery = struct {
             .top_shape_class = tile.top_shape_class,
             .top_brick_index = tile.top_brick_index,
         };
+        const surface = if (world_y >= top_surface.top_y)
+            top_surface
+        else
+            self.cellSurfaceAtOrBelowWorldY(cell, world_y) catch |err| switch (err) {
+                error.WorldCellEmpty => return .{
+                    .world_x = world_x,
+                    .world_z = world_z,
+                    .cell = cell,
+                    .status = .empty,
+                    .occupied = false,
+                    .surface = null,
+                    .standability = null,
+                },
+                else => return .{
+                    .world_x = world_x,
+                    .world_z = world_z,
+                    .cell = cell,
+                    .status = .missing_top_surface,
+                    .occupied = true,
+                    .surface = null,
+                    .standability = null,
+                },
+            };
         const standability = standabilityForSurface(surface);
         return .{
             .world_x = world_x,

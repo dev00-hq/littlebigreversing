@@ -158,10 +158,20 @@ pub const CompositionSnapshot = struct {
     max_total_height: u8,
     max_stack_depth: u8,
     height_grid: []u8,
+    level_occupancy_grid: []u32,
+    level_floor_type_grid: []u8,
+    level_shape_grid: []u8,
+    level_shape_class_grid: []SurfaceShapeClass,
+    level_brick_index_grid: []u16,
     tiles: []CompositionTileSnapshot,
 
     pub fn deinit(self: CompositionSnapshot, allocator: std.mem.Allocator) void {
         allocator.free(self.height_grid);
+        allocator.free(self.level_occupancy_grid);
+        allocator.free(self.level_floor_type_grid);
+        allocator.free(self.level_shape_grid);
+        allocator.free(self.level_shape_class_grid);
+        allocator.free(self.level_brick_index_grid);
         allocator.free(self.tiles);
     }
 };
@@ -426,13 +436,10 @@ pub fn resolveGuardedTransitionRoomEntriesForCube(
 ) !ResolvedRoomEntries {
     if (destination_cube < 0) return error.UnsupportedDestinationCube;
 
-    // Current-state room transitions stay bounded to same-index room pairs whose
-    // scene entry matches the classic save-header cube -> raw-scene mapping.
     const cube_index = std.math.cast(usize, destination_cube) orelse return error.UnsupportedDestinationCube;
-    const scene_entry_index = cube_index + 2;
-    const background_entry_index = scene_entry_index;
+    const mapping = guardedTransitionRoomEntryForCube(cube_index) orelse return error.UnsupportedDestinationCube;
 
-    var room = loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index) catch |err| switch (err) {
+    var room = loadRoomSnapshot(allocator, resolved, mapping.entries.scene_entry_index, mapping.entries.background_entry_index) catch |err| switch (err) {
         error.ViewerUnsupportedSceneLife,
         error.ViewerSceneMustBeInterior,
         error.InvalidFragmentZoneBounds,
@@ -445,12 +452,56 @@ pub fn resolveGuardedTransitionRoomEntriesForCube(
     defer room.deinit(allocator);
 
     const classic_loader_scene_number = room.scene.classic_loader_scene_number orelse return error.UnsupportedDestinationCube;
-    if (classic_loader_scene_number != cube_index) return error.UnsupportedDestinationCube;
+    if (classic_loader_scene_number != mapping.classic_loader_scene_number) return error.UnsupportedDestinationCube;
+    if (room.background.entry_index != mapping.entries.background_entry_index) return error.UnsupportedDestinationCube;
 
-    return .{
-        .scene_entry_index = scene_entry_index,
-        .background_entry_index = background_entry_index,
+    return mapping.entries;
+}
+
+const GuardedTransitionRoomEntryMapping = struct {
+    destination_cube: usize,
+    entries: ResolvedRoomEntries,
+    classic_loader_scene_number: usize,
+};
+
+fn guardedTransitionRoomEntryForCube(destination_cube: usize) ?GuardedTransitionRoomEntryMapping {
+    const mappings = [_]GuardedTransitionRoomEntryMapping{
+        .{
+            .destination_cube = 0,
+            .entries = .{ .scene_entry_index = 2, .background_entry_index = 0 },
+            .classic_loader_scene_number = 0,
+        },
+        .{
+            .destination_cube = 1,
+            .entries = .{ .scene_entry_index = 2, .background_entry_index = 1 },
+            .classic_loader_scene_number = 0,
+        },
+        .{
+            .destination_cube = 17,
+            .entries = .{ .scene_entry_index = 19, .background_entry_index = 19 },
+            .classic_loader_scene_number = 17,
+        },
+        .{
+            .destination_cube = 19,
+            .entries = .{ .scene_entry_index = 21, .background_entry_index = 21 },
+            .classic_loader_scene_number = 19,
+        },
+        .{
+            .destination_cube = 20,
+            .entries = .{ .scene_entry_index = 22, .background_entry_index = 22 },
+            .classic_loader_scene_number = 20,
+        },
+        .{
+            .destination_cube = 34,
+            .entries = .{ .scene_entry_index = 36, .background_entry_index = 36 },
+            .classic_loader_scene_number = 34,
+        },
     };
+
+    for (mappings) |mapping| {
+        if (mapping.destination_cube == destination_cube) return mapping;
+    }
+    return null;
 }
 
 pub fn inspectRoomFragmentZoneDiagnostics(
@@ -1027,11 +1078,37 @@ pub fn buildCompositionSnapshot(
     const height_grid = try allocator.alloc(u8, grid_cell_count);
     errdefer allocator.free(height_grid);
     @memset(height_grid, 0);
+    const level_grid_cell_count = grid_cell_count * @as(usize, 25);
+    const level_occupancy_grid = try allocator.alloc(u32, grid_cell_count);
+    errdefer allocator.free(level_occupancy_grid);
+    @memset(level_occupancy_grid, 0);
+    const level_floor_type_grid = try allocator.alloc(u8, level_grid_cell_count);
+    errdefer allocator.free(level_floor_type_grid);
+    @memset(level_floor_type_grid, 0);
+    const level_shape_grid = try allocator.alloc(u8, level_grid_cell_count);
+    errdefer allocator.free(level_shape_grid);
+    @memset(level_shape_grid, 0);
+    const level_shape_class_grid = try allocator.alloc(SurfaceShapeClass, level_grid_cell_count);
+    errdefer allocator.free(level_shape_class_grid);
+    @memset(level_shape_class_grid, .open);
+    const level_brick_index_grid = try allocator.alloc(u16, level_grid_cell_count);
+    errdefer allocator.free(level_brick_index_grid);
+    @memset(level_brick_index_grid, 0);
 
     var max_total_height: u8 = 0;
     var max_stack_depth: u8 = 0;
 
     for (composition.grid.cells, 0..) |cell, index| {
+        try fillCompositionLevelGrids(
+            composition,
+            cell,
+            index,
+            level_occupancy_grid,
+            level_floor_type_grid,
+            level_shape_grid,
+            level_shape_class_grid,
+            level_brick_index_grid,
+        );
         if (cell.non_empty_block_ref_count == 0) continue;
         if (cell.total_height > std.math.maxInt(u8)) return error.InvalidCompositionCell;
         if (cell.non_empty_block_ref_count > std.math.maxInt(u8)) return error.InvalidCompositionCell;
@@ -1075,8 +1152,86 @@ pub fn buildCompositionSnapshot(
         .max_total_height = max_total_height,
         .max_stack_depth = max_stack_depth,
         .height_grid = height_grid,
+        .level_occupancy_grid = level_occupancy_grid,
+        .level_floor_type_grid = level_floor_type_grid,
+        .level_shape_grid = level_shape_grid,
+        .level_shape_class_grid = level_shape_class_grid,
+        .level_brick_index_grid = level_brick_index_grid,
         .tiles = try tiles.toOwnedSlice(allocator),
     };
+}
+
+fn fillCompositionLevelGrids(
+    composition: background_data.BackgroundComposition,
+    cell: background_data.GridCell,
+    cell_index: usize,
+    level_occupancy_grid: []u32,
+    level_floor_type_grid: []u8,
+    level_shape_grid: []u8,
+    level_shape_class_grid: []SurfaceShapeClass,
+    level_brick_index_grid: []u16,
+) !void {
+    var level: usize = 0;
+    const spans = composition.grid.spans[cell.span_start .. cell.span_start + cell.span_count];
+    for (spans) |span| {
+        switch (span.encoding) {
+            .empty => {},
+            .explicit => {
+                for (0..span.height) |span_level| {
+                    const block_ref = composition.grid.block_refs[span.block_ref_start + span_level];
+                    if (block_ref.layout_index == 0) continue;
+                    const block = try resolveCompositionLayoutBlock(composition, block_ref);
+                    fillCompositionLevel(
+                        cell_index,
+                        level + span_level,
+                        block,
+                        level_occupancy_grid,
+                        level_floor_type_grid,
+                        level_shape_grid,
+                        level_shape_class_grid,
+                        level_brick_index_grid,
+                    );
+                }
+            },
+            .repeated => {
+                const block_ref = composition.grid.block_refs[span.block_ref_start];
+                if (block_ref.layout_index != 0) {
+                    const block = try resolveCompositionLayoutBlock(composition, block_ref);
+                    for (0..span.height) |span_level| {
+                        fillCompositionLevel(
+                            cell_index,
+                            level + span_level,
+                            block,
+                            level_occupancy_grid,
+                            level_floor_type_grid,
+                            level_shape_grid,
+                            level_shape_class_grid,
+                            level_brick_index_grid,
+                        );
+                    }
+                }
+            },
+        }
+        level += span.height;
+    }
+}
+
+fn fillCompositionLevel(
+    cell_index: usize,
+    level: usize,
+    block: background_data.LayoutBlock,
+    level_occupancy_grid: []u32,
+    level_floor_type_grid: []u8,
+    level_shape_grid: []u8,
+    level_shape_class_grid: []SurfaceShapeClass,
+    level_brick_index_grid: []u16,
+) void {
+    const level_index = (cell_index * 25) + level;
+    level_occupancy_grid[cell_index] |= @as(u32, 1) << @intCast(level);
+    level_floor_type_grid[level_index] = block.floorType();
+    level_shape_grid[level_index] = block.shape;
+    level_shape_class_grid[level_index] = classifySurfaceShape(block.shape);
+    level_brick_index_grid[level_index] = block.brick_index;
 }
 
 fn resolveCompositionLayoutBlock(
@@ -1213,18 +1368,38 @@ test "inspectRoomFragmentZoneDiagnostics explains the 219 219 invalid fragment-z
     try std.testing.expectEqual(@as(?i32, 320), third.z_axis.origin_remainder);
 }
 
-test "resolveGuardedTransitionRoomEntriesForCube keeps the bounded current-state same-index mapping explicit" {
+test "resolveGuardedTransitionRoomEntriesForCube keeps the bounded current-state cube mapping explicit" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
     try std.testing.expectEqual(
-        ResolvedRoomEntries{ .scene_entry_index = 2, .background_entry_index = 2 },
+        ResolvedRoomEntries{ .scene_entry_index = 2, .background_entry_index = 0 },
         try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 0),
+    );
+    try std.testing.expectEqual(
+        ResolvedRoomEntries{ .scene_entry_index = 2, .background_entry_index = 1 },
+        try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 1),
     );
     try std.testing.expectEqual(
         ResolvedRoomEntries{ .scene_entry_index = 19, .background_entry_index = 19 },
         try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 17),
+    );
+    try std.testing.expectEqual(
+        ResolvedRoomEntries{ .scene_entry_index = 21, .background_entry_index = 21 },
+        try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 19),
+    );
+    try std.testing.expectEqual(
+        ResolvedRoomEntries{ .scene_entry_index = 22, .background_entry_index = 22 },
+        try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 20),
+    );
+    try std.testing.expectEqual(
+        ResolvedRoomEntries{ .scene_entry_index = 36, .background_entry_index = 36 },
+        try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 34),
+    );
+    try std.testing.expectError(
+        error.UnsupportedDestinationCube,
+        resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 45),
     );
 }
 

@@ -215,14 +215,8 @@ fn resolveInteriorPostLoadLandingAdjustment(
     if (evaluation.status != .target_height_mismatch) {
         return error.UnsupportedDestinationPostLoadAdjustment;
     }
-    const surface = evaluation.raw_cell.surface orelse return error.UnsupportedDestinationPostLoadAdjustment;
-    if (evaluation.raw_cell.standability != .standable) return error.UnsupportedDestinationPostLoadAdjustment;
-
-    return .{
-        .x = provisional_world_position.x,
-        .y = surface.top_y,
-        .z = provisional_world_position.z,
-    };
+    return query.classicShadowAdjustedLanding(provisional_world_position) catch
+        error.UnsupportedDestinationPostLoadAdjustment;
 }
 
 fn unsupportedPendingRoomTransitionReason(
@@ -345,6 +339,90 @@ test "guarded 2/2 only classifies the proven public-door seam as unsupported ext
     }
 }
 
+test "guarded scene-2 secret-room door commits through the live-backed cube-0 landing" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    const door_zone = room.scene.zones[0];
+    const door_semantics = switch (door_zone.semantics) {
+        .change_cube => |value| value,
+        else => return error.ExpectedChangeCubeZoneSemantics,
+    };
+    try std.testing.expectEqual(@as(i32, 9728), door_zone.x0);
+    try std.testing.expectEqual(@as(i32, 1024), door_zone.y0);
+    try std.testing.expectEqual(@as(i32, 512), door_zone.z0);
+    try std.testing.expectEqual(@as(i16, 0), door_semantics.destination_cube);
+    try std.testing.expectEqual(@as(i32, 2560), door_semantics.destination_x);
+    try std.testing.expectEqual(@as(i32, 2048), door_semantics.destination_y);
+    try std.testing.expectEqual(@as(i32, 3072), door_semantics.destination_z);
+
+    var destination_room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer destination_room.deinit(allocator);
+    const destination_query = runtime_query.init(&destination_room);
+    const live_provisional_position = locomotion.WorldPointSnapshot{ .x = 2562, .y = 2049, .z = 3322 };
+    const landing_evaluation = destination_query.evaluateHeroMoveTarget(live_provisional_position);
+    try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_height_mismatch, landing_evaluation.status);
+    try std.testing.expect(landing_evaluation.raw_cell.cell != null);
+    try std.testing.expectEqual(@as(usize, 5), landing_evaluation.raw_cell.cell.?.x);
+    try std.testing.expectEqual(@as(usize, 6), landing_evaluation.raw_cell.cell.?.z);
+    try std.testing.expect(landing_evaluation.raw_cell.surface != null);
+    try std.testing.expectEqual(@as(i32, 2048), landing_evaluation.raw_cell.surface.?.top_y);
+    try std.testing.expectEqual(runtime_query.Standability.standable, landing_evaluation.raw_cell.standability.?);
+
+    var current_session = try viewer_shell.initSession(allocator, &room);
+    defer current_session.deinit(allocator);
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
+    try current_session.setPendingRoomTransition(.{
+        .source_zone_index = door_zone.index,
+        .destination_cube = door_semantics.destination_cube,
+        .destination_world_position_kind = .provisional_zone_relative,
+        .destination_world_position = live_provisional_position,
+        .yaw = door_semantics.yaw,
+        .test_brick = door_semantics.test_brick,
+        .dont_readjust_twinsen = door_semantics.dont_readjust_twinsen,
+    });
+
+    const transition_result = try applyPendingRoomTransition(
+        allocator,
+        resolved,
+        &room,
+        &current_session,
+        &locomotion_status,
+        locomotion_status,
+    );
+    switch (transition_result) {
+        .committed => |value| {
+            try std.testing.expectEqual(@as(usize, 2), value.source_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 1), value.source_background_entry_index);
+            try std.testing.expectEqual(@as(i16, 0), value.destination_cube);
+            try std.testing.expectEqual(@as(usize, 2), value.destination_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 0), value.destination_background_entry_index);
+            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 2562, .y = 2048, .z = 3322 }, value.hero_position);
+        },
+        .rejected => return error.UnexpectedRejectedRoomTransition,
+    }
+}
+
+test "guarded 3/3 resolves but rejects its two current interior destinations at post-load landing" {
+    try expectGuarded33ChangeCubeRejection(1, 19, .unsupported_destination_post_load_adjustment);
+    try expectGuarded33ChangeCubeRejection(8, 20, .unsupported_destination_post_load_adjustment);
+}
+
+test "guarded 3/3 rejects the exterior-facing change-cube destination" {
+    const transition_result = try applyGuarded33ChangeCubeZone(15);
+    switch (transition_result) {
+        .rejected => |value| {
+            try std.testing.expectEqual(@as(i16, 45), value.destination_cube);
+            try std.testing.expectEqual(TransitionRejectionReason.unsupported_destination_cube, value.reason);
+        },
+        .committed => return error.UnexpectedCommittedRoomTransition,
+    }
+}
+
 test "final-landing transitions still reject invalid destination positions explicitly" {
     const allocator = std.testing.allocator;
     const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
@@ -415,6 +493,12 @@ test "provisional zone-relative transitions can apply bounded post-load vertical
         .dont_readjust_twinsen = false,
     });
 
+    const expected_shadow_landing = try runtime_query.init(&destination_room).classicShadowAdjustedLanding(.{
+        .x = resolved_destination_world_position.x,
+        .y = resolved_destination_world_position.y + 256,
+        .z = resolved_destination_world_position.z,
+    });
+
     const transition_result = try applyPendingRoomTransition(
         allocator,
         resolved,
@@ -425,7 +509,7 @@ test "provisional zone-relative transitions can apply bounded post-load vertical
     );
     switch (transition_result) {
         .committed => |value| {
-            try std.testing.expectEqual(resolved_destination_world_position, value.hero_position);
+            try std.testing.expectEqual(expected_shadow_landing, value.hero_position);
         },
         .rejected => return error.UnexpectedRejectedRoomTransition,
     }
@@ -485,4 +569,62 @@ fn findReachableChangeCubeTransition(
     }
 
     return null;
+}
+
+fn expectGuarded33ChangeCubeRejection(
+    source_zone_index: usize,
+    destination_cube: i16,
+    reason: TransitionRejectionReason,
+) !void {
+    const transition_result = try applyGuarded33ChangeCubeZone(source_zone_index);
+    switch (transition_result) {
+        .rejected => |value| {
+            try std.testing.expectEqual(@as(usize, 3), value.source_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 3), value.source_background_entry_index);
+            try std.testing.expectEqual(destination_cube, value.destination_cube);
+            try std.testing.expectEqual(reason, value.reason);
+        },
+        .committed => return error.UnexpectedCommittedRoomTransition,
+    }
+}
+
+fn applyGuarded33ChangeCubeZone(source_zone_index: usize) !TransitionApplyResult {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 3, 3);
+    defer room.deinit(allocator);
+
+    var current_session = try viewer_shell.initSession(allocator, &room);
+    defer current_session.deinit(allocator);
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
+
+    const zone = room.scene.zones[source_zone_index];
+    const semantics = switch (zone.semantics) {
+        .change_cube => |value| value,
+        else => return error.ExpectedChangeCubeZoneSemantics,
+    };
+    try current_session.setPendingRoomTransition(.{
+        .source_zone_index = zone.index,
+        .destination_cube = semantics.destination_cube,
+        .destination_world_position_kind = .provisional_zone_relative,
+        .destination_world_position = .{
+            .x = semantics.destination_x,
+            .y = semantics.destination_y,
+            .z = semantics.destination_z,
+        },
+        .yaw = semantics.yaw,
+        .test_brick = semantics.test_brick,
+        .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
+    });
+
+    return applyPendingRoomTransition(
+        allocator,
+        resolved,
+        &room,
+        &current_session,
+        &locomotion_status,
+        locomotion_status,
+    );
 }
