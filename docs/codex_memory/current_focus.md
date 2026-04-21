@@ -32,6 +32,7 @@
 - Use `waypoint_step_probe.py` as the step primitive for debug-control work.
 - Reopen wall mapping only if a bounded navigation slice proves it is the bottleneck.
 - For cellar work, stay on the scene-2 zone-`0` secret-room seam; do not promote the `3/3` zone-`1` dungeon handoff.
+- Use `secret_room_door_watch.py` for live cellar-door transition snapshots and reverse-door proof.
 - Otherwise choose the next bounded Phase 5 seam from an existing guarded gameplay slice.
 - Treat guarded `19/19` reward-model work as settled unless a pickup-surface bug or contradiction appears.
 - Use `dialog_text_dump.py` for further room-36 live proof.

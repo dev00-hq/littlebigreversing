@@ -35,7 +35,8 @@ Own the offline life-program decoder boundary and original-runtime evidence lane
 - Do not revive the staged single-slot `Load Game` harness. Direct save launch is the canonical path.
 - Direct-save startup must reject the black EA logo; otherwise probes can report zero hero fields.
 - `0013-weapon.LBA` is the right cellar start; forced `3/3` zone `1` lands in a Tralu-looking scene.
-- Proved `0013` secret-room door source is scene-2 zone `0`; cube `1 -> scene 2/background 1`, cube `0 -> scene 2/background 0`, and live `NewPos=(2562,2049,3322)` commits after classic-style shadow readjustment to `(2562,2048,3322)`.
+- Proved `0013` secret-room door source is scene-2 zone `0`; cube `1 -> scene 2/background 1`, cube `0 -> scene 2/background 0`, and live samples preserve source-door offset into `NewPos=(2562,2049,3322)` and `(2563,2049,3749)` before classic-style shadow readjustment.
+- Use `tools/life_trace/secret_room_door_watch.py` for cellar-door transition snapshots; the older `work/tmp_secret_room_door_watch.py` is scratch evidence, not the maintained entrypoint.
 - On Sendell, use `CurrentDial` global `0x004CCF10`; old `0x00475630` / `CurrentDial=513` is a trap.
 - Room-36 visible page 2 is renderer pagination inside one decoded text record.
 - Do not reintroduce `514` as the visible second Sendell page without new classic proof.
@@ -46,6 +47,7 @@ Own the offline life-program decoder boundary and original-runtime evidence lane
 - `tools/life_trace/trace_life.py`
 - `tools/life_trace/capture_sendell_ball.py`
 - `tools/life_trace/dialog_text_dump.py`
+- `tools/life_trace/secret_room_door_watch.py`
 - `tools/life_trace/debug_compass.py`
 - `tools/life_trace/heading_inject.py`
 - `tools/life_trace/waypoint_step_probe.py`
@@ -59,6 +61,7 @@ Own the offline life-program decoder boundary and original-runtime evidence lane
 
 - `py -3 .\scripts\dev-shell.py exec --cwd port -- zig build tool -- inspect-life-catalog --json`
 - `py -3 .\tools\life_trace\heading_inject.py --heading N`
+- `py -3 .\tools\life_trace\secret_room_door_watch.py --attach-pid <pid> --out .\work\life_trace\secret-room-door-watch.jsonl --once`
 - `py -3 .\tools\life_trace\waypoint_step_probe.py --launch-save .\work\saves\0013-weapon.LBA --keep-current-heading`
 
 ## Open Unknowns
