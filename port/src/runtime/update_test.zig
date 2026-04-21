@@ -1,4 +1,5 @@
 const std = @import("std");
+const paths = @import("../foundation/paths.zig");
 const reference_metadata = @import("../generated/reference_metadata.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
@@ -359,6 +360,53 @@ test "runtime zone effects record a generic change-cube transition from guarded 
     try std.testing.expectEqual(@as(i32, 2588), transition.destination_world_position.x);
     try std.testing.expectEqual(@as(i32, 2048), transition.destination_world_position.y);
     try std.testing.expectEqual(@as(i32, 3342), transition.destination_world_position.z);
+    try std.testing.expectEqual(semantics.yaw, transition.yaw);
+    try std.testing.expectEqual(semantics.test_brick, transition.test_brick);
+    try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);
+}
+
+test "runtime zone effects preserve the live source offset on the scene-2 secret-room door" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{
+        .x = 9730,
+        .y = 1025,
+        .z = 762,
+    });
+
+    const door_zone = room.scene.zones[0];
+    const semantics = switch (door_zone.semantics) {
+        .change_cube => |value| value,
+        else => return error.ExpectedChangeCubeZoneSemantics,
+    };
+    try std.testing.expectEqual(@as(i32, 9728), door_zone.x0);
+    try std.testing.expectEqual(@as(i32, 1024), door_zone.y0);
+    try std.testing.expectEqual(@as(i32, 512), door_zone.z0);
+    try std.testing.expectEqual(@as(i32, 2560), semantics.destination_x);
+    try std.testing.expectEqual(@as(i32, 2048), semantics.destination_y);
+    try std.testing.expectEqual(@as(i32, 3072), semantics.destination_z);
+
+    var zone_membership: runtime_query.ContainingZoneSet = .{};
+    try zone_membership.append(door_zone);
+    const effect_summary = try zone_effects.applyContainingZoneEffects(&current_session, zone_membership.slice());
+
+    try std.testing.expect(effect_summary.triggered_room_transition);
+    const transition = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
+    try std.testing.expectEqual(door_zone.index, transition.source_zone_index);
+    try std.testing.expectEqual(@as(i16, 0), transition.destination_cube);
+    try std.testing.expectEqual(runtime_session.PendingRoomTransitionDestinationPositionKind.provisional_zone_relative, transition.destination_world_position_kind);
+    try std.testing.expectEqual(locomotion.WorldPointSnapshot{
+        .x = 2562,
+        .y = 2049,
+        .z = 3322,
+    }, transition.destination_world_position);
     try std.testing.expectEqual(semantics.yaw, transition.yaw);
     try std.testing.expectEqual(semantics.test_brick, transition.test_brick);
     try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);

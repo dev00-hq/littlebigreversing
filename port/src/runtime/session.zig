@@ -593,14 +593,14 @@ test "runtime session keeps transient current dialog state explicit and single-s
     });
 
     try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
-    try runtime_session.setCurrentDialogId(513);
-    try std.testing.expectEqual(@as(?i16, 513), runtime_session.currentDialogId());
-    try std.testing.expectError(error.CurrentDialogAlreadySet, runtime_session.setCurrentDialogId(514));
+    try runtime_session.setCurrentDialogId(42);
+    try std.testing.expectEqual(@as(?i16, 42), runtime_session.currentDialogId());
+    try std.testing.expectError(error.CurrentDialogAlreadySet, runtime_session.setCurrentDialogId(43));
 
     runtime_session.clearCurrentDialogId();
     try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
-    try runtime_session.setCurrentDialogId(287);
-    try std.testing.expectEqual(@as(?i16, 287), runtime_session.currentDialogId());
+    try runtime_session.setCurrentDialogId(44);
+    try std.testing.expectEqual(@as(?i16, 44), runtime_session.currentDialogId());
 }
 
 test "runtime session keeps pending room transitions explicit and single-slot" {
@@ -685,7 +685,7 @@ test "runtime session can replace room-local state while preserving durable runt
     runtime_session.setGameVar(9, 12);
     runtime_session.setMagicLevelAndRefill(2);
     runtime_session.setMagicPoint(17);
-    try runtime_session.setCurrentDialogId(513);
+    try runtime_session.setCurrentDialogId(42);
     try runtime_session.setPendingRoomTransition(.{
         .source_zone_index = 0,
         .destination_cube = 0,
