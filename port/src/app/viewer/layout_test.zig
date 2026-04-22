@@ -64,3 +64,29 @@ test "viewer projection moves the hero marker down the schematic after southward
     try std.testing.expectEqual(seeded_hero.x, moved_hero.x);
     try std.testing.expect(moved_hero.y > seeded_hero.y);
 }
+
+test "viewer zoom viewport crops into occupied room cells" {
+    const room = try room_fixtures.guarded1919();
+    const render = state.buildRenderSnapshot(room);
+
+    const fit_view = layout.computeGridViewport(render, .fit);
+    const room_view = layout.computeGridViewport(render, .room);
+    const detail_view = layout.computeGridViewport(render, .detail);
+
+    try std.testing.expectEqual(@as(usize, 0), fit_view.origin_x);
+    try std.testing.expectEqual(@as(usize, 0), fit_view.origin_z);
+    try std.testing.expectEqual(render.grid_width, fit_view.width);
+    try std.testing.expectEqual(render.grid_depth, fit_view.depth);
+    try std.testing.expect(room_view.width < fit_view.width);
+    try std.testing.expect(room_view.depth < fit_view.depth);
+    try std.testing.expect(detail_view.width <= room_view.width);
+    try std.testing.expect(detail_view.depth <= room_view.depth);
+
+    const tile = render.composition.tiles[0];
+    const fit_layout = layout.computeDebugLayout(1440, 900, fit_view.width, fit_view.depth, false);
+    const room_layout = layout.computeDebugLayout(1440, 900, room_view.width, room_view.depth, false);
+    const fit_rect = layout.projectGridCellRectInViewport(fit_layout.schematic, fit_view, tile.x, tile.z) orelse return error.MissingFitTile;
+    const room_rect = layout.projectGridCellRectInViewport(room_layout.schematic, room_view, tile.x, tile.z) orelse return error.MissingRoomTile;
+
+    try std.testing.expect((room_rect.w * room_rect.h) > (fit_rect.w * fit_rect.h));
+}

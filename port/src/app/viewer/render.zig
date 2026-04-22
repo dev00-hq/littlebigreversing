@@ -74,6 +74,8 @@ pub const SidebarTab = enum {
     controls,
 };
 
+pub const ZoomLevel = layout.ZoomLevel;
+
 pub fn renderDebugView(
     canvas: *sdl.Canvas,
     snapshot: state.RenderSnapshot,
@@ -82,14 +84,16 @@ pub fn renderDebugView(
     locomotion_status: LocomotionStatusDisplay,
     control_mode: ControlMode,
     sidebar_tab: SidebarTab,
+    zoom_level: ZoomLevel,
     dialog_overlay: DialogOverlayDisplay,
 ) !void {
     const fragment_panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
+    const viewport = layout.computeGridViewport(snapshot, zoom_level);
     const debug_layout = layout.computeDebugLayout(
         canvas.width,
         canvas.height,
-        snapshot.grid_width,
-        snapshot.grid_depth,
+        viewport.width,
+        viewport.depth,
         fragment_panel.focus != null,
     );
 
@@ -100,18 +104,24 @@ pub fn renderDebugView(
     try canvas.drawRect(debug_layout.sidebar, .{ .r = 59, .g = 76, .b = 88, .a = 255 });
     try canvas.fillRect(debug_layout.schematic_frame, .{ .r = 10, .g = 14, .b = 19, .a = 255 });
     try canvas.drawRect(debug_layout.schematic_frame, .{ .r = 56, .g = 80, .b = 92, .a = 255 });
-    try drawComposition(canvas, debug_layout.schematic, snapshot);
-    try drawFragmentZones(canvas, debug_layout.schematic, snapshot);
+    try drawComposition(canvas, debug_layout.schematic, snapshot, viewport);
+    try drawFragmentZones(canvas, debug_layout.schematic, snapshot, viewport);
     if (fragment_panel.focus) |focus| {
-        try drawFocusedFragmentZoneOverlay(canvas, debug_layout.schematic, snapshot, focus);
+        try drawFocusedFragmentZoneOverlay(canvas, debug_layout.schematic, snapshot, viewport, focus);
     }
-    try drawGrid(canvas, debug_layout.schematic, snapshot.grid_width, snapshot.grid_depth);
+    try drawGrid(canvas, debug_layout.schematic, viewport);
     if (fragment_panel.focus) |focus| {
-        try fragment_compare.drawFragmentFocusHighlight(canvas, debug_layout.schematic, snapshot, focus);
+        if (layout.projectGridCellRectInViewport(debug_layout.schematic, viewport, focus.x, focus.z)) |focus_rect| {
+            try canvas.drawRect(focus_rect, fragment_compare.fragmentComparisonDeltaColor(focus.delta));
+            const inner_rect = focus_rect.inset(2);
+            if (inner_rect.w > 4 and inner_rect.h > 4) {
+                try canvas.drawRect(inner_rect, fragment_compare.fragmentComparisonDeltaColor(focus.delta));
+            }
+        }
     }
 
     for (snapshot.zones) |zone| {
-        const rect = layout.projectZoneBounds(snapshot, debug_layout.schematic, zone);
+        const rect = layout.projectZoneBoundsInViewport(debug_layout.schematic, viewport, zone) orelse continue;
         const zone_color = draw.zoneColor(zone.kind);
         try canvas.fillRect(rect, draw.withAlpha(zone_color, 40));
         try canvas.drawRect(rect, zone_color);
@@ -119,61 +129,60 @@ pub fn renderDebugView(
 
     for (snapshot.tracks[0..snapshot.tracks.len -| 1], 0..) |track, index| {
         const next = snapshot.tracks[index + 1];
-        const start = layout.projectWorldPoint(snapshot, debug_layout.schematic, track.x, track.z);
-        const finish = layout.projectWorldPoint(snapshot, debug_layout.schematic, next.x, next.z);
+        const start = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, track.x, track.z) orelse continue;
+        const finish = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, next.x, next.z) orelse continue;
         try canvas.drawLine(start.x, start.y, finish.x, finish.y, .{ .r = 59, .g = 201, .b = 255, .a = 192 });
     }
 
     for (snapshot.tracks) |track| {
-        const point = layout.projectWorldPoint(snapshot, debug_layout.schematic, track.x, track.z);
+        const point = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, track.x, track.z) orelse continue;
         try draw.drawMarker(canvas, point, 4, .{ .r = 76, .g = 226, .b = 255, .a = 255 });
     }
 
     for (snapshot.objects) |object| {
-        const point = layout.projectWorldPoint(snapshot, debug_layout.schematic, object.x, object.z);
+        const point = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, object.x, object.z) orelse continue;
         try draw.drawMarker(canvas, point, 6, .{ .r = 255, .g = 194, .b = 92, .a = 255 });
     }
 
     try drawLocomotionSchematicCue(
         canvas,
         debug_layout.schematic,
-        snapshot.grid_width,
-        snapshot.grid_depth,
+        viewport,
         locomotion_status.schematic,
     );
     try drawLocomotionAttemptCue(
         canvas,
         debug_layout.schematic,
-        snapshot.grid_width,
-        snapshot.grid_depth,
+        viewport,
         locomotion_status.attempt,
     );
 
-    const hero = layout.projectWorldPoint(snapshot, debug_layout.schematic, snapshot.hero_position.x, snapshot.hero_position.z);
-    try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
-    try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
-    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode, sidebar_tab, dialog_overlay);
+    if (layout.projectWorldPointInViewport(debug_layout.schematic, viewport, snapshot.hero_position.x, snapshot.hero_position.z)) |hero| {
+        try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
+        try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
+    }
+    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode, sidebar_tab, zoom_level, dialog_overlay);
     canvas.present();
 }
 
-fn drawGrid(canvas: *sdl.Canvas, rect: sdl.Rect, width: usize, depth: usize) !void {
+fn drawGrid(canvas: *sdl.Canvas, rect: sdl.Rect, viewport: layout.GridViewport) !void {
     const left = rect.x;
     const right = rect.right();
     const top = rect.y;
     const bottom = rect.bottom();
 
-    for (0..(width + 1)) |column| {
-        const x = layout.interpolateAxis(left, right, column, width);
-        const color = if (column % 8 == 0)
+    for (0..(viewport.width + 1)) |column| {
+        const x = layout.interpolateAxis(left, right, column, viewport.width);
+        const color = if ((viewport.origin_x + column) % 8 == 0)
             sdl.Color{ .r = 42, .g = 61, .b = 74, .a = 255 }
         else
             sdl.Color{ .r = 25, .g = 36, .b = 45, .a = 255 };
         try canvas.drawLine(x, top, x, bottom, color);
     }
 
-    for (0..(depth + 1)) |row| {
-        const y = layout.interpolateAxis(top, bottom, row, depth);
-        const color = if (row % 8 == 0)
+    for (0..(viewport.depth + 1)) |row| {
+        const y = layout.interpolateAxis(top, bottom, row, viewport.depth);
+        const color = if ((viewport.origin_z + row) % 8 == 0)
             sdl.Color{ .r = 42, .g = 61, .b = 74, .a = 255 }
         else
             sdl.Color{ .r = 25, .g = 36, .b = 45, .a = 255 };
@@ -181,27 +190,26 @@ fn drawGrid(canvas: *sdl.Canvas, rect: sdl.Rect, width: usize, depth: usize) !vo
     }
 }
 
-fn drawComposition(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: state.RenderSnapshot) !void {
+fn drawComposition(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: state.RenderSnapshot, viewport: layout.GridViewport) !void {
     for (snapshot.composition.tiles) |tile| {
-        const tile_rect = layout.projectGridCellRect(rect, snapshot.grid_width, snapshot.grid_depth, tile.x, tile.z);
+        const tile_rect = layout.projectGridCellRectInViewport(rect, viewport, tile.x, tile.z) orelse continue;
         try drawCompositionTile(canvas, snapshot, tile_rect, tile);
     }
 }
 
-fn drawFragmentZones(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: state.RenderSnapshot) !void {
+fn drawFragmentZones(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: state.RenderSnapshot, viewport: layout.GridViewport) !void {
     for (snapshot.fragments.zones) |zone| {
-        const zone_bounds = layout.projectGridAreaRect(
+        const zone_bounds = layout.projectGridAreaRectInViewport(
             rect,
-            snapshot.grid_width,
-            snapshot.grid_depth,
+            viewport,
             zone.origin_x,
             zone.origin_z,
             zone.width,
             zone.depth,
-        );
+        ) orelse continue;
         const border_color = draw.fragmentZoneBorderColor(zone.initially_on);
         for (zone.cells) |cell| {
-            const cell_rect = layout.projectGridCellRect(rect, snapshot.grid_width, snapshot.grid_depth, cell.x, cell.z);
+            const cell_rect = layout.projectGridCellRectInViewport(rect, viewport, cell.x, cell.z) orelse continue;
             if (cell.has_non_empty) {
                 const base_color = draw.fragmentCellColor(cell);
                 const brick_delta = fragment_compare.fragmentBrickDelta(snapshot, cell);
@@ -269,18 +277,18 @@ fn drawFocusedFragmentZoneOverlay(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
     snapshot: state.RenderSnapshot,
+    viewport: layout.GridViewport,
     focus: fragment_compare.FragmentComparisonEntry,
 ) !void {
     const zone = findFocusedFragmentZone(snapshot, focus);
-    const zone_rect = layout.projectGridAreaRect(
+    const zone_rect = layout.projectGridAreaRectInViewport(
         rect,
-        snapshot.grid_width,
-        snapshot.grid_depth,
+        viewport,
         zone.origin_x,
         zone.origin_z,
         zone.width,
         zone.depth,
-    );
+    ) orelse return;
     try canvas.fillRect(zone_rect, focusedFragmentZoneOverlayFillColor());
 
     const inner_rect = zone_rect.inset(2);
@@ -292,16 +300,15 @@ fn drawFocusedFragmentZoneOverlay(
 fn drawLocomotionSchematicCue(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    grid_width: usize,
-    grid_depth: usize,
+    viewport: layout.GridViewport,
     cue: LocomotionSchematicCue,
 ) !void {
     switch (cue) {
         .none => {},
         .admitted_path => |value| {
-            try drawCurrentLocomotionCellCue(canvas, rect, grid_width, grid_depth, value.current_cell);
+            try drawCurrentLocomotionCellCue(canvas, rect, viewport, value.current_cell);
             for (value.move_options) |move_option| {
-                try drawLocomotionMoveOptionCue(canvas, rect, grid_width, grid_depth, move_option);
+                try drawLocomotionMoveOptionCue(canvas, rect, viewport, move_option);
             }
         },
     }
@@ -310,8 +317,7 @@ fn drawLocomotionSchematicCue(
 fn drawLocomotionAttemptCue(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    grid_width: usize,
-    grid_depth: usize,
+    viewport: layout.GridViewport,
     cue: LocomotionAttemptCue,
 ) !void {
     switch (cue) {
@@ -319,8 +325,7 @@ fn drawLocomotionAttemptCue(
         .accepted => |value| try drawLocomotionAttemptSegment(
             canvas,
             rect,
-            grid_width,
-            grid_depth,
+            viewport,
             value.origin_cell,
             value.destination_cell,
             locomotionAttemptAcceptedColor(),
@@ -328,8 +333,7 @@ fn drawLocomotionAttemptCue(
         .rejected => |value| try drawLocomotionAttemptSegment(
             canvas,
             rect,
-            grid_width,
-            grid_depth,
+            viewport,
             value.current_cell,
             value.target_cell,
             locomotionAttemptRejectedColor(),
@@ -340,25 +344,23 @@ fn drawLocomotionAttemptCue(
 fn drawLocomotionAttemptSegment(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    grid_width: usize,
-    grid_depth: usize,
+    viewport: layout.GridViewport,
     start_cell: GridCell,
     end_cell: GridCell,
     color: sdl.Color,
 ) !void {
-    const start = projectGridCellCenter(rect, grid_width, grid_depth, start_cell);
-    const finish = projectGridCellCenter(rect, grid_width, grid_depth, end_cell);
+    const start = projectGridCellCenter(rect, viewport, start_cell) orelse return;
+    const finish = projectGridCellCenter(rect, viewport, end_cell) orelse return;
     try canvas.drawLine(start.x, start.y, finish.x, finish.y, color);
 }
 
 fn drawCurrentLocomotionCellCue(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    grid_width: usize,
-    grid_depth: usize,
+    viewport: layout.GridViewport,
     cell: GridCell,
 ) !void {
-    const cell_rect = layout.projectGridCellRect(rect, grid_width, grid_depth, cell.x, cell.z);
+    const cell_rect = layout.projectGridCellRectInViewport(rect, viewport, cell.x, cell.z) orelse return;
     const fill_rect = insetRectSafe(cell_rect, 2);
     const border_rect = insetRectSafe(cell_rect, 1);
 
@@ -369,12 +371,11 @@ fn drawCurrentLocomotionCellCue(
 fn drawLocomotionMoveOptionCue(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    grid_width: usize,
-    grid_depth: usize,
+    viewport: layout.GridViewport,
     move_option: LocomotionSchematicMoveOption,
 ) !void {
     const target_cell = move_option.target_cell orelse return;
-    const cell_rect = layout.projectGridCellRect(rect, grid_width, grid_depth, target_cell.x, target_cell.z);
+    const cell_rect = layout.projectGridCellRectInViewport(rect, viewport, target_cell.x, target_cell.z) orelse return;
     const border_rect = insetRectSafe(cell_rect, 1);
     const border_color = locomotionTargetOverlayColor(move_option.status);
     const label = shortDirectionLabel(move_option.direction);
@@ -398,11 +399,10 @@ fn insetRectSafe(rect: sdl.Rect, inset: i32) sdl.Rect {
 
 fn projectGridCellCenter(
     rect: sdl.Rect,
-    grid_width: usize,
-    grid_depth: usize,
+    viewport: layout.GridViewport,
     cell: GridCell,
-) layout.ScreenPoint {
-    const cell_rect = layout.projectGridCellRect(rect, grid_width, grid_depth, cell.x, cell.z);
+) ?layout.ScreenPoint {
+    const cell_rect = layout.projectGridCellRectInViewport(rect, viewport, cell.x, cell.z) orelse return null;
     return .{
         .x = cell_rect.x + @divTrunc(cell_rect.w, 2),
         .y = cell_rect.y + @divTrunc(cell_rect.h, 2),
@@ -479,6 +479,7 @@ fn drawHud(
     locomotion_status: LocomotionStatusDisplay,
     control_mode: ControlMode,
     sidebar_tab: SidebarTab,
+    zoom_level: ZoomLevel,
     dialog_overlay: DialogOverlayDisplay,
 ) !void {
     const sidebar_content = debug_layout.sidebar.inset(10);
@@ -494,7 +495,7 @@ fn drawHud(
     const panels = computeSidebarPanels(content);
 
     if (sidebar_tab == .controls) {
-        try drawControlsTab(canvas, panels, selection, locomotion_status, control_mode, dialog_overlay);
+        try drawControlsTab(canvas, panels, selection, locomotion_status, control_mode, zoom_level, dialog_overlay);
         return;
     }
 
@@ -697,6 +698,7 @@ fn drawControlsTab(
     selection: fragment_compare.FragmentComparisonSelection,
     locomotion_status: LocomotionStatusDisplay,
     control_mode: ControlMode,
+    zoom_level: ZoomLevel,
     dialog_overlay: DialogOverlayDisplay,
 ) !void {
     const mode_line = if (control_mode == .fragment_navigation and selection.focus != null)
@@ -709,13 +711,14 @@ fn drawControlsTab(
         .admitted_path => "MOVE OPTIONS ON",
         .none => "MOVE OPTIONS OFF",
     };
+    const zoom_line = zoomLevelLabel(zoom_level);
 
     try drawHudTextCard(
         canvas,
         panels.room,
         "VIEW",
         .{ .r = 112, .g = 196, .b = 255, .a = 255 },
-        &.{ "C INFO / CTRL", "ZOOM FIT", overlay_line },
+        &.{ "C INFO / CTRL", zoom_line, overlay_line },
     );
     try drawHudTextCard(
         canvas,
@@ -743,7 +746,7 @@ fn drawControlsTab(
         panels.compare,
         "ZOOM",
         .{ .r = 176, .g = 186, .b = 198, .a = 255 },
-        &.{ "CURRENT FIT", "MAP FRAMED" },
+        &.{ "+ ZOOM IN", "- ZOOM OUT", "0 RESET FIT" },
     );
     try drawHudTextCard(
         canvas,
@@ -752,6 +755,14 @@ fn drawControlsTab(
         .{ .r = 112, .g = 196, .b = 255, .a = 255 },
         &.{ "C SWITCH TAB", "INFO HOLDS ROOM STATE", "CTRL HOLDS INPUTS" },
     );
+}
+
+fn zoomLevelLabel(zoom_level: ZoomLevel) []const u8 {
+    return switch (zoom_level) {
+        .fit => "ZOOM FIT",
+        .room => "ZOOM ROOM",
+        .detail => "ZOOM DETAIL",
+    };
 }
 
 const SidebarPanels = struct {

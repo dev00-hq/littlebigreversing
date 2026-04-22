@@ -85,11 +85,13 @@ pub const ViewerLocomotionStatus = runtime_locomotion.LocomotionStatus;
 pub const ViewerKey = sdl.Key;
 pub const ViewerControlMode = render.ControlMode;
 pub const ViewerSidebarTab = render.SidebarTab;
+pub const ViewerZoomLevel = render.ZoomLevel;
 pub const ViewerObjectState = runtime_session.ObjectState;
 
 pub const ViewerInteractionState = struct {
     control_mode: ViewerControlMode,
     sidebar_tab: ViewerSidebarTab,
+    zoom_level: ViewerZoomLevel,
     fragment_selection: FragmentComparisonSelection,
 };
 
@@ -349,7 +351,24 @@ pub fn initialInteractionState(catalog: FragmentComparisonCatalog) ViewerInterac
     return .{
         .control_mode = if (fragment_selection.focus == null) .locomotion else .fragment_navigation,
         .sidebar_tab = .info,
+        .zoom_level = .fit,
         .fragment_selection = fragment_selection,
+    };
+}
+
+pub fn zoomIn(zoom_level: ViewerZoomLevel) ViewerZoomLevel {
+    return switch (zoom_level) {
+        .fit => .room,
+        .room => .detail,
+        .detail => .detail,
+    };
+}
+
+pub fn zoomOut(zoom_level: ViewerZoomLevel) ViewerZoomLevel {
+    return switch (zoom_level) {
+        .fit => .fit,
+        .room => .fit,
+        .detail => .room,
     };
 }
 
@@ -393,6 +412,7 @@ pub fn handleKeyDown(
                 .interaction = .{
                     .control_mode = .locomotion,
                     .sidebar_tab = interaction.sidebar_tab,
+                    .zoom_level = interaction.zoom_level,
                     .fragment_selection = interaction.fragment_selection,
                 },
                 .locomotion_status = try runtime_locomotion.inspectCurrentStatus(room, current_session.*),
@@ -414,6 +434,7 @@ pub fn handleKeyDown(
                         .fragment_navigation => .locomotion,
                     },
                     .sidebar_tab = interaction.sidebar_tab,
+                    .zoom_level = interaction.zoom_level,
                     .fragment_selection = interaction.fragment_selection,
                 },
                 .locomotion_status = locomotion_status,
@@ -433,6 +454,7 @@ pub fn handleKeyDown(
                     .interaction = .{
                         .control_mode = interaction.control_mode,
                         .sidebar_tab = interaction.sidebar_tab,
+                        .zoom_level = interaction.zoom_level,
                         .fragment_selection = next_fragment_selection,
                     },
                     .locomotion_status = locomotion_status,
@@ -469,6 +491,23 @@ pub fn handleKeyDown(
                         .info => .controls,
                         .controls => .info,
                     },
+                    .zoom_level = interaction.zoom_level,
+                    .fragment_selection = interaction.fragment_selection,
+                },
+                .locomotion_status = locomotion_status,
+            };
+        },
+        .zoom_in, .zoom_out, .zoom_reset => {
+            return .{
+                .interaction = .{
+                    .control_mode = interaction.control_mode,
+                    .sidebar_tab = interaction.sidebar_tab,
+                    .zoom_level = switch (key) {
+                        .zoom_in => zoomIn(interaction.zoom_level),
+                        .zoom_out => zoomOut(interaction.zoom_level),
+                        .zoom_reset => .fit,
+                        else => unreachable,
+                    },
                     .fragment_selection = interaction.fragment_selection,
                 },
                 .locomotion_status = locomotion_status,
@@ -493,6 +532,7 @@ pub fn renderDebugViewWithSelection(
     locomotion_status: ViewerLocomotionStatus,
     control_mode: ViewerControlMode,
     sidebar_tab: ViewerSidebarTab,
+    zoom_level: ViewerZoomLevel,
     dialog_overlay: ViewerDialogOverlayDisplay,
 ) !void {
     var status_buffer: ViewerLocomotionStatusDisplayBuffer = .{};
@@ -504,6 +544,7 @@ pub fn renderDebugViewWithSelection(
         formatLocomotionStatusDisplay(&status_buffer, locomotion_status),
         control_mode,
         sidebar_tab,
+        zoom_level,
         dialog_overlay,
     );
 }

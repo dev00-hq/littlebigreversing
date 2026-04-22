@@ -400,7 +400,7 @@ fn renderZeroFragmentTrace(
     var trace: sdl.CanvasTrace = .{};
     errdefer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .info, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .{});
     return trace;
 }
 
@@ -468,7 +468,7 @@ test "viewer render path draws the guarded 11/10 sidebar and focus highlight" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .{});
 
     try std.testing.expect(panel.focus != null);
     try std.testing.expect(hasTraceRectOp(trace, .fill_rect, debug_layout.sidebar, .{ .r = 15, .g = 20, .b = 26, .a = 255 }));
@@ -506,7 +506,7 @@ test "viewer render path surfaces fragment-room control hints for both navigatio
     var fragment_nav_trace: sdl.CanvasTrace = .{};
     defer fragment_nav_trace.deinit(allocator);
     var fragment_nav_canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &fragment_nav_trace);
-    try render.renderDebugView(&fragment_nav_canvas, raw_snapshot, raw_catalog, raw_selection, .{}, .fragment_navigation, .info, .{});
+    try render.renderDebugView(&fragment_nav_canvas, raw_snapshot, raw_catalog, raw_selection, .{}, .fragment_navigation, .info, .fit, .{});
 
     try std.testing.expect(hasTraceText(fragment_nav_trace, "TAB HERO CTRL"));
     try std.testing.expect(hasTraceText(fragment_nav_trace, "LEFT RIGHT RANK"));
@@ -526,7 +526,7 @@ test "viewer render path surfaces fragment-room control hints for both navigatio
     var locomotion_trace: sdl.CanvasTrace = .{};
     defer locomotion_trace.deinit(allocator);
     var locomotion_canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &locomotion_trace);
-    try render.renderDebugView(&locomotion_canvas, seeded_snapshot, seeded_catalog, seeded_selection, seeded_display, .locomotion, .info, .{});
+    try render.renderDebugView(&locomotion_canvas, seeded_snapshot, seeded_catalog, seeded_selection, seeded_display, .locomotion, .info, .fit, .{});
 
     try std.testing.expect(hasTraceText(locomotion_trace, "TAB FRAG NAV"));
     try std.testing.expect(hasTraceText(locomotion_trace, "ARROWS MOVE HERO"));
@@ -548,16 +548,19 @@ test "viewer render path switches sidebar to controls tab" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, .fragment_navigation, .controls, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, .fragment_navigation, .controls, .room, .{});
 
     try std.testing.expect(hasTraceText(trace, "INFO"));
     try std.testing.expect(hasTraceText(trace, "CTRL"));
     try std.testing.expect(hasTraceText(trace, "VIEW"));
     try std.testing.expect(hasTraceText(trace, "C INFO / CTRL"));
+    try std.testing.expect(hasTraceText(trace, "ZOOM ROOM"));
     try std.testing.expect(hasTraceText(trace, "OVERLAYS"));
     try std.testing.expect(hasTraceText(trace, "INPUT"));
     try std.testing.expect(hasTraceText(trace, "TAB HERO / FRAG"));
     try std.testing.expect(hasTraceText(trace, "ZOOM"));
+    try std.testing.expect(hasTraceText(trace, "+ ZOOM IN"));
+    try std.testing.expect(hasTraceText(trace, "0 RESET FIT"));
     try std.testing.expect(!hasTraceText(trace, "ROOM"));
     try std.testing.expect(hasPresent(trace));
 }
@@ -589,7 +592,7 @@ test "viewer render path exposes a deterministic owning-zone rect for the focuse
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .{});
 
     try std.testing.expect(zone_rect.x <= focus_rect.x);
     try std.testing.expect(zone_rect.y <= focus_rect.y);
@@ -620,7 +623,7 @@ test "viewer render path surfaces the selected comparison cell in the sidebar" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .{});
 
     try std.testing.expect(selection.ranked_index.? >= fragment_compare.max_fragment_comparison_entries);
     try std.testing.expectEqual(focus.x, panel.entries[0].x);
@@ -753,7 +756,7 @@ test "viewer render path keeps the zero-fragment room on the sidebar path" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .info, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .{});
 
     try std.testing.expect(selection.focus == null);
     try std.testing.expect(!hasTraceRectColor(trace, .fill_rect, render.focusedFragmentZoneOverlayFillColor()));
@@ -796,6 +799,7 @@ test "viewer render path draws the bounded Sendell dialog overlay in the sidebar
         .{},
         viewer_shell.initialInteractionState(catalog).control_mode,
         .info,
+        .fit,
         dialog_overlay,
     );
 
@@ -860,6 +864,7 @@ test "viewer render path draws the bounded 19/19 reward overlay in the sidebar" 
         .{},
         viewer_shell.initialInteractionState(catalog).control_mode,
         .info,
+        .fit,
         overlay,
     );
 
@@ -889,5 +894,5 @@ test "viewer render path fails fast when a required brick preview is missing" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try std.testing.expectError(error.ViewerBrickPreviewMissing, render.renderDebugView(&canvas, missing_snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .{}));
+    try std.testing.expectError(error.ViewerBrickPreviewMissing, render.renderDebugView(&canvas, missing_snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .{}));
 }

@@ -82,6 +82,10 @@ const sdl = struct {
     pub const SDLK_w: i32 = 'w';
     pub const SDLK_f: i32 = 'f';
     pub const SDLK_c: i32 = 'c';
+    pub const SDLK_PLUS: i32 = '+';
+    pub const SDLK_EQUALS: i32 = '=';
+    pub const SDLK_MINUS: i32 = '-';
+    pub const SDLK_0: i32 = '0';
     pub const SDL_WINDOW_SHOWN: u32 = 0x00000004;
     pub const SDL_WINDOWPOS_CENTERED: c_int = 0x2FFF0000;
     pub const SDL_RENDERER_ACCELERATED: u32 = 0x00000002;
@@ -130,6 +134,9 @@ pub const Key = enum {
     w,
     f,
     c,
+    zoom_in,
+    zoom_out,
+    zoom_reset,
 };
 
 pub const Event = union(enum) {
@@ -337,6 +344,9 @@ pub const Canvas = struct {
                 sdl.SDLK_w => .{ .key_down = .w },
                 sdl.SDLK_f => .{ .key_down = .f },
                 sdl.SDLK_c => .{ .key_down = .c },
+                sdl.SDLK_PLUS, sdl.SDLK_EQUALS => .{ .key_down = .zoom_in },
+                sdl.SDLK_MINUS => .{ .key_down = .zoom_out },
+                sdl.SDLK_0 => .{ .key_down = .zoom_reset },
                 else => .other,
             };
         }
