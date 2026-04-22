@@ -101,6 +101,7 @@ fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         interaction.control_mode,
         interaction.sidebar_tab,
         interaction.zoom_level,
+        interaction.view_mode,
         viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session),
     ) catch |err| {
         diagnostics.reportError(stderr, sdlErrorMessage(err));
@@ -234,6 +235,7 @@ fn renderCurrentFrame(
         interaction.control_mode,
         interaction.sidebar_tab,
         interaction.zoom_level,
+        interaction.view_mode,
         viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session),
     ) catch |err| {
         diagnostics.reportError(stderr, sdlErrorMessage(err));

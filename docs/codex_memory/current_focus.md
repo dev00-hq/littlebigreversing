@@ -17,7 +17,7 @@
 - `0013` door is scene-2 zone `0`: house/key side `2/1 -> 2/0` consumes one key and lands `(2562,2048,3322)` after shadow; cellar return `2/0 -> 2/1` is free and lands `(9725,1024,1098)`.
 - `0013` key source is scene `2/1` default action: `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0`, then `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
 - `0013` key pickup is poll-only proved on house side: `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`; viewer drives W, pickup overlay, keyed entry, and free return.
-- Viewer HUD uses the tabbed right sidebar; `C` switches info/controls, `+`/`-` zoom, `0` resets fit.
+- Viewer defaults isometric; `V` toggles grid, `C` tabs, `+`/`-` zoom, `0` resets.
 - Guarded `19/19` object-`2` is stateful; sewer chest is bounded multi-bonus with live-backed `Divers=5`.
 
 ## Blocked Items

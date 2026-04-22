@@ -30,7 +30,7 @@ Own repo direction, memory workflow, and the Zig port/original-runtime boundary.
 - On room `36/36`, visible page turns are renderer pagination inside one decoded text record, not durable dialog-id transitions.
 - The bounded next-page-cursor helper is reusable for proved two-page seams, not a full generic dialog renderer.
 - On room `36/36`, keep fresh entry (`applyRoomEntryState`) and loaded reconstruction (`reconstructLoadedRoomState`) separate.
-- Viewer debug state and controls belong in the tabbed right sidebar; `C` switches tabs, `+`/`-` zoom, `0` resets fit, and HUD text uses the 5x7 glyph set.
+- Viewer default presentation must match the room mental model: isometric room view first, old top-down grid only behind `V`; debug state and controls belong in the tabbed right sidebar with `C` for tabs, `+`/`-` zoom, `0` reset, and 5x7 HUD glyphs.
 
 ## Reverse / Porting Slice Checklist
 

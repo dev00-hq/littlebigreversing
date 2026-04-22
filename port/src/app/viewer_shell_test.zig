@@ -1086,6 +1086,7 @@ test "viewer key handling keeps fragment-room arrows on fragment navigation unti
     try std.testing.expectEqual(viewer_shell.ViewerControlMode.fragment_navigation, interaction.control_mode);
     try std.testing.expectEqual(viewer_shell.ViewerSidebarTab.info, interaction.sidebar_tab);
     try std.testing.expectEqual(viewer_shell.ViewerZoomLevel.fit, interaction.zoom_level);
+    try std.testing.expectEqual(viewer_shell.ViewerViewMode.isometric, interaction.view_mode);
 
     const nav_result = try viewer_shell.handleKeyDown(
         room,
@@ -1130,19 +1131,35 @@ test "viewer key handling keeps fragment-room arrows on fragment navigation unti
     try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, sidebar_result.interaction.control_mode);
     try std.testing.expectEqual(viewer_shell.ViewerSidebarTab.controls, sidebar_result.interaction.sidebar_tab);
     try std.testing.expectEqual(viewer_shell.ViewerZoomLevel.fit, sidebar_result.interaction.zoom_level);
+    try std.testing.expectEqual(viewer_shell.ViewerViewMode.isometric, sidebar_result.interaction.view_mode);
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, sidebar_result.post_key_action);
     try std.testing.expect(std.meta.eql(toggle_result.interaction.fragment_selection, sidebar_result.interaction.fragment_selection));
+    try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());
+
+    const view_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        sidebar_result.interaction,
+        locomotion_status,
+        .v,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerViewMode.grid, view_result.interaction.view_mode);
+    try std.testing.expectEqual(viewer_shell.ViewerZoomLevel.fit, view_result.interaction.zoom_level);
+    try std.testing.expectEqual(viewer_shell.ViewerSidebarTab.controls, view_result.interaction.sidebar_tab);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, view_result.post_key_action);
     try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());
 
     const zoom_result = try viewer_shell.handleKeyDown(
         room,
         &runtime_session,
         catalog,
-        sidebar_result.interaction,
+        view_result.interaction,
         locomotion_status,
         .zoom_in,
     );
     try std.testing.expectEqual(viewer_shell.ViewerZoomLevel.room, zoom_result.interaction.zoom_level);
+    try std.testing.expectEqual(viewer_shell.ViewerViewMode.grid, zoom_result.interaction.view_mode);
     try std.testing.expectEqual(viewer_shell.ViewerSidebarTab.controls, zoom_result.interaction.sidebar_tab);
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, zoom_result.post_key_action);
     try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());

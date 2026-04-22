@@ -86,12 +86,14 @@ pub const ViewerKey = sdl.Key;
 pub const ViewerControlMode = render.ControlMode;
 pub const ViewerSidebarTab = render.SidebarTab;
 pub const ViewerZoomLevel = render.ZoomLevel;
+pub const ViewerViewMode = render.ViewMode;
 pub const ViewerObjectState = runtime_session.ObjectState;
 
 pub const ViewerInteractionState = struct {
     control_mode: ViewerControlMode,
     sidebar_tab: ViewerSidebarTab,
     zoom_level: ViewerZoomLevel,
+    view_mode: ViewerViewMode,
     fragment_selection: FragmentComparisonSelection,
 };
 
@@ -352,6 +354,7 @@ pub fn initialInteractionState(catalog: FragmentComparisonCatalog) ViewerInterac
         .control_mode = if (fragment_selection.focus == null) .locomotion else .fragment_navigation,
         .sidebar_tab = .info,
         .zoom_level = .fit,
+        .view_mode = .isometric,
         .fragment_selection = fragment_selection,
     };
 }
@@ -413,6 +416,7 @@ pub fn handleKeyDown(
                     .control_mode = .locomotion,
                     .sidebar_tab = interaction.sidebar_tab,
                     .zoom_level = interaction.zoom_level,
+                    .view_mode = interaction.view_mode,
                     .fragment_selection = interaction.fragment_selection,
                 },
                 .locomotion_status = try runtime_locomotion.inspectCurrentStatus(room, current_session.*),
@@ -435,6 +439,7 @@ pub fn handleKeyDown(
                     },
                     .sidebar_tab = interaction.sidebar_tab,
                     .zoom_level = interaction.zoom_level,
+                    .view_mode = interaction.view_mode,
                     .fragment_selection = interaction.fragment_selection,
                 },
                 .locomotion_status = locomotion_status,
@@ -455,6 +460,7 @@ pub fn handleKeyDown(
                         .control_mode = interaction.control_mode,
                         .sidebar_tab = interaction.sidebar_tab,
                         .zoom_level = interaction.zoom_level,
+                        .view_mode = interaction.view_mode,
                         .fragment_selection = next_fragment_selection,
                     },
                     .locomotion_status = locomotion_status,
@@ -492,6 +498,22 @@ pub fn handleKeyDown(
                         .controls => .info,
                     },
                     .zoom_level = interaction.zoom_level,
+                    .view_mode = interaction.view_mode,
+                    .fragment_selection = interaction.fragment_selection,
+                },
+                .locomotion_status = locomotion_status,
+            };
+        },
+        .v => {
+            return .{
+                .interaction = .{
+                    .control_mode = interaction.control_mode,
+                    .sidebar_tab = interaction.sidebar_tab,
+                    .zoom_level = interaction.zoom_level,
+                    .view_mode = switch (interaction.view_mode) {
+                        .isometric => .grid,
+                        .grid => .isometric,
+                    },
                     .fragment_selection = interaction.fragment_selection,
                 },
                 .locomotion_status = locomotion_status,
@@ -508,6 +530,7 @@ pub fn handleKeyDown(
                         .zoom_reset => .fit,
                         else => unreachable,
                     },
+                    .view_mode = interaction.view_mode,
                     .fragment_selection = interaction.fragment_selection,
                 },
                 .locomotion_status = locomotion_status,
@@ -533,6 +556,7 @@ pub fn renderDebugViewWithSelection(
     control_mode: ViewerControlMode,
     sidebar_tab: ViewerSidebarTab,
     zoom_level: ViewerZoomLevel,
+    view_mode: ViewerViewMode,
     dialog_overlay: ViewerDialogOverlayDisplay,
 ) !void {
     var status_buffer: ViewerLocomotionStatusDisplayBuffer = .{};
@@ -545,6 +569,7 @@ pub fn renderDebugViewWithSelection(
         control_mode,
         sidebar_tab,
         zoom_level,
+        view_mode,
         dialog_overlay,
     );
 }

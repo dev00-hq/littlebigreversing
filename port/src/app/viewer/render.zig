@@ -76,6 +76,11 @@ pub const SidebarTab = enum {
 
 pub const ZoomLevel = layout.ZoomLevel;
 
+pub const ViewMode = enum {
+    isometric,
+    grid,
+};
+
 pub fn renderDebugView(
     canvas: *sdl.Canvas,
     snapshot: state.RenderSnapshot,
@@ -85,10 +90,11 @@ pub fn renderDebugView(
     control_mode: ControlMode,
     sidebar_tab: SidebarTab,
     zoom_level: ZoomLevel,
+    view_mode: ViewMode,
     dialog_overlay: DialogOverlayDisplay,
 ) !void {
     const fragment_panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
-    const viewport = layout.computeGridViewport(snapshot, zoom_level);
+    const viewport = layout.computeGridViewport(snapshot, if (view_mode == .isometric and zoom_level == .fit) .room else zoom_level);
     const debug_layout = layout.computeDebugLayout(
         canvas.width,
         canvas.height,
@@ -104,64 +110,69 @@ pub fn renderDebugView(
     try canvas.drawRect(debug_layout.sidebar, .{ .r = 59, .g = 76, .b = 88, .a = 255 });
     try canvas.fillRect(debug_layout.schematic_frame, .{ .r = 10, .g = 14, .b = 19, .a = 255 });
     try canvas.drawRect(debug_layout.schematic_frame, .{ .r = 56, .g = 80, .b = 92, .a = 255 });
-    try drawComposition(canvas, debug_layout.schematic, snapshot, viewport);
-    try drawFragmentZones(canvas, debug_layout.schematic, snapshot, viewport);
-    if (fragment_panel.focus) |focus| {
-        try drawFocusedFragmentZoneOverlay(canvas, debug_layout.schematic, snapshot, viewport, focus);
-    }
-    try drawGrid(canvas, debug_layout.schematic, viewport);
-    if (fragment_panel.focus) |focus| {
-        if (layout.projectGridCellRectInViewport(debug_layout.schematic, viewport, focus.x, focus.z)) |focus_rect| {
-            try canvas.drawRect(focus_rect, fragment_compare.fragmentComparisonDeltaColor(focus.delta));
-            const inner_rect = focus_rect.inset(2);
-            if (inner_rect.w > 4 and inner_rect.h > 4) {
-                try canvas.drawRect(inner_rect, fragment_compare.fragmentComparisonDeltaColor(focus.delta));
+
+    if (view_mode == .grid) {
+        try drawComposition(canvas, debug_layout.schematic, snapshot, viewport);
+        try drawFragmentZones(canvas, debug_layout.schematic, snapshot, viewport);
+        if (fragment_panel.focus) |focus| {
+            try drawFocusedFragmentZoneOverlay(canvas, debug_layout.schematic, snapshot, viewport, focus);
+        }
+        try drawGrid(canvas, debug_layout.schematic, viewport);
+        if (fragment_panel.focus) |focus| {
+            if (layout.projectGridCellRectInViewport(debug_layout.schematic, viewport, focus.x, focus.z)) |focus_rect| {
+                try canvas.drawRect(focus_rect, fragment_compare.fragmentComparisonDeltaColor(focus.delta));
+                const inner_rect = focus_rect.inset(2);
+                if (inner_rect.w > 4 and inner_rect.h > 4) {
+                    try canvas.drawRect(inner_rect, fragment_compare.fragmentComparisonDeltaColor(focus.delta));
+                }
             }
         }
-    }
 
-    for (snapshot.zones) |zone| {
-        const rect = layout.projectZoneBoundsInViewport(debug_layout.schematic, viewport, zone) orelse continue;
-        const zone_color = draw.zoneColor(zone.kind);
-        try canvas.fillRect(rect, draw.withAlpha(zone_color, 40));
-        try canvas.drawRect(rect, zone_color);
-    }
+        for (snapshot.zones) |zone| {
+            const rect = layout.projectZoneBoundsInViewport(debug_layout.schematic, viewport, zone) orelse continue;
+            const zone_color = draw.zoneColor(zone.kind);
+            try canvas.fillRect(rect, draw.withAlpha(zone_color, 40));
+            try canvas.drawRect(rect, zone_color);
+        }
 
-    for (snapshot.tracks[0..snapshot.tracks.len -| 1], 0..) |track, index| {
-        const next = snapshot.tracks[index + 1];
-        const start = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, track.x, track.z) orelse continue;
-        const finish = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, next.x, next.z) orelse continue;
-        try canvas.drawLine(start.x, start.y, finish.x, finish.y, .{ .r = 59, .g = 201, .b = 255, .a = 192 });
-    }
+        for (snapshot.tracks[0..snapshot.tracks.len -| 1], 0..) |track, index| {
+            const next = snapshot.tracks[index + 1];
+            const start = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, track.x, track.z) orelse continue;
+            const finish = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, next.x, next.z) orelse continue;
+            try canvas.drawLine(start.x, start.y, finish.x, finish.y, .{ .r = 59, .g = 201, .b = 255, .a = 192 });
+        }
 
-    for (snapshot.tracks) |track| {
-        const point = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, track.x, track.z) orelse continue;
-        try draw.drawMarker(canvas, point, 4, .{ .r = 76, .g = 226, .b = 255, .a = 255 });
-    }
+        for (snapshot.tracks) |track| {
+            const point = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, track.x, track.z) orelse continue;
+            try draw.drawMarker(canvas, point, 4, .{ .r = 76, .g = 226, .b = 255, .a = 255 });
+        }
 
-    for (snapshot.objects) |object| {
-        const point = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, object.x, object.z) orelse continue;
-        try draw.drawMarker(canvas, point, 6, .{ .r = 255, .g = 194, .b = 92, .a = 255 });
-    }
+        for (snapshot.objects) |object| {
+            const point = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, object.x, object.z) orelse continue;
+            try draw.drawMarker(canvas, point, 6, .{ .r = 255, .g = 194, .b = 92, .a = 255 });
+        }
 
-    try drawLocomotionSchematicCue(
-        canvas,
-        debug_layout.schematic,
-        viewport,
-        locomotion_status.schematic,
-    );
-    try drawLocomotionAttemptCue(
-        canvas,
-        debug_layout.schematic,
-        viewport,
-        locomotion_status.attempt,
-    );
+        try drawLocomotionSchematicCue(
+            canvas,
+            debug_layout.schematic,
+            viewport,
+            locomotion_status.schematic,
+        );
+        try drawLocomotionAttemptCue(
+            canvas,
+            debug_layout.schematic,
+            viewport,
+            locomotion_status.attempt,
+        );
 
-    if (layout.projectWorldPointInViewport(debug_layout.schematic, viewport, snapshot.hero_position.x, snapshot.hero_position.z)) |hero| {
-        try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
-        try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
+        if (layout.projectWorldPointInViewport(debug_layout.schematic, viewport, snapshot.hero_position.x, snapshot.hero_position.z)) |hero| {
+            try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
+            try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
+        }
+    } else {
+        try drawIsometricView(canvas, debug_layout.schematic, snapshot, viewport);
     }
-    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode, sidebar_tab, zoom_level, dialog_overlay);
+    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode, sidebar_tab, zoom_level, view_mode, dialog_overlay);
     canvas.present();
 }
 
@@ -470,6 +481,211 @@ fn drawCompositionTile(
     try draw.drawSurfaceMarker(canvas, relief.top_surface, tile, draw.withAlpha(draw.lightenColor(base_color, 64), 232));
 }
 
+const IsoProjection = struct {
+    rect: sdl.Rect,
+    viewport: layout.GridViewport,
+    origin_x: i32,
+    origin_y: i32,
+    half_w: i32,
+    half_h: i32,
+    height_scale: i32,
+};
+
+fn drawIsometricView(
+    canvas: *sdl.Canvas,
+    rect: sdl.Rect,
+    snapshot: state.RenderSnapshot,
+    viewport: layout.GridViewport,
+) !void {
+    const iso = computeIsoProjection(rect, snapshot, viewport);
+    try drawIsoBackdrop(canvas, iso);
+
+    const max_diagonal = viewport.width + viewport.depth + 1;
+    var diagonal: usize = 0;
+    while (diagonal <= max_diagonal) : (diagonal += 1) {
+        for (snapshot.composition.tiles) |tile| {
+            if (tile.x < viewport.origin_x or tile.z < viewport.origin_z) continue;
+            if (tile.x >= viewport.origin_x + viewport.width or tile.z >= viewport.origin_z + viewport.depth) continue;
+            const local_x = tile.x - viewport.origin_x;
+            const local_z = tile.z - viewport.origin_z;
+            if (local_x + local_z != diagonal) continue;
+            try drawIsoTile(canvas, iso, snapshot, tile);
+        }
+    }
+
+    for (snapshot.zones) |zone| {
+        try drawIsoZoneBounds(canvas, iso, zone);
+    }
+
+    for (snapshot.tracks[0..snapshot.tracks.len -| 1], 0..) |track, index| {
+        const next = snapshot.tracks[index + 1];
+        const start = isoWorldPoint(iso, track.x, track.z) orelse continue;
+        const finish = isoWorldPoint(iso, next.x, next.z) orelse continue;
+        try canvas.drawLine(start.x, start.y, finish.x, finish.y, .{ .r = 59, .g = 201, .b = 255, .a = 192 });
+    }
+
+    for (snapshot.tracks) |track| {
+        const point = isoWorldPoint(iso, track.x, track.z) orelse continue;
+        try draw.drawMarker(canvas, point, 4, .{ .r = 76, .g = 226, .b = 255, .a = 255 });
+    }
+
+    for (snapshot.objects) |object| {
+        const point = isoWorldPoint(iso, object.x, object.z) orelse continue;
+        try draw.drawMarker(canvas, point, 6, .{ .r = 255, .g = 194, .b = 92, .a = 255 });
+    }
+
+    if (isoWorldPoint(iso, snapshot.hero_position.x, snapshot.hero_position.z)) |hero| {
+        try draw.drawCrosshair(canvas, hero, 9, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
+        try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
+    }
+}
+
+fn computeIsoProjection(rect: sdl.Rect, snapshot: state.RenderSnapshot, viewport: layout.GridViewport) IsoProjection {
+    const diagonal_span = @max(1, viewport.width + viewport.depth);
+    const max_height = @max(1, @as(i32, @intCast(snapshot.composition.max_total_height)));
+    const width_limit = @max(3, @divTrunc(rect.w, @as(i32, @intCast(diagonal_span + 3))));
+    const height_limit = @max(3, @divTrunc(rect.h * 2, @as(i32, @intCast(diagonal_span)) + max_height + 6));
+    const half_w = @max(4, @min(width_limit, height_limit));
+    const half_h = @max(2, @divTrunc(half_w, 2));
+    const height_scale = @max(1, @divTrunc(half_h, 2));
+    const bbox_center_x = @divTrunc((@as(i32, @intCast(viewport.width)) - @as(i32, @intCast(viewport.depth))) * half_w, 2);
+    return .{
+        .rect = rect,
+        .viewport = viewport,
+        .origin_x = rect.x + @divTrunc(rect.w, 2) - bbox_center_x,
+        .origin_y = rect.y + 18 + (max_height * height_scale),
+        .half_w = half_w,
+        .half_h = half_h,
+        .height_scale = height_scale,
+    };
+}
+
+fn drawIsoBackdrop(canvas: *sdl.Canvas, iso: IsoProjection) !void {
+    const origin = isoGridCorner(iso, iso.viewport.origin_x, iso.viewport.origin_z, 0) orelse return;
+    const east = isoGridCorner(iso, iso.viewport.origin_x + iso.viewport.width, iso.viewport.origin_z, 0) orelse return;
+    const south = isoGridCorner(iso, iso.viewport.origin_x + iso.viewport.width, iso.viewport.origin_z + iso.viewport.depth, 0) orelse return;
+    const west = isoGridCorner(iso, iso.viewport.origin_x, iso.viewport.origin_z + iso.viewport.depth, 0) orelse return;
+    try drawFilledDiamond(canvas, origin, east, south, west, .{ .r = 12, .g = 21, .b = 28, .a = 255 });
+    try drawDiamondOutline(canvas, origin, east, south, west, .{ .r = 40, .g = 58, .b = 70, .a = 220 });
+}
+
+fn drawIsoTile(
+    canvas: *sdl.Canvas,
+    iso: IsoProjection,
+    snapshot: state.RenderSnapshot,
+    tile: state.CompositionTileSnapshot,
+) !void {
+    const height_px = @as(i32, tile.total_height) * iso.height_scale;
+    const top = isoGridCorner(iso, tile.x, tile.z, height_px) orelse return;
+    const right = isoGridCorner(iso, tile.x + 1, tile.z, height_px) orelse return;
+    const bottom = isoGridCorner(iso, tile.x + 1, tile.z + 1, height_px) orelse return;
+    const left = isoGridCorner(iso, tile.x, tile.z + 1, height_px) orelse return;
+    const base_color = draw.compositionTileColor(tile);
+    const border = draw.withAlpha(draw.lightenColor(base_color, 34), 226);
+
+    if (height_px > 0) {
+        const ground_right = isoGridCorner(iso, tile.x + 1, tile.z, 0) orelse return;
+        const ground_bottom = isoGridCorner(iso, tile.x + 1, tile.z + 1, 0) orelse return;
+        const ground_left = isoGridCorner(iso, tile.x, tile.z + 1, 0) orelse return;
+        try drawFilledDiamond(canvas, right, ground_right, ground_bottom, bottom, draw.darkenColor(base_color, 56));
+        try drawFilledDiamond(canvas, bottom, ground_bottom, ground_left, left, draw.darkenColor(base_color, 42));
+    }
+
+    try drawFilledDiamond(canvas, top, right, bottom, left, draw.lightenColor(base_color, 18));
+    const north_height = if (tile.z == 0) @as(u8, 0) else draw.compositionHeightAt(snapshot, tile.x, tile.z - 1);
+    const west_height = if (tile.x == 0) @as(u8, 0) else draw.compositionHeightAt(snapshot, tile.x - 1, tile.z);
+    if (tile.total_height > north_height) {
+        try canvas.drawLine(top.x, top.y, right.x, right.y, draw.withAlpha(border, 240));
+    }
+    if (tile.total_height > west_height) {
+        try canvas.drawLine(top.x, top.y, left.x, left.y, draw.withAlpha(border, 240));
+    }
+    try canvas.drawLine(right.x, right.y, bottom.x, bottom.y, draw.withAlpha(border, 180));
+    try canvas.drawLine(bottom.x, bottom.y, left.x, left.y, draw.withAlpha(border, 180));
+}
+
+fn drawIsoZoneBounds(canvas: *sdl.Canvas, iso: IsoProjection, zone: state.ZoneBoundsSnapshot) !void {
+    const north = isoWorldPoint(iso, zone.x_min, zone.z_min) orelse return;
+    const east = isoWorldPoint(iso, zone.x_max, zone.z_min) orelse return;
+    const south = isoWorldPoint(iso, zone.x_max, zone.z_max) orelse return;
+    const west = isoWorldPoint(iso, zone.x_min, zone.z_max) orelse return;
+    const color = draw.zoneColor(zone.kind);
+    try drawDiamondOutline(canvas, north, east, south, west, draw.withAlpha(color, 224));
+}
+
+fn isoGridCorner(iso: IsoProjection, grid_x: usize, grid_z: usize, height_px: i32) ?layout.ScreenPoint {
+    if (grid_x < iso.viewport.origin_x or grid_z < iso.viewport.origin_z) return null;
+    if (grid_x > iso.viewport.origin_x + iso.viewport.width or grid_z > iso.viewport.origin_z + iso.viewport.depth) return null;
+    const local_x = @as(i32, @intCast(grid_x - iso.viewport.origin_x));
+    const local_z = @as(i32, @intCast(grid_z - iso.viewport.origin_z));
+    return .{
+        .x = iso.origin_x + ((local_x - local_z) * iso.half_w),
+        .y = iso.origin_y + ((local_x + local_z) * iso.half_h) - height_px,
+    };
+}
+
+fn isoWorldPoint(iso: IsoProjection, world_x: i32, world_z: i32) ?layout.ScreenPoint {
+    const world_grid_span_xz: i64 = 512;
+    const min_x = @as(i64, @intCast(iso.viewport.origin_x)) * world_grid_span_xz;
+    const min_z = @as(i64, @intCast(iso.viewport.origin_z)) * world_grid_span_xz;
+    const max_x = @as(i64, @intCast(iso.viewport.origin_x + iso.viewport.width)) * world_grid_span_xz;
+    const max_z = @as(i64, @intCast(iso.viewport.origin_z + iso.viewport.depth)) * world_grid_span_xz;
+    const x = @as(i64, world_x);
+    const z = @as(i64, world_z);
+    if (x < min_x or x > max_x or z < min_z or z > max_z) return null;
+    const local_x = x - min_x;
+    const local_z = z - min_z;
+    const screen_x = @as(i64, iso.origin_x) + @divTrunc((local_x - local_z) * @as(i64, iso.half_w), world_grid_span_xz);
+    const screen_y = @as(i64, iso.origin_y) + @divTrunc((local_x + local_z) * @as(i64, iso.half_h), world_grid_span_xz);
+    return .{ .x = @as(i32, @intCast(screen_x)), .y = @as(i32, @intCast(screen_y)) };
+}
+
+fn drawFilledDiamond(
+    canvas: *sdl.Canvas,
+    top: layout.ScreenPoint,
+    right: layout.ScreenPoint,
+    bottom: layout.ScreenPoint,
+    left: layout.ScreenPoint,
+    color: sdl.Color,
+) !void {
+    const upper_steps = @max(1, left.y - top.y);
+    var upper_step: i32 = 0;
+    while (upper_step <= upper_steps) : (upper_step += 1) {
+        const start = interpolatePoint(top, left, upper_step, upper_steps);
+        const finish = interpolatePoint(top, right, upper_step, upper_steps);
+        try canvas.drawLine(start.x, start.y, finish.x, finish.y, color);
+    }
+
+    const lower_steps = @max(1, bottom.y - left.y);
+    var lower_step: i32 = 0;
+    while (lower_step <= lower_steps) : (lower_step += 1) {
+        const start = interpolatePoint(left, bottom, lower_step, lower_steps);
+        const finish = interpolatePoint(right, bottom, lower_step, lower_steps);
+        try canvas.drawLine(start.x, start.y, finish.x, finish.y, color);
+    }
+}
+
+fn drawDiamondOutline(
+    canvas: *sdl.Canvas,
+    top: layout.ScreenPoint,
+    right: layout.ScreenPoint,
+    bottom: layout.ScreenPoint,
+    left: layout.ScreenPoint,
+    color: sdl.Color,
+) !void {
+    try canvas.drawLine(top.x, top.y, right.x, right.y, color);
+    try canvas.drawLine(right.x, right.y, bottom.x, bottom.y, color);
+    try canvas.drawLine(bottom.x, bottom.y, left.x, left.y, color);
+    try canvas.drawLine(left.x, left.y, top.x, top.y, color);
+}
+
+fn interpolatePoint(start: layout.ScreenPoint, finish: layout.ScreenPoint, step: i32, steps: i32) layout.ScreenPoint {
+    return .{
+        .x = start.x + @divTrunc((finish.x - start.x) * step, steps),
+        .y = start.y + @divTrunc((finish.y - start.y) * step, steps),
+    };
+}
+
 fn drawHud(
     canvas: *sdl.Canvas,
     debug_layout: layout.DebugLayout,
@@ -480,6 +696,7 @@ fn drawHud(
     control_mode: ControlMode,
     sidebar_tab: SidebarTab,
     zoom_level: ZoomLevel,
+    view_mode: ViewMode,
     dialog_overlay: DialogOverlayDisplay,
 ) !void {
     const sidebar_content = debug_layout.sidebar.inset(10);
@@ -495,7 +712,7 @@ fn drawHud(
     const panels = computeSidebarPanels(content);
 
     if (sidebar_tab == .controls) {
-        try drawControlsTab(canvas, panels, selection, locomotion_status, control_mode, zoom_level, dialog_overlay);
+        try drawControlsTab(canvas, panels, selection, locomotion_status, control_mode, zoom_level, view_mode, dialog_overlay);
         return;
     }
 
@@ -699,33 +916,34 @@ fn drawControlsTab(
     locomotion_status: LocomotionStatusDisplay,
     control_mode: ControlMode,
     zoom_level: ZoomLevel,
+    view_mode: ViewMode,
     dialog_overlay: DialogOverlayDisplay,
 ) !void {
     const mode_line = if (control_mode == .fragment_navigation and selection.focus != null)
         "MODE FRAGMENT NAV"
     else
         "MODE HERO CTRL";
-    const overlay_line = if (dialog_overlay.line_count != 0) dialog_overlay.nav_title else "OVERLAYS LEGEND";
     const focus_line = if (selection.focus != null) "FOCUS ACTIVE" else "FOCUS NONE";
     const motion_line = switch (locomotion_status.schematic) {
         .admitted_path => "MOVE OPTIONS ON",
         .none => "MOVE OPTIONS OFF",
     };
     const zoom_line = zoomLevelLabel(zoom_level);
+    const view_line = viewModeLabel(view_mode);
 
     try drawHudTextCard(
         canvas,
         panels.room,
         "VIEW",
         .{ .r = 112, .g = 196, .b = 255, .a = 255 },
-        &.{ "C INFO / CTRL", zoom_line, overlay_line },
+        &.{ view_line, "V ISO / GRID", "C INFO / CTRL" },
     );
     try drawHudTextCard(
         canvas,
         panels.gameplay,
         "OVERLAYS",
         .{ .r = 117, .g = 230, .b = 186, .a = 255 },
-        &.{ "HERO MARK ON", "OBJECTS ON", "ZONES ON", "TRACKS ON" },
+        &.{ "HERO MARK ON", "OBJECTS ON", "ZONES ON", "TRACKS ON", if (dialog_overlay.line_count != 0) dialog_overlay.nav_title else "LEGEND ON INFO" },
     );
     try drawHudTextCard(
         canvas,
@@ -746,7 +964,7 @@ fn drawControlsTab(
         panels.compare,
         "ZOOM",
         .{ .r = 176, .g = 186, .b = 198, .a = 255 },
-        &.{ "+ ZOOM IN", "- ZOOM OUT", "0 RESET FIT" },
+        &.{ zoom_line, "+ ZOOM IN", "- ZOOM OUT", "0 RESET FIT" },
     );
     try drawHudTextCard(
         canvas,
@@ -765,6 +983,13 @@ fn zoomLevelLabel(zoom_level: ZoomLevel) []const u8 {
     };
 }
 
+fn viewModeLabel(view_mode: ViewMode) []const u8 {
+    return switch (view_mode) {
+        .isometric => "VIEW ISO",
+        .grid => "VIEW GRID",
+    };
+}
+
 const SidebarPanels = struct {
     room: sdl.Rect,
     gameplay: sdl.Rect,
@@ -778,9 +1003,9 @@ fn computeSidebarPanels(sidebar: sdl.Rect) SidebarPanels {
     const gap = 10;
     const room_height = @min(96, @max(72, @divTrunc(sidebar.h, 9)));
     const gameplay_height = @min(124, @max(88, @divTrunc(sidebar.h, 7)));
-    const focus_height = @min(230, @max(144, @divTrunc(sidebar.h, 3)));
+    const focus_height = @min(210, @max(144, @divTrunc(sidebar.h, 3)));
     const fragment_height = @min(110, @max(72, @divTrunc(sidebar.h, 8)));
-    const compare_height = @min(120, @max(72, @divTrunc(sidebar.h, 8)));
+    const compare_height = @min(128, @max(108, @divTrunc(sidebar.h, 8)));
 
     var y = sidebar.y;
     const room = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = room_height };
