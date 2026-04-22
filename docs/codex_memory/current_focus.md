@@ -14,9 +14,9 @@
 - Original runtime uses direct save launch (`LBA2.EXE <save>.LBA`) plus `Enter`.
 - Guarded `2/2` public exit is backed as exterior-facing `ChangeCube`; the port rejects it as `unsupported_exterior_destination_cube`.
 - `3/3` blockers stay rejected; live zone-`1` cube-`19` handoff lands in a Tralu's-dungeon-looking scene, not the intended cellar target.
-- `0013` door is scene-2 zone `0`: cube `1 -> 0` lands `(2562,2048,3322)` after shadow; reverse `2/0 -> 2/1` consumes one key and lands `(9725,1024,1098)`.
+- `0013` door is scene-2 zone `0`: house/key side `2/1 -> 2/0` consumes one key and lands `(2562,2048,3322)` after shadow; cellar return `2/0 -> 2/1` is free and lands `(9725,1024,1098)`.
 - `0013` key source is scene `2/1` default action: `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0`, then `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
-- `0013` key pickup is poll-only proved: `SPRITE_CLE` from `(3072,3072,5120)`, `Divers=1`, `NbLittleKeys 0 -> 1`; viewer now drives W/default-action, pickup overlay, and key-consuming cellar door.
+- `0013` key pickup is poll-only proved on the house side: `SPRITE_CLE` from `(3072,3072,5120)`, `Divers=1`, `NbLittleKeys 0 -> 1`; viewer drives W/default-action, pickup overlay, keyed cellar entry, and free return.
 - Guarded `19/19` object-`2` is stateful; sewer chest is bounded multi-bonus with live-backed `Divers=5`.
 
 ## Blocked Items

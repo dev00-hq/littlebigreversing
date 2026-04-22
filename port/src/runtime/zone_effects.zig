@@ -8,16 +8,18 @@ pub const EffectSummary = struct {
 };
 
 const secret_room_scene_entry_index: usize = 2;
+const secret_room_house_background_entry_index: usize = 1;
 const secret_room_cellar_background_entry_index: usize = 0;
-const secret_room_reverse_door_destination_cube: i16 = 1;
-const secret_room_reverse_door_source_zone_index: usize = 0;
-const secret_room_reverse_door_trigger_min_x: i32 = 3000;
-const secret_room_reverse_door_trigger_max_x: i32 = 3128;
-const secret_room_reverse_door_trigger_min_y: i32 = 2048;
-const secret_room_reverse_door_trigger_max_y: i32 = 2048;
-const secret_room_reverse_door_trigger_min_z: i32 = 3600;
-const secret_room_reverse_door_trigger_max_z: i32 = 3712;
-const secret_room_reverse_door_provisional_destination = world_geometry.WorldPointSnapshot{
+const secret_room_house_to_cellar_zone_index: usize = 0;
+const secret_room_cellar_to_house_destination_cube: i16 = 1;
+const secret_room_cellar_to_house_source_zone_index: usize = 0;
+const secret_room_cellar_to_house_trigger_min_x: i32 = 3000;
+const secret_room_cellar_to_house_trigger_max_x: i32 = 3128;
+const secret_room_cellar_to_house_trigger_min_y: i32 = 2048;
+const secret_room_cellar_to_house_trigger_max_y: i32 = 2048;
+const secret_room_cellar_to_house_trigger_min_z: i32 = 3600;
+const secret_room_cellar_to_house_trigger_max_z: i32 = 3712;
+const secret_room_cellar_to_house_provisional_destination = world_geometry.WorldPointSnapshot{
     .x = 9725,
     .y = 1278,
     .z = 1098,
@@ -44,9 +46,8 @@ pub fn applyContainingZoneEffects(
     var consumes_little_key = false;
     const hero_world_position = current_session.heroWorldPosition();
 
-    if (secretRoomReverseDoorTransition(room, current_session.*)) |transition| {
+    if (secretRoomCellarToHouseDoorTransition(room, current_session.*)) |transition| {
         pending_transition = transition;
-        consumes_little_key = true;
     }
 
     for (zones) |zone| {
@@ -54,6 +55,10 @@ pub fn applyContainingZoneEffects(
             .change_cube => |semantics| {
                 if (!semantics.initially_on) continue;
                 if (pending_transition != null) return error.MultipleRoomTransitionsTriggered;
+                if (secretRoomHouseToCellarDoorConsumesKey(room, current_session.*, zone)) |has_key| {
+                    if (!has_key) continue;
+                    consumes_little_key = true;
+                }
 
                 pending_transition = .{
                     .source_zone_index = zone.index,
@@ -81,33 +86,47 @@ pub fn applyContainingZoneEffects(
     return .{};
 }
 
-fn secretRoomReverseDoorTransition(
+fn secretRoomHouseToCellarDoorConsumesKey(
+    room: *const room_state.RoomSnapshot,
+    current_session: runtime_session.Session,
+    zone: room_state.ZoneBoundsSnapshot,
+) ?bool {
+    if (room.scene.entry_index != secret_room_scene_entry_index or
+        room.background.entry_index != secret_room_house_background_entry_index or
+        zone.index != secret_room_house_to_cellar_zone_index)
+    {
+        return null;
+    }
+
+    return current_session.littleKeyCount() != 0;
+}
+
+fn secretRoomCellarToHouseDoorTransition(
     room: *const room_state.RoomSnapshot,
     current_session: runtime_session.Session,
 ) ?runtime_session.PendingRoomTransition {
     if (room.scene.entry_index != secret_room_scene_entry_index or
-        room.background.entry_index != secret_room_cellar_background_entry_index or
-        current_session.littleKeyCount() == 0)
+        room.background.entry_index != secret_room_cellar_background_entry_index)
     {
         return null;
     }
 
     const hero_world_position = current_session.heroWorldPosition();
-    if (hero_world_position.x < secret_room_reverse_door_trigger_min_x or
-        hero_world_position.x > secret_room_reverse_door_trigger_max_x or
-        hero_world_position.y < secret_room_reverse_door_trigger_min_y or
-        hero_world_position.y > secret_room_reverse_door_trigger_max_y or
-        hero_world_position.z < secret_room_reverse_door_trigger_min_z or
-        hero_world_position.z > secret_room_reverse_door_trigger_max_z)
+    if (hero_world_position.x < secret_room_cellar_to_house_trigger_min_x or
+        hero_world_position.x > secret_room_cellar_to_house_trigger_max_x or
+        hero_world_position.y < secret_room_cellar_to_house_trigger_min_y or
+        hero_world_position.y > secret_room_cellar_to_house_trigger_max_y or
+        hero_world_position.z < secret_room_cellar_to_house_trigger_min_z or
+        hero_world_position.z > secret_room_cellar_to_house_trigger_max_z)
     {
         return null;
     }
 
     return .{
-        .source_zone_index = secret_room_reverse_door_source_zone_index,
-        .destination_cube = secret_room_reverse_door_destination_cube,
+        .source_zone_index = secret_room_cellar_to_house_source_zone_index,
+        .destination_cube = secret_room_cellar_to_house_destination_cube,
         .destination_world_position_kind = .provisional_zone_relative,
-        .destination_world_position = secret_room_reverse_door_provisional_destination,
+        .destination_world_position = secret_room_cellar_to_house_provisional_destination,
         .yaw = 0,
         .test_brick = false,
         .dont_readjust_twinsen = false,

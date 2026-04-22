@@ -1297,7 +1297,7 @@ test "viewer key handling routes 0013 default action through queued runtime inte
     try std.testing.expectEqualStrings("LAST KEY 1@0", overlay.lines[3]);
 }
 
-test "viewer 0013 key overlay follows pickup and cellar key consumption" {
+test "viewer 0013 key overlay follows pickup and cellar return state" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -1332,16 +1332,17 @@ test "viewer 0013 key overlay follows pickup and cellar key consumption" {
         cellar_room.scene.objects,
         cellar_room.scene.object_behavior_seeds,
     );
-    runtime_session.setLittleKeyCount(1);
+    runtime_session.setLittleKeyCount(0);
 
     const cellar_ready_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &cellar_room, runtime_session);
-    try std.testing.expectEqualStrings("ROOM 2/0 KEYS 1", cellar_ready_overlay.lines[0]);
-    try std.testing.expectEqualStrings("CELLAR KEY READY", cellar_ready_overlay.lines[1]);
+    try std.testing.expectEqualStrings("ROOM 2/0 KEYS 0", cellar_ready_overlay.lines[0]);
+    try std.testing.expectEqualStrings("CELLAR RETURN READY", cellar_ready_overlay.lines[1]);
 
     _ = try runtime_update.tick(&cellar_room, &runtime_session);
-    const consumed_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &cellar_room, runtime_session);
-    try std.testing.expectEqualStrings("ROOM 2/0 KEYS 0", consumed_overlay.lines[0]);
-    try std.testing.expectEqualStrings("CELLAR NEED KEY", consumed_overlay.lines[1]);
+    try std.testing.expect(runtime_session.pendingRoomTransition() != null);
+    const return_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &cellar_room, runtime_session);
+    try std.testing.expectEqualStrings("ROOM 2/0 KEYS 0", return_overlay.lines[0]);
+    try std.testing.expectEqualStrings("CELLAR RETURN READY", return_overlay.lines[1]);
 }
 
 test "viewer Sendell dialog overlay is transient and scheduler-owned" {

@@ -725,8 +725,8 @@ fn secretRoomKeyStatusLabel(
 ) []const u8 {
     if (collectible_count != 0) return "KEY DROP LIVE";
     if (background_entry_index == secret_room_cellar_background_entry) {
-        if (key_count != 0) return "CELLAR KEY READY";
-        return "CELLAR NEED KEY";
+        if (key_count != 0) return "CELLAR RETURN KEY";
+        return "CELLAR RETURN READY";
     }
     if (pickup_event_count != 0) return "KEY TAKEN";
     if (key_var != 0) return "KEY SPAWNED";

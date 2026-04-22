@@ -15,7 +15,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - `life_audit.zig` / `audit-life-programs` is canonical inventory.
 - Guarded `19/19` object `2` has live-backed `Divers=5` multi-bonus semantics.
 - `0013` key source is default action: W sets `ActionNormal`; `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0` gate `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
-- `0013` key pickup is Frida poll-only proved: `SPRITE_CLE` from `(3072,3072,5120)`, `Divers=1`, `NbLittleKeys 0 -> 1`; viewer drives W/default-action, pickup overlay, and the key-consuming cellar door.
+- `0013` key pickup is Frida poll-only proved: `SPRITE_CLE` from `(3072,3072,5120)`, `Divers=1`, `NbLittleKeys 0 -> 1`; viewer drives W/default-action, pickup overlay, keyed cellar entry, and free return.
 - Room `36` keeps dialog id `3` across both visible Sendell pages and clears after the second ack.
 - `waypoint_step_probe.py` owns debug-control outcomes; `collision_observer.py` is diagnostic-only.
 
@@ -31,7 +31,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - Do not revive the staged `Load Game` harness; direct save launch is canonical and must reject the EA logo.
 - `0013-weapon.LBA` is the right cellar start; forced `3/3` zone `1` lands in a Tralu-looking scene.
 - `0013` door source is scene-2 zone `0`; cube `1 -> 0` preserves offset before shadow readjustment.
-- Reverse `0013` door is stateful and now port-backed: `NbLittleKeys 1 -> 0` precedes cube `0 -> 1`.
+- `0013` keyed direction is house/key side `2/1 -> 2/0`; cellar return `2/0 -> 2/1` is free.
 - Use `secret_room_door_watch.py`; it reads `NbLittleKeys` as a byte. `work/tmp_secret_room_door_watch.py` is scratch evidence.
 - `0013` key pickup is `FUN_00415e48` / `0x0041737c`, not proved `LM_GIVE_BONUS`; the older no-hit CDB artifact had a malformed command.
 - Do not call the W path `search action`; in the classic source it is the default action key (`I_ACTION_ALWAYS` sets `ActionNormal`, read by `LF_ACTION`).
@@ -62,4 +62,4 @@ Own life-program decoding and original-runtime evidence lanes.
 - Whether guarded `19/19` pickup requires same connected admitted surface/floor band.
 - Whether the classic shadow-readjusted landing should be generalized beyond the currently guarded transition path.
 - Hooked `LM_FOUND_OBJECT 0` remains unproved because the current object/thread filter sees zero hits. Static source plus live `SPRITE_CLE` proof covers the current port seam.
-- The exact scene-2 life/object instructions that consume the key before reverse cube `0 -> 1` remain unproved; the port covers only the captured doorway band.
+- The exact scene-2 life/object instructions that consume the key before house-to-cellar cube `1 -> 0` remain unproved; the port covers only the captured doorway band.
