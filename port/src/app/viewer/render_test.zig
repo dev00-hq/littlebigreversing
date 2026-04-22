@@ -981,7 +981,7 @@ test "viewer render path draws moving little-key landing target and path" {
     );
 
     try std.testing.expect(hasTraceLineColor(trace, render.rewardCollectibleMotionPathColorForTesting(.little_key)));
-    try std.testing.expect(hasTraceRectColor(trace, .fill_rect, render.rewardCollectibleTargetColorForTesting(.little_key)));
+    try std.testing.expect(hasTraceRectColor(trace, .fill_rect, sdl.Color{ .r = 245, .g = 216, .b = 95, .a = 255 }));
 }
 
 test "viewer render path fails fast when a required brick preview is missing" {

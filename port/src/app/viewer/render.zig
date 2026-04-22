@@ -569,8 +569,11 @@ fn drawRewardCollectibleMarker(
     if (!collectible.settled) {
         if (target) |target_point| {
             try canvas.drawLine(point.x, point.y, target_point.x, target_point.y, rewardCollectibleMotionPathColor(collectible.kind));
-            try draw.drawCrosshair(canvas, target_point, 8, rewardCollectibleTargetColor(collectible.kind));
-            try draw.drawMarker(canvas, target_point, 4, rewardCollectibleTargetColor(collectible.kind));
+            try draw.drawCrosshair(canvas, point, 4, rewardCollectibleMotionPathColor(collectible.kind));
+            try draw.drawMarker(canvas, point, 2, rewardCollectibleMotionPathColor(collectible.kind));
+            try draw.drawCrosshair(canvas, target_point, 9, draw.withAlpha(color, 220));
+            try draw.drawMarker(canvas, target_point, 7, color);
+            return;
         }
     }
     const radius: i32 = if (collectible.settled) 7 else 5;
