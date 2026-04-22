@@ -1,5 +1,6 @@
 const std = @import("std");
 const reference_metadata = @import("../generated/reference_metadata.zig");
+const runtime_object_behavior = @import("object_behavior.zig");
 const room_state = @import("room_state.zig");
 const runtime_session = @import("session.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
@@ -126,4 +127,43 @@ test "room entry reconstructs pending Sendell dialog state from durable magic st
 
     try std.testing.expectEqual(@as(?i16, sendell_dialog_id), current_session.currentDialogId());
     try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_first_dialog_ack, current_session.objectBehaviorStateByIndex(sendell_object_index).?.sendell_ball_phase);
+}
+
+test "room entry reconstructs mid-dialog Sendell load from durable state without preserving page cursor" {
+    const room = try room_fixtures.guarded3636();
+    var source_session = try runtime_session.Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(room),
+        room.scene.objects,
+        room.scene.object_behavior_seeds,
+    );
+    defer source_session.deinit(std.testing.allocator);
+    source_session.setMagicLevelAndRefill(sendell_red_ball_magic_level);
+    source_session.setGameVar(sendell_ball_flag_index, 0);
+    try source_session.setCurrentDialogId(sendell_dialog_id);
+    source_session.objectBehaviorStateByIndexPtr(sendell_object_index).?.sendell_ball_phase = .awaiting_second_dialog_ack;
+
+    const source_slice = runtime_object_behavior.currentSendellDialogSlice(source_session) orelse return error.MissingSourceDialogSlice;
+    try std.testing.expectEqual(@as(u8, 2), source_slice.page_number);
+
+    var loaded_session = try runtime_session.Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(room),
+        room.scene.objects,
+        room.scene.object_behavior_seeds,
+    );
+    defer loaded_session.deinit(std.testing.allocator);
+    loaded_session.setMagicLevelAndRefill(source_session.magicLevel());
+    loaded_session.setGameVar(sendell_ball_flag_index, source_session.gameVar(sendell_ball_flag_index));
+
+    reconstructLoadedRoomState(room, &loaded_session);
+
+    try std.testing.expectEqual(@as(?i16, sendell_dialog_id), loaded_session.currentDialogId());
+    try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_first_dialog_ack, loaded_session.objectBehaviorStateByIndex(sendell_object_index).?.sendell_ball_phase);
+    const loaded_slice = runtime_object_behavior.currentSendellDialogSlice(loaded_session) orelse return error.MissingLoadedDialogSlice;
+    try std.testing.expectEqual(@as(u8, 1), loaded_slice.page_number);
+    try std.testing.expectEqualStrings(
+        "You just found Sendell's Ball. Now you have reached a new level of magic: Red Ball. It will also enable ",
+        loaded_slice.visible_text,
+    );
 }
