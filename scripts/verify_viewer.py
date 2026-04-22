@@ -488,6 +488,8 @@ def main(argv: list[str] | None = None) -> int:
 
     inspect_success_results = [
         test_inspect_room_success(19, 19, expected_fragments=0, expected_grm_entry=151),
+        test_inspect_room_success(2, 1, expected_fragments=0, expected_grm_entry=149),
+        test_inspect_room_success(2, 0, expected_fragments=0, expected_grm_entry=149),
         test_inspect_room_success(2, 2, expected_fragments=0, expected_grm_entry=149),
         test_inspect_room_success(11, 10, expected_fragments=1, expected_grm_entry=149),
     ]
@@ -511,6 +513,18 @@ def main(argv: list[str] | None = None) -> int:
                 "top_y_delta_buckets=0:4828",
                 "best_alt_mapping=dense_swapped_axes_64:64:58/31:surface_height_mismatch:diagnostic_candidate_only_materially_better:4:0",
             ],
+        ),
+        test_viewer_launch_success(
+            2,
+            1,
+            expected_fragments=0,
+            expected_stderr_fragments=[],
+        ),
+        test_viewer_launch_success(
+            2,
+            0,
+            expected_fragments=0,
+            expected_stderr_fragments=[],
         ),
         test_viewer_launch_success(
             2,

@@ -67,6 +67,9 @@ pub const ViewerDialogOverlayDisplayBuffer = struct {
     line_2: [160]u8 = undefined,
     line_3: [160]u8 = undefined,
     aux_0: [8]u8 = undefined,
+    aux_1: [64]u8 = undefined,
+    aux_2: [64]u8 = undefined,
+    aux_3: [96]u8 = undefined,
 };
 pub const ViewerLocomotionSchematicCue = render.LocomotionSchematicCue;
 pub const ViewerLocomotionSchematicMoveOption = render.LocomotionSchematicMoveOption;
@@ -281,13 +284,7 @@ pub fn formatLocomotionStatusDisplay(
                 formatCurrentFootingHudLine(&buffer.line_6, value.local_topology orelse unreachable),
             },
             .schematic = locomotionSchematicCue(move_options),
-            .attempt = .{
-                .rejected = .{
-                    .direction = value.direction,
-                    .current_cell = value.current_cell orelse unreachable,
-                    .target_cell = value.target_cell orelse unreachable,
-                },
-            },
+            .attempt = rejectedAttemptCue(value),
         } else .{
             .line_count = 3,
             .lines = .{
@@ -299,6 +296,18 @@ pub fn formatLocomotionStatusDisplay(
                 "",
                 "",
             },
+        },
+    };
+}
+
+fn rejectedAttemptCue(value: ViewerMoveRejectedStatus) render.LocomotionAttemptCue {
+    const current_cell = value.current_cell orelse return .none;
+    const target_cell = value.target_cell orelse return .none;
+    return .{
+        .rejected = .{
+            .direction = value.direction,
+            .current_cell = current_cell,
+            .target_cell = target_cell,
         },
     };
 }
@@ -558,6 +567,7 @@ pub fn renderDebugViewWithSelection(
     zoom_level: ViewerZoomLevel,
     view_mode: ViewerViewMode,
     dialog_overlay: ViewerDialogOverlayDisplay,
+    reward_collectibles: []const runtime_session.RewardCollectible,
 ) !void {
     var status_buffer: ViewerLocomotionStatusDisplayBuffer = .{};
     return render.renderDebugView(
@@ -571,6 +581,7 @@ pub fn renderDebugViewWithSelection(
         zoom_level,
         view_mode,
         dialog_overlay,
+        reward_collectibles,
     );
 }
 
@@ -583,7 +594,9 @@ pub fn formatGameplayOverlayDisplay(
     if (sendell_overlay.line_count != 0) return sendell_overlay;
     const secret_room_overlay = formatSecretRoomKeyOverlayDisplay(buffer, room, current_session);
     if (secret_room_overlay.line_count != 0) return secret_room_overlay;
-    return formatScene1919RewardOverlayDisplay(buffer, room, current_session);
+    const reward_overlay = formatScene1919RewardOverlayDisplay(buffer, room, current_session);
+    if (reward_overlay.line_count != 0) return reward_overlay;
+    return formatZoneProbeOverlayDisplay(buffer, room, current_session);
 }
 
 pub fn formatSendellDialogOverlayDisplay(
@@ -652,17 +665,26 @@ pub fn formatSecretRoomKeyOverlayDisplay(
     const pickup_events = current_session.rewardPickupEvents();
     const key_count = current_session.littleKeyCount();
     const key_var = current_session.gameVar(secret_room_key_var_game_index);
-    if (events.len == 0 and collectibles.len == 0 and pickup_events.len == 0 and key_count == 0 and key_var == 0) return .{};
+    if (events.len == 0 and
+        collectibles.len == 0 and
+        pickup_events.len == 0 and
+        key_count == 0 and
+        key_var == 0 and
+        room.background.entry_index != secret_room_background_entry)
+    {
+        return .{};
+    }
 
     const latest_event = if (events.len == 0) null else events[events.len - 1];
     const latest_pickup_event = if (pickup_events.len == 0) null else pickup_events[pickup_events.len - 1];
 
     const line_0 = std.fmt.bufPrint(
         &buffer.line_0,
-        "ROOM 2/{d} KEYS {d}",
+        "ROOM 2/{d} KEYS {d} VAR0 {d}",
         .{
             room.background.entry_index,
             key_count,
+            key_var,
         },
     ) catch unreachable;
     const line_1 = std.fmt.bufPrint(
@@ -672,11 +694,12 @@ pub fn formatSecretRoomKeyOverlayDisplay(
     ) catch unreachable;
     const line_2 = std.fmt.bufPrint(
         &buffer.line_2,
-        "VAR0 {d} CUBE0 {d} CUBE1 {d}",
+        "POS {d} {d} {d} {s}",
         .{
-            key_var,
-            current_session.cubeVar(0),
-            current_session.cubeVar(1),
+            current_session.heroWorldPosition().x,
+            current_session.heroWorldPosition().y,
+            current_session.heroWorldPosition().z,
+            formatExactZonesWithProjectedFallback(buffer, room, current_session),
         },
     ) catch unreachable;
     const line_3 = if (latest_pickup_event) |event|
@@ -803,6 +826,45 @@ pub fn formatScene1919RewardOverlayDisplay(
     };
 }
 
+pub fn formatZoneProbeOverlayDisplay(
+    buffer: *ViewerDialogOverlayDisplayBuffer,
+    room: *const RoomSnapshot,
+    current_session: Session,
+) ViewerDialogOverlayDisplay {
+    if (room.scene.zones.len == 0) return .{};
+
+    const hero_position = current_session.heroWorldPosition();
+    const exact_zones = runtime_query.init(room).containingZonesAtWorldPoint(hero_position) catch return .{};
+    const projected_zones = containingZonesAtWorldXZ(room, hero_position) catch return .{};
+    if (exact_zones.slice().len == 0 and projected_zones.slice().len == 0) return .{};
+
+    const line_0 = std.fmt.bufPrint(
+        &buffer.line_0,
+        "POS {d} {d} {d}",
+        .{ hero_position.x, hero_position.y, hero_position.z },
+    ) catch unreachable;
+    const line_1 = formatZoneSummary(&buffer.line_1, exact_zones);
+    const line_2 = std.fmt.bufPrint(
+        &buffer.line_2,
+        "XZ {s}",
+        .{formatZoneSummary(&buffer.aux_1, projected_zones)},
+    ) catch unreachable;
+    const line_3 = formatZoneYDiagnosticLine(&buffer.line_3, hero_position.y, projected_zones);
+
+    return .{
+        .title = "ZONE PROBE",
+        .nav_title = "NAV / ZONE",
+        .line_count = 4,
+        .lines = .{
+            line_0,
+            line_1,
+            line_2,
+            line_3,
+        },
+        .accent = .{ .r = 177, .g = 139, .b = 255, .a = 255 },
+    };
+}
+
 fn secretRoomKeyStatusLabel(
     background_entry_index: usize,
     collectible_count: usize,
@@ -818,6 +880,71 @@ fn secretRoomKeyStatusLabel(
     if (pickup_event_count != 0) return "KEY TAKEN";
     if (key_var != 0) return "KEY SPAWNED";
     return "KEY SOURCE READY";
+}
+
+fn formatExactZonesWithProjectedFallback(
+    buffer: *ViewerDialogOverlayDisplayBuffer,
+    room: *const RoomSnapshot,
+    current_session: Session,
+) []const u8 {
+    const hero_position = current_session.heroWorldPosition();
+    const exact_zones = runtime_query.init(room).containingZonesAtWorldPoint(hero_position) catch {
+        return "ZONES ERR";
+    };
+    const exact_summary = formatZoneSummary(&buffer.aux_1, exact_zones);
+    if (exact_zones.slice().len != 0) return exact_summary;
+
+    const projected_zones = containingZonesAtWorldXZ(room, hero_position) catch {
+        return exact_summary;
+    };
+    if (projected_zones.slice().len == 0) return exact_summary;
+
+    return std.fmt.bufPrint(
+        &buffer.aux_3,
+        "ZONES NONE XZ {s}",
+        .{formatZoneDiagnosticValue(&buffer.aux_2, projected_zones)},
+    ) catch unreachable;
+}
+
+fn containingZonesAtWorldXZ(
+    room: *const RoomSnapshot,
+    world_position: WorldPointSnapshot,
+) !runtime_query.ContainingZoneSet {
+    var containing: runtime_query.ContainingZoneSet = .{};
+    for (room.scene.zones) |zone| {
+        if (!zoneContainsWorldXZ(zone, world_position)) continue;
+        try containing.append(zone);
+    }
+    return containing;
+}
+
+fn zoneContainsWorldXZ(zone: ZoneBoundsSnapshot, world_position: WorldPointSnapshot) bool {
+    return world_position.x >= zone.x_min and
+        world_position.x <= zone.x_max and
+        world_position.z >= zone.z_min and
+        world_position.z <= zone.z_max;
+}
+
+fn formatZoneYDiagnosticLine(
+    buffer: []u8,
+    hero_y: i32,
+    projected_zones: runtime_query.ContainingZoneSet,
+) []const u8 {
+    const zones = projected_zones.slice();
+    if (zones.len == 0) return "XZ ZONES NONE";
+
+    var min_y = zones[0].y_min;
+    var max_y = zones[0].y_max;
+    for (zones[1..]) |zone| {
+        min_y = @min(min_y, zone.y_min);
+        max_y = @max(max_y, zone.y_max);
+    }
+
+    return std.fmt.bufPrint(
+        buffer,
+        "Y {d} ZONE Y {d}..{d}",
+        .{ hero_y, min_y, max_y },
+    ) catch unreachable;
 }
 
 fn positionForExplicitLocomotionFixture(

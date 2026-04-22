@@ -216,7 +216,7 @@ fn applySecretRoomDefaultAction(
     current_session: *runtime_session.Session,
 ) !void {
     if (room.scene.entry_index != secret_room_scene_entry_index or room.background.entry_index != secret_room_background_entry_index) {
-        return error.UnsupportedObjectBehaviorHeroIntent;
+        return;
     }
     const query = runtime_query.init(room);
     if (current_session.gameVar(secret_room_key_var_game_index) != 0 or hasSecretRoomKeyCollectible(current_session.*)) return;

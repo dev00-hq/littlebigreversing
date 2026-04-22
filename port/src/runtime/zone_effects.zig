@@ -5,6 +5,13 @@ const world_geometry = @import("world_geometry.zig");
 
 pub const EffectSummary = struct {
     triggered_room_transition: bool = false,
+    secret_room_door_event: ?SecretRoomDoorEvent = null,
+};
+
+pub const SecretRoomDoorEvent = enum {
+    house_locked_no_key,
+    house_consumed_key,
+    cellar_return_free,
 };
 
 const secret_room_scene_entry_index: usize = 2;
@@ -44,10 +51,12 @@ pub fn applyContainingZoneEffects(
 ) !EffectSummary {
     var pending_transition: ?runtime_session.PendingRoomTransition = null;
     var consumes_little_key = false;
+    var secret_room_door_event: ?SecretRoomDoorEvent = null;
     const hero_world_position = current_session.heroWorldPosition();
 
     if (secretRoomCellarToHouseDoorTransition(room, current_session.*)) |transition| {
         pending_transition = transition;
+        secret_room_door_event = .cellar_return_free;
     }
 
     for (zones) |zone| {
@@ -56,8 +65,12 @@ pub fn applyContainingZoneEffects(
                 if (!semantics.initially_on) continue;
                 if (pending_transition != null) return error.MultipleRoomTransitionsTriggered;
                 if (secretRoomHouseToCellarDoorConsumesKey(room, current_session.*, zone)) |has_key| {
-                    if (!has_key) continue;
+                    if (!has_key) {
+                        secret_room_door_event = .house_locked_no_key;
+                        continue;
+                    }
                     consumes_little_key = true;
+                    secret_room_door_event = .house_consumed_key;
                 }
 
                 pending_transition = .{
@@ -80,10 +93,13 @@ pub fn applyContainingZoneEffects(
     if (pending_transition) |transition| {
         try current_session.setPendingRoomTransition(transition);
         if (consumes_little_key and !current_session.consumeLittleKey()) return error.MissingLittleKeyForSecretRoomDoor;
-        return .{ .triggered_room_transition = true };
+        return .{
+            .triggered_room_transition = true,
+            .secret_room_door_event = secret_room_door_event,
+        };
     }
 
-    return .{};
+    return .{ .secret_room_door_event = secret_room_door_event };
 }
 
 fn secretRoomHouseToCellarDoorConsumesKey(

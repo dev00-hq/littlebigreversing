@@ -157,6 +157,20 @@ test "runtime object behavior applies guarded 2/1 default action to spawn the li
     try std.testing.expectEqual(@as(usize, 1), current_session.bonusSpawnEvents().len);
 }
 
+test "runtime object behavior ignores default action outside implemented key-source rooms" {
+    const room = try room_fixtures.guarded22();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+
+    try object_behavior.applyHeroIntent(room, &current_session, .default_action);
+
+    try std.testing.expectEqual(@as(i16, 0), current_session.gameVar(0));
+    try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+    try std.testing.expectEqual(@as(usize, 0), current_session.bonusSpawnEvents().len);
+    try std.testing.expectEqual(@as(usize, 0), current_session.rewardCollectibles().len);
+}
+
 test "runtime dialog pagination derives the same boundary on the newgame pharmacy warning record" {
     const full_text =
         "Twinsen, rush to the downtown pharmacy and find a cure for the Dino-Fly ! " ++

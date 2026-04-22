@@ -1,6 +1,7 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const state = @import("../../runtime/room_state.zig");
+const runtime_session = @import("../../runtime/session.zig");
 const runtime_query = @import("../../runtime/world_query.zig");
 const world_geometry = @import("../../runtime/world_geometry.zig");
 const layout = @import("layout.zig");
@@ -91,6 +92,7 @@ pub fn renderDebugView(
     zoom_level: ZoomLevel,
     view_mode: ViewMode,
     dialog_overlay: DialogOverlayDisplay,
+    reward_collectibles: []const runtime_session.RewardCollectible,
 ) !void {
     const fragment_panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
     const viewport = layout.computeGridViewport(snapshot, if (view_mode == .isometric and zoom_level == .fit) .room else zoom_level);
@@ -151,6 +153,11 @@ pub fn renderDebugView(
             try draw.drawMarker(canvas, point, 6, .{ .r = 255, .g = 194, .b = 92, .a = 255 });
         }
 
+        for (reward_collectibles) |collectible| {
+            const point = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, collectible.world_position.x, collectible.world_position.z) orelse continue;
+            try drawRewardCollectibleMarker(canvas, point, collectible);
+        }
+
         try drawLocomotionSchematicCue(
             canvas,
             debug_layout.schematic,
@@ -169,7 +176,7 @@ pub fn renderDebugView(
             try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
         }
     } else {
-        try drawIsometricView(canvas, debug_layout.schematic, snapshot, viewport);
+        try drawIsometricView(canvas, debug_layout.schematic, snapshot, viewport, reward_collectibles);
     }
     try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode, sidebar_tab, zoom_level, view_mode, dialog_overlay);
     canvas.present();
@@ -495,6 +502,7 @@ fn drawIsometricView(
     rect: sdl.Rect,
     snapshot: state.RenderSnapshot,
     viewport: layout.GridViewport,
+    reward_collectibles: []const runtime_session.RewardCollectible,
 ) !void {
     const iso = computeIsoProjection(rect, snapshot, viewport);
     try drawIsoBackdrop(canvas, iso);
@@ -533,10 +541,33 @@ fn drawIsometricView(
         try draw.drawMarker(canvas, point, 6, .{ .r = 255, .g = 194, .b = 92, .a = 255 });
     }
 
+    for (reward_collectibles) |collectible| {
+        const point = isoWorldPoint(iso, collectible.world_position.x, collectible.world_position.z) orelse continue;
+        try drawRewardCollectibleMarker(canvas, point, collectible);
+    }
+
     if (isoWorldPoint(iso, snapshot.hero_position.x, snapshot.hero_position.z)) |hero| {
         try draw.drawCrosshair(canvas, hero, 9, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
         try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
     }
+}
+
+fn drawRewardCollectibleMarker(
+    canvas: *sdl.Canvas,
+    point: layout.ScreenPoint,
+    collectible: runtime_session.RewardCollectible,
+) !void {
+    const color = rewardCollectibleColor(collectible.kind);
+    const radius: i32 = if (collectible.settled) 7 else 5;
+    try draw.drawCrosshair(canvas, point, radius + 2, draw.withAlpha(color, 220));
+    try draw.drawMarker(canvas, point, radius, color);
+}
+
+fn rewardCollectibleColor(kind: runtime_session.RuntimeBonusKind) sdl.Color {
+    return switch (kind) {
+        .magic => .{ .r = 117, .g = 230, .b = 186, .a = 255 },
+        .little_key => .{ .r = 245, .g = 216, .b = 95, .a = 255 },
+    };
 }
 
 fn computeIsoProjection(rect: sdl.Rect, snapshot: state.RenderSnapshot, viewport: layout.GridViewport) IsoProjection {

@@ -1035,6 +1035,47 @@ test "viewer locomotion harness consumes runtime-owned accepted and rejected see
     try std.testing.expectEqualStrings(expected_rejected_diagnostic, rejected_diagnostic);
 }
 
+test "viewer rejected move display tolerates out-of-bounds targets" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var runtime_session = try initViewerSession(&room);
+    defer runtime_session.deinit(allocator);
+
+    const query = runtime_query.init(&room);
+    const west_edge_cell = viewer_shell.GridCell{ .x = 0, .z = 20 };
+    const west_edge_surface = try query.cellTopSurface(west_edge_cell.x, west_edge_cell.z);
+    runtime_session.setHeroWorldPosition(runtime_query.gridCellCenterWorldPosition(
+        west_edge_cell.x,
+        west_edge_cell.z,
+        west_edge_surface.top_y,
+    ));
+
+    const rejected_status = try runtime_locomotion.applyStep(&room, &runtime_session, .west);
+    const rejected_value = switch (rejected_status) {
+        .last_move_rejected => |value| value,
+        else => return error.UnexpectedViewerLocomotionStatus,
+    };
+    try std.testing.expectEqual(viewer_shell.CardinalDirection.west, rejected_value.direction);
+    try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_out_of_bounds, rejected_value.reason);
+    try std.testing.expectEqual(@as(?viewer_shell.GridCell, west_edge_cell), rejected_value.current_cell);
+    try std.testing.expectEqual(@as(?viewer_shell.GridCell, null), rejected_value.target_cell);
+    try std.testing.expect(rejected_value.move_options != null);
+
+    var rejected_buffer: viewer_shell.ViewerLocomotionStatusDisplayBuffer = .{};
+    const rejected_display = viewer_shell.formatLocomotionStatusDisplay(&rejected_buffer, rejected_status);
+    try std.testing.expectEqual(@as(usize, 7), rejected_display.line_count);
+    try std.testing.expectEqualStrings("MOVE WEST REJECTED", rejected_display.lines[0]);
+    try std.testing.expectEqualStrings("STAY 0/20 TARGET_OUT_OF_BOUNDS", rejected_display.lines[1]);
+    try expectDisplayMoveOptionLines(rejected_display, 2, rejected_value.move_options.?);
+    try expectAdmittedPathSchematicCue(rejected_display, rejected_value.move_options.?);
+    try expectNoAttemptCue(rejected_display);
+}
+
 test "viewer locomotion fixture seeding widens to guarded-positive rooms beyond 19/19" {
     try expectNearestStandableSeed(try room_fixtures.guarded22());
     try expectNearestStandableSeed(try room_fixtures.guarded1110());
@@ -1349,10 +1390,108 @@ test "viewer key handling routes 0013 default action through queued runtime inte
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
     try std.testing.expectEqualStrings("0013 KEY", overlay.title);
     try std.testing.expectEqualStrings("NAV / KEY", overlay.nav_title);
-    try std.testing.expectEqualStrings("ROOM 2/1 KEYS 0", overlay.lines[0]);
+    try std.testing.expectEqualStrings("ROOM 2/1 KEYS 0 VAR0 1", overlay.lines[0]);
     try std.testing.expectEqualStrings("KEY DROP LIVE", overlay.lines[1]);
-    try std.testing.expectEqualStrings("VAR0 1 CUBE0 0 CUBE1 0", overlay.lines[2]);
+    try std.testing.expectEqualStrings("POS 1280 2048 5376 ZONES 4", overlay.lines[2]);
     try std.testing.expectEqualStrings("LAST KEY 1@0", overlay.lines[3]);
+}
+
+test "viewer key handling lets default action no-op in guarded house room" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded22();
+    var snapshot_session = try initViewerSession(room);
+    defer snapshot_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(room, snapshot_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
+    _ = try viewer_shell.seedSessionToLocomotionFixture(room, &runtime_session);
+    const initial_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
+    const interaction = viewer_shell.initialInteractionState(catalog);
+
+    const key_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        interaction,
+        initial_status,
+        .w,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, key_result.post_key_action);
+    try std.testing.expectEqual(runtime_locomotion.HeroIntent.default_action, runtime_session.pendingHeroIntent().?);
+
+    const tick_result = try runtime_update.tick(room, &runtime_session);
+    try std.testing.expect(tick_result.consumed_hero_intent);
+    try std.testing.expect(!tick_result.triggered_room_transition);
+    try std.testing.expectEqual(@as(i16, 0), runtime_session.gameVar(0));
+    try std.testing.expectEqual(@as(usize, 0), runtime_session.rewardCollectibles().len);
+}
+
+test "viewer 0013 key overlay exposes source-ready state before default action" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var runtime_session = try initViewerSession(&room);
+    defer runtime_session.deinit(allocator);
+
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
+
+    try std.testing.expectEqualStrings("0013 KEY", overlay.title);
+    try std.testing.expectEqualStrings("NAV / KEY", overlay.nav_title);
+    try std.testing.expectEqualStrings("ROOM 2/1 KEYS 0 VAR0 0", overlay.lines[0]);
+    try std.testing.expectEqualStrings("KEY SOURCE READY", overlay.lines[1]);
+    try std.testing.expectEqualStrings("POS 9724 1024 782 ZONES NONE", overlay.lines[2]);
+    try std.testing.expectEqualStrings("LAST NONE", overlay.lines[3]);
+}
+
+test "viewer 0013 key overlay distinguishes exact zones from projected zone footprints" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var runtime_session = try initViewerSession(&room);
+    defer runtime_session.deinit(allocator);
+    runtime_session.setHeroWorldPosition(.{ .x = 1280, .y = 6400, .z = 5376 });
+
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
+
+    try std.testing.expectEqualStrings("0013 KEY", overlay.title);
+    try std.testing.expectEqualStrings("KEY SOURCE READY", overlay.lines[1]);
+    try std.testing.expectEqualStrings("POS 1280 6400 5376 ZONES NONE XZ 4", overlay.lines[2]);
+}
+
+test "viewer zone probe overlay exposes projected zone footprints for manual navigation" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 2);
+    defer room.deinit(allocator);
+
+    var runtime_session = try initViewerSession(&room);
+    defer runtime_session.deinit(allocator);
+    runtime_session.setHeroWorldPosition(.{ .x = 1280, .y = 6400, .z = 5376 });
+
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
+
+    try std.testing.expectEqualStrings("ZONE PROBE", overlay.title);
+    try std.testing.expectEqualStrings("NAV / ZONE", overlay.nav_title);
+    try std.testing.expectEqualStrings("POS 1280 6400 5376", overlay.lines[0]);
+    try std.testing.expectEqualStrings("ZONES NONE", overlay.lines[1]);
+    try std.testing.expectEqualStrings("XZ ZONES 4", overlay.lines[2]);
+    try std.testing.expectEqualStrings("Y 6400 ZONE Y 1024..2304", overlay.lines[3]);
 }
 
 test "viewer 0013 key overlay follows pickup and cellar return state" {
@@ -1378,7 +1517,7 @@ test "viewer 0013 key overlay follows pickup and cellar return state" {
 
     var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
     const picked_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
-    try std.testing.expectEqualStrings("ROOM 2/1 KEYS 1", picked_overlay.lines[0]);
+    try std.testing.expectEqualStrings("ROOM 2/1 KEYS 1 VAR0 1", picked_overlay.lines[0]);
     try std.testing.expectEqualStrings("KEY TAKEN", picked_overlay.lines[1]);
     try std.testing.expectEqualStrings("PICK KEY 1@2", picked_overlay.lines[3]);
 
@@ -1393,13 +1532,13 @@ test "viewer 0013 key overlay follows pickup and cellar return state" {
     runtime_session.setLittleKeyCount(0);
 
     const cellar_ready_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &cellar_room, runtime_session);
-    try std.testing.expectEqualStrings("ROOM 2/0 KEYS 0", cellar_ready_overlay.lines[0]);
+    try std.testing.expectEqualStrings("ROOM 2/0 KEYS 0 VAR0 1", cellar_ready_overlay.lines[0]);
     try std.testing.expectEqualStrings("CELLAR RETURN READY", cellar_ready_overlay.lines[1]);
 
     _ = try runtime_update.tick(&cellar_room, &runtime_session);
     try std.testing.expect(runtime_session.pendingRoomTransition() != null);
     const return_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &cellar_room, runtime_session);
-    try std.testing.expectEqualStrings("ROOM 2/0 KEYS 0", return_overlay.lines[0]);
+    try std.testing.expectEqualStrings("ROOM 2/0 KEYS 0 VAR0 1", return_overlay.lines[0]);
     try std.testing.expectEqualStrings("CELLAR RETURN READY", return_overlay.lines[1]);
 }
 

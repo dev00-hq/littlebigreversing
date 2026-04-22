@@ -472,6 +472,7 @@ test "runtime zone effects consume one key and preserve source offset on the sce
         const effect_summary = try zone_effects.applyContainingZoneEffects(&room, &current_session, zone_membership.slice());
 
         try std.testing.expect(effect_summary.triggered_room_transition);
+        try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, .house_consumed_key), effect_summary.secret_room_door_event);
         try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
         const transition = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
         try std.testing.expectEqual(door_zone.index, transition.source_zone_index);
@@ -490,6 +491,7 @@ test "runtime zone effects consume one key and preserve source offset on the sce
     try zone_membership.append(door_zone);
     const locked_effect = try zone_effects.applyContainingZoneEffects(&room, &locked_session, zone_membership.slice());
     try std.testing.expect(!locked_effect.triggered_room_transition);
+    try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, .house_locked_no_key), locked_effect.secret_room_door_event);
     try std.testing.expectEqual(@as(?runtime_session.PendingRoomTransition, null), locked_session.pendingRoomTransition());
 }
 
@@ -507,6 +509,7 @@ test "runtime zone effects return from cellar to house without consuming a key" 
 
     const without_key = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
     try std.testing.expect(without_key.triggered_room_transition);
+    try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, .cellar_return_free), without_key.secret_room_door_event);
     try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
     current_session.clearPendingRoomTransition();
 
@@ -517,6 +520,7 @@ test "runtime zone effects return from cellar to house without consuming a key" 
     const with_key = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
 
     try std.testing.expect(with_key.triggered_room_transition);
+    try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, .cellar_return_free), with_key.secret_room_door_event);
     try std.testing.expectEqual(@as(u8, 1), current_session.littleKeyCount());
     const transition = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
     try std.testing.expectEqual(@as(usize, 0), transition.source_zone_index);

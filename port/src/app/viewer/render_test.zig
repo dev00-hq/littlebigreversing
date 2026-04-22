@@ -3,6 +3,7 @@ const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
 const runtime_locomotion = @import("../../runtime/locomotion.zig");
 const runtime_object_behavior = @import("../../runtime/object_behavior.zig");
+const runtime_session_mod = @import("../../runtime/session.zig");
 const runtime_update = @import("../../runtime/update.zig");
 const state = @import("../../runtime/room_state.zig");
 const runtime_query = @import("../../runtime/world_query.zig");
@@ -72,6 +73,19 @@ fn hasTraceLineColor(trace: sdl.CanvasTrace, color: sdl.Color) bool {
         }
     }
     return false;
+}
+
+fn countTraceLineColor(trace: sdl.CanvasTrace, color: sdl.Color) usize {
+    var count: usize = 0;
+    for (trace.ops.items) |op| {
+        switch (op) {
+            .draw_line => |entry| {
+                if (std.meta.eql(entry.color, color)) count += 1;
+            },
+            else => {},
+        }
+    }
+    return count;
 }
 
 fn hasPresent(trace: sdl.CanvasTrace) bool {
@@ -400,7 +414,7 @@ fn renderZeroFragmentTrace(
     var trace: sdl.CanvasTrace = .{};
     errdefer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{}, &.{});
     return trace;
 }
 
@@ -468,7 +482,7 @@ test "viewer render path draws the guarded 11/10 sidebar and focus highlight" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{}, &.{});
 
     try std.testing.expect(panel.focus != null);
     try std.testing.expect(hasTraceRectOp(trace, .fill_rect, debug_layout.sidebar, .{ .r = 15, .g = 20, .b = 26, .a = 255 }));
@@ -503,7 +517,7 @@ test "viewer render path surfaces fragment-room control hints for both navigatio
     var fragment_nav_trace: sdl.CanvasTrace = .{};
     defer fragment_nav_trace.deinit(allocator);
     var fragment_nav_canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &fragment_nav_trace);
-    try render.renderDebugView(&fragment_nav_canvas, raw_snapshot, raw_catalog, raw_selection, .{}, .fragment_navigation, .info, .fit, .grid, .{});
+    try render.renderDebugView(&fragment_nav_canvas, raw_snapshot, raw_catalog, raw_selection, .{}, .fragment_navigation, .info, .fit, .grid, .{}, &.{});
 
     try std.testing.expect(hasTraceText(fragment_nav_trace, "TAB HERO CTRL"));
     try std.testing.expect(hasTraceText(fragment_nav_trace, "LEFT RIGHT RANK"));
@@ -523,7 +537,7 @@ test "viewer render path surfaces fragment-room control hints for both navigatio
     var locomotion_trace: sdl.CanvasTrace = .{};
     defer locomotion_trace.deinit(allocator);
     var locomotion_canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &locomotion_trace);
-    try render.renderDebugView(&locomotion_canvas, seeded_snapshot, seeded_catalog, seeded_selection, seeded_display, .locomotion, .info, .fit, .grid, .{});
+    try render.renderDebugView(&locomotion_canvas, seeded_snapshot, seeded_catalog, seeded_selection, seeded_display, .locomotion, .info, .fit, .grid, .{}, &.{});
 
     try std.testing.expect(hasTraceText(locomotion_trace, "TAB FRAG NAV"));
     try std.testing.expect(hasTraceText(locomotion_trace, "ARROWS MOVE HERO"));
@@ -545,7 +559,7 @@ test "viewer render path switches sidebar to controls tab" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, .fragment_navigation, .controls, .room, .grid, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, .fragment_navigation, .controls, .room, .grid, .{}, &.{});
 
     try std.testing.expect(hasTraceText(trace, "INFO"));
     try std.testing.expect(hasTraceText(trace, "CTRL"));
@@ -589,7 +603,7 @@ test "viewer render path exposes a deterministic owning-zone rect for the focuse
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{}, &.{});
 
     try std.testing.expect(zone_rect.x <= focus_rect.x);
     try std.testing.expect(zone_rect.y <= focus_rect.y);
@@ -620,7 +634,7 @@ test "viewer render path surfaces the selected comparison cell in the sidebar" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{}, &.{});
 
     try std.testing.expect(selection.ranked_index.? >= fragment_compare.max_fragment_comparison_entries);
     try std.testing.expectEqual(focus.x, panel.entries[0].x);
@@ -741,7 +755,7 @@ test "viewer render path keeps the zero-fragment room on the sidebar path" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{});
+    try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{}, &.{});
 
     try std.testing.expect(selection.focus == null);
     try std.testing.expect(!hasTraceRectColor(trace, .fill_rect, render.focusedFragmentZoneOverlayFillColor()));
@@ -787,6 +801,7 @@ test "viewer render path draws the bounded Sendell dialog overlay in the sidebar
         .fit,
         .grid,
         dialog_overlay,
+        runtime_session.rewardCollectibles(),
     );
 
     try std.testing.expect(hasTraceText(trace, "SENDELL DIAL"));
@@ -853,12 +868,69 @@ test "viewer render path draws the bounded 19/19 reward overlay in the sidebar" 
         .fit,
         .grid,
         overlay,
+        runtime_session.rewardCollectibles(),
     );
 
     try std.testing.expect(hasTraceText(trace, "OBJ2 LOOP"));
     try std.testing.expect(hasTraceText(trace, overlay.lines[1]));
     try std.testing.expect(hasTraceText(trace, overlay.lines[3]));
     try std.testing.expect(hasTraceText(trace, "NAV / REWARD"));
+}
+
+test "viewer render path draws explicitly visible little-key collectibles as key markers" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded1919();
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(room, runtime_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+    const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
+    const key_color = sdl.Color{ .r = 245, .g = 216, .b = 95, .a = 255 };
+    const key_crosshair_color = sdl.Color{ .r = 245, .g = 216, .b = 95, .a = 220 };
+    // This is a render-contract fixture: it proves visible little-key collectibles
+    // are drawn when supplied to the renderer. Scene-2 key visibility is covered by
+    // runtime/viewer validation, not by this synthetic 19/19 viewport fixture.
+    const key_collectibles = [_]runtime_session_mod.RewardCollectible{.{
+        .spawn_frame_index = 0,
+        .source_object_index = 7,
+        .kind = .little_key,
+        .sprite_index = 6,
+        .quantity = 1,
+        .admitted_surface_cell = .{ .x = 40, .z = 7 },
+        .admitted_surface_top_y = 25 * runtime_query.world_grid_span_y,
+        .scatter_slot = 0,
+        .rebound_count = 0,
+        .settled = true,
+        .motion_start_world_position = .{ .x = 20736, .y = 6400, .z = 3840 },
+        .motion_target_world_position = .{ .x = 20736, .y = 6400, .z = 3840 },
+        .motion_total_ticks = 0,
+        .motion_ticks_remaining = 0,
+        .motion_arc_height = 0,
+        .world_position = .{ .x = 20736, .y = 6400, .z = 3840 },
+    }};
+
+    var trace: sdl.CanvasTrace = .{};
+    defer trace.deinit(allocator);
+    var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
+
+    try render.renderDebugView(
+        &canvas,
+        snapshot,
+        catalog,
+        selection,
+        .{},
+        viewer_shell.initialInteractionState(catalog).control_mode,
+        .info,
+        .fit,
+        .grid,
+        .{},
+        &key_collectibles,
+    );
+
+    try std.testing.expect(hasTraceRectColor(trace, .fill_rect, key_color));
+    try std.testing.expect(countTraceLineColor(trace, key_crosshair_color) >= 4);
 }
 
 test "viewer render path fails fast when a required brick preview is missing" {
@@ -881,5 +953,5 @@ test "viewer render path fails fast when a required brick preview is missing" {
     defer trace.deinit(allocator);
     var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
 
-    try std.testing.expectError(error.ViewerBrickPreviewMissing, render.renderDebugView(&canvas, missing_snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{}));
+    try std.testing.expectError(error.ViewerBrickPreviewMissing, render.renderDebugView(&canvas, missing_snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .info, .fit, .grid, .{}, &.{}));
 }

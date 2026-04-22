@@ -9,6 +9,7 @@ pub const TickResult = struct {
     locomotion_status: locomotion.LocomotionStatus,
     consumed_hero_intent: bool,
     triggered_room_transition: bool,
+    secret_room_door_event: ?zone_effects.SecretRoomDoorEvent = null,
     updated_object_count: usize,
 };
 
@@ -39,6 +40,7 @@ pub fn tick(
             .locomotion_status = locomotion_status,
             .consumed_hero_intent = consumed_hero_intent,
             .triggered_room_transition = true,
+            .secret_room_door_event = zone_effect_summary.secret_room_door_event,
             .updated_object_count = 0,
         };
     }
@@ -51,6 +53,7 @@ pub fn tick(
         .locomotion_status = locomotion_status,
         .consumed_hero_intent = consumed_hero_intent,
         .triggered_room_transition = false,
+        .secret_room_door_event = zone_effect_summary.secret_room_door_event,
         .updated_object_count = behavior_summary.updated_object_count,
     };
 }

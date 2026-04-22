@@ -14,6 +14,7 @@ const room_state = @import("runtime/room_state.zig");
 const runtime_session_mod = @import("runtime/session.zig");
 const runtime_transition = @import("runtime/transition.zig");
 const runtime_update = @import("runtime/update.zig");
+const zone_effects = @import("runtime/zone_effects.zig");
 
 const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
 const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
@@ -103,6 +104,7 @@ fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         interaction.zoom_level,
         interaction.view_mode,
         viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session),
+        runtime_session.rewardCollectibles(),
     ) catch |err| {
         diagnostics.reportError(stderr, sdlErrorMessage(err));
         return err;
@@ -237,6 +239,7 @@ fn renderCurrentFrame(
         interaction.zoom_level,
         interaction.view_mode,
         viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session),
+        runtime_session.rewardCollectibles(),
     ) catch |err| {
         diagnostics.reportError(stderr, sdlErrorMessage(err));
         return err;
@@ -308,6 +311,7 @@ fn applyScheduledWorldStep(
             const previous_bonus_event_count = runtime_session.bonusSpawnEvents().len;
             const previous_reward_pickup_event_count = runtime_session.rewardPickupEvents().len;
             const tick_result = try runtime_update.tick(room, runtime_session);
+            try printSecretRoomDoorEvent(stderr, room, runtime_session.*, tick_result.secret_room_door_event);
             if (tick_result.triggered_room_transition) {
                 const transition_result = try runtime_transition.applyPendingRoomTransition(
                     allocator,
@@ -343,6 +347,32 @@ fn applyScheduledWorldStep(
             }
         },
     }
+}
+
+fn printSecretRoomDoorEvent(
+    stderr: anytype,
+    room: *const viewer_shell.RoomSnapshot,
+    runtime_session: viewer_shell.Session,
+    event: ?zone_effects.SecretRoomDoorEvent,
+) !void {
+    const door_event = event orelse return;
+    try stderr.print(
+        "event=secret_room_door scene_entry_index={d} background_entry_index={d} status={s} hero_little_keys={d}\n",
+        .{
+            room.scene.entry_index,
+            room.background.entry_index,
+            secretRoomDoorEventLabel(door_event),
+            runtime_session.littleKeyCount(),
+        },
+    );
+}
+
+fn secretRoomDoorEventLabel(event: zone_effects.SecretRoomDoorEvent) []const u8 {
+    return switch (event) {
+        .house_locked_no_key => "locked_no_key",
+        .house_consumed_key => "key_consumed",
+        .cellar_return_free => "free_return",
+    };
 }
 
 fn printNewBonusSpawnEvents(
