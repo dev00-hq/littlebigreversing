@@ -33,7 +33,7 @@
 - Reopen wall mapping only if a bounded navigation slice proves it is the bottleneck.
 - For cellar work, stay on the scene-2 zone-`0` secret-room seam; do not promote the `3/3` zone-`1` dungeon handoff.
 - Use `secret_room_door_watch.py` for door snapshots; prefer Frida/read-only over CDB for manual key-source loops.
-- If more opcode fidelity is needed, prove `LM_FOUND_OBJECT 0` with a narrower non-crashing hook; otherwise source branch plus poll-only `SPRITE_CLE` proof is enough.
+- Canonical Frida rule: attach internal `DoLifeLoop` instruction sites with function/probe form, not callbacks-object form; source branch plus live `SPRITE_CLE` proof is enough for `0013`.
 - Otherwise choose the next bounded Phase 5 seam from an existing guarded gameplay slice.
 - Treat guarded `19/19` reward-model work as settled unless a pickup-surface bug or contradiction appears.
 - Use `dialog_text_dump.py` for further room-36 live proof.

@@ -36,7 +36,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - `0013` key pickup is `FUN_00415e48` / `0x0041737c`, not proved `LM_GIVE_BONUS`; the older no-hit CDB artifact had a malformed command.
 - Do not call the W path `search action`; in the classic source it is the default action key (`I_ACTION_ALWAYS` sets `ActionNormal`, read by `LF_ACTION`).
 - Use `secret_room_key_counter_cdb_watch.py` only for deliberate CDB watches; one valid run captured evidence but crashed the app.
-- Use `secret_room_key_frida_probe.py --poll-only` for repeated `0013` key-source proof; the life-interpreter hook crashed before `LM_FOUND_OBJECT`.
+- Use function/probe form for internal `DoLifeLoop` Frida instruction hooks; callbacks-object form is only for real function entries.
 - On Sendell, use `CurrentDial` global `0x004CCF10`; old `0x00475630` / `513` is a trap.
 - Room-36 page 2 is renderer pagination inside one decoded text record; do not reintroduce `514` without new classic proof.
 - Do not collapse fresh room-entry seeding and loaded-state reconstruction on `36/36`.
@@ -61,5 +61,5 @@ Own life-program decoding and original-runtime evidence lanes.
 
 - Whether guarded `19/19` pickup requires same connected admitted surface/floor band.
 - Whether the classic shadow-readjusted landing should be generalized beyond the currently guarded transition path.
-- Hooked `LM_FOUND_OBJECT 0` remains unproved because the broad Frida interpreter hook is crash-prone; static source plus poll-only `SPRITE_CLE` proof covers the current port seam.
+- Hooked `LM_FOUND_OBJECT 0` remains unproved because the current object/thread filter sees zero hits. Static source plus live `SPRITE_CLE` proof covers the current port seam.
 - The exact scene-2 life/object instructions that consume the key before reverse cube `0 -> 1` remain unproved; the port covers only the captured doorway band.
