@@ -30,7 +30,7 @@ Own repo direction, memory workflow, and the Zig port/original-runtime boundary.
 - On room `36/36`, visible page turns are renderer pagination inside one decoded text record, not durable dialog-id transitions.
 - The bounded next-page-cursor helper is reusable for proved two-page seams, not a full generic dialog renderer.
 - On room `36/36`, keep fresh entry (`applyRoomEntryState`) and loaded reconstruction (`reconstructLoadedRoomState`) separate.
-- Viewer debug state belongs in the right sidebar; do not re-pack it into unreadable top/bottom strips.
+- Viewer debug state and controls belong in the tabbed right sidebar; `C` switches tabs.
 
 ## Reverse / Porting Slice Checklist
 

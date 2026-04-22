@@ -69,6 +69,11 @@ pub const ControlMode = enum {
     fragment_navigation,
 };
 
+pub const SidebarTab = enum {
+    info,
+    controls,
+};
+
 pub fn renderDebugView(
     canvas: *sdl.Canvas,
     snapshot: state.RenderSnapshot,
@@ -76,6 +81,7 @@ pub fn renderDebugView(
     selection: fragment_compare.FragmentComparisonSelection,
     locomotion_status: LocomotionStatusDisplay,
     control_mode: ControlMode,
+    sidebar_tab: SidebarTab,
     dialog_overlay: DialogOverlayDisplay,
 ) !void {
     const fragment_panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
@@ -146,7 +152,7 @@ pub fn renderDebugView(
     const hero = layout.projectWorldPoint(snapshot, debug_layout.schematic, snapshot.hero_position.x, snapshot.hero_position.z);
     try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
     try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
-    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode, dialog_overlay);
+    try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode, sidebar_tab, dialog_overlay);
     canvas.present();
 }
 
@@ -472,9 +478,25 @@ fn drawHud(
     selection: fragment_compare.FragmentComparisonSelection,
     locomotion_status: LocomotionStatusDisplay,
     control_mode: ControlMode,
+    sidebar_tab: SidebarTab,
     dialog_overlay: DialogOverlayDisplay,
 ) !void {
-    const panels = computeSidebarPanels(debug_layout.sidebar.inset(10));
+    const sidebar_content = debug_layout.sidebar.inset(10);
+    const tab_bar = sdl.Rect{ .x = sidebar_content.x, .y = sidebar_content.y, .w = sidebar_content.w, .h = 30 };
+    try drawSidebarTabs(canvas, tab_bar, sidebar_tab);
+
+    const content = sdl.Rect{
+        .x = sidebar_content.x,
+        .y = tab_bar.y + tab_bar.h + 10,
+        .w = sidebar_content.w,
+        .h = @max(1, sidebar_content.bottom() - (tab_bar.y + tab_bar.h + 10) + 1),
+    };
+    const panels = computeSidebarPanels(content);
+
+    if (sidebar_tab == .controls) {
+        try drawControlsTab(canvas, panels, selection, locomotion_status, control_mode, dialog_overlay);
+        return;
+    }
 
     var scene_kind_buffer: [32]u8 = undefined;
     const scene_kind = upperAscii(&scene_kind_buffer, snapshot.metadata.scene_kind);
@@ -643,6 +665,92 @@ fn drawHud(
         nav_title,
         .{ .r = 112, .g = 196, .b = 255, .a = 255 },
         nav_lines,
+    );
+}
+
+fn drawSidebarTabs(canvas: *sdl.Canvas, rect: sdl.Rect, active: SidebarTab) !void {
+    const gap = 8;
+    const tab_width = @divTrunc(rect.w - gap, 2);
+    const info_rect = sdl.Rect{ .x = rect.x, .y = rect.y, .w = tab_width, .h = rect.h };
+    const controls_rect = sdl.Rect{ .x = info_rect.x + info_rect.w + gap, .y = rect.y, .w = rect.right() - (info_rect.x + info_rect.w + gap) + 1, .h = rect.h };
+
+    try drawSidebarTab(canvas, info_rect, "INFO", active == .info);
+    try drawSidebarTab(canvas, controls_rect, "CTRL", active == .controls);
+}
+
+fn drawSidebarTab(canvas: *sdl.Canvas, rect: sdl.Rect, label: []const u8, is_active: bool) !void {
+    const accent = if (is_active)
+        sdl.Color{ .r = 112, .g = 196, .b = 255, .a = 255 }
+    else
+        sdl.Color{ .r = 92, .g = 111, .b = 123, .a = 255 };
+    try canvas.fillRect(rect, if (is_active)
+        sdl.Color{ .r = 17, .g = 31, .b = 42, .a = 255 }
+    else
+        sdl.Color{ .r = 10, .g = 15, .b = 20, .a = 236 });
+    try canvas.drawRect(rect, draw.withAlpha(accent, 224));
+    _ = try draw.drawText(canvas, rect.x + 10, rect.y + 8, 2, accent, label);
+}
+
+fn drawControlsTab(
+    canvas: *sdl.Canvas,
+    panels: SidebarPanels,
+    selection: fragment_compare.FragmentComparisonSelection,
+    locomotion_status: LocomotionStatusDisplay,
+    control_mode: ControlMode,
+    dialog_overlay: DialogOverlayDisplay,
+) !void {
+    const mode_line = if (control_mode == .fragment_navigation and selection.focus != null)
+        "MODE FRAGMENT NAV"
+    else
+        "MODE HERO CTRL";
+    const overlay_line = if (dialog_overlay.line_count != 0) dialog_overlay.nav_title else "OVERLAYS LEGEND";
+    const focus_line = if (selection.focus != null) "FOCUS ACTIVE" else "FOCUS NONE";
+    const motion_line = switch (locomotion_status.schematic) {
+        .admitted_path => "MOVE OPTIONS ON",
+        .none => "MOVE OPTIONS OFF",
+    };
+
+    try drawHudTextCard(
+        canvas,
+        panels.room,
+        "VIEW",
+        .{ .r = 112, .g = 196, .b = 255, .a = 255 },
+        &.{ "C INFO / CTRL", "ZOOM FIT", overlay_line },
+    );
+    try drawHudTextCard(
+        canvas,
+        panels.gameplay,
+        "OVERLAYS",
+        .{ .r = 117, .g = 230, .b = 186, .a = 255 },
+        &.{ "HERO MARK ON", "OBJECTS ON", "ZONES ON", "TRACKS ON" },
+    );
+    try drawHudTextCard(
+        canvas,
+        panels.focus,
+        "INPUT",
+        .{ .r = 255, .g = 206, .b = 84, .a = 255 },
+        &.{ mode_line, "TAB HERO / FRAG", "ARROWS MOVE / SELECT", "ENTER SEED / ACK", "W DEFAULT ACTION", "F MAGIC" },
+    );
+    try drawHudTextCard(
+        canvas,
+        panels.fragments,
+        "STATUS",
+        .{ .r = 255, .g = 148, .b = 118, .a = 255 },
+        &.{ focus_line, motion_line },
+    );
+    try drawHudTextCard(
+        canvas,
+        panels.compare,
+        "ZOOM",
+        .{ .r = 176, .g = 186, .b = 198, .a = 255 },
+        &.{ "CURRENT FIT", "MAP FRAMED" },
+    );
+    try drawHudTextCard(
+        canvas,
+        panels.nav,
+        "NAV",
+        .{ .r = 112, .g = 196, .b = 255, .a = 255 },
+        &.{ "C SWITCH TAB", "INFO HOLDS ROOM STATE", "CTRL HOLDS INPUTS" },
     );
 }
 

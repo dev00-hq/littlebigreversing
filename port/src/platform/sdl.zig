@@ -81,6 +81,7 @@ const sdl = struct {
     pub const SDLK_TAB: i32 = '\t';
     pub const SDLK_w: i32 = 'w';
     pub const SDLK_f: i32 = 'f';
+    pub const SDLK_c: i32 = 'c';
     pub const SDL_WINDOW_SHOWN: u32 = 0x00000004;
     pub const SDL_WINDOWPOS_CENTERED: c_int = 0x2FFF0000;
     pub const SDL_RENDERER_ACCELERATED: u32 = 0x00000002;
@@ -128,6 +129,7 @@ pub const Key = enum {
     tab,
     w,
     f,
+    c,
 };
 
 pub const Event = union(enum) {
@@ -334,6 +336,7 @@ pub const Canvas = struct {
                 sdl.SDLK_TAB => .{ .key_down = .tab },
                 sdl.SDLK_w => .{ .key_down = .w },
                 sdl.SDLK_f => .{ .key_down = .f },
+                sdl.SDLK_c => .{ .key_down = .c },
                 else => .other,
             };
         }

@@ -99,6 +99,7 @@ fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         interaction.fragment_selection,
         locomotion_status,
         interaction.control_mode,
+        interaction.sidebar_tab,
         viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session),
     ) catch |err| {
         diagnostics.reportError(stderr, sdlErrorMessage(err));
@@ -230,6 +231,7 @@ fn renderCurrentFrame(
         interaction.fragment_selection,
         locomotion_status,
         interaction.control_mode,
+        interaction.sidebar_tab,
         viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session),
     ) catch |err| {
         diagnostics.reportError(stderr, sdlErrorMessage(err));

@@ -1084,6 +1084,7 @@ test "viewer key handling keeps fragment-room arrows on fragment navigation unti
     const initial_focus = interaction.fragment_selection.focus orelse return error.MissingInitialFragmentFocus;
 
     try std.testing.expectEqual(viewer_shell.ViewerControlMode.fragment_navigation, interaction.control_mode);
+    try std.testing.expectEqual(viewer_shell.ViewerSidebarTab.info, interaction.sidebar_tab);
 
     const nav_result = try viewer_shell.handleKeyDown(
         room,
@@ -1115,6 +1116,20 @@ test "viewer key handling keeps fragment-room arrows on fragment navigation unti
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, toggle_result.post_key_action);
     try std.testing.expect(std.meta.eql(interaction.fragment_selection, toggle_result.interaction.fragment_selection));
     try std.testing.expectEqual(raw_start, runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());
+
+    const sidebar_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        toggle_result.interaction,
+        locomotion_status,
+        .c,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, sidebar_result.interaction.control_mode);
+    try std.testing.expectEqual(viewer_shell.ViewerSidebarTab.controls, sidebar_result.interaction.sidebar_tab);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, sidebar_result.post_key_action);
+    try std.testing.expect(std.meta.eql(toggle_result.interaction.fragment_selection, sidebar_result.interaction.fragment_selection));
     try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());
 }
 

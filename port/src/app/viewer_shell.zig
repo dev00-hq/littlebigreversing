@@ -84,10 +84,12 @@ pub const ViewerMoveRejectedStatus = runtime_locomotion.MoveRejectedStatus;
 pub const ViewerLocomotionStatus = runtime_locomotion.LocomotionStatus;
 pub const ViewerKey = sdl.Key;
 pub const ViewerControlMode = render.ControlMode;
+pub const ViewerSidebarTab = render.SidebarTab;
 pub const ViewerObjectState = runtime_session.ObjectState;
 
 pub const ViewerInteractionState = struct {
     control_mode: ViewerControlMode,
+    sidebar_tab: ViewerSidebarTab,
     fragment_selection: FragmentComparisonSelection,
 };
 
@@ -346,6 +348,7 @@ pub fn initialInteractionState(catalog: FragmentComparisonCatalog) ViewerInterac
     const fragment_selection = fragment_compare.initialFragmentComparisonSelection(catalog);
     return .{
         .control_mode = if (fragment_selection.focus == null) .locomotion else .fragment_navigation,
+        .sidebar_tab = .info,
         .fragment_selection = fragment_selection,
     };
 }
@@ -389,6 +392,7 @@ pub fn handleKeyDown(
             return .{
                 .interaction = .{
                     .control_mode = .locomotion,
+                    .sidebar_tab = interaction.sidebar_tab,
                     .fragment_selection = interaction.fragment_selection,
                 },
                 .locomotion_status = try runtime_locomotion.inspectCurrentStatus(room, current_session.*),
@@ -409,6 +413,7 @@ pub fn handleKeyDown(
                         .locomotion => .fragment_navigation,
                         .fragment_navigation => .locomotion,
                     },
+                    .sidebar_tab = interaction.sidebar_tab,
                     .fragment_selection = interaction.fragment_selection,
                 },
                 .locomotion_status = locomotion_status,
@@ -427,6 +432,7 @@ pub fn handleKeyDown(
                 return .{
                     .interaction = .{
                         .control_mode = interaction.control_mode,
+                        .sidebar_tab = interaction.sidebar_tab,
                         .fragment_selection = next_fragment_selection,
                     },
                     .locomotion_status = locomotion_status,
@@ -455,6 +461,19 @@ pub fn handleKeyDown(
                 .post_key_action = .advance_world,
             };
         },
+        .c => {
+            return .{
+                .interaction = .{
+                    .control_mode = interaction.control_mode,
+                    .sidebar_tab = switch (interaction.sidebar_tab) {
+                        .info => .controls,
+                        .controls => .info,
+                    },
+                    .fragment_selection = interaction.fragment_selection,
+                },
+                .locomotion_status = locomotion_status,
+            };
+        },
         .w => {
             try current_session.submitHeroIntent(.default_action);
             return .{
@@ -473,6 +492,7 @@ pub fn renderDebugViewWithSelection(
     selection: FragmentComparisonSelection,
     locomotion_status: ViewerLocomotionStatus,
     control_mode: ViewerControlMode,
+    sidebar_tab: ViewerSidebarTab,
     dialog_overlay: ViewerDialogOverlayDisplay,
 ) !void {
     var status_buffer: ViewerLocomotionStatusDisplayBuffer = .{};
@@ -483,6 +503,7 @@ pub fn renderDebugViewWithSelection(
         selection,
         formatLocomotionStatusDisplay(&status_buffer, locomotion_status),
         control_mode,
+        sidebar_tab,
         dialog_overlay,
     );
 }
