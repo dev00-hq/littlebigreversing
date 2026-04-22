@@ -1448,7 +1448,76 @@ test "viewer 0013 key overlay exposes source-ready state before default action" 
     try std.testing.expectEqualStrings("ROOM 2/1 KEYS 0 VAR0 0", overlay.lines[0]);
     try std.testing.expectEqualStrings("KEY SOURCE READY", overlay.lines[1]);
     try std.testing.expectEqualStrings("POS 9724 1024 782 ZONES NONE", overlay.lines[2]);
-    try std.testing.expectEqualStrings("LAST NONE", overlay.lines[3]);
+    try std.testing.expectEqualStrings("SRC N PICK N DOOR N RET N", overlay.lines[3]);
+}
+
+test "viewer secret-room validation hotkeys jump to proof positions" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var snapshot_session = try initViewerSession(&room);
+    defer snapshot_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(&room, snapshot_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+
+    var runtime_session = try initViewerSession(&room);
+    defer runtime_session.deinit(allocator);
+    const initial_status = try runtime_locomotion.inspectCurrentStatus(&room, runtime_session);
+    const interaction = viewer_shell.initialInteractionState(catalog);
+
+    const source_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        catalog,
+        interaction,
+        initial_status,
+        .proof_key_source,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, source_result.post_key_action);
+    try std.testing.expect(source_result.should_print_locomotion_diagnostic);
+    try std.testing.expectEqual(viewer_shell.WorldPointSnapshot{ .x = 1280, .y = 2048, .z = 5376 }, runtime_session.heroWorldPosition());
+
+    const pickup_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        catalog,
+        source_result.interaction,
+        source_result.locomotion_status,
+        .proof_key_pickup,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, pickup_result.post_key_action);
+    const expected_pickup_cell = try runtime_query.init(&room).gridCellAtWorldPoint(3826, 4366);
+    const expected_pickup_surface = try runtime_query.init(&room).cellTopSurface(expected_pickup_cell.x, expected_pickup_cell.z);
+    try std.testing.expectEqual(
+        viewer_shell.WorldPointSnapshot{ .x = 3826, .y = expected_pickup_surface.top_y, .z = 4366 },
+        runtime_session.heroWorldPosition(),
+    );
+
+    const door_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        catalog,
+        pickup_result.interaction,
+        pickup_result.locomotion_status,
+        .proof_house_door,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_exact_zone_effects, door_result.post_key_action);
+    try std.testing.expectEqual(viewer_shell.WorldPointSnapshot{ .x = 9730, .y = 1025, .z = 762 }, runtime_session.heroWorldPosition());
+
+    const tick_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        catalog,
+        door_result.interaction,
+        door_result.locomotion_status,
+        .space,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, tick_result.post_key_action);
 }
 
 test "viewer 0013 key overlay distinguishes exact zones from projected zone footprints" {

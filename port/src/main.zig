@@ -307,6 +307,32 @@ fn applyScheduledWorldStep(
                 try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
             }
         },
+        .apply_exact_zone_effects => {
+            const exact_zones = try runtime_query.init(room).containingZonesAtWorldPoint(runtime_session.heroWorldPosition());
+            const effect_summary = try zone_effects.applyContainingZoneEffects(room, runtime_session, exact_zones.slice());
+            try printSecretRoomDoorEvent(stderr, room, runtime_session.*, effect_summary.secret_room_door_event);
+            if (effect_summary.triggered_room_transition) {
+                const transition_result = try runtime_transition.applyPendingRoomTransition(
+                    allocator,
+                    resolved,
+                    room,
+                    runtime_session,
+                    locomotion_status,
+                    key_result.locomotion_status,
+                );
+                try printTransitionResult(stderr, transition_result);
+                switch (transition_result) {
+                    .committed => try viewer_shell.printStartupDiagnostics(stderr, allocator, resolved, room),
+                    .rejected => {},
+                }
+                locomotion_status.* = try locomotion.inspectCurrentStatus(room, runtime_session.*);
+            } else {
+                locomotion_status.* = key_result.locomotion_status;
+            }
+            if (key_result.should_print_locomotion_diagnostic) {
+                try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
+            }
+        },
         .advance_world => {
             const previous_bonus_event_count = runtime_session.bonusSpawnEvents().len;
             const previous_reward_pickup_event_count = runtime_session.rewardPickupEvents().len;
@@ -570,6 +596,105 @@ test "viewer scheduler rejects the guarded 2/2 public exit as an unsupported ext
     try std.testing.expectEqual(raw_start.z, runtime_session.heroWorldPosition().z);
     try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_rejected") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.items, "reason=unsupported_exterior_destination_cube") != null);
+}
+
+test "viewer secret-room validation door probes consume keys and return freely" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var runtime_session = try viewer_shell.initSession(allocator, &room);
+    defer runtime_session.deinit(allocator);
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, runtime_session);
+    const initial_render = viewer_shell.buildRenderSnapshot(&room, runtime_session);
+    var initial_catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, initial_render);
+    defer initial_catalog.deinit(allocator);
+    const initial_interaction = viewer_shell.initialInteractionState(initial_catalog);
+
+    const locked_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        initial_catalog,
+        initial_interaction,
+        locomotion_status,
+        .proof_house_door,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_exact_zone_effects, locked_result.post_key_action);
+
+    var output: std.ArrayList(u8) = .empty;
+    defer output.deinit(allocator);
+
+    try applyScheduledWorldStep(
+        allocator,
+        resolved,
+        output.writer(allocator),
+        &room,
+        &runtime_session,
+        &locomotion_status,
+        locked_result,
+    );
+    try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 1), room.background.entry_index);
+    try std.testing.expectEqual(@as(u8, 0), runtime_session.littleKeyCount());
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=secret_room_door") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "status=locked_no_key") != null);
+
+    output.clearRetainingCapacity();
+    runtime_session.setLittleKeyCount(1);
+    const keyed_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        initial_catalog,
+        initial_interaction,
+        locomotion_status,
+        .proof_house_door,
+    );
+    try applyScheduledWorldStep(
+        allocator,
+        resolved,
+        output.writer(allocator),
+        &room,
+        &runtime_session,
+        &locomotion_status,
+        keyed_result,
+    );
+    try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 0), room.background.entry_index);
+    try std.testing.expectEqual(@as(u8, 0), runtime_session.littleKeyCount());
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "status=key_consumed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_committed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "destination_background_entry_index=0") != null);
+
+    output.clearRetainingCapacity();
+    const cellar_render = viewer_shell.buildRenderSnapshot(&room, runtime_session);
+    var cellar_catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, cellar_render);
+    defer cellar_catalog.deinit(allocator);
+    const return_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        cellar_catalog,
+        viewer_shell.initialInteractionState(cellar_catalog),
+        locomotion_status,
+        .proof_cellar_return,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_exact_zone_effects, return_result.post_key_action);
+    try applyScheduledWorldStep(
+        allocator,
+        resolved,
+        output.writer(allocator),
+        &room,
+        &runtime_session,
+        &locomotion_status,
+        return_result,
+    );
+    try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 1), room.background.entry_index);
+    try std.testing.expectEqual(@as(u8, 0), runtime_session.littleKeyCount());
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "status=free_return") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.items, "destination_background_entry_index=1") != null);
 }
 
 test "committed room transitions reapply canonical destination room-entry seeding" {

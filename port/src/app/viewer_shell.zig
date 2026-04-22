@@ -103,6 +103,7 @@ pub const ViewerInteractionState = struct {
 pub const ViewerPostKeyAction = enum {
     none,
     advance_world,
+    apply_exact_zone_effects,
 };
 
 pub const ViewerKeyDownResult = struct {
@@ -123,9 +124,21 @@ const secret_room_scene_entry: usize = 2;
 const secret_room_background_entry: usize = 1;
 const secret_room_cellar_background_entry: usize = 0;
 const secret_room_key_var_game_index: u8 = 0;
+const secret_room_key_source_position = WorldPointSnapshot{ .x = 1280, .y = 2048, .z = 5376 };
+const secret_room_key_pickup_x: i32 = 3826;
+const secret_room_key_pickup_z: i32 = 4366;
+const secret_room_house_door_position = WorldPointSnapshot{ .x = 9730, .y = 1025, .z = 762 };
+const secret_room_cellar_return_position = WorldPointSnapshot{ .x = 3056, .y = 2048, .z = 3659 };
 const reward_scene_entry: usize = 19;
 const reward_background_entry: usize = 19;
 const reward_object_index: usize = 2;
+
+pub const SecretRoomValidationTarget = enum {
+    key_source,
+    key_pickup,
+    house_door,
+    cellar_return,
+};
 
 pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs {
     var asset_root_override: ?[]u8 = null;
@@ -196,6 +209,52 @@ pub fn seedSessionToLocomotionFixture(room: *const RoomSnapshot, current_session
         try positionForNearestStandableCandidate(query);
     current_session.setHeroWorldPosition(position);
     return position;
+}
+
+pub fn jumpToSecretRoomValidationTarget(
+    room: *const RoomSnapshot,
+    current_session: *Session,
+    target: SecretRoomValidationTarget,
+) !?WorldPointSnapshot {
+    const position = try secretRoomValidationTargetPosition(room, target);
+    if (position) |resolved| current_session.setHeroWorldPosition(resolved);
+    return position;
+}
+
+fn secretRoomValidationTargetPosition(
+    room: *const RoomSnapshot,
+    target: SecretRoomValidationTarget,
+) !?WorldPointSnapshot {
+    if (room.scene.entry_index != secret_room_scene_entry) return null;
+    return switch (target) {
+        .key_source => if (room.background.entry_index == secret_room_background_entry)
+            secret_room_key_source_position
+        else
+            null,
+        .key_pickup => if (room.background.entry_index == secret_room_background_entry)
+            try secretRoomKeyPickupPosition(room)
+        else
+            null,
+        .house_door => if (room.background.entry_index == secret_room_background_entry)
+            secret_room_house_door_position
+        else
+            null,
+        .cellar_return => if (room.background.entry_index == secret_room_cellar_background_entry)
+            secret_room_cellar_return_position
+        else
+            null,
+    };
+}
+
+fn secretRoomKeyPickupPosition(room: *const RoomSnapshot) !WorldPointSnapshot {
+    const query = runtime_query.init(room);
+    const cell = try query.gridCellAtWorldPoint(secret_room_key_pickup_x, secret_room_key_pickup_z);
+    const surface = try query.cellTopSurface(cell.x, cell.z);
+    return .{
+        .x = secret_room_key_pickup_x,
+        .y = surface.top_y,
+        .z = secret_room_key_pickup_z,
+    };
 }
 
 pub fn formatLocomotionStatusDisplay(
@@ -545,6 +604,46 @@ pub fn handleKeyDown(
                 .locomotion_status = locomotion_status,
             };
         },
+        .space => {
+            return .{
+                .interaction = interaction,
+                .locomotion_status = locomotion_status,
+                .post_key_action = .advance_world,
+            };
+        },
+        .proof_key_source, .proof_key_pickup, .proof_house_door, .proof_cellar_return => {
+            const target: SecretRoomValidationTarget = switch (key) {
+                .proof_key_source => .key_source,
+                .proof_key_pickup => .key_pickup,
+                .proof_house_door => .house_door,
+                .proof_cellar_return => .cellar_return,
+                else => unreachable,
+            };
+            const jumped = try jumpToSecretRoomValidationTarget(room, current_session, target);
+            const next_status = if (jumped != null)
+                try runtime_locomotion.inspectCurrentStatus(room, current_session.*)
+            else
+                locomotion_status;
+            return .{
+                .interaction = .{
+                    .control_mode = .locomotion,
+                    .sidebar_tab = interaction.sidebar_tab,
+                    .zoom_level = interaction.zoom_level,
+                    .view_mode = interaction.view_mode,
+                    .fragment_selection = interaction.fragment_selection,
+                },
+                .locomotion_status = next_status,
+                .should_print_locomotion_diagnostic = jumped != null,
+                .post_key_action = switch (target) {
+                    .house_door,
+                    .cellar_return,
+                    => if (jumped != null) .apply_exact_zone_effects else .none,
+                    .key_source,
+                    .key_pickup,
+                    => .none,
+                },
+            };
+        },
         .w => {
             try current_session.submitHeroIntent(.default_action);
             return .{
@@ -655,7 +754,7 @@ pub fn formatSecretRoomKeyOverlayDisplay(
 ) ViewerDialogOverlayDisplay {
     if (room.scene.entry_index != secret_room_scene_entry or
         (room.background.entry_index != secret_room_background_entry and
-        room.background.entry_index != secret_room_cellar_background_entry))
+            room.background.entry_index != secret_room_cellar_background_entry))
     {
         return .{};
     }
@@ -724,6 +823,7 @@ pub fn formatSecretRoomKeyOverlayDisplay(
         ) catch unreachable
     else
         "LAST NONE";
+    const validation_line = secretRoomValidationChecklistLine(buffer, room, current_session);
 
     return .{
         .title = "0013 KEY",
@@ -733,10 +833,61 @@ pub fn formatSecretRoomKeyOverlayDisplay(
             line_0,
             line_1,
             line_2,
-            line_3,
+            if (std.mem.eql(u8, line_3, "LAST NONE")) validation_line else line_3,
         },
         .accent = .{ .r = 245, .g = 216, .b = 95, .a = 255 },
     };
+}
+
+fn secretRoomValidationChecklistLine(
+    buffer: *ViewerDialogOverlayDisplayBuffer,
+    room: *const RoomSnapshot,
+    current_session: Session,
+) []const u8 {
+    const hero_position = current_session.heroWorldPosition();
+    const exact_zones = runtime_query.init(room).containingZonesAtWorldPoint(hero_position) catch {
+        return "1 SRC 2 PICK 3 DOOR 4 RET";
+    };
+    const source_exact = room.background.entry_index == secret_room_background_entry and
+        hasZoneKindNameAndNum(exact_zones, "scenario", 0);
+    const door_exact = room.background.entry_index == secret_room_background_entry and
+        hasZoneIndex(exact_zones, 0);
+    const cellar_return_exact = room.background.entry_index == secret_room_cellar_background_entry and
+        hero_position.x >= 3000 and hero_position.x <= 3128 and
+        hero_position.y == 2048 and
+        hero_position.z >= 3600 and hero_position.z <= 3712;
+    return std.fmt.bufPrint(
+        &buffer.aux_3,
+        "SRC {s} PICK {s} DOOR {s} RET {s}",
+        .{
+            yesNo(source_exact),
+            yesNo(current_session.rewardCollectibles().len != 0),
+            yesNo(door_exact),
+            yesNo(cellar_return_exact),
+        },
+    ) catch unreachable;
+}
+
+fn hasZoneIndex(zone_membership: runtime_locomotion.ZoneMembership, index: usize) bool {
+    for (zone_membership.slice()) |zone| {
+        if (zone.index == index) return true;
+    }
+    return false;
+}
+
+fn hasZoneKindNameAndNum(
+    zone_membership: runtime_locomotion.ZoneMembership,
+    kind_name: []const u8,
+    num: i16,
+) bool {
+    for (zone_membership.slice()) |zone| {
+        if (std.mem.eql(u8, @tagName(zone.kind), kind_name) and zone.num == num) return true;
+    }
+    return false;
+}
+
+fn yesNo(value: bool) []const u8 {
+    return if (value) "Y" else "N";
 }
 
 pub fn formatScene1919RewardOverlayDisplay(

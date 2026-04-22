@@ -951,7 +951,7 @@ fn drawControlsTab(
         panels.focus,
         "INPUT",
         .{ .r = 255, .g = 206, .b = 84, .a = 255 },
-        &.{ mode_line, "TAB HERO / FRAG", "ARROWS MOVE / SELECT", "ENTER SEED / ACK", "W DEFAULT ACTION", "F MAGIC" },
+        &.{ mode_line, "TAB HERO / FRAG", "ARROWS MOVE / SELECT", "ENTER SEED / ACK", "SPACE TICK", "W ACTION F MAGIC" },
     );
     try drawHudTextCard(
         canvas,
@@ -972,7 +972,7 @@ fn drawControlsTab(
         panels.nav,
         "NAV",
         .{ .r = 112, .g = 196, .b = 255, .a = 255 },
-        &.{ "C SWITCH TAB", "INFO HOLDS ROOM STATE", "CTRL HOLDS INPUTS" },
+        &.{ "C SWITCH TAB", "1 KEY SOURCE", "2 KEY PICKUP", "3 HOUSE DOOR", "4 CELLAR RETURN" },
     );
 }
 
