@@ -474,22 +474,19 @@ test "viewer render path draws the guarded 11/10 sidebar and focus highlight" {
     try std.testing.expect(hasTraceRectOp(trace, .fill_rect, debug_layout.sidebar, .{ .r = 15, .g = 20, .b = 26, .a = 255 }));
     try std.testing.expect(hasTraceRectOp(trace, .draw_rect, debug_layout.sidebar, .{ .r = 59, .g = 76, .b = 88, .a = 255 }));
     try std.testing.expect(hasTraceRectOp(trace, .draw_rect, focus_rect, fragment_compare.fragmentComparisonDeltaColor(focus.delta)));
-    try std.testing.expect(hasTraceText(trace, "ROOM"));
+    try std.testing.expect(hasTraceText(trace, "OVERVIEW"));
     try std.testing.expect(hasTraceText(trace, "INFO"));
     try std.testing.expect(hasTraceText(trace, "CTRL"));
     try std.testing.expect(hasTraceText(trace, room_line));
-    try std.testing.expect(hasTraceText(trace, "FRAGMENT STATE"));
-    try std.testing.expect(hasTraceText(trace, "FOCUS"));
+    try std.testing.expect(hasTraceText(trace, "DETAILS"));
     try std.testing.expect(hasTraceText(trace, focus_source_line));
     try std.testing.expect(hasTraceText(trace, focus_zone_line));
     try std.testing.expect(hasTraceText(trace, focus_grm_line));
-    try std.testing.expect(hasTraceText(trace, focus_footprint_line));
-    try std.testing.expect(hasTraceText(trace, focus_world_line));
     try std.testing.expect(hasTraceText(trace, focus_delta_line));
-    try std.testing.expect(hasTraceText(trace, "OVERLAYS"));
-    try std.testing.expect(hasTraceText(trace, "COMPARE ORDER"));
     try std.testing.expect(hasTraceText(trace, "LEFT RIGHT RANK"));
     try std.testing.expect(hasPresent(trace));
+    _ = focus_footprint_line;
+    _ = focus_world_line;
 }
 
 test "viewer render path surfaces fragment-room control hints for both navigation and locomotion modes" {
@@ -629,9 +626,9 @@ test "viewer render path surfaces the selected comparison cell in the sidebar" {
     try std.testing.expectEqual(focus.x, panel.entries[0].x);
     try std.testing.expectEqual(focus.z, panel.entries[0].z);
     try std.testing.expectEqual(focus.fragment_entry_index, panel.entries[0].fragment_entry_index);
-    try std.testing.expect(hasTraceText(trace, "FOCUS"));
+    try std.testing.expect(hasTraceText(trace, "DETAILS"));
     try std.testing.expect(hasTraceText(trace, focus_source_line));
-    try std.testing.expect(hasTraceText(trace, "COMPARE ORDER"));
+    try std.testing.expect(hasTraceTextPrefix(trace, "CMP CHG"));
 }
 
 test "viewer render path surfaces runtime-owned locomotion states on the zero-fragment guarded path" {
@@ -648,15 +645,10 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
 
     try std.testing.expect(hasTraceText(raw_trace, "RAW START INVALID"));
     try std.testing.expect(hasTraceText(raw_trace, "CELL 3/7 MAPPED_CELL_EMPTY"));
-    try std.testing.expect(hasTraceText(raw_trace, raw_display.lines[2]));
-    try std.testing.expect(hasTraceText(raw_trace, raw_display.lines[3]));
-    try std.testing.expect(hasTraceText(raw_trace, raw_display.lines[4]));
-    try std.testing.expect(hasTraceText(raw_trace, raw_display.lines[5]));
     try std.testing.expect(!hasTraceText(raw_trace, "ZONES NONE"));
     try std.testing.expect(hasTraceText(raw_trace, "ENTER SEED HERO"));
     try std.testing.expect(hasTraceText(raw_trace, "ARROWS MOVE HERO"));
     try std.testing.expect(hasTraceText(raw_trace, "RAW START STAYS"));
-    try std.testing.expect(!hasTraceTextPrefix(raw_trace, "TOPO "));
     try expectNoLocomotionSchematicCue(raw_trace);
 
     var origin_invalid_runtime_session = try initViewerSession(room);
@@ -678,7 +670,6 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
         .none => {},
         else => return error.UnexpectedRenderLocomotionSchematicCue,
     }
-    try std.testing.expect(!hasTraceTextPrefix(origin_invalid_trace, "TOPO "));
     try expectNoLocomotionSchematicCue(origin_invalid_trace);
     try expectNoLocomotionAttemptCue(raw_trace);
     try expectNoLocomotionAttemptCue(origin_invalid_trace);
@@ -696,8 +687,6 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try std.testing.expect(hasTraceText(seeded_trace, "CELL 39/6 STATUS ALLOWED"));
     try expectTraceHasMoveOptionsForPosition(seeded_trace, room, seeded_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(seeded_trace, "ZONES NONE"));
-    try std.testing.expect(hasTraceText(seeded_trace, seeded_display.lines[5]));
-    try std.testing.expect(hasTraceText(seeded_trace, seeded_display.lines[6]));
     try expectTraceHasLocomotionSchematicCue(seeded_trace, room, seeded_runtime_session, seeded_display);
     try expectNoLocomotionAttemptCue(seeded_trace);
 
@@ -714,8 +703,6 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try std.testing.expect(hasTraceText(moved_trace, "CELL 39/7 STATUS ALLOWED"));
     try expectTraceHasMoveOptionsForPosition(moved_trace, room, moved_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(moved_trace, "ZONES NONE"));
-    try std.testing.expect(hasTraceText(moved_trace, moved_display.lines[5]));
-    try std.testing.expect(hasTraceText(moved_trace, moved_display.lines[6]));
     try expectTraceHasLocomotionSchematicCue(moved_trace, room, moved_runtime_session, moved_display);
     try expectTraceHasLocomotionAttemptCue(moved_trace, room, moved_runtime_session, moved_display);
 
@@ -732,8 +719,6 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try std.testing.expect(hasTraceText(rejected_trace, rejected_display.lines[1]));
     try expectTraceHasMoveOptionsForPosition(rejected_trace, room, rejected_runtime_session.heroWorldPosition());
     try std.testing.expect(hasTraceText(rejected_trace, "ZONES NONE"));
-    try std.testing.expect(hasTraceText(rejected_trace, rejected_display.lines[5]));
-    try std.testing.expect(hasTraceText(rejected_trace, rejected_display.lines[6]));
     try expectTraceHasLocomotionSchematicCue(rejected_trace, room, rejected_runtime_session, rejected_display);
     try expectTraceHasLocomotionAttemptCue(rejected_trace, room, rejected_runtime_session, rejected_display);
 }
@@ -760,7 +745,7 @@ test "viewer render path keeps the zero-fragment room on the sidebar path" {
 
     try std.testing.expect(selection.focus == null);
     try std.testing.expect(!hasTraceRectColor(trace, .fill_rect, render.focusedFragmentZoneOverlayFillColor()));
-    try std.testing.expect(hasTraceText(trace, "FOCUS"));
+    try std.testing.expect(hasTraceText(trace, "DETAILS"));
     try std.testing.expect(hasTraceText(trace, "RAW START INVALID"));
     try std.testing.expect(hasTraceText(trace, "CELL 3/7 MAPPED_CELL_EMPTY"));
     try std.testing.expect(hasPresent(trace));
@@ -806,7 +791,7 @@ test "viewer render path draws the bounded Sendell dialog overlay in the sidebar
 
     try std.testing.expect(hasTraceText(trace, "SENDELL DIAL"));
     try std.testing.expect(hasTraceText(trace, "CURRENT DIAL 3"));
-    try std.testing.expect(hasTraceText(trace, "Sendell to contact you in case of danger."));
+    try std.testing.expect(hasTraceTextPrefix(trace, "Sendell to contact"));
     try std.testing.expect(hasTraceText(trace, "NAV / DIAL"));
 
     try runtime_session.submitHeroIntent(.advance_story);

@@ -3,7 +3,6 @@ const sdl = @import("../../platform/sdl.zig");
 const state = @import("../../runtime/room_state.zig");
 const runtime_query = @import("../../runtime/world_query.zig");
 const world_geometry = @import("../../runtime/world_geometry.zig");
-const viewer_state = @import("state.zig");
 const layout = @import("layout.zig");
 const draw = @import("draw.zig");
 const fragment_compare = @import("fragment_compare.zig");
@@ -709,12 +708,12 @@ fn drawHud(
         .w = sidebar_content.w,
         .h = @max(1, sidebar_content.bottom() - (tab_bar.y + tab_bar.h + 10) + 1),
     };
-    const panels = computeSidebarPanels(content);
-
     if (sidebar_tab == .controls) {
+        const panels = computeSidebarPanels(content);
         try drawControlsTab(canvas, panels, selection, locomotion_status, control_mode, zoom_level, view_mode, dialog_overlay);
         return;
     }
+    const panels = computeInfoSidebarPanels(content);
 
     var scene_kind_buffer: [32]u8 = undefined;
     const scene_kind = upperAscii(&scene_kind_buffer, snapshot.metadata.scene_kind);
@@ -738,16 +737,16 @@ fn drawHud(
     );
     try drawHudTextCard(
         canvas,
-        panels.room,
-        "ROOM",
+        panels.overview,
+        "OVERVIEW",
         .{ .r = 112, .g = 196, .b = 255, .a = 255 },
-        &.{ room_line_0, room_line_1, room_line_2 },
+        &.{ room_line_0, room_line_1, room_line_2, viewModeLabel(view_mode), zoomLevelLabel(zoom_level) },
     );
 
     if (dialog_overlay.line_count != 0) {
         try drawHudTextCardWithMetrics(
             canvas,
-            panels.gameplay,
+            panels.status,
             dialog_overlay.title,
             dialog_overlay.accent,
             2,
@@ -755,53 +754,37 @@ fn drawHud(
             dialog_overlay.lines[0..dialog_overlay.line_count],
         );
     } else {
-        try drawOverlayLegendCard(canvas, panels.gameplay);
+        try drawHudTextCardWithMetrics(
+            canvas,
+            panels.status,
+            "STATUS",
+            .{ .r = 112, .g = 196, .b = 255, .a = 255 },
+            2,
+            4,
+            locomotion_status.lines[0..locomotion_status.line_count],
+        );
     }
 
-    if (snapshot.metadata.fragment_zone_count == 0 and snapshot.metadata.owned_fragment_count == 0) {
-        var fragment_line_1_buffer: [48]u8 = undefined;
-        const fragment_line_1 = try std.fmt.bufPrint(
-            &fragment_line_1_buffer,
-            "SCENE ZONES {d} OWNED {d}",
-            .{ snapshot.metadata.fragment_zone_count, snapshot.metadata.owned_fragment_count },
-        );
-        try drawHudTextCard(
-            canvas,
-            panels.fragments,
-            "FRAGMENT STATE",
-            .{ .r = 176, .g = 186, .b = 198, .a = 255 },
-            &.{ "ZERO FRAGMENT CONTROL", fragment_line_1, "CELLS 0 OF 0" },
-        );
-    } else {
-        var fragment_line_0_buffer: [48]u8 = undefined;
-        const fragment_line_0 = try std.fmt.bufPrint(
-            &fragment_line_0_buffer,
-            "SCENE ZONES {d} OWNED {d}",
-            .{ snapshot.metadata.fragment_zone_count, snapshot.metadata.owned_fragment_count },
-        );
-        var fragment_line_1_buffer: [48]u8 = undefined;
-        const fragment_line_1 = try std.fmt.bufPrint(
-            &fragment_line_1_buffer,
-            "CELLS {d} OF {d}",
-            .{ snapshot.metadata.fragment_non_empty_cell_count, snapshot.metadata.fragment_footprint_cell_count },
-        );
-        var fragment_line_2_buffer: [48]u8 = undefined;
-        const fragment_line_2 = try std.fmt.bufPrint(
-            &fragment_line_2_buffer,
-            "CHG {d} EQ {d} NB {d}",
-            .{ catalog.changed_count, catalog.exact_count, catalog.no_base_count },
-        );
-        try drawHudTextCard(
-            canvas,
-            panels.fragments,
-            "FRAGMENT STATE",
-            .{ .r = 255, .g = 206, .b = 84, .a = 255 },
-            &.{ fragment_line_0, fragment_line_1, fragment_line_2 },
-        );
-    }
+    var fragment_line_0_buffer: [48]u8 = undefined;
+    const fragment_line_0 = try std.fmt.bufPrint(
+        &fragment_line_0_buffer,
+        "FRAG Z {d} OWN {d}",
+        .{ snapshot.metadata.fragment_zone_count, snapshot.metadata.owned_fragment_count },
+    );
+    var fragment_line_1_buffer: [48]u8 = undefined;
+    const fragment_line_1 = try std.fmt.bufPrint(
+        &fragment_line_1_buffer,
+        "CELLS {d}/{d}",
+        .{ snapshot.metadata.fragment_non_empty_cell_count, snapshot.metadata.fragment_footprint_cell_count },
+    );
+    var compare_line_buffer: [48]u8 = undefined;
+    const compare_line = try std.fmt.bufPrint(
+        &compare_line_buffer,
+        "CMP CHG {d} EQ {d} NB {d}",
+        .{ catalog.changed_count, catalog.exact_count, catalog.no_base_count },
+    );
 
     if (selection.focus) |focus| {
-        const world_bounds = viewer_state.gridCellWorldBounds(focus.x, focus.z);
         var delta_summary_buffer: [24]u8 = undefined;
         const delta_summary = try fragment_compare.formatDeltaSummary(&delta_summary_buffer, focus.detail);
         var stack_summary_buffer: [16]u8 = undefined;
@@ -824,18 +807,6 @@ fn drawHud(
             "GRM {d} SZ {d}x{d}x{d}",
             .{ focus.grm_index, focus.zone_width, focus.zone_height, focus.zone_depth },
         );
-        var focus_line_3_buffer: [64]u8 = undefined;
-        const focus_line_3 = try std.fmt.bufPrint(
-            &focus_line_3_buffer,
-            "FT {d} NE {d} Y {d}..{d}",
-            .{ focus.zone_footprint_cell_count, focus.zone_non_empty_cell_count, focus.zone_y_min, focus.zone_y_max },
-        );
-        var focus_line_4_buffer: [64]u8 = undefined;
-        const focus_line_4 = try std.fmt.bufPrint(
-            &focus_line_4_buffer,
-            "X {d}..{d} Z {d}..{d}",
-            .{ world_bounds.min_x, world_bounds.max_x, world_bounds.min_z, world_bounds.max_z },
-        );
         var focus_line_5_buffer: [64]u8 = undefined;
         const focus_line_5 = try std.fmt.bufPrint(
             &focus_line_5_buffer,
@@ -844,26 +815,25 @@ fn drawHud(
         );
         try drawHudTextCardWithMetrics(
             canvas,
-            panels.focus,
-            "FOCUS",
+            panels.details,
+            "DETAILS",
             fragment_compare.fragmentComparisonDeltaColor(focus.delta),
             2,
             4,
-            &.{ focus_line_0, focus_line_1, focus_line_2, focus_line_3, focus_line_4, focus_line_5 },
+            &.{ focus_line_0, focus_line_1, focus_line_2, focus_line_5, fragment_line_0, compare_line },
         );
     } else {
         try drawHudTextCardWithMetrics(
             canvas,
-            panels.focus,
-            "FOCUS",
-            .{ .r = 112, .g = 196, .b = 255, .a = 255 },
+            panels.details,
+            "DETAILS",
+            .{ .r = 176, .g = 186, .b = 198, .a = 255 },
             2,
             4,
-            locomotion_status.lines[0..locomotion_status.line_count],
+            &.{ "FOCUS NONE", fragment_line_0, fragment_line_1, compare_line },
         );
     }
 
-    try drawComparisonLegendCard(canvas, panels.compare);
     const nav_lines: []const []const u8 = if (selection.focus != null)
         switch (control_mode) {
             .fragment_navigation => &.{ "TAB HERO CTRL", "LEFT RIGHT RANK", "UP DOWN CELL" },
@@ -999,6 +969,36 @@ const SidebarPanels = struct {
     nav: sdl.Rect,
 };
 
+const InfoSidebarPanels = struct {
+    overview: sdl.Rect,
+    status: sdl.Rect,
+    details: sdl.Rect,
+    nav: sdl.Rect,
+};
+
+fn computeInfoSidebarPanels(sidebar: sdl.Rect) InfoSidebarPanels {
+    const gap = 12;
+    const overview_height = @min(148, @max(128, @divTrunc(sidebar.h, 6)));
+    const status_height = @min(280, @max(220, @divTrunc(sidebar.h, 3)));
+    const details_height = @min(190, @max(150, @divTrunc(sidebar.h, 4)));
+
+    var y = sidebar.y;
+    const overview = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = overview_height };
+    y += overview.h + gap;
+    const status = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = status_height };
+    y += status.h + gap;
+    const details = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = details_height };
+    y += details.h + gap;
+    const nav = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = @max(1, sidebar.bottom() - y + 1) };
+
+    return .{
+        .overview = overview,
+        .status = status,
+        .details = details,
+        .nav = nav,
+    };
+}
+
 fn computeSidebarPanels(sidebar: sdl.Rect) SidebarPanels {
     const gap = 10;
     const room_height = @min(96, @max(72, @divTrunc(sidebar.h, 9)));
@@ -1053,16 +1053,37 @@ fn drawHudTextCardWithMetrics(
     var cursor_y = body.y;
     for (lines) |line| {
         if (cursor_y + draw.textLineHeight(scale) > body.bottom() + 1) break;
+        var clipped_buffer: [96]u8 = undefined;
+        const visible_line = clipHudLine(&clipped_buffer, line, body.w, scale);
         _ = try draw.drawText(
             canvas,
             body.x,
             cursor_y,
             scale,
             .{ .r = 223, .g = 231, .b = 237, .a = 255 },
-            line,
+            visible_line,
         );
         cursor_y += draw.textLineHeight(scale) + line_gap;
     }
+}
+
+fn clipHudLine(buffer: []u8, line: []const u8, max_width: i32, scale: i32) []const u8 {
+    if (draw.textWidth(line, scale) <= max_width) return line;
+    const suffix = "...";
+    const suffix_width = draw.textWidth(suffix, scale);
+    if (max_width <= suffix_width or buffer.len < suffix.len) {
+        return line[0..@min(line.len, @max(@as(usize, 1), buffer.len))];
+    }
+
+    var copied: usize = 0;
+    while (copied < line.len and copied + suffix.len < buffer.len) : (copied += 1) {
+        const candidate = line[0 .. copied + 1];
+        if (draw.textWidth(candidate, scale) + suffix_width > max_width) break;
+        buffer[copied] = line[copied];
+    }
+    if (copied == 0) return suffix;
+    std.mem.copyForwards(u8, buffer[copied .. copied + suffix.len], suffix);
+    return buffer[0 .. copied + suffix.len];
 }
 
 fn drawHudCardFrame(canvas: *sdl.Canvas, rect: sdl.Rect, title: []const u8, accent: sdl.Color) !sdl.Rect {
