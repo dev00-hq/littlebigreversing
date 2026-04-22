@@ -92,31 +92,29 @@ Interceptor.attach(ADDR.doLifeEntry, {
   },
 });
 
-Interceptor.attach(ADDR.doLifeLoop, {
-  onEnter(args) {
-    const state = currentState(this.threadId);
-    if (state === null || state.object_index !== 0) return;
+Interceptor.attach(ADDR.doLifeLoop, function () {
+  const state = currentState(this.threadId);
+  if (state === null || state.object_index !== 0) return;
 
-    const ptrPrg = readPointer(ADDR.ptrPrg);
-    if (ptrPrg.isNull()) return;
-    const opcode = readU8(ptrPrg);
-    if (opcode !== 46) return;
+  const ptrPrg = readPointer(ADDR.ptrPrg);
+  if (ptrPrg.isNull()) return;
+  const opcode = readU8(ptrPrg);
+  if (opcode !== 46) return;
 
-    const operand = readU8(ptrPrg.add(1));
-    const event = {
-      thread_id: this.threadId,
-      object_index: state.object_index,
-      ptr_life: pointerString(state.ptr_life_ptr),
-      offset_life: state.offset_life,
-      ptr_prg: pointerString(ptrPrg),
-      ptr_prg_offset: pointerDelta(ptrPrg, state.ptr_life_ptr),
-      opcode: opcode,
-      operand: operand,
-      key_state: snapshotKeyState('lm_found_object'),
-    };
-    if (operand === 0) foundObjectSeen = true;
-    sendProbe('lm_found_object', event);
-  },
+  const operand = readU8(ptrPrg.add(1));
+  const event = {
+    thread_id: this.threadId,
+    object_index: state.object_index,
+    ptr_life: pointerString(state.ptr_life_ptr),
+    offset_life: state.offset_life,
+    ptr_prg: pointerString(ptrPrg),
+    ptr_prg_offset: pointerDelta(ptrPrg, state.ptr_life_ptr),
+    opcode: opcode,
+    operand: operand,
+    key_state: snapshotKeyState('lm_found_object'),
+  };
+  if (operand === 0) foundObjectSeen = true;
+  sendProbe('lm_found_object', event);
 });
 """
 

@@ -104,7 +104,8 @@ class SecretRoomKeyFridaProbeTests(unittest.TestCase):
         self.assertIn("0x004a7428", script)
         self.assertIn("const SPRITE_CLE = 6", script)
         self.assertIn("}, 25);", script)
-        self.assertIn("Interceptor.attach(ADDR.doLifeLoop", script)
+        self.assertIn("Interceptor.attach(ADDR.doLifeLoop, function ()", script)
+        self.assertNotIn("Interceptor.attach(ADDR.doLifeLoop, {", script)
 
     def test_poll_only_script_omits_life_interpreter_hooks(self) -> None:
         script = secret_room_key_frida_probe.build_script(poll_ms=25, hook_life=False)
