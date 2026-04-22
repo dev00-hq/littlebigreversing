@@ -4,7 +4,7 @@
 
 - Keep `codex-memory-v2` canonical.
 - Keep guarded load set stable: `19/19`, `2/2`, `11/10`; `44/2` rejects as exterior.
-- Keep `LM_DEFAULT`, `LM_END_SWITCH`, `life_audit`, `room_state`, and debugger tools on current owner boundaries.
+- Keep `LM_DEFAULT`, `LM_END_SWITCH`, `life_audit`, `room_state`, and debugger owner boundaries.
 - Keep validation additive: `zig build test-fast`, `zig build test-cli-integration`, tool-only same-index triage.
 
 ## Active Streams
@@ -16,7 +16,8 @@
 - `3/3` blockers stay rejected; live zone-`1` cube-`19` handoff lands in a Tralu's-dungeon-looking scene, not the intended cellar target.
 - `0013` door is scene-2 zone `0`: house/key side `2/1 -> 2/0` consumes one key and lands `(2562,2048,3322)` after shadow; cellar return `2/0 -> 2/1` is free and lands `(9725,1024,1098)`.
 - `0013` key source is scene `2/1` default action: `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0`, then `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
-- `0013` key pickup is poll-only proved on the house side: `SPRITE_CLE` from `(3072,3072,5120)`, `Divers=1`, `NbLittleKeys 0 -> 1`; viewer drives W/default-action, pickup overlay, keyed cellar entry, and free return.
+- `0013` key pickup is poll-only proved on house side: `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`; viewer drives W, pickup overlay, keyed entry, and free return.
+- Viewer HUD uses the right sidebar; do not restore tiny top/bottom strips.
 - Guarded `19/19` object-`2` is stateful; sewer chest is bounded multi-bonus with live-backed `Divers=5`.
 
 ## Blocked Items
@@ -33,7 +34,7 @@
 - Reopen wall mapping only if a bounded navigation slice proves it is the bottleneck.
 - For cellar work, stay on the scene-2 zone-`0` secret-room seam; do not promote the `3/3` zone-`1` dungeon handoff.
 - Use `secret_room_door_watch.py` for door snapshots; prefer Frida/read-only over CDB for manual key-source loops.
-- Canonical Frida rule: attach internal `DoLifeLoop` instruction sites with function/probe form, not callbacks-object form; source branch plus live `SPRITE_CLE` proof is enough for `0013`.
+- Frida rule: internal `DoLifeLoop` instruction sites use function/probe form; live `SPRITE_CLE` proof is enough for `0013`.
 - Otherwise choose the next bounded Phase 5 seam from an existing guarded gameplay slice.
 - Treat guarded `19/19` reward-model work as settled unless a pickup-surface bug or contradiction appears.
 - Use `dialog_text_dump.py` for further room-36 live proof.

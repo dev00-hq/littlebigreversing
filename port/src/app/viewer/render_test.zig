@@ -339,34 +339,6 @@ fn findFocusedFragmentZone(
     unreachable;
 }
 
-fn firstComparisonRowRect(rect: sdl.Rect, entry_count: usize) sdl.Rect {
-    const summary_height = 18;
-    const summary_rect = sdl.Rect{
-        .x = rect.x,
-        .y = rect.y,
-        .w = rect.w,
-        .h = @min(summary_height, rect.h),
-    };
-    const focus_height = std.math.clamp(@divTrunc(rect.h, 3), 88, 132);
-    const focus_rect = sdl.Rect{
-        .x = rect.x,
-        .y = rect.y + summary_rect.h + 8,
-        .w = rect.w,
-        .h = @min(focus_height, @max(0, rect.h - summary_rect.h - 8)),
-    };
-    const rows_y = focus_rect.y + focus_rect.h + 10;
-    const rows_height = rect.y + rect.h - rows_y;
-    const row_gap = 6;
-    const total_gap_height = row_gap * @as(i32, @intCast(entry_count -| 1));
-    const row_height = std.math.clamp(@divTrunc(rows_height - total_gap_height, @as(i32, @intCast(entry_count))), 28, 42);
-    return .{
-        .x = rect.x,
-        .y = rows_y,
-        .w = rect.w,
-        .h = row_height,
-    };
-}
-
 fn findReferencedBrickIndex(snapshot: state.RenderSnapshot) u16 {
     for (snapshot.composition.tiles) |tile| {
         if (tile.top_brick_index != 0) return tile.top_brick_index;
@@ -432,7 +404,7 @@ fn renderZeroFragmentTrace(
     return trace;
 }
 
-test "viewer render path draws the guarded 11/10 fragment comparison panel and focus highlight" {
+test "viewer render path draws the guarded 11/10 sidebar and focus highlight" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1110();
 
@@ -442,7 +414,6 @@ test "viewer render path draws the guarded 11/10 fragment comparison panel and f
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
     const panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
     const debug_layout = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, panel.focus != null);
-    const comparison_frame = debug_layout.comparison_frame.?;
     const focus = selection.focus.?;
     const focus_rect = layout.projectGridCellRect(debug_layout.schematic, snapshot.grid_width, snapshot.grid_depth, focus.x, focus.z);
     var room_line_buffer: [48]u8 = undefined;
@@ -500,11 +471,8 @@ test "viewer render path draws the guarded 11/10 fragment comparison panel and f
     try render.renderDebugView(&canvas, snapshot, catalog, selection, .{}, viewer_shell.initialInteractionState(catalog).control_mode, .{});
 
     try std.testing.expect(panel.focus != null);
-    try std.testing.expect(debug_layout.comparison != null);
-    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, debug_layout.header, .{ .r = 15, .g = 20, .b = 26, .a = 255 }));
-    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, debug_layout.footer, .{ .r = 15, .g = 20, .b = 26, .a = 255 }));
-    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, comparison_frame, .{ .r = 12, .g = 17, .b = 23, .a = 255 }));
-    try std.testing.expect(hasTraceRectOp(trace, .draw_rect, comparison_frame, .{ .r = 66, .g = 90, .b = 103, .a = 255 }));
+    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, debug_layout.sidebar, .{ .r = 15, .g = 20, .b = 26, .a = 255 }));
+    try std.testing.expect(hasTraceRectOp(trace, .draw_rect, debug_layout.sidebar, .{ .r = 59, .g = 76, .b = 88, .a = 255 }));
     try std.testing.expect(hasTraceRectOp(trace, .draw_rect, focus_rect, fragment_compare.fragmentComparisonDeltaColor(focus.delta)));
     try std.testing.expect(hasTraceText(trace, "ROOM"));
     try std.testing.expect(hasTraceText(trace, room_line));
@@ -600,7 +568,7 @@ test "viewer render path exposes a deterministic owning-zone rect for the focuse
     try std.testing.expect(hasTraceRectOp(trace, .draw_rect, zone_rect, draw.fragmentZoneBorderColor(zone.initially_on)));
 }
 
-test "viewer render path keeps the selected cell pinned at the head of the comparison panel" {
+test "viewer render path surfaces the selected comparison cell in the sidebar" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1110();
 
@@ -609,12 +577,13 @@ test "viewer render path keeps the selected cell pinned at the head of the compa
     defer catalog.deinit(allocator);
     const selection = steppedPinnedSelection(catalog);
     const panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
-    const comparison = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, true).comparison.?;
-    const first_row = firstComparisonRowRect(comparison, panel.entry_count);
     const focus = selection.focus.?;
-    const accent = fragment_compare.fragmentComparisonDeltaColor(focus.delta);
-    const focused_row_fill = draw.withAlpha(draw.darkenColor(accent, 128), 88);
-    const focused_row_border = draw.withAlpha(draw.lightenColor(accent, 24), 224);
+    var focus_source_line_buffer: [48]u8 = undefined;
+    const focus_source_line = try std.fmt.bufPrint(
+        &focus_source_line_buffer,
+        "CELL {d} {d} FR {d}",
+        .{ focus.x, focus.z, focus.fragment_entry_index },
+    );
 
     var trace: sdl.CanvasTrace = .{};
     defer trace.deinit(allocator);
@@ -626,8 +595,9 @@ test "viewer render path keeps the selected cell pinned at the head of the compa
     try std.testing.expectEqual(focus.x, panel.entries[0].x);
     try std.testing.expectEqual(focus.z, panel.entries[0].z);
     try std.testing.expectEqual(focus.fragment_entry_index, panel.entries[0].fragment_entry_index);
-    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, first_row, focused_row_fill));
-    try std.testing.expect(hasTraceRectOp(trace, .draw_rect, first_row, focused_row_border));
+    try std.testing.expect(hasTraceText(trace, "FOCUS"));
+    try std.testing.expect(hasTraceText(trace, focus_source_line));
+    try std.testing.expect(hasTraceText(trace, "COMPARE ORDER"));
 }
 
 test "viewer render path surfaces runtime-owned locomotion states on the zero-fragment guarded path" {
@@ -734,7 +704,7 @@ test "viewer render path surfaces runtime-owned locomotion states on the zero-fr
     try expectTraceHasLocomotionAttemptCue(rejected_trace, room, rejected_runtime_session, rejected_display);
 }
 
-test "viewer render path keeps the zero-fragment room out of the comparison panel" {
+test "viewer render path keeps the zero-fragment room on the sidebar path" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1919();
 
@@ -742,7 +712,6 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
-    const comparison_frame_if_present = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, true).comparison_frame.?;
     var runtime_session = try initViewerSession(room);
     defer runtime_session.deinit(std.testing.allocator);
     const locomotion_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
@@ -756,16 +725,14 @@ test "viewer render path keeps the zero-fragment room out of the comparison pane
     try render.renderDebugView(&canvas, snapshot, catalog, selection, display, viewer_shell.initialInteractionState(catalog).control_mode, .{});
 
     try std.testing.expect(selection.focus == null);
-    try std.testing.expectEqual(@as(?sdl.Rect, null), layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, false).comparison_frame);
-    try std.testing.expect(!hasTraceRectOp(trace, .fill_rect, comparison_frame_if_present, .{ .r = 12, .g = 17, .b = 23, .a = 255 }));
-    try std.testing.expect(!hasTraceRectOp(trace, .draw_rect, comparison_frame_if_present, .{ .r = 66, .g = 90, .b = 103, .a = 255 }));
     try std.testing.expect(!hasTraceRectColor(trace, .fill_rect, render.focusedFragmentZoneOverlayFillColor()));
+    try std.testing.expect(hasTraceText(trace, "FOCUS"));
     try std.testing.expect(hasTraceText(trace, "RAW START INVALID"));
     try std.testing.expect(hasTraceText(trace, "CELL 3/7 MAPPED_CELL_EMPTY"));
     try std.testing.expect(hasPresent(trace));
 }
 
-test "viewer render path draws the bounded Sendell dialog overlay during acknowledgement states" {
+test "viewer render path draws the bounded Sendell dialog overlay in the sidebar" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded3636();
 
@@ -785,9 +752,6 @@ test "viewer render path draws the bounded Sendell dialog overlay during acknowl
         dialog_overlay.lines[1],
     );
     try std.testing.expectEqualStrings("Sendell to contact you in case of danger.", dialog_overlay.lines[2]);
-    const dialog_rect = layout.computeDialogOverlayRect(
-        layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, selection.focus != null),
-    );
 
     var trace: sdl.CanvasTrace = .{};
     defer trace.deinit(allocator);
@@ -803,7 +767,6 @@ test "viewer render path draws the bounded Sendell dialog overlay during acknowl
         dialog_overlay,
     );
 
-    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, dialog_rect, .{ .r = 10, .g = 15, .b = 20, .a = 236 }));
     try std.testing.expect(hasTraceText(trace, "SENDELL DIAL"));
     try std.testing.expect(hasTraceText(trace, "CURRENT DIAL 3"));
     try std.testing.expect(hasTraceText(trace, "Sendell to contact you in case of danger."));
@@ -818,7 +781,7 @@ test "viewer render path draws the bounded Sendell dialog overlay during acknowl
     try std.testing.expectEqualStrings("<END>", second_overlay.lines[2]);
 }
 
-test "viewer render path draws the bounded 19/19 reward overlay after object-2 emits a bonus event" {
+test "viewer render path draws the bounded 19/19 reward overlay in the sidebar" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1919();
 
@@ -852,9 +815,6 @@ test "viewer render path draws the bounded 19/19 reward overlay after object-2 e
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
     var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
-    const overlay_rect = layout.computeDialogOverlayRect(
-        layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, selection.focus != null),
-    );
 
     var trace: sdl.CanvasTrace = .{};
     defer trace.deinit(allocator);
@@ -870,7 +830,6 @@ test "viewer render path draws the bounded 19/19 reward overlay after object-2 e
         overlay,
     );
 
-    try std.testing.expect(hasTraceRectOp(trace, .fill_rect, overlay_rect, .{ .r = 10, .g = 15, .b = 20, .a = 236 }));
     try std.testing.expect(hasTraceText(trace, "OBJ2 LOOP"));
     try std.testing.expect(hasTraceText(trace, overlay.lines[1]));
     try std.testing.expect(hasTraceText(trace, overlay.lines[3]));

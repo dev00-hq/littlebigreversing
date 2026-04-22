@@ -90,10 +90,8 @@ pub fn renderDebugView(
     try canvas.clear(.{ .r = 13, .g = 20, .b = 26, .a = 255 });
     try canvas.fillRect(debug_layout.frame, .{ .r = 22, .g = 32, .b = 41, .a = 255 });
     try canvas.drawRect(debug_layout.frame, .{ .r = 96, .g = 123, .b = 142, .a = 255 });
-    try canvas.fillRect(debug_layout.header, .{ .r = 15, .g = 20, .b = 26, .a = 255 });
-    try canvas.drawRect(debug_layout.header, .{ .r = 59, .g = 76, .b = 88, .a = 255 });
-    try canvas.fillRect(debug_layout.footer, .{ .r = 15, .g = 20, .b = 26, .a = 255 });
-    try canvas.drawRect(debug_layout.footer, .{ .r = 59, .g = 76, .b = 88, .a = 255 });
+    try canvas.fillRect(debug_layout.sidebar, .{ .r = 15, .g = 20, .b = 26, .a = 255 });
+    try canvas.drawRect(debug_layout.sidebar, .{ .r = 59, .g = 76, .b = 88, .a = 255 });
     try canvas.fillRect(debug_layout.schematic_frame, .{ .r = 10, .g = 14, .b = 19, .a = 255 });
     try canvas.drawRect(debug_layout.schematic_frame, .{ .r = 56, .g = 80, .b = 92, .a = 255 });
     try drawComposition(canvas, debug_layout.schematic, snapshot);
@@ -104,14 +102,6 @@ pub fn renderDebugView(
     try drawGrid(canvas, debug_layout.schematic, snapshot.grid_width, snapshot.grid_depth);
     if (fragment_panel.focus) |focus| {
         try fragment_compare.drawFragmentFocusHighlight(canvas, debug_layout.schematic, snapshot, focus);
-    }
-
-    if (debug_layout.comparison_frame) |comparison_frame| {
-        try canvas.fillRect(comparison_frame, .{ .r = 12, .g = 17, .b = 23, .a = 255 });
-        try canvas.drawRect(comparison_frame, .{ .r = 66, .g = 90, .b = 103, .a = 255 });
-    }
-    if (debug_layout.comparison) |comparison| {
-        try fragment_compare.drawFragmentComparisonPanel(canvas, comparison, snapshot, fragment_panel);
     }
 
     for (snapshot.zones) |zone| {
@@ -157,9 +147,6 @@ pub fn renderDebugView(
     try draw.drawCrosshair(canvas, hero, 8, .{ .r = 255, .g = 86, .b = 86, .a = 255 });
     try draw.drawMarker(canvas, hero, 6, .{ .r = 255, .g = 240, .b = 148, .a = 255 });
     try drawHud(canvas, debug_layout, snapshot, catalog, selection, locomotion_status, control_mode, dialog_overlay);
-    if (dialog_overlay.line_count != 0) {
-        try drawDialogOverlay(canvas, layout.computeDialogOverlayRect(debug_layout), dialog_overlay);
-    }
     canvas.present();
 }
 
@@ -487,12 +474,7 @@ fn drawHud(
     control_mode: ControlMode,
     dialog_overlay: DialogOverlayDisplay,
 ) !void {
-    const room_card = splitHudRow(debug_layout.header, 0, 3, 12);
-    const fragment_card = splitHudRow(debug_layout.header, 1, 3, 12);
-    const focus_card = splitHudRow(debug_layout.header, 2, 3, 12);
-    const overlay_card = splitHudRow(debug_layout.footer, 0, 3, 12);
-    const compare_card = splitHudRow(debug_layout.footer, 1, 3, 12);
-    const nav_card = splitHudRow(debug_layout.footer, 2, 3, 12);
+    const panels = computeSidebarPanels(debug_layout.sidebar.inset(10));
 
     var scene_kind_buffer: [32]u8 = undefined;
     const scene_kind = upperAscii(&scene_kind_buffer, snapshot.metadata.scene_kind);
@@ -516,11 +498,25 @@ fn drawHud(
     );
     try drawHudTextCard(
         canvas,
-        room_card,
+        panels.room,
         "ROOM",
         .{ .r = 112, .g = 196, .b = 255, .a = 255 },
         &.{ room_line_0, room_line_1, room_line_2 },
     );
+
+    if (dialog_overlay.line_count != 0) {
+        try drawHudTextCardWithMetrics(
+            canvas,
+            panels.gameplay,
+            dialog_overlay.title,
+            dialog_overlay.accent,
+            2,
+            4,
+            dialog_overlay.lines[0..dialog_overlay.line_count],
+        );
+    } else {
+        try drawOverlayLegendCard(canvas, panels.gameplay);
+    }
 
     if (snapshot.metadata.fragment_zone_count == 0 and snapshot.metadata.owned_fragment_count == 0) {
         var fragment_line_1_buffer: [48]u8 = undefined;
@@ -531,7 +527,7 @@ fn drawHud(
         );
         try drawHudTextCard(
             canvas,
-            fragment_card,
+            panels.fragments,
             "FRAGMENT STATE",
             .{ .r = 176, .g = 186, .b = 198, .a = 255 },
             &.{ "ZERO FRAGMENT CONTROL", fragment_line_1, "CELLS 0 OF 0" },
@@ -557,7 +553,7 @@ fn drawHud(
         );
         try drawHudTextCard(
             canvas,
-            fragment_card,
+            panels.fragments,
             "FRAGMENT STATE",
             .{ .r = 255, .g = 206, .b = 84, .a = 255 },
             &.{ fragment_line_0, fragment_line_1, fragment_line_2 },
@@ -608,27 +604,26 @@ fn drawHud(
         );
         try drawHudTextCardWithMetrics(
             canvas,
-            focus_card,
+            panels.focus,
             "FOCUS",
             fragment_compare.fragmentComparisonDeltaColor(focus.delta),
-            1,
-            1,
+            2,
+            4,
             &.{ focus_line_0, focus_line_1, focus_line_2, focus_line_3, focus_line_4, focus_line_5 },
         );
     } else {
         try drawHudTextCardWithMetrics(
             canvas,
-            focus_card,
+            panels.focus,
             "FOCUS",
             .{ .r = 112, .g = 196, .b = 255, .a = 255 },
-            1,
-            -1,
+            2,
+            4,
             locomotion_status.lines[0..locomotion_status.line_count],
         );
     }
 
-    try drawOverlayLegendCard(canvas, overlay_card);
-    try drawComparisonLegendCard(canvas, compare_card);
+    try drawComparisonLegendCard(canvas, panels.compare);
     const nav_lines: []const []const u8 = if (selection.focus != null)
         switch (control_mode) {
             .fragment_navigation => &.{ "TAB HERO CTRL", "LEFT RIGHT RANK", "UP DOWN CELL" },
@@ -644,35 +639,50 @@ fn drawHud(
     const nav_title = if (dialog_overlay.line_count != 0) dialog_overlay.nav_title else "NAV";
     try drawHudTextCard(
         canvas,
-        nav_card,
+        panels.nav,
         nav_title,
         .{ .r = 112, .g = 196, .b = 255, .a = 255 },
         nav_lines,
     );
 }
 
-fn drawDialogOverlay(canvas: *sdl.Canvas, rect: sdl.Rect, dialog_overlay: DialogOverlayDisplay) !void {
-    try drawHudTextCardWithMetrics(
-        canvas,
-        rect,
-        dialog_overlay.title,
-        dialog_overlay.accent,
-        2,
-        2,
-        dialog_overlay.lines[0..dialog_overlay.line_count],
-    );
-}
+const SidebarPanels = struct {
+    room: sdl.Rect,
+    gameplay: sdl.Rect,
+    focus: sdl.Rect,
+    fragments: sdl.Rect,
+    compare: sdl.Rect,
+    nav: sdl.Rect,
+};
 
-fn splitHudRow(row: sdl.Rect, index: usize, count: usize, gap: i32) sdl.Rect {
-    const total_gap_width = gap * @as(i32, @intCast(count -| 1));
-    const base_width = @divTrunc(row.w - total_gap_width, @as(i32, @intCast(count)));
-    const x = row.x + (@as(i32, @intCast(index)) * (base_width + gap));
-    const is_last = index == count - 1;
+fn computeSidebarPanels(sidebar: sdl.Rect) SidebarPanels {
+    const gap = 10;
+    const room_height = @min(96, @max(72, @divTrunc(sidebar.h, 9)));
+    const gameplay_height = @min(124, @max(88, @divTrunc(sidebar.h, 7)));
+    const focus_height = @min(230, @max(144, @divTrunc(sidebar.h, 3)));
+    const fragment_height = @min(110, @max(72, @divTrunc(sidebar.h, 8)));
+    const compare_height = @min(120, @max(72, @divTrunc(sidebar.h, 8)));
+
+    var y = sidebar.y;
+    const room = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = room_height };
+    y += room.h + gap;
+    const gameplay = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = gameplay_height };
+    y += gameplay.h + gap;
+    const focus = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = focus_height };
+    y += focus.h + gap;
+    const fragments = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = fragment_height };
+    y += fragments.h + gap;
+    const compare = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = compare_height };
+    y += compare.h + gap;
+    const nav = sdl.Rect{ .x = sidebar.x, .y = y, .w = sidebar.w, .h = @max(1, sidebar.bottom() - y + 1) };
+
     return .{
-        .x = x,
-        .y = row.y,
-        .w = if (is_last) row.right() - x + 1 else base_width,
-        .h = row.h,
+        .room = room,
+        .gameplay = gameplay,
+        .focus = focus,
+        .fragments = fragments,
+        .compare = compare,
+        .nav = nav,
     };
 }
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Own repo direction, Codex memory workflow, and the boundary between the Zig port and original-runtime evidence.
+Own repo direction, memory workflow, and the Zig port/original-runtime boundary.
 
 ## Invariants
 
@@ -18,7 +18,7 @@ Own repo direction, Codex memory workflow, and the boundary between the Zig port
 - `inspect-room-intelligence` is the canonical repo-local room/scene inspection surface.
 - `cdb-agent` is the approved debugger/live-trace layer, and `ghb` is the approved Ghidra layer.
 - Viewer input stops at intent submission; runtime owns mutable gameplay state and pending transition consumption.
-- The original-runtime split is stable: Tavern uses FRA, Scene11 uses debugger snapshots, room-transition seams escalate to Frida plus `cdb` only as needed, and the committed debug-control lane uses `debug_compass.py`, `heading_inject.py`, and `waypoint_step_probe.py`.
+- Original-runtime split: Tavern uses FRA, Scene11 uses debugger snapshots, transitions escalate to Frida plus `cdb` only as needed, and debug control uses `debug_compass.py`, `heading_inject.py`, `waypoint_step_probe.py`.
 
 ## Known Traps
 
@@ -27,9 +27,10 @@ Own repo direction, Codex memory workflow, and the boundary between the Zig port
 - `context --path` needs `INDEX.md`; unmapped paths fail.
 - For room-transition proof, do not generalize from a door, save lane, or watcher until the exact seam is pinned in tests and live evidence.
 - Do not treat `collision_observer.py` as a blocked/moved oracle. Step outcome is authoritative.
-- On room `36/36`, do not treat visible page turns as durable dialog-id transitions. The second Sendell page is renderer pagination inside one decoded text record, with `CurrentDial=3` and stable `PtText`.
-- A second live seam on `newgame.LBA` shows the same `PtText`-stable / `PtDial`-advancing pattern, so the bounded runtime correction is now a reusable decoded-record next-page-cursor helper for proved two-page seams. It is still not a full generic dialog renderer.
-- On room `36/36`, keep fresh entry and loaded-state reconstruction separate. `applyRoomEntryState()` seeds the fresh room; `reconstructLoadedRoomState()` rebuilds only the proved durable Sendell phases.
+- On room `36/36`, visible page turns are renderer pagination inside one decoded text record, not durable dialog-id transitions.
+- The bounded next-page-cursor helper is reusable for proved two-page seams, not a full generic dialog renderer.
+- On room `36/36`, keep fresh entry (`applyRoomEntryState`) and loaded reconstruction (`reconstructLoadedRoomState`) separate.
+- Viewer debug state belongs in the right sidebar; do not re-pack it into unreadable top/bottom strips.
 
 ## Reverse / Porting Slice Checklist
 

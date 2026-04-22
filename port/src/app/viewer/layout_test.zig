@@ -4,23 +4,12 @@ const state = @import("../../runtime/room_state.zig");
 const room_fixtures = @import("../../testing/room_fixtures.zig");
 const layout = @import("layout.zig");
 
-test "viewer fragment debug layout reserves a deterministic comparison panel" {
+test "viewer fragment debug layout reserves a deterministic sidebar rail" {
     const debug_layout = layout.computeDebugLayout(960, 540, 64, 64, true);
     try std.testing.expectEqual(sdl.Rect{ .x = 24, .y = 24, .w = 912, .h = 492 }, debug_layout.frame);
-    try std.testing.expectEqual(sdl.Rect{ .x = 42, .y = 42, .w = 876, .h = 72 }, debug_layout.header);
-    try std.testing.expectEqual(sdl.Rect{ .x = 217, .y = 126, .w = 276, .h = 276 }, debug_layout.schematic_frame);
-    try std.testing.expectEqual(sdl.Rect{ .x = 227, .y = 136, .w = 256, .h = 256 }, debug_layout.schematic);
-    try std.testing.expectEqual(sdl.Rect{ .x = 682, .y = 126, .w = 236, .h = 276 }, debug_layout.comparison_frame.?);
-    try std.testing.expectEqual(sdl.Rect{ .x = 692, .y = 136, .w = 216, .h = 256 }, debug_layout.comparison.?);
-    try std.testing.expectEqual(sdl.Rect{ .x = 42, .y = 414, .w = 876, .h = 84 }, debug_layout.footer);
-}
-
-test "viewer dialog overlay rect stays pinned inside the schematic content lane" {
-    const debug_layout = layout.computeDebugLayout(960, 540, 64, 64, true);
-    try std.testing.expectEqual(
-        sdl.Rect{ .x = 229, .y = 287, .w = 252, .h = 96 },
-        layout.computeDialogOverlayRect(debug_layout),
-    );
+    try std.testing.expectEqual(sdl.Rect{ .x = 84, .y = 42, .w = 456, .h = 456 }, debug_layout.schematic_frame);
+    try std.testing.expectEqual(sdl.Rect{ .x = 94, .y = 52, .w = 436, .h = 436 }, debug_layout.schematic);
+    try std.testing.expectEqual(sdl.Rect{ .x = 598, .y = 42, .w = 320, .h = 456 }, debug_layout.sidebar);
 }
 
 test "viewer projection keeps the canonical schematic fit stable" {
