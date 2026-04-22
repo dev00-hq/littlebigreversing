@@ -140,7 +140,7 @@ pub fn applyPendingRoomTransition(
         next_room.scene.object_behavior_seeds,
     );
     defer transition_probe_session.deinit(allocator);
-    const destination_locomotion_status = locomotion.inspectCurrentStatus(&next_room, transition_probe_session) catch |err| switch (err) {
+    const destination_locomotion_status = locomotion.inspectCurrentStatusRequiringAdmittedSeed(&next_room, transition_probe_session) catch |err| switch (err) {
         error.LocomotionStatusInvalidPosition => {
             next_room_owned = false;
             next_room.deinit(allocator);

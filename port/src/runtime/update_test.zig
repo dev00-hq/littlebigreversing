@@ -526,7 +526,19 @@ test "runtime 0013 key seam carries through update-owned pickup and reverse secr
     defer current_session.deinit(std.testing.allocator);
 
     current_session.setHeroWorldPosition(.{ .x = 1280, .y = 2048, .z = 5376 });
-    try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
+    try current_session.submitHeroIntent(.default_action);
+    const spawn_tick = try runtime_update.tick(&room, &current_session);
+    try std.testing.expect(spawn_tick.consumed_hero_intent);
+    try std.testing.expect(!spawn_tick.triggered_room_transition);
+    switch (spawn_tick.locomotion_status) {
+        .raw_invalid_current => |value| {
+            try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_height_mismatch, value.reason);
+            try std.testing.expectEqual(@as(usize, 1), value.zone_membership.slice().len);
+            try std.testing.expectEqual(.scenario, value.zone_membership.slice()[0].kind);
+            try std.testing.expectEqual(@as(i16, 0), value.zone_membership.slice()[0].num);
+        },
+        else => return error.UnexpectedLocomotionStatus,
+    }
 
     try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(0));
     try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());

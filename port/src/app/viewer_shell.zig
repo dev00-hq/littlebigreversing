@@ -202,6 +202,18 @@ pub fn formatLocomotionStatusDisplay(
                 formatRawInvalidStartMappingHintLine(&buffer.line_5, value.best_alt_mapping),
             },
         },
+        .raw_invalid_current => |value| .{
+            .line_count = 5,
+            .lines = .{
+                "RAW POSITION INVALID",
+                formatCurrentCellLine(&buffer.line_0, value.raw_cell),
+                formatRejectedReasonLine(&buffer.line_1, value.reason),
+                formatCoverageLine(&buffer.line_2, value.occupied_coverage),
+                formatZoneSummary(&buffer.line_3, value.zone_membership),
+                "",
+                "",
+            },
+        },
         .seeded_valid => |value| .{
             .line_count = 7,
             .lines = .{
@@ -666,6 +678,26 @@ pub fn printLocomotionStatusDiagnostic(writer: anytype, status: ViewerLocomotion
                     formatRawInvalidStartCandidateDiagnostic(&nearest_occupied_buffer, value.nearest_occupied),
                     formatRawInvalidStartCandidateDiagnostic(&nearest_standable_buffer, value.nearest_standable),
                     formatRawInvalidStartMappingHintDiagnostic(&best_alt_mapping_buffer, value.best_alt_mapping),
+                    value.hero_position.x,
+                    value.hero_position.y,
+                    value.hero_position.z,
+                },
+            );
+        },
+        .raw_invalid_current => |value| {
+            var raw_cell_buffer: [16]u8 = undefined;
+            var occupied_bounds_buffer: [32]u8 = undefined;
+            var zones_buffer: [128]u8 = undefined;
+            try writer.print(
+                "event=hero_status status=raw_invalid_current reason={s} raw_cell={s} occupied_coverage={s} occupied_bounds={s} occupied_bounds_dx={d} occupied_bounds_dz={d} zones={s} move_options=unavailable hero_x={d} hero_y={d} hero_z={d}\n",
+                .{
+                    @tagName(value.reason),
+                    formatOptionalCell(&raw_cell_buffer, value.raw_cell),
+                    @tagName(value.occupied_coverage.relation),
+                    formatOccupiedBoundsDiagnostic(&occupied_bounds_buffer, value.occupied_coverage),
+                    value.occupied_coverage.x_cells_from_bounds,
+                    value.occupied_coverage.z_cells_from_bounds,
+                    formatZoneDiagnosticValue(&zones_buffer, value.zone_membership),
                     value.hero_position.x,
                     value.hero_position.y,
                     value.hero_position.z,

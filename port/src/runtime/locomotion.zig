@@ -60,6 +60,14 @@ pub const RawInvalidStartStatus = struct {
     hero_position: WorldPointSnapshot,
 };
 
+pub const RawInvalidCurrentStatus = struct {
+    reason: runtime_query.MoveTargetStatus,
+    raw_cell: ?GridCell,
+    occupied_coverage: runtime_query.OccupiedCoverageProbe,
+    hero_position: WorldPointSnapshot,
+    zone_membership: ZoneMembership,
+};
+
 pub const SeededValidStatus = struct {
     cell: GridCell,
     move_options: MoveOptions,
@@ -99,6 +107,7 @@ pub const MoveRejectedStatus = struct {
 
 pub const LocomotionStatus = union(enum) {
     raw_invalid_start: RawInvalidStartStatus,
+    raw_invalid_current: RawInvalidCurrentStatus,
     seeded_valid: SeededValidStatus,
     last_move_accepted: MoveAcceptedStatus,
     last_zone_recovery_accepted: RawZoneRecoveryAcceptedStatus,
@@ -128,6 +137,32 @@ pub fn inspectCurrentStatus(
                 },
             };
         }
+    }
+
+    const evaluation = query.evaluateHeroMoveTarget(hero_position);
+    if (!evaluation.isAllowed()) {
+        return .{
+            .raw_invalid_current = .{
+                .reason = evaluation.status,
+                .raw_cell = evaluation.raw_cell.cell,
+                .occupied_coverage = evaluation.occupied_coverage,
+                .hero_position = hero_position,
+                .zone_membership = try query.containingZonesAtWorldPoint(hero_position),
+            },
+        };
+    }
+
+    return seededValidStatusFromEvaluation(query, hero_position, evaluation);
+}
+
+pub fn inspectCurrentStatusRequiringAdmittedSeed(
+    room: *const room_state.RoomSnapshot,
+    current_session: runtime_session.Session,
+) !LocomotionStatus {
+    const query = runtime_query.init(room);
+    const hero_position = current_session.heroWorldPosition();
+    if (std.meta.eql(hero_position, room_state.heroStartWorldPoint(room))) {
+        return inspectCurrentStatus(room, current_session);
     }
 
     return seededValidStatus(query, hero_position);
@@ -216,6 +251,16 @@ fn seededValidStatus(
     hero_position: WorldPointSnapshot,
 ) !LocomotionStatus {
     const evaluation = query.evaluateHeroMoveTarget(hero_position);
+    if (!evaluation.isAllowed()) return error.LocomotionStatusInvalidPosition;
+
+    return seededValidStatusFromEvaluation(query, hero_position, evaluation);
+}
+
+fn seededValidStatusFromEvaluation(
+    query: runtime_query.WorldQuery,
+    hero_position: WorldPointSnapshot,
+    evaluation: runtime_query.MoveTargetEvaluation,
+) !LocomotionStatus {
     if (!evaluation.isAllowed()) return error.LocomotionStatusInvalidPosition;
 
     const move_options = try buildMoveOptions(query, hero_position);

@@ -16,7 +16,7 @@
 - `3/3` blockers stay rejected; live zone-`1` cube-`19` handoff lands in a Tralu's-dungeon-looking scene, not the intended cellar target.
 - `0013` door is scene-2 zone `0`: cube `1 -> 0` lands `(2562,2048,3322)` after shadow; reverse `2/0 -> 2/1` consumes one key and lands `(9725,1024,1098)`.
 - `0013` key source is scene `2/1` default action: `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0`, then `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
-- `0013` key pickup is poll-only proved: `SPRITE_CLE` from `(3072,3072,5120)`, `Divers=1`, `NbLittleKeys 0 -> 1`; port uses the landing surface and regresses pickup plus both doors.
+- `0013` key pickup is poll-only proved: `SPRITE_CLE` from `(3072,3072,5120)`, `Divers=1`, `NbLittleKeys 0 -> 1`; port now ticks default-action spawn, pickup, and both doors.
 - Guarded `19/19` object-`2` is stateful; sewer chest is bounded multi-bonus with live-backed `Divers=5`.
 
 ## Blocked Items
