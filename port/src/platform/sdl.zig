@@ -79,6 +79,7 @@ const sdl = struct {
     pub const SDLK_DOWN: i32 = 1073741905;
     pub const SDLK_RETURN: i32 = '\r';
     pub const SDLK_TAB: i32 = '\t';
+    pub const SDLK_w: i32 = 'w';
     pub const SDLK_f: i32 = 'f';
     pub const SDL_WINDOW_SHOWN: u32 = 0x00000004;
     pub const SDL_WINDOWPOS_CENTERED: c_int = 0x2FFF0000;

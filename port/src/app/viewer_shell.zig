@@ -110,6 +110,10 @@ const sendell_scene_entry: usize = 36;
 const sendell_background_entry: usize = 36;
 const sendell_object_index: usize = 2;
 const sendell_first_dialog_id: i16 = 3;
+const secret_room_scene_entry: usize = 2;
+const secret_room_background_entry: usize = 1;
+const secret_room_cellar_background_entry: usize = 0;
+const secret_room_key_var_game_index: u8 = 0;
 const reward_scene_entry: usize = 19;
 const reward_background_entry: usize = 19;
 const reward_object_index: usize = 2;
@@ -490,6 +494,8 @@ pub fn formatGameplayOverlayDisplay(
 ) ViewerDialogOverlayDisplay {
     const sendell_overlay = formatSendellDialogOverlayDisplay(room, current_session);
     if (sendell_overlay.line_count != 0) return sendell_overlay;
+    const secret_room_overlay = formatSecretRoomKeyOverlayDisplay(buffer, room, current_session);
+    if (secret_room_overlay.line_count != 0) return secret_room_overlay;
     return formatScene1919RewardOverlayDisplay(buffer, room, current_session);
 }
 
@@ -539,6 +545,87 @@ pub fn formatSendellDialogOverlayDisplay(
             };
         },
         else => .{},
+    };
+}
+
+pub fn formatSecretRoomKeyOverlayDisplay(
+    buffer: *ViewerDialogOverlayDisplayBuffer,
+    room: *const RoomSnapshot,
+    current_session: Session,
+) ViewerDialogOverlayDisplay {
+    if (room.scene.entry_index != secret_room_scene_entry or
+        (room.background.entry_index != secret_room_background_entry and
+        room.background.entry_index != secret_room_cellar_background_entry))
+    {
+        return .{};
+    }
+
+    const events = current_session.bonusSpawnEvents();
+    const collectibles = current_session.rewardCollectibles();
+    const pickup_events = current_session.rewardPickupEvents();
+    const key_count = current_session.littleKeyCount();
+    const key_var = current_session.gameVar(secret_room_key_var_game_index);
+    if (events.len == 0 and collectibles.len == 0 and pickup_events.len == 0 and key_count == 0 and key_var == 0) return .{};
+
+    const latest_event = if (events.len == 0) null else events[events.len - 1];
+    const latest_pickup_event = if (pickup_events.len == 0) null else pickup_events[pickup_events.len - 1];
+
+    const line_0 = std.fmt.bufPrint(
+        &buffer.line_0,
+        "ROOM 2/{d} KEYS {d}",
+        .{
+            room.background.entry_index,
+            key_count,
+        },
+    ) catch unreachable;
+    const line_1 = std.fmt.bufPrint(
+        &buffer.line_1,
+        "{s}",
+        .{secretRoomKeyStatusLabel(room.background.entry_index, collectibles.len, pickup_events.len, key_count, key_var)},
+    ) catch unreachable;
+    const line_2 = std.fmt.bufPrint(
+        &buffer.line_2,
+        "VAR0 {d} CUBE0 {d} CUBE1 {d}",
+        .{
+            key_var,
+            current_session.cubeVar(0),
+            current_session.cubeVar(1),
+        },
+    ) catch unreachable;
+    const line_3 = if (latest_pickup_event) |event|
+        std.fmt.bufPrint(
+            &buffer.line_3,
+            "PICK {s} {d}@{d}",
+            .{
+                runtimeBonusKindLabel(event.kind),
+                event.quantity,
+                event.pickup_frame_index,
+            },
+        ) catch unreachable
+    else if (latest_event) |event|
+        std.fmt.bufPrint(
+            &buffer.line_3,
+            "LAST {s} {d}@{d}",
+            .{
+                runtimeBonusKindLabel(event.kind),
+                event.quantity,
+                event.frame_index,
+            },
+        ) catch unreachable
+    else
+        "LAST NONE";
+
+    return .{
+        .title = "0013 KEY",
+        .nav_title = "NAV / KEY",
+        .line_count = 4,
+        .lines = .{
+            line_0,
+            line_1,
+            line_2,
+            line_3,
+        },
+        .accent = .{ .r = 245, .g = 216, .b = 95, .a = 255 },
     };
 }
 
@@ -627,6 +714,23 @@ pub fn formatScene1919RewardOverlayDisplay(
         },
         .accent = .{ .r = 160, .g = 220, .b = 120, .a = 255 },
     };
+}
+
+fn secretRoomKeyStatusLabel(
+    background_entry_index: usize,
+    collectible_count: usize,
+    pickup_event_count: usize,
+    key_count: u8,
+    key_var: i16,
+) []const u8 {
+    if (collectible_count != 0) return "KEY DROP LIVE";
+    if (background_entry_index == secret_room_cellar_background_entry) {
+        if (key_count != 0) return "CELLAR KEY READY";
+        return "CELLAR NEED KEY";
+    }
+    if (pickup_event_count != 0) return "KEY TAKEN";
+    if (key_var != 0) return "KEY SPAWNED";
+    return "KEY SOURCE READY";
 }
 
 fn positionForExplicitLocomotionFixture(

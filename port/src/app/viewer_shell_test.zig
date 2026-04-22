@@ -1,6 +1,7 @@
 const std = @import("std");
 const paths_mod = @import("../foundation/paths.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
+const room_state = @import("../runtime/room_state.zig");
 const runtime_locomotion = @import("../runtime/locomotion.zig");
 const runtime_object_behavior = @import("../runtime/object_behavior.zig");
 const runtime_session_mod = @import("../runtime/session.zig");
@@ -1248,6 +1249,99 @@ test "viewer key handling routes Sendell room story input through queued runtime
     const second_slice = runtime_object_behavior.currentSendellDialogSlice(runtime_session).?;
     try std.testing.expectEqual(@as(u8, 2), second_slice.page_number);
     try std.testing.expectEqualStrings("Sendell to contact you in case of danger.", second_slice.visible_text);
+}
+
+test "viewer key handling routes 0013 default action through queued runtime intent" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var snapshot_session = try initViewerSession(&room);
+    defer snapshot_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(&room, snapshot_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+
+    var runtime_session = try initViewerSession(&room);
+    defer runtime_session.deinit(allocator);
+    runtime_session.setHeroWorldPosition(.{ .x = 1280, .y = 2048, .z = 5376 });
+    const initial_status = try runtime_locomotion.inspectCurrentStatus(&room, runtime_session);
+    const interaction = viewer_shell.initialInteractionState(catalog);
+
+    const key_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        catalog,
+        interaction,
+        initial_status,
+        .w,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, key_result.post_key_action);
+    try std.testing.expectEqual(runtime_locomotion.HeroIntent.default_action, runtime_session.pendingHeroIntent().?);
+
+    const tick_result = try runtime_update.tick(&room, &runtime_session);
+    try std.testing.expect(tick_result.consumed_hero_intent);
+    try std.testing.expectEqual(@as(i16, 1), runtime_session.gameVar(0));
+    try std.testing.expectEqual(@as(usize, 1), runtime_session.rewardCollectibles().len);
+
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
+    try std.testing.expectEqualStrings("0013 KEY", overlay.title);
+    try std.testing.expectEqualStrings("NAV / KEY", overlay.nav_title);
+    try std.testing.expectEqualStrings("ROOM 2/1 KEYS 0", overlay.lines[0]);
+    try std.testing.expectEqualStrings("KEY DROP LIVE", overlay.lines[1]);
+    try std.testing.expectEqualStrings("VAR0 1 CUBE0 0 CUBE1 0", overlay.lines[2]);
+    try std.testing.expectEqualStrings("LAST KEY 1@0", overlay.lines[3]);
+}
+
+test "viewer 0013 key overlay follows pickup and cellar key consumption" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var runtime_session = try initViewerSession(&room);
+    defer runtime_session.deinit(allocator);
+    runtime_session.setHeroWorldPosition(.{ .x = 1280, .y = 2048, .z = 5376 });
+    try runtime_session.submitHeroIntent(.default_action);
+    _ = try runtime_update.tick(&room, &runtime_session);
+
+    const key_landing_cell = try runtime_query.init(&room).gridCellAtWorldPoint(3826, 4366);
+    const key_landing_surface = try runtime_query.init(&room).cellTopSurface(key_landing_cell.x, key_landing_cell.z);
+    runtime_session.setHeroWorldPosition(.{ .x = 3826, .y = key_landing_surface.top_y, .z = 4366 });
+    while (runtime_session.littleKeyCount() == 0) {
+        _ = try runtime_update.tick(&room, &runtime_session);
+    }
+
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    const picked_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
+    try std.testing.expectEqualStrings("ROOM 2/1 KEYS 1", picked_overlay.lines[0]);
+    try std.testing.expectEqualStrings("KEY TAKEN", picked_overlay.lines[1]);
+    try std.testing.expectEqualStrings("PICK KEY 1@2", picked_overlay.lines[3]);
+
+    var cellar_room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer cellar_room.deinit(allocator);
+    try runtime_session.replaceRoomLocalState(
+        allocator,
+        .{ .x = 3056, .y = 2048, .z = 3659 },
+        cellar_room.scene.objects,
+        cellar_room.scene.object_behavior_seeds,
+    );
+    runtime_session.setLittleKeyCount(1);
+
+    const cellar_ready_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &cellar_room, runtime_session);
+    try std.testing.expectEqualStrings("ROOM 2/0 KEYS 1", cellar_ready_overlay.lines[0]);
+    try std.testing.expectEqualStrings("CELLAR KEY READY", cellar_ready_overlay.lines[1]);
+
+    _ = try runtime_update.tick(&cellar_room, &runtime_session);
+    const consumed_overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &cellar_room, runtime_session);
+    try std.testing.expectEqualStrings("ROOM 2/0 KEYS 0", consumed_overlay.lines[0]);
+    try std.testing.expectEqualStrings("CELLAR NEED KEY", consumed_overlay.lines[1]);
 }
 
 test "viewer Sendell dialog overlay is transient and scheduler-owned" {

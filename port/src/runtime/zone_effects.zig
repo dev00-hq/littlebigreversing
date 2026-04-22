@@ -31,7 +31,7 @@ pub fn applyPostLocomotionEffects(
     return switch (locomotion_status) {
         .last_move_accepted => |value| applyContainingZoneEffects(room, current_session, value.zone_membership.slice()),
         .last_zone_recovery_accepted => |value| applyContainingZoneEffects(room, current_session, value.zone_membership.slice()),
-        else => .{},
+        else => applyContainingZoneEffects(room, current_session, &.{}),
     };
 }
 
