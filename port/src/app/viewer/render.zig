@@ -155,7 +155,13 @@ pub fn renderDebugView(
 
         for (reward_collectibles) |collectible| {
             const point = layout.projectWorldPointInViewport(debug_layout.schematic, viewport, collectible.world_position.x, collectible.world_position.z) orelse continue;
-            try drawRewardCollectibleMarker(canvas, point, collectible);
+            const target = layout.projectWorldPointInViewport(
+                debug_layout.schematic,
+                viewport,
+                collectible.motion_target_world_position.x,
+                collectible.motion_target_world_position.z,
+            );
+            try drawRewardCollectibleMarker(canvas, point, target, collectible);
         }
 
         try drawLocomotionSchematicCue(
@@ -543,7 +549,8 @@ fn drawIsometricView(
 
     for (reward_collectibles) |collectible| {
         const point = isoWorldPoint(iso, collectible.world_position.x, collectible.world_position.z) orelse continue;
-        try drawRewardCollectibleMarker(canvas, point, collectible);
+        const target = isoWorldPoint(iso, collectible.motion_target_world_position.x, collectible.motion_target_world_position.z);
+        try drawRewardCollectibleMarker(canvas, point, target, collectible);
     }
 
     if (isoWorldPoint(iso, snapshot.hero_position.x, snapshot.hero_position.z)) |hero| {
@@ -555,12 +562,30 @@ fn drawIsometricView(
 fn drawRewardCollectibleMarker(
     canvas: *sdl.Canvas,
     point: layout.ScreenPoint,
+    target: ?layout.ScreenPoint,
     collectible: runtime_session.RewardCollectible,
 ) !void {
     const color = rewardCollectibleColor(collectible.kind);
+    if (!collectible.settled) {
+        if (target) |target_point| {
+            try canvas.drawLine(point.x, point.y, target_point.x, target_point.y, rewardCollectibleMotionPathColor(collectible.kind));
+            try draw.drawCrosshair(canvas, target_point, 8, rewardCollectibleTargetColor(collectible.kind));
+            try draw.drawMarker(canvas, target_point, 4, rewardCollectibleTargetColor(collectible.kind));
+        }
+    }
     const radius: i32 = if (collectible.settled) 7 else 5;
     try draw.drawCrosshair(canvas, point, radius + 2, draw.withAlpha(color, 220));
     try draw.drawMarker(canvas, point, radius, color);
+}
+
+fn rewardCollectibleMotionPathColor(kind: runtime_session.RuntimeBonusKind) sdl.Color {
+    const color = rewardCollectibleColor(kind);
+    return draw.withAlpha(color, 132);
+}
+
+fn rewardCollectibleTargetColor(kind: runtime_session.RuntimeBonusKind) sdl.Color {
+    const color = rewardCollectibleColor(kind);
+    return draw.withAlpha(color, 168);
 }
 
 fn rewardCollectibleColor(kind: runtime_session.RuntimeBonusKind) sdl.Color {
@@ -568,6 +593,14 @@ fn rewardCollectibleColor(kind: runtime_session.RuntimeBonusKind) sdl.Color {
         .magic => .{ .r = 117, .g = 230, .b = 186, .a = 255 },
         .little_key => .{ .r = 245, .g = 216, .b = 95, .a = 255 },
     };
+}
+
+pub fn rewardCollectibleMotionPathColorForTesting(kind: runtime_session.RuntimeBonusKind) sdl.Color {
+    return rewardCollectibleMotionPathColor(kind);
+}
+
+pub fn rewardCollectibleTargetColorForTesting(kind: runtime_session.RuntimeBonusKind) sdl.Color {
+    return rewardCollectibleTargetColor(kind);
 }
 
 fn computeIsoProjection(rect: sdl.Rect, snapshot: state.RenderSnapshot, viewport: layout.GridViewport) IsoProjection {

@@ -933,6 +933,57 @@ test "viewer render path draws explicitly visible little-key collectibles as key
     try std.testing.expect(countTraceLineColor(trace, key_crosshair_color) >= 4);
 }
 
+test "viewer render path draws moving little-key landing target and path" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded1919();
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(room, runtime_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+    const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
+    const moving_key = [_]runtime_session_mod.RewardCollectible{.{
+        .spawn_frame_index = 0,
+        .source_object_index = 7,
+        .kind = .little_key,
+        .sprite_index = 6,
+        .quantity = 1,
+        .admitted_surface_cell = .{ .x = 40, .z = 7 },
+        .admitted_surface_top_y = 25 * runtime_query.world_grid_span_y,
+        .scatter_slot = 0,
+        .rebound_count = 0,
+        .settled = false,
+        .motion_start_world_position = .{ .x = 20224, .y = 6400, .z = 3328 },
+        .motion_target_world_position = .{ .x = 20736, .y = 6400, .z = 3840 },
+        .motion_total_ticks = 3,
+        .motion_ticks_remaining = 2,
+        .motion_arc_height = 160,
+        .world_position = .{ .x = 20224, .y = 6400, .z = 3328 },
+    }};
+
+    var trace: sdl.CanvasTrace = .{};
+    defer trace.deinit(allocator);
+    var canvas = sdl.Canvas.initForTesting(allocator, 1440, 900, &trace);
+
+    try render.renderDebugView(
+        &canvas,
+        snapshot,
+        catalog,
+        selection,
+        .{},
+        viewer_shell.initialInteractionState(catalog).control_mode,
+        .info,
+        .fit,
+        .grid,
+        .{},
+        &moving_key,
+    );
+
+    try std.testing.expect(hasTraceLineColor(trace, render.rewardCollectibleMotionPathColorForTesting(.little_key)));
+    try std.testing.expect(hasTraceRectColor(trace, .fill_rect, render.rewardCollectibleTargetColorForTesting(.little_key)));
+}
+
 test "viewer render path fails fast when a required brick preview is missing" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1110();
