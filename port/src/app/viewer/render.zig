@@ -95,7 +95,7 @@ pub fn renderDebugView(
     reward_collectibles: []const runtime_session.RewardCollectible,
 ) !void {
     const fragment_panel = fragment_compare.buildFragmentComparisonPanel(catalog, selection);
-    const viewport = layout.computeGridViewport(snapshot, if (view_mode == .isometric and zoom_level == .fit) .room else zoom_level);
+    const viewport = layout.computeGridViewport(snapshot, if (zoom_level == .fit) .room else zoom_level);
     const debug_layout = layout.computeDebugLayout(
         canvas.width,
         canvas.height,

@@ -236,6 +236,18 @@ fn projectGridCellCenter(
     };
 }
 
+fn projectGridCellCenterInViewport(
+    schematic: sdl.Rect,
+    viewport: layout.GridViewport,
+    cell: viewer_shell.GridCell,
+) !layout.ScreenPoint {
+    const cell_rect = layout.projectGridCellRectInViewport(schematic, viewport, cell.x, cell.z) orelse return error.MissingViewportCell;
+    return .{
+        .x = cell_rect.x + @divTrunc(cell_rect.w, 2),
+        .y = cell_rect.y + @divTrunc(cell_rect.h, 2),
+    };
+}
+
 fn expectNoLocomotionAttemptCue(trace: sdl.CanvasTrace) !void {
     try std.testing.expect(!hasTraceLineColor(trace, render.locomotionAttemptAcceptedColor()));
     try std.testing.expect(!hasTraceLineColor(trace, render.locomotionAttemptRejectedColor()));
@@ -248,17 +260,17 @@ fn expectTraceHasLocomotionSchematicCue(
     display: viewer_shell.ViewerLocomotionStatusDisplay,
 ) !void {
     const snapshot = viewer_shell.buildRenderSnapshot(room, runtime_session);
-    const schematic = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, false).schematic;
+    const viewport = layout.computeGridViewport(snapshot, .room);
+    const schematic = layout.computeDebugLayout(1440, 900, viewport.width, viewport.depth, false).schematic;
 
     switch (display.schematic) {
         .admitted_path => |value| {
-            const current_cell_rect = layout.projectGridCellRect(
+            const current_cell_rect = layout.projectGridCellRectInViewport(
                 schematic,
-                snapshot.grid_width,
-                snapshot.grid_depth,
+                viewport,
                 value.current_cell.x,
                 value.current_cell.z,
-            );
+            ) orelse return error.MissingViewportCell;
             try std.testing.expect(hasTraceRectOp(
                 trace,
                 .fill_rect,
@@ -274,13 +286,12 @@ fn expectTraceHasLocomotionSchematicCue(
 
             for (value.move_options) |move_option| {
                 const target_cell = move_option.target_cell orelse continue;
-                const target_cell_rect = layout.projectGridCellRect(
+                const target_cell_rect = layout.projectGridCellRectInViewport(
                     schematic,
-                    snapshot.grid_width,
-                    snapshot.grid_depth,
+                    viewport,
                     target_cell.x,
                     target_cell.z,
-                );
+                ) orelse return error.MissingViewportCell;
                 const border_rect = insetRectSafe(target_cell_rect, 1);
                 const label = shortDirectionLabel(move_option.direction);
                 const label_rect = sdl.Rect{
@@ -306,12 +317,13 @@ fn expectTraceHasLocomotionAttemptCue(
     display: viewer_shell.ViewerLocomotionStatusDisplay,
 ) !void {
     const snapshot = viewer_shell.buildRenderSnapshot(room, runtime_session);
-    const schematic = layout.computeDebugLayout(1440, 900, snapshot.grid_width, snapshot.grid_depth, false).schematic;
+    const viewport = layout.computeGridViewport(snapshot, .room);
+    const schematic = layout.computeDebugLayout(1440, 900, viewport.width, viewport.depth, false).schematic;
 
     switch (display.attempt) {
         .accepted => |value| {
-            const start = projectGridCellCenter(schematic, snapshot.grid_width, snapshot.grid_depth, value.origin_cell);
-            const finish = projectGridCellCenter(schematic, snapshot.grid_width, snapshot.grid_depth, value.destination_cell);
+            const start = try projectGridCellCenterInViewport(schematic, viewport, value.origin_cell);
+            const finish = try projectGridCellCenterInViewport(schematic, viewport, value.destination_cell);
             try std.testing.expect(hasTraceLineOp(
                 trace,
                 start.x,
@@ -322,8 +334,8 @@ fn expectTraceHasLocomotionAttemptCue(
             ));
         },
         .rejected => |value| {
-            const start = projectGridCellCenter(schematic, snapshot.grid_width, snapshot.grid_depth, value.current_cell);
-            const finish = projectGridCellCenter(schematic, snapshot.grid_width, snapshot.grid_depth, value.target_cell);
+            const start = try projectGridCellCenterInViewport(schematic, viewport, value.current_cell);
+            const finish = try projectGridCellCenterInViewport(schematic, viewport, value.target_cell);
             try std.testing.expect(hasTraceLineOp(
                 trace,
                 start.x,
