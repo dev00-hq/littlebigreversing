@@ -103,7 +103,7 @@ pub const ViewerInteractionState = struct {
 pub const ViewerPostKeyAction = enum {
     none,
     advance_world,
-    apply_exact_zone_effects,
+    apply_validation_zone_effects,
 };
 
 pub const ViewerKeyDownResult = struct {
@@ -133,7 +133,7 @@ const reward_scene_entry: usize = 19;
 const reward_background_entry: usize = 19;
 const reward_object_index: usize = 2;
 
-pub const SecretRoomValidationTarget = enum {
+const SecretRoomValidationTarget = enum {
     key_source,
     key_pickup,
     house_door,
@@ -211,7 +211,7 @@ pub fn seedSessionToLocomotionFixture(room: *const RoomSnapshot, current_session
     return position;
 }
 
-pub fn jumpToSecretRoomValidationTarget(
+fn jumpToSecretRoomValidationTarget(
     room: *const RoomSnapshot,
     current_session: *Session,
     target: SecretRoomValidationTarget,
@@ -637,7 +637,7 @@ pub fn handleKeyDown(
                 .post_key_action = switch (target) {
                     .house_door,
                     .cellar_return,
-                    => if (jumped != null) .apply_exact_zone_effects else .none,
+                    => if (jumped != null) .apply_validation_zone_effects else .none,
                     .key_source,
                     .key_pickup,
                     => .none,
@@ -849,7 +849,7 @@ fn secretRoomValidationChecklistLine(
         return "1 SRC 2 PICK 3 DOOR 4 RET";
     };
     const source_exact = room.background.entry_index == secret_room_background_entry and
-        hasZoneKindNameAndNum(exact_zones, "scenario", 0);
+        hasScenarioZoneNum(exact_zones, 0);
     const door_exact = room.background.entry_index == secret_room_background_entry and
         hasZoneIndex(exact_zones, 0);
     const cellar_return_exact = room.background.entry_index == secret_room_cellar_background_entry and
@@ -875,13 +875,9 @@ fn hasZoneIndex(zone_membership: runtime_locomotion.ZoneMembership, index: usize
     return false;
 }
 
-fn hasZoneKindNameAndNum(
-    zone_membership: runtime_locomotion.ZoneMembership,
-    kind_name: []const u8,
-    num: i16,
-) bool {
+fn hasScenarioZoneNum(zone_membership: runtime_locomotion.ZoneMembership, num: i16) bool {
     for (zone_membership.slice()) |zone| {
-        if (std.mem.eql(u8, @tagName(zone.kind), kind_name) and zone.num == num) return true;
+        if (zone.kind == .scenario and zone.num == num) return true;
     }
     return false;
 }

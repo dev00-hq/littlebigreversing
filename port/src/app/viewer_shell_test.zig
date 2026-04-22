@@ -1506,7 +1506,7 @@ test "viewer secret-room validation hotkeys jump to proof positions" {
         pickup_result.locomotion_status,
         .proof_house_door,
     );
-    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_exact_zone_effects, door_result.post_key_action);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_validation_zone_effects, door_result.post_key_action);
     try std.testing.expectEqual(viewer_shell.WorldPointSnapshot{ .x = 9730, .y = 1025, .z = 762 }, runtime_session.heroWorldPosition());
 
     const tick_result = try viewer_shell.handleKeyDown(

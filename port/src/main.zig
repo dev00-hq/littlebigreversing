@@ -307,25 +307,20 @@ fn applyScheduledWorldStep(
                 try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
             }
         },
-        .apply_exact_zone_effects => {
+        .apply_validation_zone_effects => {
             const exact_zones = try runtime_query.init(room).containingZonesAtWorldPoint(runtime_session.heroWorldPosition());
             const effect_summary = try zone_effects.applyContainingZoneEffects(room, runtime_session, exact_zones.slice());
             try printSecretRoomDoorEvent(stderr, room, runtime_session.*, effect_summary.secret_room_door_event);
             if (effect_summary.triggered_room_transition) {
-                const transition_result = try runtime_transition.applyPendingRoomTransition(
+                try applyPendingTransitionAndPrint(
                     allocator,
                     resolved,
+                    stderr,
                     room,
                     runtime_session,
                     locomotion_status,
                     key_result.locomotion_status,
                 );
-                try printTransitionResult(stderr, transition_result);
-                switch (transition_result) {
-                    .committed => try viewer_shell.printStartupDiagnostics(stderr, allocator, resolved, room),
-                    .rejected => {},
-                }
-                locomotion_status.* = try locomotion.inspectCurrentStatus(room, runtime_session.*);
             } else {
                 locomotion_status.* = key_result.locomotion_status;
             }
@@ -339,20 +334,15 @@ fn applyScheduledWorldStep(
             const tick_result = try runtime_update.tick(room, runtime_session);
             try printSecretRoomDoorEvent(stderr, room, runtime_session.*, tick_result.secret_room_door_event);
             if (tick_result.triggered_room_transition) {
-                const transition_result = try runtime_transition.applyPendingRoomTransition(
+                try applyPendingTransitionAndPrint(
                     allocator,
                     resolved,
+                    stderr,
                     room,
                     runtime_session,
                     locomotion_status,
                     tick_result.locomotion_status,
                 );
-                try printTransitionResult(stderr, transition_result);
-                switch (transition_result) {
-                    .committed => try viewer_shell.printStartupDiagnostics(stderr, allocator, resolved, room),
-                    .rejected => {},
-                }
-                try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
             } else {
                 locomotion_status.* = tick_result.locomotion_status;
                 if (tick_result.consumed_hero_intent or key_result.should_print_locomotion_diagnostic) {
@@ -373,6 +363,32 @@ fn applyScheduledWorldStep(
             }
         },
     }
+}
+
+fn applyPendingTransitionAndPrint(
+    allocator: std.mem.Allocator,
+    resolved: paths.ResolvedPaths,
+    stderr: anytype,
+    room: *viewer_shell.RoomSnapshot,
+    runtime_session: *viewer_shell.Session,
+    locomotion_status: *viewer_shell.ViewerLocomotionStatus,
+    pre_transition_locomotion_status: viewer_shell.ViewerLocomotionStatus,
+) !void {
+    const transition_result = try runtime_transition.applyPendingRoomTransition(
+        allocator,
+        resolved,
+        room,
+        runtime_session,
+        locomotion_status,
+        pre_transition_locomotion_status,
+    );
+    try printTransitionResult(stderr, transition_result);
+    switch (transition_result) {
+        .committed => try viewer_shell.printStartupDiagnostics(stderr, allocator, resolved, room),
+        .rejected => {},
+    }
+    locomotion_status.* = try locomotion.inspectCurrentStatus(room, runtime_session.*);
+    try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
 }
 
 fn printSecretRoomDoorEvent(
@@ -622,7 +638,7 @@ test "viewer secret-room validation door probes consume keys and return freely" 
         locomotion_status,
         .proof_house_door,
     );
-    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_exact_zone_effects, locked_result.post_key_action);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_validation_zone_effects, locked_result.post_key_action);
 
     var output: std.ArrayList(u8) = .empty;
     defer output.deinit(allocator);
@@ -680,7 +696,7 @@ test "viewer secret-room validation door probes consume keys and return freely" 
         locomotion_status,
         .proof_cellar_return,
     );
-    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_exact_zone_effects, return_result.post_key_action);
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_validation_zone_effects, return_result.post_key_action);
     try applyScheduledWorldStep(
         allocator,
         resolved,
