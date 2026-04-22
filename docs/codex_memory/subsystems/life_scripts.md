@@ -15,7 +15,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - `life_audit.zig` / `audit-life-programs` is canonical inventory.
 - Guarded `19/19` object `2` has live-backed `Divers=5` multi-bonus semantics.
 - `0013` key source is default action: W sets `ActionNormal`; `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0` gate `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
-- `0013` key spawn/pickup is Frida poll-only proved: `SPRITE_CLE` at `(3072,3072,5120)`, `Divers=1`, then `NbLittleKeys 0 -> 1`; writer `0x0041737c` matches generic `SPRITE_CLE`.
+- `0013` key pickup is Frida poll-only proved: `SPRITE_CLE` from `(3072,3072,5120)`, `Divers=1`, `NbLittleKeys 0 -> 1`; port pickup uses the landing surface and regresses pickup plus both doors.
 - Room `36` keeps dialog id `3` across both visible Sendell pages and clears after the second ack.
 - `waypoint_step_probe.py` owns debug-control outcomes; `collision_observer.py` is diagnostic-only.
 

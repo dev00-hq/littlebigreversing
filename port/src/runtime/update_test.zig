@@ -8,6 +8,7 @@ const locomotion = @import("locomotion.zig");
 const room_state = @import("room_state.zig");
 const runtime_query = @import("world_query.zig");
 const runtime_session = @import("session.zig");
+const runtime_transition = @import("transition.zig");
 const runtime_update = @import("update.zig");
 const zone_effects = @import("zone_effects.zig");
 
@@ -79,6 +80,24 @@ fn rewardLandingWorldPosition(cell: locomotion.GridCell) locomotion.WorldPointSn
 
 fn rewardStagingWorldPosition() locomotion.WorldPointSnapshot {
     return rewardLandingWorldPosition(reward_staging_cell);
+}
+
+fn standablePositionAtWorldXZ(
+    room: *const room_state.RoomSnapshot,
+    world_x: i32,
+    world_z: i32,
+) !locomotion.WorldPointSnapshot {
+    const query = runtime_query.init(room);
+    const cell = try query.gridCellAtWorldPoint(world_x, world_z);
+    const surface = try query.cellTopSurface(cell.x, cell.z);
+    if (runtime_query.standabilityForSurface(surface) != .standable) {
+        return error.WorldPointNotStandable;
+    }
+    return .{
+        .x = world_x,
+        .y = surface.top_y,
+        .z = world_z,
+    };
 }
 
 fn primeScene1919RewardBurst(
@@ -493,6 +512,90 @@ test "runtime zone effects consume one key for the live-backed reverse secret-ro
     try std.testing.expectEqual(@as(i32, 0), transition.yaw);
     try std.testing.expect(!transition.test_brick);
     try std.testing.expect(!transition.dont_readjust_twinsen);
+}
+
+test "runtime 0013 key seam carries through update-owned pickup and reverse secret-room door" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+
+    current_session.setHeroWorldPosition(.{ .x = 1280, .y = 2048, .z = 5376 });
+    try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
+
+    try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(0));
+    try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+    try std.testing.expectEqual(@as(usize, 1), current_session.rewardCollectibles().len);
+
+    current_session.setHeroWorldPosition(try standablePositionAtWorldXZ(&room, 3826, 4366));
+    var pickup_attempts: usize = 0;
+    while (current_session.littleKeyCount() == 0 and pickup_attempts < 6) : (pickup_attempts += 1) {
+        const pickup_tick = try runtime_update.tick(&room, &current_session);
+        try std.testing.expect(!pickup_tick.triggered_room_transition);
+    }
+
+    try std.testing.expectEqual(@as(u8, 1), current_session.littleKeyCount());
+    try std.testing.expectEqual(@as(usize, 0), current_session.rewardCollectibles().len);
+    try std.testing.expectEqual(@as(usize, 1), current_session.rewardPickupEvents().len);
+    try std.testing.expectEqual(runtime_session.RuntimeBonusKind.little_key, current_session.rewardPickupEvents()[0].kind);
+
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
+    current_session.setHeroWorldPosition(.{ .x = 9730, .y = 1025, .z = 762 });
+    var door_zone_membership: runtime_query.ContainingZoneSet = .{};
+    try door_zone_membership.append(room.scene.zones[0]);
+    const forward_effect = try zone_effects.applyContainingZoneEffects(&room, &current_session, door_zone_membership.slice());
+    try std.testing.expect(forward_effect.triggered_room_transition);
+    try std.testing.expectEqual(@as(u8, 1), current_session.littleKeyCount());
+
+    const forward_transition = try runtime_transition.applyPendingRoomTransition(
+        allocator,
+        resolved,
+        &room,
+        &current_session,
+        &locomotion_status,
+        locomotion_status,
+    );
+    switch (forward_transition) {
+        .committed => |value| {
+            try std.testing.expectEqual(@as(usize, 2), value.destination_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 0), value.destination_background_entry_index);
+            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 2562, .y = 2048, .z = 3322 }, value.hero_position);
+        },
+        .rejected => return error.UnexpectedRejectedRoomTransition,
+    }
+    try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 0), room.background.entry_index);
+
+    locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
+    current_session.setHeroWorldPosition(.{ .x = 3056, .y = 2048, .z = 3659 });
+    const reverse_effect = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
+    try std.testing.expect(reverse_effect.triggered_room_transition);
+    try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+
+    const reverse_transition = try runtime_transition.applyPendingRoomTransition(
+        allocator,
+        resolved,
+        &room,
+        &current_session,
+        &locomotion_status,
+        locomotion_status,
+    );
+    switch (reverse_transition) {
+        .committed => |value| {
+            try std.testing.expectEqual(@as(usize, 2), value.destination_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 1), value.destination_background_entry_index);
+            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9725, .y = 1024, .z = 1098 }, value.hero_position);
+        },
+        .rejected => return error.UnexpectedRejectedRoomTransition,
+    }
+    try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 1), room.background.entry_index);
+    try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
 }
 
 test "guarded 2/2 has one enabled cube-0 change-cube seam and it is zone 0" {

@@ -7,6 +7,7 @@ const room_fixtures = @import("../testing/room_fixtures.zig");
 const room_state = @import("room_state.zig");
 const object_behavior = @import("object_behavior.zig");
 const dialog_pagination = @import("dialog_pagination.zig");
+const runtime_query = @import("world_query.zig");
 const runtime_session = @import("session.zig");
 
 const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
@@ -135,10 +136,14 @@ test "runtime object behavior applies guarded 2/1 default action to spawn the li
     try std.testing.expectEqual(@as(u8, 1), spawn_event.quantity);
 
     const key = current_session.rewardCollectibles()[0];
+    const key_landing_cell = try runtime_query.init(&room).gridCellAtWorldPoint(3826, 4366);
+    const key_landing_surface = try runtime_query.init(&room).cellTopSurface(key_landing_cell.x, key_landing_cell.z);
     try std.testing.expectEqual(@as(usize, 7), key.source_object_index);
     try std.testing.expectEqual(runtime_session.RuntimeBonusKind.little_key, key.kind);
     try std.testing.expectEqual(@as(i16, 6), key.sprite_index);
     try std.testing.expectEqual(@as(u8, 1), key.quantity);
+    try std.testing.expectEqual(key_landing_cell, key.admitted_surface_cell);
+    try std.testing.expectEqual(key_landing_surface.top_y, key.admitted_surface_top_y);
     try std.testing.expectEqual(@as(i32, 3072), key.motion_start_world_position.x);
     try std.testing.expectEqual(@as(i32, 3072), key.motion_start_world_position.y);
     try std.testing.expectEqual(@as(i32, 5120), key.motion_start_world_position.z);

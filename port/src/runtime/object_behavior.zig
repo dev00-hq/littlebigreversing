@@ -222,8 +222,11 @@ fn applySecretRoomDefaultAction(
     if (current_session.gameVar(secret_room_key_var_game_index) != 0 or hasSecretRoomKeyCollectible(current_session.*)) return;
     if (!try heroInsideSecretRoomKeyScenarioZone(query, current_session.heroWorldPosition())) return;
 
-    const hero_position = current_session.heroWorldPosition();
-    const hero_cell = try query.gridCellAtWorldPoint(hero_position.x, hero_position.z);
+    const key_landing_cell = try query.gridCellAtWorldPoint(
+        secret_room_key_motion_target_world_position.x,
+        secret_room_key_motion_target_world_position.z,
+    );
+    const key_landing_surface = try query.cellTopSurface(key_landing_cell.x, key_landing_cell.z);
 
     try current_session.appendBonusSpawnEvent(.{
         .frame_index = current_session.frame_index,
@@ -238,8 +241,8 @@ fn applySecretRoomDefaultAction(
         .kind = .little_key,
         .sprite_index = secret_room_key_sprite_index,
         .quantity = secret_room_key_quantity,
-        .admitted_surface_cell = hero_cell,
-        .admitted_surface_top_y = hero_position.y,
+        .admitted_surface_cell = key_landing_cell,
+        .admitted_surface_top_y = key_landing_surface.top_y,
         .scatter_slot = 0,
         .rebound_count = 0,
         .settled = false,
