@@ -25,7 +25,7 @@
 - Guarded `19/19` pickup gating is still admitted footing plus same-`top_y` and proximity, not proved same-surface/floor-band.
 - Guarded `2/2` `change_cube` is exterior-facing, not an interior handoff proof.
 - `3/3` is not a solved cellar handoff; zone `1` live-proves globals but lands in the wrong scene, and zone `8` remains unproved.
-- Room `36/36` page 2 is renderer pagination; port mid-dialog load reconstructs page 1 from durable magic/flag state.
+- Room `36/36` page 2 is renderer pagination; save/load is unsupported while dialog is active.
 - Wall mapping is deferred.
 - `inspect-room 219 219 --json` still fails with `InvalidFragmentZoneBounds`.
 
@@ -37,7 +37,7 @@
 - Frida rule: internal `DoLifeLoop` instruction sites use function/probe form; live `SPRITE_CLE` proof is enough for `0013`.
 - Otherwise choose the next bounded Phase 5 seam from an existing guarded gameplay slice.
 - Treat guarded `19/19` reward-model work as settled unless a pickup-surface bug or contradiction appears.
-- Use `dialog_text_dump.py` only if room-36 needs more original-runtime proof.
+- Use `dialog_text_dump.py` only if room-36 needs more original-runtime proof; do not model save/load during active dialog.
 
 ## Relevant Subsystem Packs
 
