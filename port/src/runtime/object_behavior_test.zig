@@ -157,6 +157,46 @@ test "runtime object behavior applies guarded 2/1 default action to spawn the li
     try std.testing.expectEqual(@as(usize, 1), current_session.bonusSpawnEvents().len);
 }
 
+test "runtime object behavior opens and clears scene-2 cellar message zones" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{ .x = 7680, .y = 2048, .z = 768 });
+
+    try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
+    try std.testing.expectEqual(@as(?i16, 284), current_session.currentDialogId());
+    try std.testing.expect(object_behavior.cellarMessageAwaitsAdvance(&room, current_session));
+
+    try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
+    try std.testing.expectEqual(@as(?i16, 284), current_session.currentDialogId());
+
+    try object_behavior.applyHeroIntent(&room, &current_session, .advance_story);
+    try std.testing.expectEqual(@as(?i16, null), current_session.currentDialogId());
+    try std.testing.expect(!object_behavior.cellarMessageAwaitsAdvance(&room, current_session));
+}
+
+test "runtime object behavior ignores scene-2 cellar default action outside message zones" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{ .x = 2562, .y = 2048, .z = 3322 });
+
+    try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
+    try std.testing.expectEqual(@as(?i16, null), current_session.currentDialogId());
+}
+
 test "runtime object behavior ignores default action outside implemented key-source rooms" {
     const room = try room_fixtures.guarded22();
 

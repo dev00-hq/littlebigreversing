@@ -469,7 +469,9 @@ pub fn handleKeyDown(
 ) !ViewerKeyDownResult {
     switch (key) {
         .enter => {
-            if (runtime_object_behavior.sendellStoryAwaitsAdvance(room, current_session.*)) {
+            if (runtime_object_behavior.sendellStoryAwaitsAdvance(room, current_session.*) or
+                runtime_object_behavior.cellarMessageAwaitsAdvance(room, current_session.*))
+            {
                 try current_session.submitHeroIntent(.advance_story);
                 return .{
                     .interaction = interaction,
@@ -691,6 +693,8 @@ pub fn formatGameplayOverlayDisplay(
 ) ViewerDialogOverlayDisplay {
     const sendell_overlay = formatSendellDialogOverlayDisplay(room, current_session);
     if (sendell_overlay.line_count != 0) return sendell_overlay;
+    const cellar_message_overlay = formatCellarMessageOverlayDisplay(buffer, room, current_session);
+    if (cellar_message_overlay.line_count != 0) return cellar_message_overlay;
     const secret_room_overlay = formatSecretRoomKeyOverlayDisplay(buffer, room, current_session);
     if (secret_room_overlay.line_count != 0) return secret_room_overlay;
     const reward_overlay = formatScene1919RewardOverlayDisplay(buffer, room, current_session);
@@ -744,6 +748,49 @@ pub fn formatSendellDialogOverlayDisplay(
             };
         },
         else => .{},
+    };
+}
+
+pub fn formatCellarMessageOverlayDisplay(
+    buffer: *ViewerDialogOverlayDisplayBuffer,
+    room: *const RoomSnapshot,
+    current_session: Session,
+) ViewerDialogOverlayDisplay {
+    if (!runtime_object_behavior.cellarMessageAwaitsAdvance(room, current_session)) return .{};
+    const dialog_id = current_session.currentDialogId() orelse return .{};
+    const hero_position = current_session.heroWorldPosition();
+    const zones = runtime_query.init(room).containingZonesAtWorldPoint(hero_position) catch return .{};
+    const message_zone = currentCellarMessageZone(zones, dialog_id);
+    const line_0 = std.fmt.bufPrint(
+        &buffer.line_0,
+        "DIALOG {d}",
+        .{dialog_id},
+    ) catch unreachable;
+    const line_1 = if (message_zone) |zone|
+        std.fmt.bufPrint(
+            &buffer.line_1,
+            "ZONE {d} FACING {s}",
+            .{ zone.index, cellarMessageFacingLabel(zone) },
+        ) catch unreachable
+    else
+        "ZONE NONE";
+    const line_2 = std.fmt.bufPrint(
+        &buffer.line_2,
+        "POS {d} {d} {d}",
+        .{ hero_position.x, hero_position.y, hero_position.z },
+    ) catch unreachable;
+
+    return .{
+        .title = "CELLAR MESSAGE",
+        .nav_title = "NAV / MESSAGE",
+        .line_count = 4,
+        .lines = .{
+            line_0,
+            line_1,
+            line_2,
+            "ENTER ACK",
+        },
+        .accent = .{ .r = 112, .g = 196, .b = 255, .a = 255 },
     };
 }
 
@@ -880,6 +927,24 @@ fn hasScenarioZoneNum(zone_membership: runtime_locomotion.ZoneMembership, num: i
         if (zone.kind == .scenario and zone.num == num) return true;
     }
     return false;
+}
+
+fn currentCellarMessageZone(
+    zone_membership: runtime_locomotion.ZoneMembership,
+    dialog_id: i16,
+) ?ZoneBoundsSnapshot {
+    for (zone_membership.slice()) |zone| switch (zone.semantics) {
+        .message => |message| if (message.dialog_id == dialog_id) return zone,
+        else => {},
+    };
+    return null;
+}
+
+fn cellarMessageFacingLabel(zone: ZoneBoundsSnapshot) []const u8 {
+    return switch (zone.semantics) {
+        .message => |message| @tagName(message.facing_direction),
+        else => "unknown",
+    };
 }
 
 fn yesNo(value: bool) []const u8 {

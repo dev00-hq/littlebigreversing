@@ -17,6 +17,7 @@ const supported_background_entry_index: usize = 19;
 const supported_object_index: usize = 2;
 const secret_room_scene_entry_index: usize = 2;
 const secret_room_background_entry_index: usize = 1;
+const secret_room_cellar_background_entry_index: usize = 0;
 const secret_room_key_source_index: usize = 7;
 const secret_room_key_scenario_zone_num: i16 = 0;
 const secret_room_key_var_game_index: u8 = 0;
@@ -123,7 +124,7 @@ pub fn applyHeroIntent(
     switch (intent) {
         .cast_lightning => try applyScene3636CastLightning(room, current_session),
         .default_action => try applySecretRoomDefaultAction(room, current_session),
-        .advance_story => try applyScene3636AdvanceStory(room, current_session),
+        .advance_story => try applyAdvanceStory(room, current_session),
         .move_cardinal => return error.UnsupportedObjectBehaviorHeroIntent,
     }
 }
@@ -144,14 +145,26 @@ pub fn sendellStoryAwaitsAdvance(
     };
 }
 
+pub fn cellarMessageAwaitsAdvance(
+    room: *const room_state.RoomSnapshot,
+    current_session: runtime_session.Session,
+) bool {
+    if (room.scene.entry_index != secret_room_scene_entry_index or
+        room.background.entry_index != secret_room_cellar_background_entry_index)
+    {
+        return false;
+    }
+    const dialog_id = current_session.currentDialogId() orelse return false;
+    return isScene2CellarMessageDialog(dialog_id);
+}
+
 pub fn currentSendellDialogSlice(current_session: runtime_session.Session) ?SendellDialogSlice {
     const dialog_id = current_session.currentDialogId() orelse return null;
     if (dialog_id != sendell_first_dialog_id) return null;
     const object_behavior = current_session.objectBehaviorStateByIndex(sendell_object_index) orelse return null;
     const split = dialog_pagination.splitTextAtCursor(sendell_dialog_record_text, sendell_page_boundary_offset);
     return switch (object_behavior.sendell_ball_phase) {
-        .awaiting_dialog_open,
-        .awaiting_first_dialog_ack => .{
+        .awaiting_dialog_open, .awaiting_first_dialog_ack => .{
             .page_number = 1,
             .visible_text = split.text_before_cursor,
             .next_text = split.text_from_cursor,
@@ -215,9 +228,15 @@ fn applySecretRoomDefaultAction(
     room: *const room_state.RoomSnapshot,
     current_session: *runtime_session.Session,
 ) !void {
-    if (room.scene.entry_index != secret_room_scene_entry_index or room.background.entry_index != secret_room_background_entry_index) {
+    if (room.scene.entry_index != secret_room_scene_entry_index) {
         return;
     }
+    if (room.background.entry_index == secret_room_cellar_background_entry_index) {
+        try applyScene2CellarMessageAction(room, current_session);
+        return;
+    }
+    if (room.background.entry_index != secret_room_background_entry_index) return;
+
     const query = runtime_query.init(room);
     if (current_session.gameVar(secret_room_key_var_game_index) != 0 or hasSecretRoomKeyCollectible(current_session.*)) return;
     if (!try heroInsideSecretRoomKeyScenarioZone(query, current_session.heroWorldPosition())) return;
@@ -254,6 +273,23 @@ fn applySecretRoomDefaultAction(
         .world_position = secret_room_key_motion_start_world_position,
     });
     current_session.setGameVar(secret_room_key_var_game_index, 1);
+}
+
+fn applyScene2CellarMessageAction(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+) !void {
+    if (current_session.currentDialogId() != null) return;
+
+    const zones = try runtime_query.init(room).containingZonesAtWorldPoint(current_session.heroWorldPosition());
+    for (zones.slice()) |zone| switch (zone.semantics) {
+        .message => |message| {
+            if (!isScene2CellarMessageDialog(message.dialog_id)) continue;
+            try setCurrentDialogId(current_session, message.dialog_id);
+            return;
+        },
+        else => {},
+    };
 }
 
 fn hasSecretRoomKeyCollectible(current_session: runtime_session.Session) bool {
@@ -297,9 +333,27 @@ fn applyScene3636AdvanceStory(
     }
 }
 
+fn applyAdvanceStory(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+) !void {
+    if (cellarMessageAwaitsAdvance(room, current_session.*)) {
+        current_session.clearCurrentDialogId();
+        return;
+    }
+    try applyScene3636AdvanceStory(room, current_session);
+}
+
 fn setCurrentDialogId(current_session: *runtime_session.Session, dialog_id: i16) !void {
     current_session.clearCurrentDialogId();
     try current_session.setCurrentDialogId(dialog_id);
+}
+
+fn isScene2CellarMessageDialog(dialog_id: i16) bool {
+    return switch (dialog_id) {
+        33, 283, 284 => true,
+        else => false,
+    };
 }
 
 fn executeScene1919Object2Life(

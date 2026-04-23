@@ -1396,6 +1396,64 @@ test "viewer key handling routes 0013 default action through queued runtime inte
     try std.testing.expectEqualStrings("LAST KEY 1@0", overlay.lines[3]);
 }
 
+test "viewer key handling routes scene-2 cellar message actions through runtime intents" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    var snapshot_session = try initViewerSession(&room);
+    defer snapshot_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(&room, snapshot_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+
+    var runtime_session = try initViewerSession(&room);
+    defer runtime_session.deinit(allocator);
+    runtime_session.setHeroWorldPosition(.{ .x = 7680, .y = 2048, .z = 768 });
+    const initial_status = try runtime_locomotion.inspectCurrentStatus(&room, runtime_session);
+    const interaction = viewer_shell.initialInteractionState(catalog);
+
+    const action_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        catalog,
+        interaction,
+        initial_status,
+        .w,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, action_result.post_key_action);
+    try std.testing.expectEqual(runtime_locomotion.HeroIntent.default_action, runtime_session.pendingHeroIntent().?);
+
+    const action_tick = try runtime_update.tick(&room, &runtime_session);
+    try std.testing.expect(action_tick.consumed_hero_intent);
+    try std.testing.expectEqual(@as(?i16, 284), runtime_session.currentDialogId());
+
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
+    try std.testing.expectEqualStrings("CELLAR MESSAGE", overlay.title);
+    try std.testing.expectEqualStrings("NAV / MESSAGE", overlay.nav_title);
+    try std.testing.expectEqualStrings("DIALOG 284", overlay.lines[0]);
+    try std.testing.expectEqualStrings("ZONE 6 FACING north", overlay.lines[1]);
+    try std.testing.expectEqualStrings("ENTER ACK", overlay.lines[3]);
+
+    const clear_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        catalog,
+        interaction,
+        action_tick.locomotion_status,
+        .enter,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, clear_result.post_key_action);
+    try std.testing.expectEqual(runtime_locomotion.HeroIntent.advance_story, runtime_session.pendingHeroIntent().?);
+
+    _ = try runtime_update.tick(&room, &runtime_session);
+    try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
+}
+
 test "viewer key handling lets default action no-op in guarded house room" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded22();
