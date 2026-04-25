@@ -202,10 +202,10 @@ fn formatDiagnostic(
     allocator: std.mem.Allocator,
     status: viewer_shell.ViewerLocomotionStatus,
 ) ![]u8 {
-    var output: std.ArrayList(u8) = .empty;
-    errdefer output.deinit(allocator);
-    try viewer_shell.printLocomotionStatusDiagnostic(output.writer(allocator), status);
-    return output.toOwnedSlice(allocator);
+    var output: std.Io.Writer.Allocating = .init(allocator);
+    errdefer output.deinit();
+    try viewer_shell.printLocomotionStatusDiagnostic(&output.writer, status);
+    return output.toOwnedSlice();
 }
 
 fn formatOptionalCellValue(buffer: []u8, cell: ?viewer_shell.GridCell) ![]const u8 {
@@ -312,8 +312,7 @@ fn formatMoveOptionsDiagnosticValue(
     move_options: viewer_shell.ViewerMoveOptions,
 ) ![]const u8 {
     var cell_buffers: [4][16]u8 = undefined;
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     for (move_options.options, 0..) |option, index| {
         if (index != 0) try writer.writeAll(",");
         try writer.print(
@@ -328,7 +327,7 @@ fn formatMoveOptionsDiagnosticValue(
             },
         );
     }
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 fn formatZoneDiagnosticValue(
@@ -338,13 +337,12 @@ fn formatZoneDiagnosticValue(
     const zones = zone_membership.slice();
     if (zones.len == 0) return "none";
 
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     for (zones, 0..) |zone, index| {
         if (index != 0) writer.writeAll("|") catch unreachable;
         writer.print("{d}", .{zone.index}) catch unreachable;
     }
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 fn formatRawInvalidStartCandidateHudLine(
@@ -444,8 +442,7 @@ fn formatLocalTopologyHudLine(
     local_topology: viewer_shell.ViewerLocalNeighborTopology,
 ) ![]const u8 {
     var token_buffers: [4][16]u8 = undefined;
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     try writer.writeAll("TOPO ");
     for (local_topology.neighbors, 0..) |neighbor, index| {
         if (index != 0) try writer.writeAll(" ");
@@ -457,7 +454,7 @@ fn formatLocalTopologyHudLine(
             },
         );
     }
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 fn formatLocalTopologyDiagnosticValue(
@@ -467,8 +464,7 @@ fn formatLocalTopologyDiagnosticValue(
     var cell_buffers: [4][16]u8 = undefined;
     var standability_buffers: [4][16]u8 = undefined;
     var delta_buffers: [4][16]u8 = undefined;
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     for (local_topology.neighbors, 0..) |neighbor, index| {
         if (index != 0) try writer.writeAll(",");
         try writer.print(
@@ -482,7 +478,7 @@ fn formatLocalTopologyDiagnosticValue(
             },
         );
     }
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 fn formatCurrentFootingHudLine(
@@ -604,11 +600,11 @@ test "viewer startup diagnostics include the guarded 19/19 neighbor pattern summ
 
     const room = try room_fixtures.guarded1919();
 
-    var output: std.ArrayList(u8) = .empty;
-    defer output.deinit(allocator);
-    try viewer_shell.printStartupDiagnostics(output.writer(allocator), allocator, resolved, room);
+    var output: std.Io.Writer.Allocating = .init(allocator);
+    defer output.deinit();
+    try viewer_shell.printStartupDiagnostics(&output.writer, allocator, resolved, room);
 
-    const rendered = try output.toOwnedSlice(allocator);
+    const rendered = try output.toOwnedSlice();
     defer allocator.free(rendered);
 
     try std.testing.expect(std.mem.indexOf(
@@ -1079,6 +1075,7 @@ test "viewer rejected move display tolerates out-of-bounds targets" {
 test "viewer locomotion fixture seeding widens to guarded-positive rooms beyond 19/19" {
     try expectNearestStandableSeed(try room_fixtures.guarded22());
     try expectNearestStandableSeed(try room_fixtures.guarded1110());
+    try expectNearestStandableSeed(try room_fixtures.guarded187187());
 }
 
 test "viewer render snapshots prefer runtime-owned object positions over immutable room positions" {

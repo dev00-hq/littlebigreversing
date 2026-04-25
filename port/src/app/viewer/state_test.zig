@@ -289,6 +289,13 @@ test "viewer room snapshot now admits the widened guarded interior set" {
     defer room_1110.deinit(allocator);
     try std.testing.expectEqual(@as(usize, 11), room_1110.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 1), room_1110.background.fragments.fragment_count);
+
+    const room_187187 = try state.loadRoomSnapshot(allocator, resolved, 187, 187);
+    defer room_187187.deinit(allocator);
+    try std.testing.expectEqual(@as(usize, 187), room_187187.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 187), room_187187.background.entry_index);
+    try std.testing.expectEqual(@as(usize, 2), room_187187.background.fragments.fragment_count);
+    try std.testing.expectEqual(@as(usize, 2), room_187187.fragment_zones.len);
 }
 
 test "viewer room snapshot rejects 44/2 as exterior on both guarded and unchecked paths" {

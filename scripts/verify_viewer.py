@@ -492,6 +492,7 @@ def main(argv: list[str] | None = None) -> int:
         test_inspect_room_success(2, 0, expected_fragments=0, expected_grm_entry=149),
         test_inspect_room_success(2, 2, expected_fragments=0, expected_grm_entry=149),
         test_inspect_room_success(11, 10, expected_fragments=1, expected_grm_entry=149),
+        test_inspect_room_success(187, 187, expected_fragments=2, expected_grm_entry=173),
     ]
     inspect_failure_results = [
         test_inspect_room_failure(44, 2, "ViewerSceneMustBeInterior"),
@@ -540,6 +541,14 @@ def main(argv: list[str] | None = None) -> int:
             expected_fragments=1,
             expected_stderr_fragments=[
                 "best_alt_mapping=none",
+            ],
+        ),
+        test_viewer_launch_success(
+            187,
+            187,
+            expected_fragments=2,
+            expected_stderr_fragments=[
+                "best_alt_mapping=dense_swapped_axes_64:64:49/41:surface_height_mismatch:diagnostic_candidate_only_materially_better:3:0",
             ],
         ),
     ]

@@ -3,12 +3,19 @@ const paths_mod = @import("../foundation/paths.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const scene_data = @import("../game_data/scene.zig");
+const process = @import("../foundation/process.zig");
 const room_state = @import("../runtime/room_state.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 
+fn tempDirAbsolutePathAlloc(allocator: std.mem.Allocator, tmp: *const std.testing.TmpDir, sub_path: []const u8) ![]u8 {
+    const cwd = try std.process.currentPathAlloc(std.testing.io, allocator);
+    defer allocator.free(cwd);
+    return std.fs.path.join(allocator, &.{ cwd, ".zig-cache", "tmp", &tmp.sub_path, sub_path });
+}
+
 fn requireToolPathAlloc(allocator: std.mem.Allocator) ![]u8 {
-    return std.process.getEnvVarOwned(allocator, "LBA2_TOOL_PATH") catch |err| switch (err) {
-        error.EnvironmentVariableNotFound => error.MissingToolPath,
+    return std.process.Environ.getAlloc(.{ .block = .global }, allocator, "LBA2_TOOL_PATH") catch |err| switch (err) {
+        error.EnvironmentVariableMissing => error.MissingToolPath,
         else => err,
     };
 }
@@ -17,7 +24,7 @@ fn runToolCommandAlloc(
     allocator: std.mem.Allocator,
     repo_root: []const u8,
     tool_args: []const []const u8,
-) !std.process.Child.RunResult {
+) !std.process.RunResult {
     const tool_path = try requireToolPathAlloc(allocator);
     defer allocator.free(tool_path);
 
@@ -26,11 +33,11 @@ fn runToolCommandAlloc(
     try argv.append(allocator, tool_path);
     try argv.appendSlice(allocator, tool_args);
 
-    return std.process.Child.run(.{
-        .allocator = allocator,
+    return std.process.run(allocator, process.currentIo(), .{
         .argv = argv.items,
-        .cwd = repo_root,
-        .max_output_bytes = 8 * 1024 * 1024,
+        .cwd = .{ .path = repo_root },
+        .stdout_limit = .limited(8 * 1024 * 1024),
+        .stderr_limit = .limited(8 * 1024 * 1024),
     });
 }
 
@@ -39,14 +46,14 @@ fn runToolCommandToFileAlloc(
     repo_root: []const u8,
     tool_args: []const []const u8,
 ) !struct {
-    result: std.process.Child.RunResult,
+    result: std.process.RunResult,
     output_path: []u8,
     output_bytes: []u8,
 } {
     var tmp = std.testing.tmpDir(.{});
     errdefer tmp.cleanup();
 
-    const tmp_root = try tmp.dir.realpathAlloc(allocator, ".");
+    const tmp_root = try tempDirAbsolutePathAlloc(allocator, &tmp, ".");
     errdefer allocator.free(tmp_root);
     const output_path = try std.fs.path.join(allocator, &.{ tmp_root, "room-intelligence.json" });
     errdefer allocator.free(output_path);
@@ -62,9 +69,12 @@ fn runToolCommandToFileAlloc(
         allocator.free(result.stderr);
     }
 
-    var output_file = try std.fs.openFileAbsolute(output_path, .{});
-    defer output_file.close();
-    const output_bytes = try output_file.readToEndAlloc(allocator, 8 * 1024 * 1024);
+    const io = process.currentIo();
+    var output_file = try std.Io.Dir.openFileAbsolute(io, output_path, .{});
+    defer output_file.close(io);
+    var output_buffer: [4096]u8 = undefined;
+    var output_reader = output_file.reader(io, &output_buffer);
+    const output_bytes = try output_reader.interface.allocRemaining(allocator, .limited(8 * 1024 * 1024));
     errdefer allocator.free(output_bytes);
 
     tmp.cleanup();
@@ -79,7 +89,7 @@ fn runToolCommandToFileAlloc(
 
 fn expectExited(term: std.process.Child.Term, code: u8) !void {
     switch (term) {
-        .Exited => |actual| try std.testing.expectEqual(code, actual),
+        .exited => |actual| try std.testing.expectEqual(code, actual),
         else => return error.UnexpectedChildTermination,
     }
 }
@@ -165,6 +175,14 @@ test "inspect-room widened guarded admissions stay covered outside the fast shar
     try std.testing.expectEqual(@as(usize, 11), guarded_1110.scene.entry_index);
     try std.testing.expectEqualStrings("interior", guarded_1110.scene.scene_kind);
     try std.testing.expectEqual(@as(usize, 10), guarded_1110.background.entry_index);
+    try std.testing.expectEqual(@as(usize, 1), guarded_1110.background.fragments.fragment_count);
+
+    const guarded_187187 = try room_fixtures.guarded187187();
+    try std.testing.expectEqual(@as(usize, 187), guarded_187187.scene.entry_index);
+    try std.testing.expectEqualStrings("interior", guarded_187187.scene.scene_kind);
+    try std.testing.expectEqual(@as(usize, 187), guarded_187187.background.entry_index);
+    try std.testing.expectEqual(@as(usize, 2), guarded_187187.background.fragments.fragment_count);
+    try std.testing.expectEqual(@as(usize, 2), guarded_187187.fragment_zones.len);
 
     try std.testing.expectError(
         error.ViewerSceneMustBeInterior,
@@ -903,24 +921,30 @@ test "inspect-room-intelligence emits machine-facing JSON for malformed archives
 
     const scene_source = try std.fs.path.join(allocator, &.{ resolved.asset_root, "SCENE.HQR" });
     defer allocator.free(scene_source);
-    const scene_bytes = try std.fs.cwd().readFileAlloc(allocator, scene_source, 64 * 1024 * 1024);
+    const scene_bytes = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        scene_source,
+        allocator,
+        .limited(64 * 1024 * 1024),
+    );
     defer allocator.free(scene_bytes);
 
-    try tmp.dir.writeFile(.{
+    try tmp.dir.writeFile(std.testing.io, .{
         .sub_path = "SCENE.HQR",
         .data = scene_bytes[0 .. scene_bytes.len - 1],
     });
 
     const background_source = try std.fs.path.join(allocator, &.{ resolved.asset_root, "LBA_BKG.HQR" });
     defer allocator.free(background_source);
-    try std.fs.cwd().copyFile(
+    try std.Io.Dir.cwd().copyFile(
         background_source,
         tmp.dir,
         "LBA_BKG.HQR",
+        std.testing.io,
         .{},
     );
 
-    const temp_asset_root = try tmp.dir.realpathAlloc(allocator, ".");
+    const temp_asset_root = try tempDirAbsolutePathAlloc(allocator, &tmp, ".");
     defer allocator.free(temp_asset_root);
 
     const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{

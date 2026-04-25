@@ -1,0 +1,11 @@
+event=startup repo_root=D:\repos\reverse\littlebigreversing asset_root=D:\repos\reverse\littlebigreversing\work/_innoextract_full/Speedrun/Windows/LBA2_cdrom/LBA2 work_root=D:\repos\reverse\littlebigreversing\work/port/phase1
+event=room_snapshot scene_kind=interior
+scene_entry_index=187 background_entry_index=187 classic_loader_scene_number=185 hero_x=2656 hero_y=1792 hero_z=3141 object_count=18 zone_count=8 track_count=8
+render_snapshot=objects:17 zones:8 tracks:8
+remapped_cube_index=131 gri_entry_index=132 gri_my_grm=24 grm_entry_index=173 gri_my_bll=10 bll_entry_index=189
+column_table=64x64 offsets=4096 table_bytes=8192 min_offset=8192 max_offset=16501 data_bytes=8321
+composition_tiles=1446 floor0=1446 floor1=0 bounds=x:1..57 z:1..59
+fragments=2 footprint_cells=20 non_empty_cells=20 fragment_zones=2 brick_previews=139
+event=neighbor_pattern_summary origin_cell_count=1446 occupied_surface_count=5432 empty_count=352 out_of_bounds_count=0 missing_top_surface_count=0 standable_neighbor_count=5432 blocked_neighbor_count=0 top_y_delta_buckets=0:5432
+used_block_ids=64 values=2|4|6|7|9|13|22|23|24|25|32|33|34|35|36|37|38|39|40|41|42|43|46|47|49|50|51|52|53|54|55|56|57|58|62|65|66|67|68|69|70|72|73|74|75|78|79|82|83|85|98|99|100|105|113|114|115|118|121|123|124|125|126|145
+event=hero_status status=raw_invalid_start exact_status=mapped_cell_empty diagnostic_status=exact_invalid_candidate_only raw_cell=5/6 occupied_coverage=within_occupied_bounds occupied_bounds=1..57:1..59 occupied_bounds_dx=0 occupied_bounds_dz=0 nearest_occupied=4/10:97:1979:3925850 nearest_standable=4/10:97:1979:3925850 best_alt_mapping=dense_swapped_axes_64:64:49/41:surface_height_mismatch:diagnostic_candidate_only_materially_better:3:0 move_options=unavailable hero_x=2656 hero_y=1792 hero_z=3141

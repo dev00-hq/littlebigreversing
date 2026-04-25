@@ -4,45 +4,71 @@ const room_state = @import("../runtime/room_state.zig");
 const runtime_session = @import("../runtime/session.zig");
 
 var guarded_1919_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-var guarded_1919_once = std.once(initGuarded1919);
+var guarded_1919_initialized = false;
 var guarded_1919_room: ?*const room_state.RoomSnapshot = null;
 var guarded_1919_error: ?anyerror = null;
 
 var guarded_1110_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-var guarded_1110_once = std.once(initGuarded1110);
+var guarded_1110_initialized = false;
 var guarded_1110_room: ?*const room_state.RoomSnapshot = null;
 var guarded_1110_error: ?anyerror = null;
 
 var guarded_22_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-var guarded_22_once = std.once(initGuarded22);
+var guarded_22_initialized = false;
 var guarded_22_room: ?*const room_state.RoomSnapshot = null;
 var guarded_22_error: ?anyerror = null;
 
+var guarded_187187_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+var guarded_187187_initialized = false;
+var guarded_187187_room: ?*const room_state.RoomSnapshot = null;
+var guarded_187187_error: ?anyerror = null;
+
 var guarded_3636_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-var guarded_3636_once = std.once(initGuarded3636);
+var guarded_3636_initialized = false;
 var guarded_3636_room: ?*const room_state.RoomSnapshot = null;
 var guarded_3636_error: ?anyerror = null;
 
 pub fn guarded1919() !*const room_state.RoomSnapshot {
-    guarded_1919_once.call();
+    if (!guarded_1919_initialized) {
+        initGuarded1919();
+        guarded_1919_initialized = true;
+    }
     if (guarded_1919_error) |err| return err;
     return guarded_1919_room orelse return error.MissingGuarded1919Fixture;
 }
 
 pub fn guarded1110() !*const room_state.RoomSnapshot {
-    guarded_1110_once.call();
+    if (!guarded_1110_initialized) {
+        initGuarded1110();
+        guarded_1110_initialized = true;
+    }
     if (guarded_1110_error) |err| return err;
     return guarded_1110_room orelse return error.MissingGuarded1110Fixture;
 }
 
 pub fn guarded22() !*const room_state.RoomSnapshot {
-    guarded_22_once.call();
+    if (!guarded_22_initialized) {
+        initGuarded22();
+        guarded_22_initialized = true;
+    }
     if (guarded_22_error) |err| return err;
     return guarded_22_room orelse return error.MissingGuarded22Fixture;
 }
 
+pub fn guarded187187() !*const room_state.RoomSnapshot {
+    if (!guarded_187187_initialized) {
+        initGuarded187187();
+        guarded_187187_initialized = true;
+    }
+    if (guarded_187187_error) |err| return err;
+    return guarded_187187_room orelse return error.MissingGuarded187187Fixture;
+}
+
 pub fn guarded3636() !*const room_state.RoomSnapshot {
-    guarded_3636_once.call();
+    if (!guarded_3636_initialized) {
+        initGuarded3636();
+        guarded_3636_initialized = true;
+    }
     if (guarded_3636_error) |err| return err;
     return guarded_3636_room orelse return error.MissingGuarded3636Fixture;
 }
@@ -64,6 +90,13 @@ fn initGuarded1110() void {
 fn initGuarded22() void {
     guarded_22_room = loadRoomFixture(&guarded_22_arena, 2, 2, .guarded) catch |err| {
         guarded_22_error = err;
+        return;
+    };
+}
+
+fn initGuarded187187() void {
+    guarded_187187_room = loadRoomFixture(&guarded_187187_arena, 187, 187, .guarded) catch |err| {
+        guarded_187187_error = err;
         return;
     };
 }
@@ -103,16 +136,20 @@ test "memoized room fixtures return stable borrowed snapshots" {
     const second_guarded_1110 = try guarded1110();
     const first_guarded_22 = try guarded22();
     const second_guarded_22 = try guarded22();
+    const first_guarded_187187 = try guarded187187();
+    const second_guarded_187187 = try guarded187187();
     const first_guarded_3636 = try guarded3636();
     const second_guarded_3636 = try guarded3636();
 
     try std.testing.expect(first_guarded == second_guarded);
     try std.testing.expect(first_guarded_1110 == second_guarded_1110);
     try std.testing.expect(first_guarded_22 == second_guarded_22);
+    try std.testing.expect(first_guarded_187187 == second_guarded_187187);
     try std.testing.expect(first_guarded_3636 == second_guarded_3636);
     try std.testing.expectEqual(@as(usize, 19), first_guarded.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 11), first_guarded_1110.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 2), first_guarded_22.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 187), first_guarded_187187.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 36), first_guarded_3636.scene.entry_index);
 }
 
