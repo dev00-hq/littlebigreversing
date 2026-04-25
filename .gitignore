@@ -18,8 +18,12 @@ reference/littlebigreversing/mbn_tools/*/
 dist/
 work/_innoextract_full/
 work/_installer_extract/
+work/external_tools/
+work/quality/
+work/toolchains/
 work/life_trace/
 work/mbn_workbench/
+work/codex_phone_share/
 work/ghidra_projects/lba2_lm.rep/idata/00/~00000000.db/db.*.gbf
 work/ghidra_projects/tmp_*.log
 work/phase0/

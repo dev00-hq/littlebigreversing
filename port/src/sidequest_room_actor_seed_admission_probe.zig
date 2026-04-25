@@ -39,15 +39,15 @@ fn parseArgUsize(value: []const u8) !usize {
 }
 
 fn writeReport(allocator: std.mem.Allocator, value: ProbeReport) !void {
-    var out: std.io.Writer.Allocating = .init(allocator);
+    var out: std.Io.Writer.Allocating = .init(allocator);
     defer out.deinit();
     var stringify: std.json.Stringify = .{
         .writer = &out.writer,
         .options = .{ .whitespace = .indent_2 },
     };
     try stringify.write(value);
-    try std.fs.File.stdout().writeAll(out.written());
-    try std.fs.File.stdout().writeAll("\n");
+    try std.Io.File.stdout().writeStreamingAll(process.currentIo(), out.written());
+    try std.Io.File.stdout().writeStreamingAll(process.currentIo(), "\n");
 }
 
 fn findSceneObjectByIndex(

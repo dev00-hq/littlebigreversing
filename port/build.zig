@@ -19,9 +19,9 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("src/main.zig"),
             .target = target,
             .optimize = optimize,
+            .link_libc = true,
         }),
     });
-    app.linkLibC();
     app.root_module.addLibraryPath(b.path(sdl_lib_dir_rel));
     app.root_module.linkSystemLibrary("SDL2", .{});
     b.installArtifact(app);
@@ -149,7 +149,7 @@ pub fn build(b: *std.Build) void {
 
 fn requirePathExists(b: *std.Build, relative_path: []const u8) void {
     const absolute_path = b.pathFromRoot(relative_path);
-    std.fs.cwd().access(absolute_path, .{}) catch {
+    std.Io.Dir.accessAbsolute(b.graph.io, absolute_path, .{}) catch {
         std.debug.panic("missing required SDL2 dependency: {s}", .{absolute_path});
     };
 }

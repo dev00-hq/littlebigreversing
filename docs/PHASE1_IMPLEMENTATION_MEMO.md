@@ -90,11 +90,11 @@ The build now:
 
 ## Zig And SDL2 Note
 
-The canonical runtime target is still Zig 0.15.2 plus SDL2.
+The canonical runtime target is Zig 0.16.0 plus SDL2.
 
 The current state is:
 
-- Zig 0.15.2 is installed and was used for all successful CLI and test validation
+- Zig 0.16.0 is installed and used for current CLI and test validation
 - SDL2 is now resolved through the repo-local `vcpkg_installed/x64-windows` layout
 
 So the current smoke-app state is:

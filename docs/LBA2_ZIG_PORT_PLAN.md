@@ -17,7 +17,7 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 
 ## Canonical Direction
 
-- Target language/runtime: Zig 0.15.2 with SDL2
+- Target language/runtime: Zig 0.16.0 with SDL2
 - Target platform: Windows-first native desktop runtime
 - Product goal: high-parity reimplementation with one canonical codepath per subsystem
 - Tooling goal: make discovery, inspection, validation, and fixture generation first-class deliverables

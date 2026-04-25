@@ -2,6 +2,12 @@ const std = @import("std");
 const hqr = @import("hqr.zig");
 const paths_mod = @import("../foundation/paths.zig");
 
+fn tempDirAbsolutePathAlloc(allocator: std.mem.Allocator, tmp: *const std.testing.TmpDir, sub_path: []const u8) ![]u8 {
+    const cwd = try std.process.currentPathAlloc(std.testing.io, allocator);
+    defer allocator.free(cwd);
+    return std.fs.path.join(allocator, &.{ cwd, ".zig-cache", "tmp", &tmp.sub_path, sub_path });
+}
+
 pub const FixtureManifestEntry = struct {
     target_id: []const u8,
     asset_path: []const u8,
@@ -82,7 +88,7 @@ pub fn generateFixtures(allocator: std.mem.Allocator, resolved: paths_mod.Resolv
 }
 
 pub fn renderFixtureManifestJson(allocator: std.mem.Allocator, entries: []const FixtureManifestEntry) ![]u8 {
-    var out: std.io.Writer.Allocating = .init(allocator);
+    var out: std.Io.Writer.Allocating = .init(allocator);
     defer out.deinit();
 
     var stringify: std.json.Stringify = .{
@@ -130,7 +136,7 @@ test "generated fixtures keep semantic entry indices and physical-slot overrides
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    const output_path = try tmp.dir.realpathAlloc(allocator, ".");
+    const output_path = try tempDirAbsolutePathAlloc(allocator, &tmp, ".");
     defer allocator.free(output_path);
     const fixture_path = try std.fs.path.join(allocator, &.{ output_path, "48.bin" });
     defer allocator.free(fixture_path);

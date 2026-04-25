@@ -257,8 +257,7 @@ pub fn formatDeltaSummary(buffer: []u8, detail: FragmentComparisonDetail) ![]con
     if (!detail.base_present) return std.fmt.bufPrint(buffer, "NO BASE", .{});
     if (detail.isExactMatch()) return std.fmt.bufPrint(buffer, "EXACT", .{});
 
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     var has_token = false;
 
     if (!detail.brick_matches) {
@@ -280,7 +279,7 @@ pub fn formatDeltaSummary(buffer: []u8, detail: FragmentComparisonDetail) ![]con
         try writer.writeAll("DEP");
     }
 
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 pub fn formatStackSummary(buffer: []u8, detail: FragmentComparisonDetail) ![]const u8 {

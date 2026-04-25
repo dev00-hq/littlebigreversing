@@ -11,6 +11,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+ZIG_VERSION = "0.16.0"
 
 
 class DevShellError(RuntimeError):
@@ -26,6 +27,12 @@ def repo_env(repo_root: Path) -> dict[str, str]:
         "LBA2_SOURCE_ROOT": str(repo_root / "reference" / "lba2-classic"),
         "LBA2_MBN_TOOLS_ROOT": str(repo_root / "reference" / "littlebigreversing" / "mbn_tools"),
     }
+
+
+def repo_zig_root(repo_root: Path) -> Path | None:
+    candidate = repo_root / "work" / "toolchains" / f"zig-x86_64-windows-{ZIG_VERSION}"
+    zig_exe = candidate / "zig.exe"
+    return candidate if zig_exe.exists() else None
 
 
 def get_env_value(environment: dict[str, str], name: str) -> str | None:
@@ -45,6 +52,12 @@ def update_environment_case_insensitive(target: dict[str, str], updates: dict[st
             existing_keys[key.upper()] = key
         else:
             target[original_key] = value
+
+
+def prepend_environment_path(target: dict[str, str], path: Path) -> None:
+    current_path = get_env_value(target, "PATH") or ""
+    updated_path = f"{path}{os.pathsep}{current_path}" if current_path else str(path)
+    update_environment_case_insensitive(target, {"PATH": updated_path})
 
 
 def find_first_existing_path(candidates: list[str]) -> Path | None:
@@ -112,11 +125,32 @@ def build_environment(arch: str) -> tuple[dict[str, str], Path]:
     environment = os.environ.copy()
     update_environment_case_insensitive(environment, import_batch_environment(vcvars))
     update_environment_case_insensitive(environment, repo_env(REPO_ROOT))
+    zig_root = repo_zig_root(REPO_ROOT)
+    if zig_root is not None:
+        prepend_environment_path(environment, zig_root)
+        update_environment_case_insensitive(environment, {"LBA2_ZIG_ROOT": str(zig_root)})
     return environment, vcvars
 
 
 def resolve_tool_path(name: str, environment: dict[str, str]) -> str | None:
     return shutil.which(name, path=get_env_value(environment, "PATH"))
+
+
+def resolve_command_path_for_exec(command: list[str], environment: dict[str, str]) -> list[str]:
+    if not command:
+        return command
+
+    executable = command[0]
+    if Path(executable).anchor or "\\" in executable or "/" in executable:
+        return command
+
+    resolved = resolve_tool_path(executable, environment)
+    if resolved is None:
+        return command
+
+    updated = list(command)
+    updated[0] = resolved
+    return updated
 
 
 def resolve_workdir(path_text: str | None) -> Path:
@@ -146,7 +180,7 @@ def print_summary(environment: dict[str, str], vcvars: Path, arch: str) -> None:
     print(f"  vcvars: {vcvars}")
     print(f"  Repo: {REPO_ROOT}")
     print()
-    for tool in ("cl", "cmake", "ninja", "msbuild", "python", "java"):
+    for tool in ("zig", "cl", "cmake", "ninja", "msbuild", "python", "java"):
         tool_path = resolve_tool_path(tool, environment)
         if tool_path:
             print(f"  {tool:<8} {tool_path}")
@@ -191,7 +225,12 @@ def cmd_exec(args: argparse.Namespace) -> int:
 
     environment, _ = build_environment(args.arch)
     workdir = resolve_workdir(args.cwd)
-    completed = subprocess.run(command, cwd=workdir, env=environment, check=False)
+    completed = subprocess.run(
+        resolve_command_path_for_exec(command, environment),
+        cwd=workdir,
+        env=environment,
+        check=False,
+    )
     return int(completed.returncode)
 
 

@@ -1156,7 +1156,7 @@ pub fn auditLifeProgram(bytes: []const u8) LifeProgramAudit {
             .decoded_byte_length = offset,
             .status = .truncated_operand,
         };
-        const opcode = std.meta.intToEnum(LifeOpcode, opcode_id) catch return .{
+        const opcode = enumFromInt(LifeOpcode, opcode_id) orelse return .{
             .instruction_count = instruction_count,
             .decoded_byte_length = offset,
             .status = .{ .unknown_opcode = .{
@@ -1209,7 +1209,7 @@ const DecodedInstruction = struct {
 
 fn decodeInstruction(bytes: []const u8, offset: usize, active_switch_return_type: ?LifeReturnType) !DecodedInstruction {
     const opcode_id = try readScalar(bytes, offset);
-    const opcode = std.meta.intToEnum(LifeOpcode, opcode_id) catch return error.UnknownLifeOpcode;
+    const opcode = enumFromInt(LifeOpcode, opcode_id) orelse return error.UnknownLifeOpcode;
 
     return switch (opcode.operandLayout()) {
         .none => .{
@@ -1477,7 +1477,7 @@ fn decodeInstruction(bytes: []const u8, offset: usize, active_switch_return_type
 
 fn decodeFunction(bytes: []const u8, offset: usize) !LifeFunctionCall {
     const function_id = try readScalar(bytes, offset);
-    const function = std.meta.intToEnum(LifeFunction, function_id) catch return error.UnknownLifeFunction;
+    const function = enumFromInt(LifeFunction, function_id) orelse return error.UnknownLifeFunction;
 
     return switch (function.operandLayout()) {
         .none => .{
@@ -1499,7 +1499,7 @@ fn decodeFunction(bytes: []const u8, offset: usize) !LifeFunctionCall {
 
 fn decodeTest(bytes: []const u8, offset: usize, return_type: LifeReturnType) !LifeTest {
     const comparator_id = try readScalar(bytes, offset);
-    const comparator = std.meta.intToEnum(LifeComparator, comparator_id) catch return error.UnknownLifeComparator;
+    const comparator = enumFromInt(LifeComparator, comparator_id) orelse return error.UnknownLifeComparator;
 
     return switch (return_type) {
         .RET_S8 => .{
@@ -1552,7 +1552,14 @@ fn moveParameterKind(raw_mode_id: u8) ?LifeMoveParameterKind {
 }
 
 fn decodeEnumOrNull(comptime T: type, raw_value: u8) ?T {
-    return std.meta.intToEnum(T, raw_value) catch null;
+    return enumFromInt(T, raw_value);
+}
+
+fn enumFromInt(comptime T: type, raw_value: anytype) ?T {
+    inline for (@typeInfo(T).@"enum".fields) |field| {
+        if (raw_value == field.value) return @enumFromInt(field.value);
+    }
+    return null;
 }
 
 fn readScalar(bytes: []const u8, offset: usize) !u8 {

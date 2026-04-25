@@ -19,13 +19,13 @@ const zone_effects = @import("runtime/zone_effects.zig");
 const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
 const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
 
-pub fn main() !void {
-    return process.runWithArgs(run);
+pub fn main(init: std.process.Init) !void {
+    return process.runWithArgs(init, run);
 }
 
 fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(process.currentIo(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
 
     const parsed = viewer_shell.parseArgs(allocator, args) catch |err| {
@@ -539,8 +539,8 @@ test "unsupported pending room-transition semantics stay diagnostic-only and kee
         .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
     });
 
-    var output: std.ArrayList(u8) = .empty;
-    defer output.deinit(allocator);
+    var output: std.Io.Writer.Allocating = .init(allocator);
+    defer output.deinit();
 
     const transition_result = try runtime_transition.applyPendingRoomTransition(
         allocator,
@@ -550,7 +550,7 @@ test "unsupported pending room-transition semantics stay diagnostic-only and kee
         &locomotion_status,
         locomotion_status,
     );
-    try printTransitionResult(output.writer(allocator), transition_result);
+    try printTransitionResult(&output.writer, transition_result);
     switch (transition_result) {
         .rejected => |value| try std.testing.expectEqual(runtime_transition.TransitionRejectionReason.unsupported_yaw, value.reason),
         .committed => return error.UnexpectedCommittedRoomTransition,
@@ -558,8 +558,8 @@ test "unsupported pending room-transition semantics stay diagnostic-only and kee
     try std.testing.expectEqual(@as(usize, 36), room.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 36), room.background.entry_index);
     try std.testing.expectEqual(@as(?runtime_session_mod.PendingRoomTransition, null), runtime_session.pendingRoomTransition());
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_rejected") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "reason=unsupported_yaw") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=room_transition_rejected") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "reason=unsupported_yaw") != null);
 }
 
 test "viewer scheduler rejects the guarded 2/2 public exit as an unsupported exterior destination" {
@@ -590,13 +590,13 @@ test "viewer scheduler rejects the guarded 2/2 public exit as an unsupported ext
     locomotion_status = move_result.locomotion_status;
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, move_result.post_key_action);
 
-    var output: std.ArrayList(u8) = .empty;
-    defer output.deinit(allocator);
+    var output: std.Io.Writer.Allocating = .init(allocator);
+    defer output.deinit();
 
     try applyScheduledWorldStep(
         allocator,
         resolved,
-        output.writer(allocator),
+        &output.writer,
         &room,
         &runtime_session,
         &locomotion_status,
@@ -610,8 +610,8 @@ test "viewer scheduler rejects the guarded 2/2 public exit as an unsupported ext
     try std.testing.expectEqual(raw_start.x + locomotion.raw_invalid_zone_entry_step_xz, runtime_session.heroWorldPosition().x);
     try std.testing.expectEqual(raw_start.y, runtime_session.heroWorldPosition().y);
     try std.testing.expectEqual(raw_start.z, runtime_session.heroWorldPosition().z);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_rejected") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "reason=unsupported_exterior_destination_cube") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=room_transition_rejected") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "reason=unsupported_exterior_destination_cube") != null);
 }
 
 test "viewer secret-room validation door probes consume keys and return freely" {
@@ -640,13 +640,13 @@ test "viewer secret-room validation door probes consume keys and return freely" 
     );
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_validation_zone_effects, locked_result.post_key_action);
 
-    var output: std.ArrayList(u8) = .empty;
-    defer output.deinit(allocator);
+    var output: std.Io.Writer.Allocating = .init(allocator);
+    defer output.deinit();
 
     try applyScheduledWorldStep(
         allocator,
         resolved,
-        output.writer(allocator),
+        &output.writer,
         &room,
         &runtime_session,
         &locomotion_status,
@@ -655,8 +655,8 @@ test "viewer secret-room validation door probes consume keys and return freely" 
     try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 1), room.background.entry_index);
     try std.testing.expectEqual(@as(u8, 0), runtime_session.littleKeyCount());
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=secret_room_door") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "status=locked_no_key") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=secret_room_door") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "status=locked_no_key") != null);
 
     output.clearRetainingCapacity();
     runtime_session.setLittleKeyCount(1);
@@ -671,7 +671,7 @@ test "viewer secret-room validation door probes consume keys and return freely" 
     try applyScheduledWorldStep(
         allocator,
         resolved,
-        output.writer(allocator),
+        &output.writer,
         &room,
         &runtime_session,
         &locomotion_status,
@@ -680,9 +680,9 @@ test "viewer secret-room validation door probes consume keys and return freely" 
     try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 0), room.background.entry_index);
     try std.testing.expectEqual(@as(u8, 0), runtime_session.littleKeyCount());
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "status=key_consumed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_committed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "destination_background_entry_index=0") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "status=key_consumed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=room_transition_committed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "destination_background_entry_index=0") != null);
 
     output.clearRetainingCapacity();
     const cellar_render = viewer_shell.buildRenderSnapshot(&room, runtime_session);
@@ -700,7 +700,7 @@ test "viewer secret-room validation door probes consume keys and return freely" 
     try applyScheduledWorldStep(
         allocator,
         resolved,
-        output.writer(allocator),
+        &output.writer,
         &room,
         &runtime_session,
         &locomotion_status,
@@ -709,8 +709,8 @@ test "viewer secret-room validation door probes consume keys and return freely" 
     try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 1), room.background.entry_index);
     try std.testing.expectEqual(@as(u8, 0), runtime_session.littleKeyCount());
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "status=free_return") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "destination_background_entry_index=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "status=free_return") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "destination_background_entry_index=1") != null);
 }
 
 test "committed room transitions reapply canonical destination room-entry seeding" {
@@ -747,8 +747,8 @@ test "committed room transitions reapply canonical destination room-entry seedin
         .dont_readjust_twinsen = false,
     });
 
-    var output: std.ArrayList(u8) = .empty;
-    defer output.deinit(allocator);
+    var output: std.Io.Writer.Allocating = .init(allocator);
+    defer output.deinit();
 
     const transition_result = try runtime_transition.applyPendingRoomTransition(
         allocator,
@@ -758,7 +758,7 @@ test "committed room transitions reapply canonical destination room-entry seedin
         &locomotion_status,
         locomotion_status,
     );
-    try printTransitionResult(output.writer(allocator), transition_result);
+    try printTransitionResult(&output.writer, transition_result);
     switch (transition_result) {
         .committed => {},
         .rejected => return error.UnexpectedRejectedRoomTransition,
@@ -775,7 +775,7 @@ test "committed room transitions reapply canonical destination room-entry seedin
         expected_destination_session.gameVar(lightning_spell_flag_index),
         runtime_session.gameVar(lightning_spell_flag_index),
     );
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=room_transition_committed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=room_transition_committed") != null);
 }
 
 test "main bonus spawn diagnostics print the bounded 19/19 object-2 reward event" {
@@ -794,8 +794,8 @@ test "main bonus spawn diagnostics print the bounded 19/19 object-2 reward event
         .z = 1000,
     });
 
-    var output: std.ArrayList(u8) = .empty;
-    defer output.deinit(allocator);
+    var output: std.Io.Writer.Allocating = .init(allocator);
+    defer output.deinit();
 
     _ = try runtime_object_behavior.stepSupportedObjects(&room, &runtime_session);
     runtime_session.advanceFrameIndex();
@@ -806,20 +806,20 @@ test "main bonus spawn diagnostics print the bounded 19/19 object-2 reward event
     var step_index: usize = 0;
     while (step_index < 16) : (step_index += 1) {
         _ = try runtime_object_behavior.stepSupportedObjects(&room, &runtime_session);
-        try printNewBonusSpawnEvents(output.writer(allocator), &room, runtime_session, previous_bonus_event_count);
+        try printNewBonusSpawnEvents(&output.writer, &room, runtime_session, previous_bonus_event_count);
         previous_bonus_event_count = runtime_session.bonusSpawnEvents().len;
         runtime_session.advanceFrameIndex();
-        if (std.mem.indexOf(u8, output.items, "event=bonus_spawn") != null) {
+        if (std.mem.indexOf(u8, output.written(), "event=bonus_spawn") != null) {
             break;
         }
     }
 
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=bonus_spawn") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "scene_entry_index=19 background_entry_index=19") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "source_object_index=2") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "kind=magic") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "quantity=5") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "emitted_bonus_count=10") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=bonus_spawn") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "scene_entry_index=19 background_entry_index=19") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "source_object_index=2") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "kind=magic") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "quantity=5") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "emitted_bonus_count=10") != null);
 }
 
 test "main bonus pickup diagnostics print the bounded 19/19 magic reward resolution" {
@@ -840,8 +840,8 @@ test "main bonus pickup diagnostics print the bounded 19/19 magic reward resolut
         .z = 1000,
     });
 
-    var output: std.ArrayList(u8) = .empty;
-    defer output.deinit(allocator);
+    var output: std.Io.Writer.Allocating = .init(allocator);
+    defer output.deinit();
 
     _ = try runtime_object_behavior.stepSupportedObjects(&room, &runtime_session);
     runtime_session.advanceFrameIndex();
@@ -870,12 +870,12 @@ test "main bonus pickup diagnostics print the bounded 19/19 magic reward resolut
     runtime_session.setHeroWorldPosition(runtime_session.rewardCollectibles()[0].world_position);
     const previous_reward_pickup_event_count = runtime_session.rewardPickupEvents().len;
     _ = try runtime_update.tick(&room, &runtime_session);
-    try printNewRewardPickupEvents(output.writer(allocator), &room, runtime_session, previous_reward_pickup_event_count);
+    try printNewRewardPickupEvents(&output.writer, &room, runtime_session, previous_reward_pickup_event_count);
 
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "event=bonus_pickup") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "scene_entry_index=19 background_entry_index=19") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "source_object_index=2") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "kind=magic") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "quantity=5") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output.items, "hero_magic_point=20") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=bonus_pickup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "scene_entry_index=19 background_entry_index=19") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "source_object_index=2") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "kind=magic") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "quantity=5") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "hero_magic_point=20") != null);
 }

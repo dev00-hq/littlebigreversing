@@ -461,7 +461,7 @@ pub fn decodeTrackProgram(allocator: std.mem.Allocator, bytes: []const u8) ![]Tr
 
 fn decodeInstruction(bytes: []const u8, offset: usize) !TrackInstruction {
     const opcode_id = try readScalar(bytes, offset);
-    const opcode = std.meta.intToEnum(TrackOpcode, opcode_id) catch return error.UnknownTrackOpcode;
+    const opcode = enumFromInt(TrackOpcode, opcode_id) orelse return error.UnknownTrackOpcode;
 
     return switch (opcode.operandLayout()) {
         .none => .{
@@ -577,6 +577,13 @@ fn decodeInstruction(bytes: []const u8, offset: usize) !TrackInstruction {
     };
 }
 
+fn enumFromInt(comptime T: type, raw_value: anytype) ?T {
+    inline for (@typeInfo(T).@"enum".fields) |field| {
+        if (raw_value == field.value) return @enumFromInt(field.value);
+    }
+    return null;
+}
+
 fn readScalar(bytes: []const u8, offset: usize) !u8 {
     if (offset >= bytes.len) return error.TruncatedTrackOperand;
     return bytes[offset];
@@ -596,11 +603,18 @@ fn findStringTerminator(bytes: []const u8, offset: usize) ?usize {
     return null;
 }
 
-fn expectOperand(value: TrackOperands, comptime tag: std.meta.Tag(TrackOperands)) std.meta.TagPayload(TrackOperands, tag) {
+fn expectOperand(value: TrackOperands, comptime tag: std.meta.Tag(TrackOperands)) tagPayload(TrackOperands, tag) {
     return switch (value) {
         inline else => |payload, active_tag| {
             if (active_tag != tag) unreachable;
             return payload;
         },
     };
+}
+
+fn tagPayload(comptime T: type, comptime tag: std.meta.Tag(T)) type {
+    inline for (@typeInfo(T).@"union".fields) |field| {
+        if (std.mem.eql(u8, field.name, @tagName(tag))) return field.type;
+    }
+    unreachable;
 }

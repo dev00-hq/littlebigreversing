@@ -381,7 +381,7 @@ pub const ErrorPayloadView = struct {
 };
 
 pub fn stringifyPayloadAlloc(allocator: std.mem.Allocator, payload: PayloadView) ![]u8 {
-    var out: std.io.Writer.Allocating = .init(allocator);
+    var out: std.Io.Writer.Allocating = .init(allocator);
     defer out.deinit();
 
     var stringify: std.json.Stringify = .{
@@ -393,7 +393,7 @@ pub fn stringifyPayloadAlloc(allocator: std.mem.Allocator, payload: PayloadView)
 }
 
 pub fn stringifyErrorPayloadAlloc(allocator: std.mem.Allocator, payload: ErrorPayloadView) ![]u8 {
-    var out: std.io.Writer.Allocating = .init(allocator);
+    var out: std.Io.Writer.Allocating = .init(allocator);
     defer out.deinit();
 
     var stringify: std.json.Stringify = .{

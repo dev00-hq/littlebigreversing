@@ -1528,10 +1528,10 @@ fn formatUsedBlockSummaryAlloc(
     used_block_ids: []const u8,
     max_items: usize,
 ) ![]u8 {
-    var output: std.ArrayList(u8) = .empty;
-    errdefer output.deinit(allocator);
+    var output: std.Io.Writer.Allocating = .init(allocator);
+    errdefer output.deinit();
 
-    const writer = output.writer(allocator);
+    const writer = &output.writer;
     try writer.print("{d}[", .{used_block_ids.len});
 
     const item_count = @min(max_items, used_block_ids.len);
@@ -1545,7 +1545,7 @@ fn formatUsedBlockSummaryAlloc(
     }
     try writer.writeAll("]");
 
-    return output.toOwnedSlice(allocator);
+    return output.toOwnedSlice();
 }
 
 fn directionLabel(direction: CardinalDirection) []const u8 {
@@ -1836,27 +1836,25 @@ fn formatZoneSummary(buffer: []u8, zone_membership: runtime_locomotion.ZoneMembe
     const zones = zone_membership.slice();
     if (zones.len == 0) return "ZONES NONE";
 
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     writer.writeAll("ZONES ") catch unreachable;
     for (zones, 0..) |zone, index| {
         if (index != 0) writer.writeAll("|") catch unreachable;
         writer.print("{d}", .{zone.index}) catch unreachable;
     }
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 fn formatZoneDiagnosticValue(buffer: []u8, zone_membership: runtime_locomotion.ZoneMembership) []const u8 {
     const zones = zone_membership.slice();
     if (zones.len == 0) return "none";
 
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     for (zones, 0..) |zone, index| {
         if (index != 0) writer.writeAll("|") catch unreachable;
         writer.print("{d}", .{zone.index}) catch unreachable;
     }
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 fn formatLocalTopologyHudLine(
@@ -1864,8 +1862,7 @@ fn formatLocalTopologyHudLine(
     local_topology: ViewerLocalNeighborTopology,
 ) []const u8 {
     var token_buffers: [4][16]u8 = undefined;
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     writer.writeAll("TOPO ") catch unreachable;
     for (local_topology.neighbors, 0..) |neighbor, index| {
         if (index != 0) writer.writeAll(" ") catch unreachable;
@@ -1877,7 +1874,7 @@ fn formatLocalTopologyHudLine(
             },
         ) catch unreachable;
     }
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 fn formatLocalTopologyDiagnosticValue(
@@ -1887,8 +1884,7 @@ fn formatLocalTopologyDiagnosticValue(
     var cell_buffers: [4][16]u8 = undefined;
     var standability_buffers: [4][16]u8 = undefined;
     var delta_buffers: [4][16]u8 = undefined;
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     for (local_topology.neighbors, 0..) |neighbor, index| {
         if (index != 0) writer.writeAll(",") catch unreachable;
         writer.print(
@@ -1902,7 +1898,7 @@ fn formatLocalTopologyDiagnosticValue(
             },
         ) catch unreachable;
     }
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 fn formatCurrentFootingHudLine(
@@ -1929,8 +1925,7 @@ fn formatCurrentFootingDiagnosticValue(
     buffer: []u8,
     local_topology: ViewerLocalNeighborTopology,
 ) []const u8 {
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     writer.print(
         "{s}:{d}:{d}:{d}:{d}:{s}",
         .{
@@ -1942,7 +1937,7 @@ fn formatCurrentFootingDiagnosticValue(
             @tagName(local_topology.origin_surface.top_shape_class),
         },
     ) catch unreachable;
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 fn formatMoveOptionPairLine(
@@ -1968,8 +1963,7 @@ fn formatMoveOptionPairLine(
 
 fn formatMoveOptionsDiagnostic(buffer: []u8, move_options: ViewerMoveOptions) []const u8 {
     var cell_buffers: [4][16]u8 = undefined;
-    var stream = std.io.fixedBufferStream(buffer);
-    const writer = stream.writer();
+    var writer = std.Io.Writer.fixed(buffer);
     for (move_options.options, 0..) |option, index| {
         if (index != 0) writer.writeAll(",") catch unreachable;
         writer.print(
@@ -1984,7 +1978,7 @@ fn formatMoveOptionsDiagnostic(buffer: []u8, move_options: ViewerMoveOptions) []
             },
         ) catch unreachable;
     }
-    return stream.getWritten();
+    return writer.buffered();
 }
 
 fn formatRejectedReasonLine(buffer: []u8, reason: runtime_query.MoveTargetStatus) []const u8 {

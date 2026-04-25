@@ -63,7 +63,7 @@ test "track decoder exhaustively recognizes opcode ids 0 through 52" {
     const allocator = std.testing.allocator;
 
     for (0..53) |opcode_id| {
-        const opcode = try std.meta.intToEnum(track_program.TrackOpcode, @as(u8, @intCast(opcode_id)));
+        const opcode: track_program.TrackOpcode = @enumFromInt(@as(u8, @intCast(opcode_id)));
         const expected_len = support.expectedTrackInstructionByteLengthIndependent(opcode);
         const bytes = try support.buildInstructionSample(allocator, opcode);
         defer allocator.free(bytes);

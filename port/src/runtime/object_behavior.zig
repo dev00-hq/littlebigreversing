@@ -634,7 +634,14 @@ fn currentLifeOpcode(
     instruction: life_program.LifeInstruction,
 ) !life_program.LifeOpcode {
     if (instruction.offset >= object_behavior.life_bytes.len) return error.UnsupportedObjectBehaviorLifeOpcodeOffset;
-    return std.meta.intToEnum(life_program.LifeOpcode, object_behavior.life_bytes[instruction.offset]) catch error.UnsupportedObjectBehaviorLifeOpcodeByte;
+    return enumFromInt(life_program.LifeOpcode, object_behavior.life_bytes[instruction.offset]) orelse return error.UnsupportedObjectBehaviorLifeOpcodeByte;
+}
+
+fn enumFromInt(comptime T: type, raw_value: anytype) ?T {
+    inline for (@typeInfo(T).@"enum".fields) |field| {
+        if (raw_value == field.value) return @enumFromInt(field.value);
+    }
+    return null;
 }
 
 fn mutateLifeOpcodeByte(

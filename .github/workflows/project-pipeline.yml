@@ -1,0 +1,49 @@
+name: Project Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  zig-and-metrics:
+    runs-on:
+      - self-hosted
+      - Windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Zig 0.16.0
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $zigRoot = Join-Path $PWD "work/toolchains/zig-x86_64-windows-0.16.0"
+          $zigExe = Join-Path $zigRoot "zig.exe"
+          if (!(Test-Path $zigExe)) {
+            New-Item -ItemType Directory -Force -Path (Split-Path $zigRoot) | Out-Null
+            $zipPath = Join-Path $env:RUNNER_TEMP "zig-x86_64-windows-0.16.0.zip"
+            Invoke-WebRequest -Uri "https://ziglang.org/download/0.16.0/zig-x86_64-windows-0.16.0.zip" -OutFile $zipPath
+            Expand-Archive -Path $zipPath -DestinationPath (Split-Path $zigRoot) -Force
+          }
+          "$zigRoot" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Run project pipeline
+        shell: pwsh
+        run: python scripts/project_pipeline.py --zig-root work/toolchains/zig-x86_64-windows-0.16.0 --bootstrap-tools
+
+      - name: Upload quality artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: project-pipeline-quality
+          path: work/quality/project-pipeline

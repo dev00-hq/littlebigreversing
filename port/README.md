@@ -4,7 +4,7 @@ This directory is the home of the canonical modern LBA2 port implementation.
 
 Current direction:
 
-- Zig 0.15.2 plus SDL2
+- Zig 0.16.0 plus SDL2
 - Windows-first runtime target
 - one canonical codepath per subsystem
 - fail-fast diagnostics when evidence is incomplete
@@ -38,3 +38,9 @@ Reference metadata maintenance:
 - `zig build verify-reference-metadata` checks the checked-in reference metadata against the local `..\..\lba-reference-repos\metadata` clone
 - `zig build regen-reference-metadata` refreshes `port/src/generated/reference_metadata.zig` from that clone
 - `zig build test-reference-metadata-generator` runs the generator unit tests without depending on the external clone
+
+Canonical project pipeline:
+
+- `py -3 scripts/project_pipeline.py --zig-root work/toolchains/zig-x86_64-windows-0.16.0` runs the Zig 0.16.0 build, `zig build test-fast`, Kimun metrics, and Lizard complexity export.
+- Add `--bootstrap-tools` to clone/build pinned Kimun and install pinned Lizard before running.
+- Quality artifacts are written to `work/quality/project-pipeline/`.

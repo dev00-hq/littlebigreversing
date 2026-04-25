@@ -9,6 +9,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+ZIG_VERSION = "0.16.0"
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,11 @@ def resolve_command_path(name: str) -> Path | None:
     if resolved is None:
         return None
     return Path(resolved)
+
+
+def resolve_repo_zig_path() -> Path | None:
+    candidate = REPO_ROOT / "work" / "toolchains" / f"zig-x86_64-windows-{ZIG_VERSION}" / "zig.exe"
+    return candidate if candidate.exists() else None
 
 
 def resolve_cdb_path() -> Path | None:
@@ -68,7 +74,7 @@ def resolve_cdb_path() -> Path | None:
 
 
 def resolve_zig_details() -> CheckResult:
-    zig = resolve_command_path("zig")
+    zig = resolve_repo_zig_path() or resolve_command_path("zig")
     if zig is None:
         return CheckResult(category="Modern build", name="Zig", status="Missing")
 

@@ -3,7 +3,7 @@ const asset_fixtures = @import("../../../assets/fixtures.zig");
 const paths_mod = @import("../../../foundation/paths.zig");
 
 pub fn stringifyJsonAlloc(allocator: std.mem.Allocator, value: anytype) ![]u8 {
-    var out: std.io.Writer.Allocating = .init(allocator);
+    var out: std.Io.Writer.Allocating = .init(allocator);
     defer out.deinit();
 
     var stringify: std.json.Stringify = .{

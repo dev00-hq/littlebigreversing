@@ -6,7 +6,7 @@ const track_program = @import("../track_program.zig");
 const zones = @import("../zones.zig");
 
 pub fn stringifyJsonAlloc(allocator: std.mem.Allocator, value: anytype) ![]u8 {
-    var out: std.io.Writer.Allocating = .init(allocator);
+    var out: std.Io.Writer.Allocating = .init(allocator);
     defer out.deinit();
 
     var stringify: std.json.Stringify = .{
