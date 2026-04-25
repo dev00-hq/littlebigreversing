@@ -488,19 +488,47 @@ fn printTransitionResult(stderr: anytype, transition_result: runtime_transition.
                 value.hero_position.z,
             },
         ),
-        .rejected => |value| try stderr.print(
-            "event=room_transition_rejected source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} reason={s} hero_x={d} hero_y={d} hero_z={d}\n",
-            .{
-                value.source_scene_entry_index,
-                value.source_background_entry_index,
-                value.destination_cube,
-                @tagName(value.reason),
-                value.hero_position.x,
-                value.hero_position.y,
-                value.hero_position.z,
-            },
-        ),
+        .rejected => |value| {
+            if (value.post_load_adjustment_failure) |failure| {
+                try stderr.print(
+                    "event=room_transition_rejected source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} reason={s} hero_x={d} hero_y={d} hero_z={d} post_load_target_status={s} post_load_shadow_adjustment_failure={s} provisional_x={d} provisional_y={d} provisional_z={d}\n",
+                    .{
+                        value.source_scene_entry_index,
+                        value.source_background_entry_index,
+                        value.destination_cube,
+                        @tagName(value.reason),
+                        value.hero_position.x,
+                        value.hero_position.y,
+                        value.hero_position.z,
+                        @tagName(failure.move_target_status),
+                        formatOptionalShadowAdjustmentFailure(failure.shadow_adjustment_failure),
+                        failure.provisional_world_position.x,
+                        failure.provisional_world_position.y,
+                        failure.provisional_world_position.z,
+                    },
+                );
+            } else {
+                try stderr.print(
+                    "event=room_transition_rejected source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} reason={s} hero_x={d} hero_y={d} hero_z={d}\n",
+                    .{
+                        value.source_scene_entry_index,
+                        value.source_background_entry_index,
+                        value.destination_cube,
+                        @tagName(value.reason),
+                        value.hero_position.x,
+                        value.hero_position.y,
+                        value.hero_position.z,
+                    },
+                );
+            }
+        },
     }
+}
+
+fn formatOptionalShadowAdjustmentFailure(
+    failure: ?runtime_transition.ShadowAdjustmentFailure,
+) []const u8 {
+    return if (failure) |value| @tagName(value) else "none";
 }
 
 test "unsupported pending room-transition semantics stay diagnostic-only and keep the current room live" {
@@ -560,6 +588,32 @@ test "unsupported pending room-transition semantics stay diagnostic-only and kee
     try std.testing.expectEqual(@as(?runtime_session_mod.PendingRoomTransition, null), runtime_session.pendingRoomTransition());
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=room_transition_rejected") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "reason=unsupported_yaw") != null);
+}
+
+test "transition rejection diagnostics include post-load adjustment details when present" {
+    const allocator = std.testing.allocator;
+
+    var output: std.Io.Writer.Allocating = .init(allocator);
+    defer output.deinit();
+
+    try printTransitionResult(&output.writer, .{
+        .rejected = .{
+            .source_scene_entry_index = 3,
+            .source_background_entry_index = 3,
+            .destination_cube = 19,
+            .reason = .unsupported_destination_post_load_adjustment,
+            .hero_position = .{ .x = 0, .y = 0, .z = 0 },
+            .post_load_adjustment_failure = .{
+                .provisional_world_position = .{ .x = 29184, .y = 3840, .z = 28416 },
+                .move_target_status = .target_height_mismatch,
+                .shadow_adjustment_failure = .world_cell_empty,
+            },
+        },
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_target_status=target_height_mismatch") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_shadow_adjustment_failure=world_cell_empty") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "provisional_x=29184 provisional_y=3840 provisional_z=28416") != null);
 }
 
 test "viewer scheduler rejects the guarded 2/2 public exit as an unsupported exterior destination" {

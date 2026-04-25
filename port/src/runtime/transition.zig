@@ -35,11 +35,29 @@ pub const TransitionRejected = struct {
     destination_cube: i16,
     reason: TransitionRejectionReason,
     hero_position: locomotion.WorldPointSnapshot,
+    post_load_adjustment_failure: ?PostLoadAdjustmentFailure = null,
 };
 
 pub const TransitionApplyResult = union(enum) {
     committed: TransitionCommitted,
     rejected: TransitionRejected,
+};
+
+pub const PostLoadAdjustmentFailure = struct {
+    provisional_world_position: locomotion.WorldPointSnapshot,
+    move_target_status: runtime_query.MoveTargetStatus,
+    shadow_adjustment_failure: ?ShadowAdjustmentFailure,
+};
+
+pub const ShadowAdjustmentFailure = enum {
+    world_point_out_of_bounds,
+    world_cell_empty,
+    world_cell_not_standable,
+};
+
+const FinalLandingResolution = union(enum) {
+    resolved: locomotion.WorldPointSnapshot,
+    rejected: PostLoadAdjustmentFailure,
 };
 
 pub fn applyPendingRoomTransition(
@@ -63,6 +81,7 @@ pub fn applyPendingRoomTransition(
             source_background_entry_index,
             transition.destination_cube,
             reason,
+            null,
         );
     }
 
@@ -79,6 +98,7 @@ pub fn applyPendingRoomTransition(
             source_background_entry_index,
             transition.destination_cube,
             reason,
+            null,
         );
     }
 
@@ -95,6 +115,7 @@ pub fn applyPendingRoomTransition(
             source_background_entry_index,
             transition.destination_cube,
             .unsupported_destination_cube,
+            null,
         ),
         else => return err,
     };
@@ -108,7 +129,7 @@ pub fn applyPendingRoomTransition(
     var next_room_owned = true;
     errdefer if (next_room_owned) next_room.deinit(allocator);
 
-    const final_landing_world_position = resolveFinalLandingWorldPosition(
+    const final_landing_world_position = switch (try resolveFinalLandingWorldPosition(
         current_session,
         &next_room,
         transition,
@@ -116,8 +137,9 @@ pub fn applyPendingRoomTransition(
         pre_commit_locomotion_status,
         source_scene_entry_index,
         source_background_entry_index,
-    ) catch |err| switch (err) {
-        error.UnsupportedDestinationPostLoadAdjustment => {
+    )) {
+        .resolved => |value| value,
+        .rejected => |value| {
             next_room_owned = false;
             next_room.deinit(allocator);
             return rejectPendingRoomTransition(
@@ -128,9 +150,9 @@ pub fn applyPendingRoomTransition(
                 source_background_entry_index,
                 transition.destination_cube,
                 .unsupported_destination_post_load_adjustment,
+                value,
             );
         },
-        else => return err,
     };
 
     var transition_probe_session = try runtime_session.Session.initWithObjects(
@@ -152,6 +174,7 @@ pub fn applyPendingRoomTransition(
                 source_background_entry_index,
                 transition.destination_cube,
                 .unsupported_destination_world_position,
+                null,
             );
         },
         else => return err,
@@ -189,14 +212,14 @@ fn resolveFinalLandingWorldPosition(
     pre_commit_locomotion_status: locomotion.LocomotionStatus,
     source_scene_entry_index: usize,
     source_background_entry_index: usize,
-) !locomotion.WorldPointSnapshot {
+) !FinalLandingResolution {
     _ = current_session;
     _ = locomotion_status;
     _ = pre_commit_locomotion_status;
     _ = source_scene_entry_index;
     _ = source_background_entry_index;
     return switch (transition.destination_world_position_kind) {
-        .final_landing => transition.destination_world_position,
+        .final_landing => .{ .resolved = transition.destination_world_position },
         .provisional_zone_relative => resolveInteriorPostLoadLandingAdjustment(
             next_room,
             transition.destination_world_position,
@@ -207,16 +230,45 @@ fn resolveFinalLandingWorldPosition(
 fn resolveInteriorPostLoadLandingAdjustment(
     next_room: *const room_state.RoomSnapshot,
     provisional_world_position: locomotion.WorldPointSnapshot,
-) !locomotion.WorldPointSnapshot {
+) !FinalLandingResolution {
     const query = runtime_query.init(next_room);
     const evaluation = query.evaluateHeroMoveTarget(provisional_world_position);
-    if (evaluation.isAllowed()) return provisional_world_position;
+    if (evaluation.isAllowed()) return .{ .resolved = provisional_world_position };
 
     if (evaluation.status != .target_height_mismatch) {
-        return error.UnsupportedDestinationPostLoadAdjustment;
+        return .{
+            .rejected = .{
+                .provisional_world_position = provisional_world_position,
+                .move_target_status = evaluation.status,
+                .shadow_adjustment_failure = null,
+            },
+        };
     }
-    return query.classicShadowAdjustedLanding(provisional_world_position) catch
-        error.UnsupportedDestinationPostLoadAdjustment;
+    const shadow_adjusted_landing = query.classicShadowAdjustedLanding(provisional_world_position) catch |err| switch (err) {
+        error.WorldPointOutOfBounds,
+        error.WorldCellEmpty,
+        error.WorldCellNotStandable,
+        => {
+            return .{
+                .rejected = .{
+                    .provisional_world_position = provisional_world_position,
+                    .move_target_status = evaluation.status,
+                    .shadow_adjustment_failure = shadowAdjustmentFailureFromError(err).?,
+                },
+            };
+        },
+        else => return err,
+    };
+    return .{ .resolved = shadow_adjusted_landing };
+}
+
+fn shadowAdjustmentFailureFromError(err: anyerror) ?ShadowAdjustmentFailure {
+    return switch (err) {
+        error.WorldPointOutOfBounds => .world_point_out_of_bounds,
+        error.WorldCellEmpty => .world_cell_empty,
+        error.WorldCellNotStandable => .world_cell_not_standable,
+        else => null,
+    };
 }
 
 fn unsupportedPendingRoomTransitionReason(
@@ -256,6 +308,7 @@ fn rejectPendingRoomTransition(
     source_background_entry_index: usize,
     destination_cube: i16,
     reason: TransitionRejectionReason,
+    post_load_adjustment_failure: ?PostLoadAdjustmentFailure,
 ) TransitionApplyResult {
     current_session.clearPendingRoomTransition();
     locomotion_status.* = pre_commit_locomotion_status;
@@ -266,6 +319,7 @@ fn rejectPendingRoomTransition(
             .destination_cube = destination_cube,
             .reason = reason,
             .hero_position = current_session.heroWorldPosition(),
+            .post_load_adjustment_failure = post_load_adjustment_failure,
         },
     };
 }
@@ -462,6 +516,83 @@ test "guarded scene-2 reverse secret-room door commits through the live-backed c
 test "guarded 3/3 resolves but rejects its two current interior destinations at post-load landing" {
     try expectGuarded33ChangeCubeRejection(1, 19, .unsupported_destination_post_load_adjustment);
     try expectGuarded33ChangeCubeRejection(8, 20, .unsupported_destination_post_load_adjustment);
+}
+
+test "guarded 3/3 post-load rejection carries provisional landing diagnostics" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 3, 3);
+    defer room.deinit(allocator);
+
+    const zone = room.scene.zones[1];
+    const semantics = switch (zone.semantics) {
+        .change_cube => |value| value,
+        else => return error.ExpectedChangeCubeZoneSemantics,
+    };
+    const destination_entries = try room_state.resolveGuardedTransitionRoomEntriesForCube(
+        allocator,
+        resolved,
+        semantics.destination_cube,
+    );
+    var destination_room = try room_state.loadRoomSnapshot(
+        allocator,
+        resolved,
+        destination_entries.scene_entry_index,
+        destination_entries.background_entry_index,
+    );
+    defer destination_room.deinit(allocator);
+
+    const provisional_world_position = locomotion.WorldPointSnapshot{
+        .x = semantics.destination_x,
+        .y = semantics.destination_y,
+        .z = semantics.destination_z,
+    };
+    const destination_query = runtime_query.init(&destination_room);
+    const expected_status = destination_query.evaluateHeroMoveTarget(provisional_world_position).status;
+    const expected_shadow_failure = blk: {
+        if (expected_status != .target_height_mismatch) break :blk null;
+        _ = destination_query.classicShadowAdjustedLanding(provisional_world_position) catch |err| {
+            break :blk shadowAdjustmentFailureFromError(err);
+        };
+        break :blk null;
+    };
+
+    var current_session = try viewer_shell.initSession(allocator, &room);
+    defer current_session.deinit(allocator);
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
+    try current_session.setPendingRoomTransition(.{
+        .source_zone_index = zone.index,
+        .destination_cube = semantics.destination_cube,
+        .destination_world_position_kind = .provisional_zone_relative,
+        .destination_world_position = provisional_world_position,
+        .yaw = semantics.yaw,
+        .test_brick = semantics.test_brick,
+        .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
+    });
+
+    const transition_result = try applyPendingRoomTransition(
+        allocator,
+        resolved,
+        &room,
+        &current_session,
+        &locomotion_status,
+        locomotion_status,
+    );
+    switch (transition_result) {
+        .rejected => |value| {
+            try std.testing.expectEqual(
+                TransitionRejectionReason.unsupported_destination_post_load_adjustment,
+                value.reason,
+            );
+            const failure = value.post_load_adjustment_failure orelse return error.MissingPostLoadAdjustmentFailure;
+            try std.testing.expectEqual(provisional_world_position, failure.provisional_world_position);
+            try std.testing.expectEqual(expected_status, failure.move_target_status);
+            try std.testing.expectEqual(expected_shadow_failure, failure.shadow_adjustment_failure);
+        },
+        .committed => return error.UnexpectedCommittedRoomTransition,
+    }
 }
 
 test "guarded 3/3 rejects the exterior-facing change-cube destination" {
