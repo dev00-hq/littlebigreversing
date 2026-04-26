@@ -1,3 +1,4 @@
+const std = @import("std");
 const runtime_query = @import("world_query.zig");
 const room_state = @import("room_state.zig");
 const runtime_session = @import("session.zig");
@@ -109,6 +110,7 @@ fn heroPickupResolution(
 
     const query = runtime_query.init(room);
     const hero_footing = query.admittedStandableFootingAtWorldPoint(current_session.heroWorldPosition()) catch return .unavailable;
+    if (!std.meta.eql(hero_footing.cell, collectible.admitted_surface_cell)) return .unavailable;
     if (hero_footing.surface.top_y != collectible.admitted_surface_top_y) return .unavailable;
     if (absDiff(current_session.heroWorldPosition().x, collectible.world_position.x) > planar_pickup_distance_threshold) {
         return .unavailable;

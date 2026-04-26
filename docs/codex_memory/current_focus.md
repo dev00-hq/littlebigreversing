@@ -18,11 +18,11 @@
 - `0013` key source is scene `2/1` default action gated by `gameVar(0)==0`; it kills obj `7`, grants obj `0`, and sets `gameVar(0)=1`.
 - `0013` key pickup is poll-only proved on house side: `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`.
 - `inspect-room-transitions 2 1/2 0 --json` exposes no-key lock, key consumption, and the synthetic free cellar return.
+- Guarded `19/19` reward pickup now requires the hero's admitted footing cell to match the collectible landing cell, not just same `top_y`.
 - Original-runtime named saves: direct globals + pose context + `SaveGame(TRUE)`; `CurrentSaveGame()` is `current.lba` only. Load with `LBA2.EXE SAVE\<name>.LBA` while autosave is hidden/restored; Frida observes/shims only.
 
 ## Blocked Items
 
-- Guarded `19/19` pickup gating is still admitted footing plus same-`top_y`/proximity, not proved same-surface/floor-band.
 - Guarded `2/2` and `187/187` are not solved interior handoff or locomotion semantics.
 - Room `36/36` page 2 is renderer pagination; save/load is unsupported while dialog is active.
 - Wall mapping is deferred.

@@ -14,6 +14,7 @@ Own life-program decoding and original-runtime evidence lanes.
 
 - `life_audit.zig` / `audit-life-programs` is canonical.
 - Guarded `19/19` object `2` has live-backed `Divers=5` multi-bonus semantics.
+- Guarded `19/19` reward pickups require same admitted landing cell plus existing proximity/cap checks.
 - `0013` key source is W/default action: `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0`, `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
 - `0013` key pickup is Frida poll-only proved: `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`; viewer covers W, pickup overlay, keyed cellar entry, and free return.
 - `inspect-room-transitions` is runtime-aware for `0013`: `2/1` reports no-key/key paths; `2/0` includes synthetic free return.
@@ -64,7 +65,6 @@ Own life-program decoding and original-runtime evidence lanes.
 
 ## Open Unknowns
 
-- Whether guarded `19/19` pickup requires same connected admitted surface/floor band.
 - Whether the classic shadow-readjusted landing should be generalized beyond the currently guarded transition path.
 - Hooked `LM_FOUND_OBJECT 0` remains unproved; static source plus live `SPRITE_CLE` proof covers the current seam.
 - Exact scene-2 key-consume instructions before cube `1 -> 0` remain unproved; port covers the captured doorway band.

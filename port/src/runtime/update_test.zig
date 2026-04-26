@@ -307,6 +307,60 @@ test "runtime update tick resolves the first settled 19/19 magic bonus into the 
     try std.testing.expectEqual(first_landing_position, pickup_event.world_position);
 }
 
+test "runtime update tick keeps settled 19/19 rewards gated to their admitted landing cell" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setMagicLevelAndRefill(2);
+    current_session.setMagicPoint(30);
+
+    const reward_position = rewardLandingWorldPosition(reward_scatter_cells[0]);
+    try current_session.appendRewardCollectible(.{
+        .spawn_frame_index = current_session.frame_index,
+        .source_object_index = 2,
+        .kind = .magic,
+        .sprite_index = 5,
+        .quantity = reward_quantity_per_instance,
+        .admitted_surface_cell = reward_scatter_cells[0],
+        .admitted_surface_top_y = reward_floor_top_y,
+        .scatter_slot = 0,
+        .rebound_count = 0,
+        .settled = true,
+        .motion_start_world_position = reward_position,
+        .motion_target_world_position = reward_position,
+        .motion_total_ticks = 0,
+        .motion_ticks_remaining = 0,
+        .motion_arc_height = 0,
+        .world_position = reward_position,
+    });
+
+    const adjacent_cell = locomotion.GridCell{
+        .x = reward_scatter_cells[0].x + 1,
+        .z = reward_scatter_cells[0].z,
+    };
+    const adjacent_surface = try runtime_query.init(room).cellTopSurface(adjacent_cell.x, adjacent_cell.z);
+    try std.testing.expectEqual(reward_floor_top_y, adjacent_surface.top_y);
+    current_session.setHeroWorldPosition(.{
+        .x = reward_position.x + 256,
+        .y = adjacent_surface.top_y,
+        .z = reward_position.z,
+    });
+
+    const adjacent_tick = try runtime_update.tick(room, &current_session);
+    try std.testing.expect(!adjacent_tick.triggered_room_transition);
+    try std.testing.expectEqual(@as(u8, 30), current_session.magicPoint());
+    try std.testing.expectEqual(@as(usize, 1), current_session.rewardCollectibles().len);
+    try std.testing.expectEqual(@as(usize, 0), current_session.rewardPickupEvents().len);
+
+    current_session.setHeroWorldPosition(reward_position);
+    _ = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expectEqual(@as(u8, 40), current_session.magicPoint());
+    try std.testing.expectEqual(@as(usize, 0), current_session.rewardCollectibles().len);
+    try std.testing.expectEqual(@as(usize, 1), current_session.rewardPickupEvents().len);
+}
+
 test "runtime update tick resolves a settled little-key collectible into the key inventory counter" {
     const room = try room_fixtures.guarded1919();
 
