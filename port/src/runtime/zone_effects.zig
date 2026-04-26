@@ -36,6 +36,11 @@ const secret_room_cellar_to_house_probe_position = world_geometry.WorldPointSnap
     .y = 2048,
     .z = 3659,
 };
+const secret_room_house_to_cellar_probe_position = world_geometry.WorldPointSnapshot{
+    .x = 9730,
+    .y = 1025,
+    .z = 762,
+};
 
 pub fn applyPostLocomotionEffects(
     room: *const room_state.RoomSnapshot,
@@ -179,11 +184,7 @@ pub fn secretRoomHouseDoorProbePosition(
         return null;
     }
 
-    return .{
-        .x = zone.x0,
-        .y = zone.y0,
-        .z = zone.z0,
-    };
+    return secret_room_house_to_cellar_probe_position;
 }
 
 fn classicZoneChangeCubeDestinationWorldPosition(

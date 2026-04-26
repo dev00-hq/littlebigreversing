@@ -483,12 +483,12 @@ fn guardedTransitionRoomEntryForCube(destination_cube: usize) ?GuardedTransition
         },
         .{
             .destination_cube = 19,
-            .entries = .{ .scene_entry_index = 21, .background_entry_index = 21 },
+            .entries = .{ .scene_entry_index = 21, .background_entry_index = 19 },
             .classic_loader_scene_number = 19,
         },
         .{
             .destination_cube = 20,
-            .entries = .{ .scene_entry_index = 22, .background_entry_index = 22 },
+            .entries = .{ .scene_entry_index = 22, .background_entry_index = 20 },
             .classic_loader_scene_number = 20,
         },
         .{
@@ -1386,11 +1386,11 @@ test "resolveGuardedTransitionRoomEntriesForCube keeps the bounded current-state
         try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 17),
     );
     try std.testing.expectEqual(
-        ResolvedRoomEntries{ .scene_entry_index = 21, .background_entry_index = 21 },
+        ResolvedRoomEntries{ .scene_entry_index = 21, .background_entry_index = 19 },
         try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 19),
     );
     try std.testing.expectEqual(
-        ResolvedRoomEntries{ .scene_entry_index = 22, .background_entry_index = 22 },
+        ResolvedRoomEntries{ .scene_entry_index = 22, .background_entry_index = 20 },
         try resolveGuardedTransitionRoomEntriesForCube(allocator, resolved, 20),
     );
     try std.testing.expectEqual(

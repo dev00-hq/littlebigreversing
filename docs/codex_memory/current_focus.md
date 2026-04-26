@@ -4,39 +4,38 @@
 
 - Keep `codex-memory-v2` canonical.
 - Keep guarded load set stable: `19/19`, `2/2`, `11/10`, `187/187`; `44/2` rejects as exterior.
-- Keep `LM_DEFAULT`, `LM_END_SWITCH`, `life_audit`, `room_state`, and debugger owner boundaries.
+- Preserve `LM_DEFAULT`, `LM_END_SWITCH`, `life_audit`, `room_state`, and debugger ownership boundaries.
 - Keep validation additive: `zig build test-fast`, `zig build test-cli-integration`, tool-only same-index triage.
 
 ## Active Streams
 
 - Phase 5 runtime/gameplay widening is current.
-- Viewer/load widening stays on `19/19`, `2/2`, `11/10`, `187/187`; `187/187` still launches `raw_invalid_start`, not admitted spawn.
-- Guarded `2/2` public exit is backed as exterior-facing `ChangeCube`; the port rejects it as `unsupported_exterior_destination_cube`.
-- `3/3` blockers stay rejected; live zone-`1` cube-`19` lands in a Tralu's-dungeon-looking scene, not the cellar target.
-- `3/3` probe: `1 -> 21/21` cell `56/55` nearest standable `15/26`; `8 -> 22/22` cell `56/62` nearest `13/13`; `15` unsupported.
+- Viewer/load widening stays on guarded `19/19`, `2/2`, `11/10`, and `187/187`; `187/187` still starts `raw_invalid_start`.
+- Guarded `2/2` public exit is exterior-facing `ChangeCube` and remains `unsupported_exterior_destination_cube`.
+- `3/3` zones `1`/`8` now commit as Tralu: cube `19 -> 21/19`, `20 -> 22/20`; zone `15` remains unsupported.
 - Original-runtime CD gate uses the run3 MCI shim until mixed-mode media is proved.
-- `0013` door is scene-2 zone `0`: house/key side `2/1 -> 2/0` consumes one key and lands `(2562,2048,3322)` after shadow; cellar return `2/0 -> 2/1` is free and lands `(9725,1024,1098)`.
-- `0013` key source is scene `2/1` default action gated by `gameVar(0)==0`; it kills object `7`, grants object `0`, and sets `gameVar(0)=1`.
+- `0013` door is scene-2 zone `0`: `2/1 -> 2/0` consumes one key and lands `(2562,2048,3322)` after shadow; `2/0 -> 2/1` is free and lands `(9725,1024,1098)`.
+- `0013` key source is scene `2/1` default action gated by `gameVar(0)==0`; it kills obj `7`, grants obj `0`, and sets `gameVar(0)=1`.
 - `0013` key pickup is poll-only proved on house side: `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`.
-- `inspect-room-transitions 2 1 --json` now exposes the runtime no-key lock and with-key consumption; `inspect-room-transitions 2 0 --json` exposes the `runtime_synthetic` free cellar return row.
+- `inspect-room-transitions 2 1/2 0 --json` exposes no-key lock, key consumption, and the synthetic free cellar return.
+- Original-runtime named saves: direct globals + pose context + `SaveGame(TRUE)`; `CurrentSaveGame()` is `current.lba` only. Load with `LBA2.EXE SAVE\<name>.LBA` while autosave is hidden/restored; Frida observes/shims only.
 
 ## Blocked Items
 
-- Guarded `19/19` pickup gating is still admitted footing plus same-`top_y` and proximity, not proved same-surface/floor-band.
-- Guarded `2/2` `change_cube` is exterior-facing, not an interior handoff proof.
-- Guarded `187/187` still has no promoted locomotion/runtime semantics beyond nearest-standable seeding and startup diagnostics.
-- `3/3` is not a solved cellar handoff; zone `1` live-proves globals but lands in the wrong scene, and zone `8` remains unproved.
+- Guarded `19/19` pickup gating is still admitted footing plus same-`top_y`/proximity, not proved same-surface/floor-band.
+- Guarded `2/2` and `187/187` are not solved interior handoff or locomotion semantics.
 - Room `36/36` page 2 is renderer pagination; save/load is unsupported while dialog is active.
 - Wall mapping is deferred.
-- `inspect-room 219 219 --json` still fails with `InvalidFragmentZoneBounds`.
+- `inspect-room 219 219 --json` still fails `InvalidFragmentZoneBounds`.
 
 ## Next Actions
 
 - Reopen wall mapping only if a bounded navigation slice proves it is the bottleneck.
-- For cellar work, stay on the scene-2 zone-`0` secret-room seam; do not promote the `3/3` zone-`1` dungeon handoff.
-- Use `inspect-room-transitions <scene> <bg> --json` before transition changes; for `0013`, inspect `runtime_no_key_effect`, `runtime_with_key_effect`, and `source_kind=runtime_synthetic`.
-- Use `secret_room_door_watch.py` for door snapshots; prefer Frida/read-only over CDB for manual key-source loops.
-- Frida rule: internal `DoLifeLoop` instruction sites use function/probe form; live `SPRITE_CLE` proof is enough for `0013`.
+- For cellar work, stay on scene-2 zone `0`; `3/3` zones `1`/`8` are Tralu, not cellar evidence.
+- Use `inspect-room-transitions <scene> <bg> --json`; for `0013`, read runtime no-key/with-key/synthetic-return fields.
+- Use `secret_room_door_watch.py`; prefer Frida/read-only over CDB for manual key-source loops.
+- Internal `DoLifeLoop` instruction hooks use function/probe form; live `SPRITE_CLE` proof is enough for `0013`.
+- Save helpers: overwrite only, never `CurrentSaveGame()`, then CLI-argv reload with autosave guard and memory coordinates.
 - Otherwise choose the next bounded Phase 5 seam from an existing guarded gameplay slice.
 - Use `dialog_text_dump.py` only if room-36 needs more original-runtime proof; do not model save/load during active dialog.
 

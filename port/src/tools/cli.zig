@@ -4461,7 +4461,7 @@ test "inspect-room json keeps the guarded canonical interior pair stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"fragment_count\": 0") != null);
 }
 
-test "inspect-room-transitions payload exposes guarded 3/3 post-load diagnostics" {
+test "inspect-room-transitions payload exposes guarded 3/3 interior commits" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -4479,29 +4479,12 @@ test "inspect-room-transitions payload exposes guarded 3/3 post-load diagnostics
         if (transition.source_zone_index != 1) continue;
         found_zone_1 = true;
         try std.testing.expectEqual(@as(i16, 19), transition.destination_cube);
-        try std.testing.expectEqualStrings("rejected", transition.result);
-        try std.testing.expectEqualStrings(
-            "unsupported_destination_post_load_adjustment",
-            transition.rejection_reason.?,
-        );
+        try std.testing.expectEqualStrings("committed", transition.result);
+        try std.testing.expect(transition.rejection_reason == null);
         try std.testing.expectEqual(@as(?usize, 21), transition.destination_scene_entry_index);
-        try std.testing.expectEqual(@as(?usize, 21), transition.destination_background_entry_index);
-        const post_load = transition.post_load_diagnostics orelse return error.MissingPostLoadDiagnostics;
-        try std.testing.expectEqualStrings("target_empty", post_load.move_target_status);
-        try std.testing.expect(post_load.shadow_adjustment_failure == null);
-        try std.testing.expectEqual(transition.destination_world_position, post_load.provisional_world_position);
-        try std.testing.expectEqual(@as(?RoomTransitionGridCellSummary, .{ .x = 56, .z = 55 }), post_load.raw_cell.cell);
-        try std.testing.expectEqualStrings("empty", post_load.raw_cell.status);
-        try std.testing.expectEqual(false, post_load.raw_cell.occupied);
-        try std.testing.expectEqualStrings("outside_occupied_bounds", post_load.occupied_coverage.relation);
-        try std.testing.expectEqual(@as(usize, 38), post_load.occupied_coverage.x_cells_from_bounds);
-        try std.testing.expectEqual(@as(usize, 29), post_load.occupied_coverage.z_cells_from_bounds);
-        const nearest_standable = post_load.nearest_standable orelse return error.MissingNearestStandable;
-        try std.testing.expectEqual(RoomTransitionGridCellSummary{ .x = 15, .z = 26 }, nearest_standable.cell);
-        try std.testing.expectEqual(@as(i32, 6400), nearest_standable.surface_top_y);
-        try std.testing.expectEqualStrings("standable", nearest_standable.standability);
-        try std.testing.expectEqual(@as(i32, 20481), nearest_standable.x_distance);
-        try std.testing.expectEqual(@as(i32, 14337), nearest_standable.z_distance);
+        try std.testing.expectEqual(@as(?usize, 19), transition.destination_background_entry_index);
+        try std.testing.expect(transition.post_load_diagnostics == null);
+        try std.testing.expectEqual(transition.destination_world_position, transition.hero_position);
     }
     try std.testing.expect(found_zone_1);
 }
@@ -4519,9 +4502,9 @@ test "inspect-room-transitions payload exposes scene-2 secret-room key gate runt
     try std.testing.expectEqualStrings("decoded_change_cube", transition.source_kind);
     try std.testing.expectEqual(@as(usize, 0), transition.source_zone_index);
     try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
-        .x = 9728,
-        .y = 1024,
-        .z = 512,
+        .x = 9730,
+        .y = 1025,
+        .z = 762,
     }, transition.runtime_probe_position.?);
 
     const no_key = transition.runtime_no_key_effect orelse return error.MissingRuntimeNoKeyEffect;
@@ -4537,8 +4520,18 @@ test "inspect-room-transitions payload exposes scene-2 secret-room key gate runt
     try std.testing.expect(with_key.triggered_room_transition);
     try std.testing.expectEqualStrings("house_consumed_key", with_key.secret_room_door_event.?);
     try std.testing.expectEqual(@as(?i16, 0), with_key.pending_destination_cube);
+    try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
+        .x = 2562,
+        .y = 2049,
+        .z = 3322,
+    }, with_key.pending_destination_world_position.?);
     try std.testing.expectEqual(@as(?usize, 2), with_key.destination_scene_entry_index);
     try std.testing.expectEqual(@as(?usize, 0), with_key.destination_background_entry_index);
+    try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
+        .x = 2562,
+        .y = 2048,
+        .z = 3322,
+    }, with_key.hero_position.?);
 }
 
 test "inspect-room-transitions payload exposes scene-2 synthetic cellar return runtime effects" {

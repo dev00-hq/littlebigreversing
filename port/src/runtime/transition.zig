@@ -525,12 +525,24 @@ test "guarded scene-2 reverse secret-room door commits through the live-backed c
     }
 }
 
-test "guarded 3/3 resolves but rejects its two current interior destinations at post-load landing" {
-    try expectGuarded33ChangeCubeRejection(1, 19, .unsupported_destination_post_load_adjustment);
-    try expectGuarded33ChangeCubeRejection(8, 20, .unsupported_destination_post_load_adjustment);
+test "guarded 3/3 commits its two current interior destinations" {
+    try expectGuarded33ChangeCubeCommit(
+        1,
+        19,
+        21,
+        19,
+        .{ .x = 28672, .y = 3328, .z = 28160 },
+    );
+    try expectGuarded33ChangeCubeCommit(
+        8,
+        20,
+        22,
+        20,
+        .{ .x = 28672, .y = 1536, .z = 31744 },
+    );
 }
 
-test "guarded 3/3 post-load rejection carries provisional landing diagnostics" {
+test "guarded 3/3 interior destination commits preserve provisional landing" {
     const allocator = std.testing.allocator;
     const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -543,32 +555,11 @@ test "guarded 3/3 post-load rejection carries provisional landing diagnostics" {
         .change_cube => |value| value,
         else => return error.ExpectedChangeCubeZoneSemantics,
     };
-    const destination_entries = try room_state.resolveGuardedTransitionRoomEntriesForCube(
-        allocator,
-        resolved,
-        semantics.destination_cube,
-    );
-    var destination_room = try room_state.loadRoomSnapshot(
-        allocator,
-        resolved,
-        destination_entries.scene_entry_index,
-        destination_entries.background_entry_index,
-    );
-    defer destination_room.deinit(allocator);
 
     const provisional_world_position = locomotion.WorldPointSnapshot{
         .x = semantics.destination_x,
         .y = semantics.destination_y,
         .z = semantics.destination_z,
-    };
-    const destination_query = runtime_query.init(&destination_room);
-    const expected_status = destination_query.evaluateHeroMoveTarget(provisional_world_position).status;
-    const expected_shadow_failure = blk: {
-        if (expected_status != .target_height_mismatch) break :blk null;
-        _ = destination_query.classicShadowAdjustedLanding(provisional_world_position) catch |err| {
-            break :blk shadowAdjustmentFailureFromError(err);
-        };
-        break :blk null;
     };
 
     var current_session = try viewer_shell.initSession(allocator, &room);
@@ -593,27 +584,15 @@ test "guarded 3/3 post-load rejection carries provisional landing diagnostics" {
         locomotion_status,
     );
     switch (transition_result) {
-        .rejected => |value| {
-            try std.testing.expectEqual(
-                TransitionRejectionReason.unsupported_destination_post_load_adjustment,
-                value.reason,
-            );
-            const failure = value.post_load_adjustment_failure orelse return error.MissingPostLoadAdjustmentFailure;
-            try std.testing.expectEqual(provisional_world_position, failure.provisional_world_position);
-            try std.testing.expectEqual(expected_status, failure.move_target_status);
-            try std.testing.expectEqual(
-                destination_query.evaluateHeroMoveTarget(provisional_world_position).raw_cell,
-                failure.raw_cell,
-            );
-            try std.testing.expectEqual(
-                destination_query.evaluateHeroMoveTarget(provisional_world_position).occupied_coverage,
-                failure.occupied_coverage,
-            );
-            try std.testing.expect(failure.nearest_occupied != null);
-            try std.testing.expect(failure.nearest_standable != null);
-            try std.testing.expectEqual(expected_shadow_failure, failure.shadow_adjustment_failure);
+        .committed => |value| {
+            try std.testing.expectEqual(@as(usize, 3), value.source_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 3), value.source_background_entry_index);
+            try std.testing.expectEqual(@as(i16, 19), value.destination_cube);
+            try std.testing.expectEqual(@as(usize, 21), value.destination_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 19), value.destination_background_entry_index);
+            try std.testing.expectEqual(provisional_world_position, value.hero_position);
         },
-        .committed => return error.UnexpectedCommittedRoomTransition,
+        .rejected => return error.UnexpectedRejectedRoomTransition,
     }
 }
 
@@ -776,20 +755,24 @@ fn findReachableChangeCubeTransition(
     return null;
 }
 
-fn expectGuarded33ChangeCubeRejection(
+fn expectGuarded33ChangeCubeCommit(
     source_zone_index: usize,
     destination_cube: i16,
-    reason: TransitionRejectionReason,
+    destination_scene_entry_index: usize,
+    destination_background_entry_index: usize,
+    hero_position: locomotion.WorldPointSnapshot,
 ) !void {
     const transition_result = try applyGuarded33ChangeCubeZone(source_zone_index);
     switch (transition_result) {
-        .rejected => |value| {
+        .committed => |value| {
             try std.testing.expectEqual(@as(usize, 3), value.source_scene_entry_index);
             try std.testing.expectEqual(@as(usize, 3), value.source_background_entry_index);
             try std.testing.expectEqual(destination_cube, value.destination_cube);
-            try std.testing.expectEqual(reason, value.reason);
+            try std.testing.expectEqual(destination_scene_entry_index, value.destination_scene_entry_index);
+            try std.testing.expectEqual(destination_background_entry_index, value.destination_background_entry_index);
+            try std.testing.expectEqual(hero_position, value.hero_position);
         },
-        .committed => return error.UnexpectedCommittedRoomTransition,
+        .rejected => return error.UnexpectedRejectedRoomTransition,
     }
 }
 
