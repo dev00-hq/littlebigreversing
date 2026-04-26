@@ -16,6 +16,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - Guarded `19/19` object `2` has live-backed `Divers=5` multi-bonus semantics.
 - `0013` key source is default action: W sets `ActionNormal`; `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0` gate `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
 - `0013` key pickup is Frida poll-only proved: `SPRITE_CLE` from `(3072,3072,5120)`, `Divers=1`, `NbLittleKeys 0 -> 1`; viewer drives W/default-action, pickup overlay, keyed cellar entry, and free return.
+- `inspect-room-transitions` is runtime-aware for the `0013` seam: `2/1` reports locked/no-key and consume-one-key paths, and `2/0` includes the synthetic free return row.
 - Room `36` keeps dialog id `3` across both visible Sendell pages and clears after the second ack.
 - `waypoint_step_probe.py` owns debug-control outcomes; `collision_observer.py` is diagnostic-only.
 
@@ -32,6 +33,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - `0013-weapon.LBA` is the right cellar start; forced `3/3` zone `1` lands in a Tralu-looking scene.
 - `0013` door source is scene-2 zone `0`; cube `1 -> 0` preserves offset before shadow readjustment.
 - `0013` keyed direction is house/key side `2/1 -> 2/0`; cellar return `2/0 -> 2/1` is free.
+- In `inspect-room-transitions`, do not read the `0013` decoded rows alone. Use `runtime_no_key_effect`, `runtime_with_key_effect`, and the `source_kind=runtime_synthetic` row for the gameplay door behavior.
 - Use `secret_room_door_watch.py`; it reads `NbLittleKeys` as a byte. `work/tmp_secret_room_door_watch.py` is scratch evidence.
 - `0013` key pickup is `FUN_00415e48` / `0x0041737c`, not proved `LM_GIVE_BONUS`; the older no-hit CDB artifact had a malformed command.
 - Do not call the W path `search action`; in the classic source it is the default action key (`I_ACTION_ALWAYS` sets `ActionNormal`, read by `LF_ACTION`).

@@ -17,6 +17,7 @@ const runtime_session = @import("../runtime/session.zig");
 const runtime_transition = @import("../runtime/transition.zig");
 const room_entry_state = @import("../runtime/room_entry_state.zig");
 const room_state = @import("../runtime/room_state.zig");
+const zone_effects = @import("../runtime/zone_effects.zig");
 const room_intelligence = @import("room_intelligence.zig");
 const room_fixtures = if (builtin.is_test) @import("../testing/room_fixtures.zig") else struct {};
 
@@ -314,7 +315,23 @@ const RoomTransitionPostLoadDiagnosticsSummary = struct {
     nearest_standable: ?RoomTransitionDiagnosticCandidateSummary,
 };
 
+const RoomTransitionRuntimeEffectSummary = struct {
+    little_keys_before: u8,
+    little_keys_after: u8,
+    triggered_room_transition: bool,
+    secret_room_door_event: ?[]const u8,
+    pending_destination_cube: ?i16,
+    pending_destination_world_position: ?RoomTransitionWorldPositionSummary,
+    result: ?[]const u8,
+    rejection_reason: ?[]const u8,
+    destination_scene_entry_index: ?usize,
+    destination_background_entry_index: ?usize,
+    hero_position: ?RoomTransitionWorldPositionSummary,
+    post_load_diagnostics: ?RoomTransitionPostLoadDiagnosticsSummary,
+};
+
 const RoomTransitionProbeSummary = struct {
+    source_kind: []const u8,
     source_zone_index: usize,
     source_zone_num: i16,
     destination_cube: i16,
@@ -329,6 +346,9 @@ const RoomTransitionProbeSummary = struct {
     destination_background_entry_index: ?usize,
     hero_position: RoomTransitionWorldPositionSummary,
     post_load_diagnostics: ?RoomTransitionPostLoadDiagnosticsSummary,
+    runtime_probe_position: ?RoomTransitionWorldPositionSummary,
+    runtime_no_key_effect: ?RoomTransitionRuntimeEffectSummary,
+    runtime_with_key_effect: ?RoomTransitionRuntimeEffectSummary,
 };
 
 const RoomTransitionInspectionPayload = struct {
@@ -1514,8 +1534,9 @@ fn inspectRoomTransitions(
     );
     for (payload.transitions) |transition| {
         try stderr.print(
-            "source_zone_index={d} source_zone_num={d} destination_cube={d} result={s} rejection_reason={s} destination_scene_entry_index={any} destination_background_entry_index={any} post_load_target_status={s} post_load_shadow_adjustment_failure={s} provisional_x={d} provisional_y={d} provisional_z={d} hero_x={d} hero_y={d} hero_z={d}\n",
+            "source_kind={s} source_zone_index={d} source_zone_num={d} destination_cube={d} result={s} rejection_reason={s} destination_scene_entry_index={any} destination_background_entry_index={any} post_load_target_status={s} post_load_shadow_adjustment_failure={s} provisional_x={d} provisional_y={d} provisional_z={d} hero_x={d} hero_y={d} hero_z={d} runtime_no_key_event={s} runtime_no_key_result={s} runtime_no_key_after={d} runtime_with_key_event={s} runtime_with_key_result={s} runtime_with_key_after={d}\n",
             .{
+                transition.source_kind,
                 transition.source_zone_index,
                 transition.source_zone_num,
                 transition.destination_cube,
@@ -1531,6 +1552,12 @@ fn inspectRoomTransitions(
                 transition.hero_position.x,
                 transition.hero_position.y,
                 transition.hero_position.z,
+                runtimeEffectEventName(transition.runtime_no_key_effect),
+                runtimeEffectResultName(transition.runtime_no_key_effect),
+                runtimeEffectLittleKeysAfter(transition.runtime_no_key_effect),
+                runtimeEffectEventName(transition.runtime_with_key_effect),
+                runtimeEffectResultName(transition.runtime_with_key_effect),
+                runtimeEffectLittleKeysAfter(transition.runtime_with_key_effect),
             },
         );
     }
@@ -1919,6 +1946,9 @@ fn buildRoomTransitionInspectionPayload(
     for (source_room.scene.zones) |zone| {
         if (zone.kind == .change_cube) transition_count += 1;
     }
+    if (zone_effects.secretRoomCellarReturnProbePosition(scene_entry_index, background_entry_index) != null) {
+        transition_count += 1;
+    }
 
     const transitions = try allocator.alloc(RoomTransitionProbeSummary, transition_count);
     errdefer allocator.free(transitions);
@@ -1932,6 +1962,16 @@ fn buildRoomTransitionInspectionPayload(
             scene_entry_index,
             background_entry_index,
             zone,
+        );
+        transition_index += 1;
+    }
+    if (zone_effects.secretRoomCellarReturnProbePosition(scene_entry_index, background_entry_index)) |probe_position| {
+        transitions[transition_index] = try inspectSecretRoomCellarReturnTransition(
+            allocator,
+            resolved,
+            scene_entry_index,
+            background_entry_index,
+            probe_position,
         );
         transition_index += 1;
     }
@@ -1984,6 +2024,31 @@ fn inspectSingleRoomTransition(
 
     var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
     const pre_transition_locomotion_status = locomotion_status;
+    const runtime_probe_position = zone_effects.secretRoomHouseDoorProbePosition(scene_entry_index, background_entry_index, zone);
+    const runtime_no_key_effect: ?RoomTransitionRuntimeEffectSummary = if (runtime_probe_position) |probe_position|
+        try inspectRoomTransitionRuntimeEffect(
+            allocator,
+            resolved,
+            scene_entry_index,
+            background_entry_index,
+            probe_position,
+            0,
+            &.{zone},
+        )
+    else
+        null;
+    const runtime_with_key_effect: ?RoomTransitionRuntimeEffectSummary = if (runtime_probe_position) |probe_position|
+        try inspectRoomTransitionRuntimeEffect(
+            allocator,
+            resolved,
+            scene_entry_index,
+            background_entry_index,
+            probe_position,
+            1,
+            &.{zone},
+        )
+    else
+        null;
     try current_session.setPendingRoomTransition(.{
         .source_zone_index = zone.index,
         .destination_cube = semantics.destination_cube,
@@ -2005,6 +2070,7 @@ fn inspectSingleRoomTransition(
 
     return switch (transition_result) {
         .committed => |value| .{
+            .source_kind = "decoded_change_cube",
             .source_zone_index = zone.index,
             .source_zone_num = zone.num,
             .destination_cube = semantics.destination_cube,
@@ -2019,8 +2085,12 @@ fn inspectSingleRoomTransition(
             .destination_background_entry_index = value.destination_background_entry_index,
             .hero_position = roomTransitionWorldPositionSummary(value.hero_position),
             .post_load_diagnostics = null,
+            .runtime_probe_position = if (runtime_probe_position) |probe_position| roomTransitionWorldPositionSummary(probe_position) else null,
+            .runtime_no_key_effect = runtime_no_key_effect,
+            .runtime_with_key_effect = runtime_with_key_effect,
         },
         .rejected => |value| .{
+            .source_kind = "decoded_change_cube",
             .source_zone_index = zone.index,
             .source_zone_num = zone.num,
             .destination_cube = semantics.destination_cube,
@@ -2034,16 +2104,190 @@ fn inspectSingleRoomTransition(
             .destination_scene_entry_index = if (resolved_destination_entries) |entries| entries.scene_entry_index else null,
             .destination_background_entry_index = if (resolved_destination_entries) |entries| entries.background_entry_index else null,
             .hero_position = roomTransitionWorldPositionSummary(value.hero_position),
-            .post_load_diagnostics = if (value.post_load_adjustment_failure) |failure| .{
-                .move_target_status = @tagName(failure.move_target_status),
-                .shadow_adjustment_failure = if (failure.shadow_adjustment_failure) |shadow_failure| @tagName(shadow_failure) else null,
-                .provisional_world_position = roomTransitionWorldPositionSummary(failure.provisional_world_position),
-                .raw_cell = roomTransitionRawCellSummary(failure.raw_cell),
-                .occupied_coverage = roomTransitionOccupiedCoverageSummary(failure.occupied_coverage),
-                .nearest_occupied = if (failure.nearest_occupied) |candidate| roomTransitionDiagnosticCandidateSummary(candidate) else null,
-                .nearest_standable = if (failure.nearest_standable) |candidate| roomTransitionDiagnosticCandidateSummary(candidate) else null,
-            } else null,
+            .post_load_diagnostics = if (value.post_load_adjustment_failure) |failure| roomTransitionPostLoadDiagnosticsSummary(failure) else null,
+            .runtime_probe_position = if (runtime_probe_position) |probe_position| roomTransitionWorldPositionSummary(probe_position) else null,
+            .runtime_no_key_effect = runtime_no_key_effect,
+            .runtime_with_key_effect = runtime_with_key_effect,
         },
+    };
+}
+
+fn inspectSecretRoomCellarReturnTransition(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    probe_position: locomotion.WorldPointSnapshot,
+) !RoomTransitionProbeSummary {
+    const runtime_no_key_effect = try inspectRoomTransitionRuntimeEffect(
+        allocator,
+        resolved,
+        scene_entry_index,
+        background_entry_index,
+        probe_position,
+        0,
+        &.{},
+    );
+    const runtime_with_key_effect = try inspectRoomTransitionRuntimeEffect(
+        allocator,
+        resolved,
+        scene_entry_index,
+        background_entry_index,
+        probe_position,
+        1,
+        &.{},
+    );
+    const pending_destination_cube = runtime_no_key_effect.pending_destination_cube orelse return error.MissingRuntimeSyntheticTransition;
+    const pending_destination_world_position = runtime_no_key_effect.pending_destination_world_position orelse return error.MissingRuntimeSyntheticTransition;
+    const hero_position = runtime_no_key_effect.hero_position orelse return error.MissingRuntimeSyntheticTransition;
+
+    return .{
+        .source_kind = "runtime_synthetic",
+        .source_zone_index = 0,
+        .source_zone_num = 0,
+        .destination_cube = pending_destination_cube,
+        .destination_world_position_kind = "provisional_zone_relative",
+        .destination_world_position = pending_destination_world_position,
+        .yaw = 0,
+        .test_brick = false,
+        .dont_readjust_twinsen = false,
+        .result = runtime_no_key_effect.result orelse return error.MissingRuntimeSyntheticTransition,
+        .rejection_reason = runtime_no_key_effect.rejection_reason,
+        .destination_scene_entry_index = runtime_no_key_effect.destination_scene_entry_index,
+        .destination_background_entry_index = runtime_no_key_effect.destination_background_entry_index,
+        .hero_position = hero_position,
+        .post_load_diagnostics = runtime_no_key_effect.post_load_diagnostics,
+        .runtime_probe_position = roomTransitionWorldPositionSummary(probe_position),
+        .runtime_no_key_effect = runtime_no_key_effect,
+        .runtime_with_key_effect = runtime_with_key_effect,
+    };
+}
+
+fn inspectRoomTransitionRuntimeEffect(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    probe_position: locomotion.WorldPointSnapshot,
+    little_keys_before: u8,
+    zones: []const room_state.ZoneBoundsSnapshot,
+) !RoomTransitionRuntimeEffectSummary {
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
+    defer room.deinit(allocator);
+
+    var current_session = try runtime_session.Session.initWithObjects(
+        allocator,
+        heroStartWorldPoint(&room),
+        room.scene.objects,
+        room.scene.object_behavior_seeds,
+    );
+    defer current_session.deinit(allocator);
+    room_entry_state.applyRoomEntryState(&room, &current_session);
+    current_session.setHeroWorldPosition(probe_position);
+    current_session.setLittleKeyCount(little_keys_before);
+
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
+    const pre_transition_locomotion_status = locomotion_status;
+    const effect_summary = try zone_effects.applyContainingZoneEffects(&room, &current_session, zones);
+    const pending_transition = current_session.pendingRoomTransition();
+    const pending_destination_cube: ?i16 = if (pending_transition) |transition| transition.destination_cube else null;
+    const pending_destination_world_position: ?RoomTransitionWorldPositionSummary = if (pending_transition) |transition|
+        roomTransitionWorldPositionSummary(transition.destination_world_position)
+    else
+        null;
+
+    if (!effect_summary.triggered_room_transition) {
+        return .{
+            .little_keys_before = little_keys_before,
+            .little_keys_after = current_session.littleKeyCount(),
+            .triggered_room_transition = false,
+            .secret_room_door_event = secretRoomDoorEventName(effect_summary.secret_room_door_event),
+            .pending_destination_cube = pending_destination_cube,
+            .pending_destination_world_position = pending_destination_world_position,
+            .result = null,
+            .rejection_reason = null,
+            .destination_scene_entry_index = null,
+            .destination_background_entry_index = null,
+            .hero_position = null,
+            .post_load_diagnostics = null,
+        };
+    }
+    _ = pending_transition orelse return error.MissingRuntimePendingRoomTransition;
+
+    const transition_result = try runtime_transition.applyPendingRoomTransition(
+        allocator,
+        resolved,
+        &room,
+        &current_session,
+        &locomotion_status,
+        pre_transition_locomotion_status,
+    );
+
+    return switch (transition_result) {
+        .committed => |value| .{
+            .little_keys_before = little_keys_before,
+            .little_keys_after = current_session.littleKeyCount(),
+            .triggered_room_transition = true,
+            .secret_room_door_event = secretRoomDoorEventName(effect_summary.secret_room_door_event),
+            .pending_destination_cube = pending_destination_cube,
+            .pending_destination_world_position = pending_destination_world_position,
+            .result = "committed",
+            .rejection_reason = null,
+            .destination_scene_entry_index = value.destination_scene_entry_index,
+            .destination_background_entry_index = value.destination_background_entry_index,
+            .hero_position = roomTransitionWorldPositionSummary(value.hero_position),
+            .post_load_diagnostics = null,
+        },
+        .rejected => |value| .{
+            .little_keys_before = little_keys_before,
+            .little_keys_after = current_session.littleKeyCount(),
+            .triggered_room_transition = true,
+            .secret_room_door_event = secretRoomDoorEventName(effect_summary.secret_room_door_event),
+            .pending_destination_cube = pending_destination_cube,
+            .pending_destination_world_position = pending_destination_world_position,
+            .result = "rejected",
+            .rejection_reason = @tagName(value.reason),
+            .destination_scene_entry_index = null,
+            .destination_background_entry_index = null,
+            .hero_position = roomTransitionWorldPositionSummary(value.hero_position),
+            .post_load_diagnostics = if (value.post_load_adjustment_failure) |failure| roomTransitionPostLoadDiagnosticsSummary(failure) else null,
+        },
+    };
+}
+
+fn secretRoomDoorEventName(event: ?zone_effects.SecretRoomDoorEvent) ?[]const u8 {
+    return if (event) |value| @tagName(value) else null;
+}
+
+fn runtimeEffectEventName(effect: ?RoomTransitionRuntimeEffectSummary) []const u8 {
+    if (effect) |value| return value.secret_room_door_event orelse "none";
+    return "none";
+}
+
+fn runtimeEffectResultName(effect: ?RoomTransitionRuntimeEffectSummary) []const u8 {
+    if (effect) |value| {
+        if (!value.triggered_room_transition) return "no_transition";
+        return value.result orelse "pending";
+    }
+    return "none";
+}
+
+fn runtimeEffectLittleKeysAfter(effect: ?RoomTransitionRuntimeEffectSummary) i16 {
+    if (effect) |value| return @intCast(value.little_keys_after);
+    return -1;
+}
+
+fn roomTransitionPostLoadDiagnosticsSummary(
+    failure: runtime_transition.PostLoadAdjustmentFailure,
+) RoomTransitionPostLoadDiagnosticsSummary {
+    return .{
+        .move_target_status = @tagName(failure.move_target_status),
+        .shadow_adjustment_failure = if (failure.shadow_adjustment_failure) |shadow_failure| @tagName(shadow_failure) else null,
+        .provisional_world_position = roomTransitionWorldPositionSummary(failure.provisional_world_position),
+        .raw_cell = roomTransitionRawCellSummary(failure.raw_cell),
+        .occupied_coverage = roomTransitionOccupiedCoverageSummary(failure.occupied_coverage),
+        .nearest_occupied = if (failure.nearest_occupied) |candidate| roomTransitionDiagnosticCandidateSummary(candidate) else null,
+        .nearest_standable = if (failure.nearest_standable) |candidate| roomTransitionDiagnosticCandidateSummary(candidate) else null,
     };
 }
 
@@ -4260,6 +4504,82 @@ test "inspect-room-transitions payload exposes guarded 3/3 post-load diagnostics
         try std.testing.expectEqual(@as(i32, 14337), nearest_standable.z_distance);
     }
     try std.testing.expect(found_zone_1);
+}
+
+test "inspect-room-transitions payload exposes scene-2 secret-room key gate runtime effects" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const payload = try buildRoomTransitionInspectionPayload(allocator, resolved, 2, 1);
+    defer allocator.free(payload.transitions);
+
+    try std.testing.expectEqual(@as(usize, 1), payload.transition_count);
+    const transition = payload.transitions[0];
+    try std.testing.expectEqualStrings("decoded_change_cube", transition.source_kind);
+    try std.testing.expectEqual(@as(usize, 0), transition.source_zone_index);
+    try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
+        .x = 9728,
+        .y = 1024,
+        .z = 512,
+    }, transition.runtime_probe_position.?);
+
+    const no_key = transition.runtime_no_key_effect orelse return error.MissingRuntimeNoKeyEffect;
+    try std.testing.expectEqual(@as(u8, 0), no_key.little_keys_before);
+    try std.testing.expectEqual(@as(u8, 0), no_key.little_keys_after);
+    try std.testing.expect(!no_key.triggered_room_transition);
+    try std.testing.expectEqualStrings("house_locked_no_key", no_key.secret_room_door_event.?);
+    try std.testing.expect(no_key.pending_destination_cube == null);
+
+    const with_key = transition.runtime_with_key_effect orelse return error.MissingRuntimeWithKeyEffect;
+    try std.testing.expectEqual(@as(u8, 1), with_key.little_keys_before);
+    try std.testing.expectEqual(@as(u8, 0), with_key.little_keys_after);
+    try std.testing.expect(with_key.triggered_room_transition);
+    try std.testing.expectEqualStrings("house_consumed_key", with_key.secret_room_door_event.?);
+    try std.testing.expectEqual(@as(?i16, 0), with_key.pending_destination_cube);
+    try std.testing.expectEqual(@as(?usize, 2), with_key.destination_scene_entry_index);
+    try std.testing.expectEqual(@as(?usize, 0), with_key.destination_background_entry_index);
+}
+
+test "inspect-room-transitions payload exposes scene-2 synthetic cellar return runtime effects" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const payload = try buildRoomTransitionInspectionPayload(allocator, resolved, 2, 0);
+    defer allocator.free(payload.transitions);
+
+    try std.testing.expectEqual(@as(usize, 2), payload.transition_count);
+    var synthetic_transition: ?RoomTransitionProbeSummary = null;
+    for (payload.transitions) |transition| {
+        if (std.mem.eql(u8, transition.source_kind, "runtime_synthetic")) {
+            synthetic_transition = transition;
+            break;
+        }
+    }
+    const transition = synthetic_transition orelse return error.MissingSyntheticCellarReturn;
+
+    try std.testing.expectEqual(@as(i16, 1), transition.destination_cube);
+    try std.testing.expectEqual(@as(?usize, 2), transition.destination_scene_entry_index);
+    try std.testing.expectEqual(@as(?usize, 1), transition.destination_background_entry_index);
+    try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
+        .x = 9725,
+        .y = 1024,
+        .z = 1098,
+    }, transition.hero_position);
+
+    const no_key = transition.runtime_no_key_effect orelse return error.MissingRuntimeNoKeyEffect;
+    try std.testing.expectEqual(@as(u8, 0), no_key.little_keys_after);
+    try std.testing.expect(no_key.triggered_room_transition);
+    try std.testing.expectEqualStrings("cellar_return_free", no_key.secret_room_door_event.?);
+    try std.testing.expectEqual(@as(?usize, 1), no_key.destination_background_entry_index);
+
+    const with_key = transition.runtime_with_key_effect orelse return error.MissingRuntimeWithKeyEffect;
+    try std.testing.expectEqual(@as(u8, 1), with_key.little_keys_before);
+    try std.testing.expectEqual(@as(u8, 1), with_key.little_keys_after);
+    try std.testing.expect(with_key.triggered_room_transition);
+    try std.testing.expectEqualStrings("cellar_return_free", with_key.secret_room_door_event.?);
+    try std.testing.expectEqual(@as(?usize, 1), with_key.destination_background_entry_index);
 }
 
 test "inspect-room-fragment-zones payload explains the 219 219 blocker" {

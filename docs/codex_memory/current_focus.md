@@ -18,6 +18,7 @@
 - `0013` door is scene-2 zone `0`: house/key side `2/1 -> 2/0` consumes one key and lands `(2562,2048,3322)` after shadow; cellar return `2/0 -> 2/1` is free and lands `(9725,1024,1098)`.
 - `0013` key source is scene `2/1` default action gated by `gameVar(0)==0`; it kills object `7`, grants object `0`, and sets `gameVar(0)=1`.
 - `0013` key pickup is poll-only proved on house side: `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`.
+- `inspect-room-transitions 2 1 --json` now exposes the runtime no-key lock and with-key consumption; `inspect-room-transitions 2 0 --json` exposes the `runtime_synthetic` free cellar return row.
 
 ## Blocked Items
 
@@ -33,7 +34,7 @@
 
 - Reopen wall mapping only if a bounded navigation slice proves it is the bottleneck.
 - For cellar work, stay on the scene-2 zone-`0` secret-room seam; do not promote the `3/3` zone-`1` dungeon handoff.
-- Use `inspect-room-transitions <scene> <bg> --json` before transition changes.
+- Use `inspect-room-transitions <scene> <bg> --json` before transition changes; for `0013`, inspect `runtime_no_key_effect`, `runtime_with_key_effect`, and `source_kind=runtime_synthetic`.
 - Use `secret_room_door_watch.py` for door snapshots; prefer Frida/read-only over CDB for manual key-source loops.
 - Frida rule: internal `DoLifeLoop` instruction sites use function/probe form; live `SPRITE_CLE` proof is enough for `0013`.
 - Otherwise choose the next bounded Phase 5 seam from an existing guarded gameplay slice.

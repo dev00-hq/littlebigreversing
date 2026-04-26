@@ -31,6 +31,11 @@ const secret_room_cellar_to_house_provisional_destination = world_geometry.World
     .y = 1278,
     .z = 1098,
 };
+const secret_room_cellar_to_house_probe_position = world_geometry.WorldPointSnapshot{
+    .x = 3056,
+    .y = 2048,
+    .z = 3659,
+};
 
 pub fn applyPostLocomotionEffects(
     room: *const room_state.RoomSnapshot,
@@ -146,6 +151,38 @@ fn secretRoomCellarToHouseDoorTransition(
         .yaw = 0,
         .test_brick = false,
         .dont_readjust_twinsen = false,
+    };
+}
+
+pub fn secretRoomCellarReturnProbePosition(
+    scene_entry_index: usize,
+    background_entry_index: usize,
+) ?world_geometry.WorldPointSnapshot {
+    if (scene_entry_index != secret_room_scene_entry_index or
+        background_entry_index != secret_room_cellar_background_entry_index)
+    {
+        return null;
+    }
+
+    return secret_room_cellar_to_house_probe_position;
+}
+
+pub fn secretRoomHouseDoorProbePosition(
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    zone: room_state.ZoneBoundsSnapshot,
+) ?world_geometry.WorldPointSnapshot {
+    if (scene_entry_index != secret_room_scene_entry_index or
+        background_entry_index != secret_room_house_background_entry_index or
+        zone.index != secret_room_house_to_cellar_zone_index)
+    {
+        return null;
+    }
+
+    return .{
+        .x = zone.x0,
+        .y = zone.y0,
+        .z = zone.z0,
     };
 }
 
