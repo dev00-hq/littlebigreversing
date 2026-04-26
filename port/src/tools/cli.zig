@@ -4512,7 +4512,22 @@ test "inspect-room-transitions payload exposes guarded 187/187 no-readjust desti
         .y = 1792,
         .z = 3141,
     }, transition.hero_position);
-    try std.testing.expect(transition.post_load_diagnostics == null);
+    const post_load = transition.post_load_diagnostics orelse return error.MissingPostLoadDiagnostics;
+    try std.testing.expectEqualStrings("target_height_mismatch", post_load.move_target_status);
+    try std.testing.expect(post_load.shadow_adjustment_failure == null);
+    try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
+        .x = 13824,
+        .y = 5120,
+        .z = 14848,
+    }, post_load.provisional_world_position);
+    try std.testing.expectEqualStrings("occupied_surface", post_load.raw_cell.status);
+    try std.testing.expectEqual(true, post_load.raw_cell.occupied);
+    try std.testing.expectEqual(@as(?RoomTransitionGridCellSummary, .{ .x = 27, .z = 29 }), post_load.raw_cell.cell);
+    try std.testing.expectEqual(@as(?i32, 2048), post_load.raw_cell.surface_top_y);
+    try std.testing.expectEqualStrings("within_occupied_bounds", post_load.occupied_coverage.relation);
+    const nearest_standable = post_load.nearest_standable orelse return error.MissingNearestStandable;
+    try std.testing.expectEqual(RoomTransitionGridCellSummary{ .x = 27, .z = 29 }, nearest_standable.cell);
+    try std.testing.expectEqual(@as(i32, 6400), nearest_standable.surface_top_y);
 }
 
 test "inspect-room-transitions payload exposes scene-2 secret-room key gate runtime effects" {

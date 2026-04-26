@@ -168,6 +168,10 @@ pub fn applyPendingRoomTransition(
     defer transition_probe_session.deinit(allocator);
     const destination_locomotion_status = locomotion.inspectCurrentStatusRequiringAdmittedSeed(&next_room, transition_probe_session) catch |err| switch (err) {
         error.LocomotionStatusInvalidPosition => {
+            const diagnostics = try destinationWorldPositionDiagnostics(
+                &next_room,
+                final_landing_world_position,
+            );
             next_room_owned = false;
             next_room.deinit(allocator);
             return rejectPendingRoomTransition(
@@ -178,7 +182,7 @@ pub fn applyPendingRoomTransition(
                 source_background_entry_index,
                 transition.destination_cube,
                 .unsupported_destination_world_position,
-                null,
+                diagnostics,
             );
         },
         else => return err,
@@ -283,6 +287,23 @@ fn shadowAdjustmentFailureFromError(err: anyerror) ?ShadowAdjustmentFailure {
         error.WorldCellEmpty => .world_cell_empty,
         error.WorldCellNotStandable => .world_cell_not_standable,
         else => null,
+    };
+}
+
+fn destinationWorldPositionDiagnostics(
+    room: *const room_state.RoomSnapshot,
+    destination_world_position: locomotion.WorldPointSnapshot,
+) !PostLoadAdjustmentFailure {
+    const query = runtime_query.init(room);
+    const evaluation = query.evaluateHeroMoveTarget(destination_world_position);
+    return .{
+        .provisional_world_position = destination_world_position,
+        .move_target_status = evaluation.status,
+        .raw_cell = evaluation.raw_cell,
+        .occupied_coverage = evaluation.occupied_coverage,
+        .nearest_occupied = try query.nearestOccupiedCandidateAtWorldPoint(destination_world_position),
+        .nearest_standable = try query.nearestStandableCandidateAtWorldPoint(destination_world_position),
+        .shadow_adjustment_failure = null,
     };
 }
 

@@ -11,7 +11,7 @@
 
 - Phase 5 runtime/gameplay widening is current.
 - Viewer/load widening stays on `19/19`, `2/2`, `11/10`, `187/187`; `187/187` baked start is raw-invalid but runtime nearest-standable seed is promoted.
-- `187/187` zone `1` cube `185` resolves to `187/187`; landing `(13824,5120,14848)` rejects as `unsupported_destination_world_position`.
+- `187/187` zone `1` cube `185` resolves to `187/187`; landing `(13824,5120,14848)` rejects `target_height_mismatch` on cell `27/29`.
 - Guarded `2/2` public exit is exterior-facing `ChangeCube` and remains `unsupported_exterior_destination_cube`.
 - `3/3` zones `1`/`8` now commit as Tralu: cube `19 -> 21/19`, `20 -> 22/20`; zone `15` remains unsupported.
 - Original-runtime CD gate uses run3 MCI shim until mixed-mode media is proved.
