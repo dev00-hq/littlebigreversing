@@ -202,11 +202,13 @@ pub fn buildRenderSnapshot(room: *const RoomSnapshot, current_session: Session) 
 
 pub fn seedSessionToLocomotionFixture(room: *const RoomSnapshot, current_session: *Session) !WorldPointSnapshot {
     const query = runtime_query.init(room);
-    const position = if (room.scene.entry_index == locomotion_fixture_scene_entry and
-        room.background.entry_index == locomotion_fixture_background_entry)
-        try positionForExplicitLocomotionFixture(query, locomotion_fixture_cell)
-    else
-        try positionForNearestStandableCandidate(query);
+    if (room.scene.entry_index != locomotion_fixture_scene_entry or
+        room.background.entry_index != locomotion_fixture_background_entry)
+    {
+        return runtime_locomotion.seedSessionToNearestStandableStart(room, current_session);
+    }
+
+    const position = try positionForExplicitLocomotionFixture(query, locomotion_fixture_cell);
     current_session.setHeroWorldPosition(position);
     return position;
 }
@@ -1172,18 +1174,6 @@ fn positionForExplicitLocomotionFixture(
         fixture_cell.x,
         fixture_cell.z,
         surface.top_y,
-    );
-}
-
-fn positionForNearestStandableCandidate(query: runtime_query.WorldQuery) !WorldPointSnapshot {
-    const probe = try query.probeHeroStart();
-    const candidate = probe.nearest_standable orelse return error.ViewerLocomotionFixtureUnavailable;
-    if (candidate.standability != .standable) return error.ViewerLocomotionFixtureUnavailable;
-
-    return runtime_query.gridCellCenterWorldPosition(
-        candidate.cell.x,
-        candidate.cell.z,
-        candidate.surface.top_y,
     );
 }
 

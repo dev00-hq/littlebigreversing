@@ -14,7 +14,7 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 ## Current Parity Status
 
 - `inspect-background` is implemented with the loader-faithful header, `TabAllCube`, `GRI`, and `BLL` path for canonical interior backgrounds.
-- `19/19`, `2/2`, `11/10`, and `187/187` are guarded-positive viewer pairs. Seeding reaches `19/19` via explicit `39/6`; `2/2`, `11/10`, and `187/187` use nearest-standable fallback, with `187/187` as the first fragment-bearing same-index compatible pair.
+- `19/19`, `2/2`, `11/10`, and `187/187` are guarded-positive viewer pairs. Seeding reaches `19/19` via explicit `39/6`; `2/2`, `11/10`, and `187/187` use runtime-owned nearest-standable seeding, with `187/187` as the first fragment-bearing same-index compatible pair.
 - `SCENE.HQR[44]` with `LBA_BKG.HQR[2]` now fails at the guarded seam for the right reason: `ViewerSceneMustBeInterior`, not unsupported life.
 - The old `219/219` blocker remains, but it is no longer the top offline decoded interior candidate; `inspect-room 219 219 --json` still emits `reason=invalid_fragment_zone_bounds` plus six per-zone issue lines before rethrowing `InvalidFragmentZoneBounds`.
 - `triage-same-index-decoded-interior-candidates` is now the canonical offline report for ranked same-index fragment-zone compatibility: `86/86` is the highest-ranked compatible pair overall, and `187/187` is the first compatible pair with both fragments and GRM zones present.

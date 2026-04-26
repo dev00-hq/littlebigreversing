@@ -168,6 +168,24 @@ pub fn inspectCurrentStatusRequiringAdmittedSeed(
     return seededValidStatus(query, hero_position);
 }
 
+pub fn seedSessionToNearestStandableStart(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+) !WorldPointSnapshot {
+    const query = runtime_query.init(room);
+    const probe = try query.probeHeroStart();
+    const candidate = probe.nearest_standable orelse return error.RuntimeStartSeedUnavailable;
+    if (candidate.standability != .standable) return error.RuntimeStartSeedUnavailable;
+
+    const position = runtime_query.gridCellCenterWorldPosition(
+        candidate.cell.x,
+        candidate.cell.z,
+        candidate.surface.top_y,
+    );
+    current_session.setHeroWorldPosition(position);
+    return position;
+}
+
 pub fn applyStep(
     room: *const room_state.RoomSnapshot,
     current_session: *runtime_session.Session,

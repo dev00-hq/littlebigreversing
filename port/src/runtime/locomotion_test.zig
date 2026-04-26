@@ -190,6 +190,45 @@ test "runtime locomotion reports the explicit guarded 19/19 fixture as the admit
     }
 }
 
+test "runtime locomotion promotes guarded 187/187 nearest-standable startup seed" {
+    const room = try room_fixtures.guarded187187();
+    const query = runtime_query.init(room);
+    const hero_start_probe = try query.probeHeroStart();
+    const candidate = hero_start_probe.nearest_standable orelse return error.MissingNearestStandableDiagnosticCandidate;
+    const expected_seed = runtime_query.gridCellCenterWorldPosition(
+        candidate.cell.x,
+        candidate.cell.z,
+        candidate.surface.top_y,
+    );
+
+    var current_session = runtime_session.Session.init(room_state.heroStartWorldPoint(room));
+    const initial_status = try locomotion.inspectCurrentStatus(room, current_session);
+    switch (initial_status) {
+        .raw_invalid_start => |value| {
+            try std.testing.expectEqual(hero_start_probe.exact_status, value.exact_status);
+            try std.testing.expectEqual(hero_start_probe.raw_cell.cell, value.raw_cell);
+            try expectRawInvalidStartCandidate(value.nearest_standable, hero_start_probe.nearest_standable);
+            try std.testing.expectEqual(room_state.heroStartWorldPoint(room), value.hero_position);
+        },
+        else => return error.UnexpectedLocomotionStatus,
+    }
+
+    const seeded_position = try locomotion.seedSessionToNearestStandableStart(room, &current_session);
+    try std.testing.expectEqual(expected_seed, seeded_position);
+    try std.testing.expectEqual(expected_seed, current_session.heroWorldPosition());
+
+    const seeded_status = try locomotion.inspectCurrentStatus(room, current_session);
+    switch (seeded_status) {
+        .seeded_valid => |value| {
+            try std.testing.expectEqual(candidate.cell, value.cell);
+            try std.testing.expectEqual(expected_seed, value.hero_position);
+            try expectMoveOptions(room, expected_seed, value.move_options);
+            try expectLocalTopology(room, candidate.cell, value.local_topology);
+        },
+        else => return error.UnexpectedLocomotionStatus,
+    }
+}
+
 test "runtime locomotion allows a bounded raw-zone recovery nudge into guarded 2/2 change-cube" {
     const room = try room_fixtures.guarded22();
 
