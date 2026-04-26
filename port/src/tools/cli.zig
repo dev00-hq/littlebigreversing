@@ -4520,7 +4520,7 @@ test "inspect-room-transitions payload exposes guarded 187/187 no-readjust desti
     try std.testing.expectEqual(@as(i16, 185), transition.destination_cube);
     try std.testing.expectEqual(true, transition.dont_readjust_twinsen);
     try std.testing.expectEqualStrings("rejected", transition.result);
-    try std.testing.expectEqualStrings("unsupported_destination_world_position", transition.rejection_reason.?);
+    try std.testing.expectEqualStrings("unsupported_destination_height_mismatch", transition.rejection_reason.?);
     try std.testing.expectEqual(@as(?usize, 187), transition.destination_scene_entry_index);
     try std.testing.expectEqual(@as(?usize, 187), transition.destination_background_entry_index);
     try std.testing.expectEqual(RoomTransitionWorldPositionSummary{

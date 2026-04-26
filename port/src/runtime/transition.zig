@@ -15,6 +15,7 @@ pub const TransitionRejectionReason = enum {
     unsupported_test_brick,
     unsupported_exterior_destination_cube,
     unsupported_destination_cube,
+    unsupported_destination_height_mismatch,
     unsupported_destination_post_load_adjustment,
     unsupported_destination_world_position,
 };
@@ -58,9 +59,14 @@ pub const ShadowAdjustmentFailure = enum {
     world_cell_not_standable,
 };
 
+const FinalLandingRejection = struct {
+    reason: TransitionRejectionReason,
+    diagnostics: PostLoadAdjustmentFailure,
+};
+
 const FinalLandingResolution = union(enum) {
     resolved: locomotion.WorldPointSnapshot,
-    rejected: PostLoadAdjustmentFailure,
+    rejected: FinalLandingRejection,
 };
 
 pub fn applyPendingRoomTransition(
@@ -152,8 +158,8 @@ pub fn applyPendingRoomTransition(
                 source_scene_entry_index,
                 source_background_entry_index,
                 transition.destination_cube,
-                .unsupported_destination_post_load_adjustment,
-                value,
+                value.reason,
+                value.diagnostics,
             );
         },
     };
@@ -228,12 +234,39 @@ fn resolveFinalLandingWorldPosition(
     return switch (transition.destination_world_position_kind) {
         .final_landing => .{ .resolved = transition.destination_world_position },
         .provisional_zone_relative => if (transition.dont_readjust_twinsen)
-            .{ .resolved = transition.destination_world_position }
+            resolveNoReadjustLanding(
+                next_room,
+                transition.destination_world_position,
+            )
         else
             resolveInteriorPostLoadLandingAdjustment(
                 next_room,
                 transition.destination_world_position,
             ),
+    };
+}
+
+fn resolveNoReadjustLanding(
+    next_room: *const room_state.RoomSnapshot,
+    destination_world_position: locomotion.WorldPointSnapshot,
+) !FinalLandingResolution {
+    const query = runtime_query.init(next_room);
+    const evaluation = query.evaluateHeroMoveTarget(destination_world_position);
+    if (evaluation.isAllowed()) return .{ .resolved = destination_world_position };
+
+    return .{
+        .rejected = .{
+            .reason = switch (evaluation.status) {
+                .target_height_mismatch => .unsupported_destination_height_mismatch,
+                else => .unsupported_destination_world_position,
+            },
+            .diagnostics = try postLoadDiagnosticsFromEvaluation(
+                query,
+                destination_world_position,
+                evaluation,
+                null,
+            ),
+        },
     };
 }
 
@@ -248,13 +281,13 @@ fn resolveInteriorPostLoadLandingAdjustment(
     if (evaluation.status != .target_height_mismatch) {
         return .{
             .rejected = .{
-                .provisional_world_position = provisional_world_position,
-                .move_target_status = evaluation.status,
-                .raw_cell = evaluation.raw_cell,
-                .occupied_coverage = evaluation.occupied_coverage,
-                .nearest_occupied = try query.nearestOccupiedCandidateAtWorldPoint(provisional_world_position),
-                .nearest_standable = try query.nearestStandableCandidateAtWorldPoint(provisional_world_position),
-                .shadow_adjustment_failure = null,
+                .reason = .unsupported_destination_post_load_adjustment,
+                .diagnostics = try postLoadDiagnosticsFromEvaluation(
+                    query,
+                    provisional_world_position,
+                    evaluation,
+                    null,
+                ),
             },
         };
     }
@@ -265,19 +298,36 @@ fn resolveInteriorPostLoadLandingAdjustment(
         => {
             return .{
                 .rejected = .{
-                    .provisional_world_position = provisional_world_position,
-                    .move_target_status = evaluation.status,
-                    .raw_cell = evaluation.raw_cell,
-                    .occupied_coverage = evaluation.occupied_coverage,
-                    .nearest_occupied = try query.nearestOccupiedCandidateAtWorldPoint(provisional_world_position),
-                    .nearest_standable = try query.nearestStandableCandidateAtWorldPoint(provisional_world_position),
-                    .shadow_adjustment_failure = shadowAdjustmentFailureFromError(err).?,
+                    .reason = .unsupported_destination_post_load_adjustment,
+                    .diagnostics = try postLoadDiagnosticsFromEvaluation(
+                        query,
+                        provisional_world_position,
+                        evaluation,
+                        shadowAdjustmentFailureFromError(err).?,
+                    ),
                 },
             };
         },
         else => return err,
     };
     return .{ .resolved = shadow_adjusted_landing };
+}
+
+fn postLoadDiagnosticsFromEvaluation(
+    query: runtime_query.WorldQuery,
+    world_position: locomotion.WorldPointSnapshot,
+    evaluation: runtime_query.MoveTargetEvaluation,
+    shadow_adjustment_failure: ?ShadowAdjustmentFailure,
+) !PostLoadAdjustmentFailure {
+    return .{
+        .provisional_world_position = world_position,
+        .move_target_status = evaluation.status,
+        .raw_cell = evaluation.raw_cell,
+        .occupied_coverage = evaluation.occupied_coverage,
+        .nearest_occupied = try query.nearestOccupiedCandidateAtWorldPoint(world_position),
+        .nearest_standable = try query.nearestStandableCandidateAtWorldPoint(world_position),
+        .shadow_adjustment_failure = shadow_adjustment_failure,
+    };
 }
 
 fn shadowAdjustmentFailureFromError(err: anyerror) ?ShadowAdjustmentFailure {
@@ -295,15 +345,12 @@ fn destinationWorldPositionDiagnostics(
 ) !PostLoadAdjustmentFailure {
     const query = runtime_query.init(room);
     const evaluation = query.evaluateHeroMoveTarget(destination_world_position);
-    return .{
-        .provisional_world_position = destination_world_position,
-        .move_target_status = evaluation.status,
-        .raw_cell = evaluation.raw_cell,
-        .occupied_coverage = evaluation.occupied_coverage,
-        .nearest_occupied = try query.nearestOccupiedCandidateAtWorldPoint(destination_world_position),
-        .nearest_standable = try query.nearestStandableCandidateAtWorldPoint(destination_world_position),
-        .shadow_adjustment_failure = null,
-    };
+    return postLoadDiagnosticsFromEvaluation(
+        query,
+        destination_world_position,
+        evaluation,
+        null,
+    );
 }
 
 fn unsupportedPendingRoomTransitionReason(
@@ -678,8 +725,13 @@ test "guarded 187/187 resolves no-readjust self destination before rejecting dec
             try std.testing.expectEqual(@as(usize, 187), value.source_scene_entry_index);
             try std.testing.expectEqual(@as(usize, 187), value.source_background_entry_index);
             try std.testing.expectEqual(@as(i16, 185), value.destination_cube);
-            try std.testing.expectEqual(TransitionRejectionReason.unsupported_destination_world_position, value.reason);
+            try std.testing.expectEqual(TransitionRejectionReason.unsupported_destination_height_mismatch, value.reason);
             try std.testing.expectEqual(seeded_position, value.hero_position);
+            const diagnostics = value.post_load_adjustment_failure orelse return error.MissingPostLoadDiagnostics;
+            try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_height_mismatch, diagnostics.move_target_status);
+            const raw_cell = diagnostics.raw_cell.cell orelse return error.MissingRawCell;
+            try std.testing.expectEqual(@as(usize, 27), raw_cell.x);
+            try std.testing.expectEqual(@as(usize, 29), raw_cell.z);
         },
         .committed => return error.UnexpectedCommittedRoomTransition,
     }
