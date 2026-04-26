@@ -9,11 +9,12 @@
 
 ## Active Streams
 
-- Phase 5 runtime/gameplay widening is current; Phase 4 Branch A is settled.
+- Phase 5 runtime/gameplay widening is current.
 - Viewer/load widening stays on `19/19`, `2/2`, `11/10`, `187/187`; `187/187` still launches `raw_invalid_start`, not admitted spawn.
 - Guarded `2/2` public exit is backed as exterior-facing `ChangeCube`; the port rejects it as `unsupported_exterior_destination_cube`.
 - `3/3` blockers stay rejected; live zone-`1` cube-`19` lands in a Tralu's-dungeon-looking scene, not the cellar target.
 - `3/3` probe: `1 -> 21/21` cell `56/55` nearest standable `15/26`; `8 -> 22/22` cell `56/62` nearest `13/13`; `15` unsupported.
+- Original-runtime CD gate uses the run3 MCI shim until mixed-mode media is proved.
 - `0013` door is scene-2 zone `0`: house/key side `2/1 -> 2/0` consumes one key and lands `(2562,2048,3322)` after shadow; cellar return `2/0 -> 2/1` is free and lands `(9725,1024,1098)`.
 - `0013` key source is scene `2/1` default action gated by `gameVar(0)==0`; it kills object `7`, grants object `0`, and sets `gameVar(0)=1`.
 - `0013` key pickup is poll-only proved on house side: `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`.
