@@ -11,6 +11,10 @@ const background_data = @import("../game_data/background.zig");
 const scene_data = @import("../game_data/scene.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
+const locomotion = @import("../runtime/locomotion.zig");
+const runtime_session = @import("../runtime/session.zig");
+const runtime_transition = @import("../runtime/transition.zig");
+const room_entry_state = @import("../runtime/room_entry_state.zig");
 const room_state = @import("../runtime/room_state.zig");
 const room_intelligence = @import("room_intelligence.zig");
 const room_fixtures = if (builtin.is_test) @import("../testing/room_fixtures.zig") else struct {};
@@ -22,6 +26,7 @@ const Command = enum {
     extract_entry,
     inspect_scene,
     inspect_room,
+    inspect_room_transitions,
     inspect_room_intelligence,
     inspect_room_fragment_zones,
     audit_life_programs,
@@ -253,6 +258,43 @@ const RoomInspectionPayload = struct {
     background: RoomBackgroundSummary,
 };
 
+const RoomTransitionWorldPositionSummary = struct {
+    x: i32,
+    y: i32,
+    z: i32,
+};
+
+const RoomTransitionPostLoadDiagnosticsSummary = struct {
+    move_target_status: []const u8,
+    shadow_adjustment_failure: ?[]const u8,
+    provisional_world_position: RoomTransitionWorldPositionSummary,
+};
+
+const RoomTransitionProbeSummary = struct {
+    source_zone_index: usize,
+    source_zone_num: i16,
+    destination_cube: i16,
+    destination_world_position_kind: []const u8,
+    destination_world_position: RoomTransitionWorldPositionSummary,
+    yaw: i32,
+    test_brick: bool,
+    dont_readjust_twinsen: bool,
+    result: []const u8,
+    rejection_reason: ?[]const u8,
+    destination_scene_entry_index: ?usize,
+    destination_background_entry_index: ?usize,
+    hero_position: RoomTransitionWorldPositionSummary,
+    post_load_diagnostics: ?RoomTransitionPostLoadDiagnosticsSummary,
+};
+
+const RoomTransitionInspectionPayload = struct {
+    command: []const u8,
+    source_scene_entry_index: usize,
+    source_background_entry_index: usize,
+    transition_count: usize,
+    transitions: []const RoomTransitionProbeSummary,
+};
+
 const RoomFragmentZoneDiagnosticSummary = struct {
     zone_index: usize,
     zone_num: i16,
@@ -392,6 +434,7 @@ pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
         .extract_entry => try extractEntry(allocator, resolved, parsed.relative_path.?, parsed.entry_index.?),
         .inspect_scene => try inspectScene(allocator, resolved, parsed.entry_index.?, parsed.output_json),
         .inspect_room => try inspectRoom(allocator, resolved, parsed.entry_index.?, parsed.background_entry_index.?, parsed.output_json),
+        .inspect_room_transitions => try inspectRoomTransitions(allocator, resolved, parsed.entry_index.?, parsed.background_entry_index.?, parsed.output_json),
         .inspect_room_intelligence => try inspectRoomIntelligence(allocator, resolved, parsed),
         .inspect_room_fragment_zones => try inspectRoomFragmentZones(allocator, resolved, parsed.entry_index.?, parsed.background_entry_index.?, parsed.output_json),
         .audit_life_programs => try auditLifePrograms(allocator, resolved, parsed),
@@ -649,6 +692,29 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
         }
         return .{
             .command = .inspect_room,
+            .asset_root_override = asset_root_override,
+            .relative_path = null,
+            .entry_index = try std.fmt.parseInt(usize, args[command_index + 1], 10),
+            .background_entry_index = try std.fmt.parseInt(usize, args[command_index + 2], 10),
+            .audit_scene_entry_indices = null,
+            .audit_all_scene_entries = false,
+            .life_program_owner = null,
+            .output_json = output_json,
+        };
+    }
+    if (std.mem.eql(u8, command_name, "inspect-room-transitions")) {
+        if (command_index + 1 >= args.len) return error.MissingSceneEntryIndex;
+        if (command_index + 2 >= args.len) return error.MissingBackgroundEntryIndex;
+        var output_json = false;
+        for (args[(command_index + 3)..]) |arg| {
+            if (std.mem.eql(u8, arg, "--json")) {
+                output_json = true;
+            } else {
+                return error.UnknownOption;
+            }
+        }
+        return .{
+            .command = .inspect_room_transitions,
             .asset_root_override = asset_root_override,
             .relative_path = null,
             .entry_index = try std.fmt.parseInt(usize, args[command_index + 1], 10),
@@ -1367,6 +1433,66 @@ fn inspectRoom(
     try stderr.flush();
 }
 
+fn inspectRoomTransitions(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    output_json: bool,
+) !void {
+    const payload = try buildRoomTransitionInspectionPayload(
+        allocator,
+        resolved,
+        scene_entry_index,
+        background_entry_index,
+    );
+    defer allocator.free(payload.transitions);
+
+    if (output_json) {
+        const json = try stringifyJsonAlloc(allocator, payload);
+        defer allocator.free(json);
+        try std.Io.File.stdout().writeStreamingAll(process.currentIo(), json);
+        try std.Io.File.stdout().writeStreamingAll(process.currentIo(), "\n");
+        return;
+    }
+
+    var stderr_buffer: [4096]u8 = undefined;
+    var stderr_writer = std.Io.File.stderr().writer(process.currentIo(), &stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try diagnostics.printLine(stderr, &.{
+        .{ .key = "command", .value = "inspect-room-transitions" },
+        .{ .key = "scene_asset_path", .value = "SCENE.HQR" },
+        .{ .key = "background_asset_path", .value = "LBA_BKG.HQR" },
+    });
+    try stderr.print(
+        "source_scene_entry_index={d} source_background_entry_index={d} transition_count={d}\n",
+        .{ payload.source_scene_entry_index, payload.source_background_entry_index, payload.transition_count },
+    );
+    for (payload.transitions) |transition| {
+        try stderr.print(
+            "source_zone_index={d} source_zone_num={d} destination_cube={d} result={s} rejection_reason={s} destination_scene_entry_index={any} destination_background_entry_index={any} post_load_target_status={s} post_load_shadow_adjustment_failure={s} provisional_x={d} provisional_y={d} provisional_z={d} hero_x={d} hero_y={d} hero_z={d}\n",
+            .{
+                transition.source_zone_index,
+                transition.source_zone_num,
+                transition.destination_cube,
+                transition.result,
+                transition.rejection_reason orelse "none",
+                transition.destination_scene_entry_index,
+                transition.destination_background_entry_index,
+                if (transition.post_load_diagnostics) |diagnostics_summary| diagnostics_summary.move_target_status else "none",
+                if (transition.post_load_diagnostics) |diagnostics_summary| diagnostics_summary.shadow_adjustment_failure orelse "none" else "none",
+                if (transition.post_load_diagnostics) |diagnostics_summary| diagnostics_summary.provisional_world_position.x else transition.destination_world_position.x,
+                if (transition.post_load_diagnostics) |diagnostics_summary| diagnostics_summary.provisional_world_position.y else transition.destination_world_position.y,
+                if (transition.post_load_diagnostics) |diagnostics_summary| diagnostics_summary.provisional_world_position.z else transition.destination_world_position.z,
+                transition.hero_position.x,
+                transition.hero_position.y,
+                transition.hero_position.z,
+            },
+        );
+    }
+    try stderr.flush();
+}
+
 fn inspectRoomIntelligence(
     allocator: std.mem.Allocator,
     resolved: paths_mod.ResolvedPaths,
@@ -1733,6 +1859,153 @@ fn buildRoomInspectionPayload(room: *const room_state.RoomSnapshot) RoomInspecti
                 .total_opaque_pixel_count = room.background.bricks.total_opaque_pixel_count,
             },
         },
+    };
+}
+
+fn buildRoomTransitionInspectionPayload(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+) !RoomTransitionInspectionPayload {
+    var source_room = try room_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
+    defer source_room.deinit(allocator);
+
+    var transition_count: usize = 0;
+    for (source_room.scene.zones) |zone| {
+        if (zone.kind == .change_cube) transition_count += 1;
+    }
+
+    const transitions = try allocator.alloc(RoomTransitionProbeSummary, transition_count);
+    errdefer allocator.free(transitions);
+
+    var transition_index: usize = 0;
+    for (source_room.scene.zones) |zone| {
+        if (zone.kind != .change_cube) continue;
+        transitions[transition_index] = try inspectSingleRoomTransition(
+            allocator,
+            resolved,
+            scene_entry_index,
+            background_entry_index,
+            zone,
+        );
+        transition_index += 1;
+    }
+
+    return .{
+        .command = "inspect-room-transitions",
+        .source_scene_entry_index = scene_entry_index,
+        .source_background_entry_index = background_entry_index,
+        .transition_count = transitions.len,
+        .transitions = transitions,
+    };
+}
+
+fn inspectSingleRoomTransition(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    zone: room_state.ZoneBoundsSnapshot,
+) !RoomTransitionProbeSummary {
+    const semantics = switch (zone.semantics) {
+        .change_cube => |value| value,
+        else => return error.ExpectedChangeCubeZoneSemantics,
+    };
+    const destination_world_position = locomotion.WorldPointSnapshot{
+        .x = semantics.destination_x,
+        .y = semantics.destination_y,
+        .z = semantics.destination_z,
+    };
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
+    defer room.deinit(allocator);
+
+    var current_session = try runtime_session.Session.initWithObjects(
+        allocator,
+        heroStartWorldPoint(&room),
+        room.scene.objects,
+        room.scene.object_behavior_seeds,
+    );
+    defer current_session.deinit(allocator);
+    room_entry_state.applyRoomEntryState(&room, &current_session);
+
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
+    const pre_transition_locomotion_status = locomotion_status;
+    try current_session.setPendingRoomTransition(.{
+        .source_zone_index = zone.index,
+        .destination_cube = semantics.destination_cube,
+        .destination_world_position_kind = .provisional_zone_relative,
+        .destination_world_position = destination_world_position,
+        .yaw = semantics.yaw,
+        .test_brick = semantics.test_brick,
+        .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
+    });
+
+    const transition_result = try runtime_transition.applyPendingRoomTransition(
+        allocator,
+        resolved,
+        &room,
+        &current_session,
+        &locomotion_status,
+        pre_transition_locomotion_status,
+    );
+
+    return switch (transition_result) {
+        .committed => |value| .{
+            .source_zone_index = zone.index,
+            .source_zone_num = zone.num,
+            .destination_cube = semantics.destination_cube,
+            .destination_world_position_kind = "provisional_zone_relative",
+            .destination_world_position = roomTransitionWorldPositionSummary(destination_world_position),
+            .yaw = semantics.yaw,
+            .test_brick = semantics.test_brick,
+            .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
+            .result = "committed",
+            .rejection_reason = null,
+            .destination_scene_entry_index = value.destination_scene_entry_index,
+            .destination_background_entry_index = value.destination_background_entry_index,
+            .hero_position = roomTransitionWorldPositionSummary(value.hero_position),
+            .post_load_diagnostics = null,
+        },
+        .rejected => |value| .{
+            .source_zone_index = zone.index,
+            .source_zone_num = zone.num,
+            .destination_cube = semantics.destination_cube,
+            .destination_world_position_kind = "provisional_zone_relative",
+            .destination_world_position = roomTransitionWorldPositionSummary(destination_world_position),
+            .yaw = semantics.yaw,
+            .test_brick = semantics.test_brick,
+            .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
+            .result = "rejected",
+            .rejection_reason = @tagName(value.reason),
+            .destination_scene_entry_index = null,
+            .destination_background_entry_index = null,
+            .hero_position = roomTransitionWorldPositionSummary(value.hero_position),
+            .post_load_diagnostics = if (value.post_load_adjustment_failure) |failure| .{
+                .move_target_status = @tagName(failure.move_target_status),
+                .shadow_adjustment_failure = if (failure.shadow_adjustment_failure) |shadow_failure| @tagName(shadow_failure) else null,
+                .provisional_world_position = roomTransitionWorldPositionSummary(failure.provisional_world_position),
+            } else null,
+        },
+    };
+}
+
+fn heroStartWorldPoint(room: *const room_state.RoomSnapshot) locomotion.WorldPointSnapshot {
+    return .{
+        .x = room.scene.hero_start.x,
+        .y = room.scene.hero_start.y,
+        .z = room.scene.hero_start.z,
+    };
+}
+
+fn roomTransitionWorldPositionSummary(
+    position: locomotion.WorldPointSnapshot,
+) RoomTransitionWorldPositionSummary {
+    return .{
+        .x = position.x,
+        .y = position.y,
+        .z = position.z,
     };
 }
 
@@ -3235,6 +3508,16 @@ test "argument parsing supports inspect-room json output" {
     try std.testing.expect(parsed.output_json);
 }
 
+test "argument parsing supports inspect-room-transitions json output" {
+    const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-room-transitions", "3", "3", "--json" });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.inspect_room_transitions, parsed.command);
+    try std.testing.expectEqual(@as(usize, 3), parsed.entry_index.?);
+    try std.testing.expectEqual(@as(usize, 3), parsed.background_entry_index.?);
+    try std.testing.expect(parsed.output_json);
+}
+
 test "argument parsing supports inspect-room-intelligence entry selectors" {
     const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-room-intelligence", "--scene-entry", "2", "--background-entry", "2" });
     defer parsed.deinit(std.testing.allocator);
@@ -3832,6 +4115,37 @@ test "inspect-room json keeps the guarded canonical interior pair stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"depth\": 64") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"occupied_cell_count\": 1246") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"fragment_count\": 0") != null);
+}
+
+test "inspect-room-transitions payload exposes guarded 3/3 post-load diagnostics" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const payload = try buildRoomTransitionInspectionPayload(allocator, resolved, 3, 3);
+    defer allocator.free(payload.transitions);
+
+    try std.testing.expectEqualStrings("inspect-room-transitions", payload.command);
+    try std.testing.expectEqual(@as(usize, 3), payload.source_scene_entry_index);
+    try std.testing.expectEqual(@as(usize, 3), payload.source_background_entry_index);
+    try std.testing.expect(payload.transition_count >= 2);
+
+    var found_zone_1 = false;
+    for (payload.transitions) |transition| {
+        if (transition.source_zone_index != 1) continue;
+        found_zone_1 = true;
+        try std.testing.expectEqual(@as(i16, 19), transition.destination_cube);
+        try std.testing.expectEqualStrings("rejected", transition.result);
+        try std.testing.expectEqualStrings(
+            "unsupported_destination_post_load_adjustment",
+            transition.rejection_reason.?,
+        );
+        const post_load = transition.post_load_diagnostics orelse return error.MissingPostLoadDiagnostics;
+        try std.testing.expectEqualStrings("target_empty", post_load.move_target_status);
+        try std.testing.expect(post_load.shadow_adjustment_failure == null);
+        try std.testing.expectEqual(transition.destination_world_position, post_load.provisional_world_position);
+    }
+    try std.testing.expect(found_zone_1);
 }
 
 test "inspect-room-fragment-zones payload explains the 219 219 blocker" {
