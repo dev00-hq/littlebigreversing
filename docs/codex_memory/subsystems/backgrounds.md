@@ -29,7 +29,7 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 - Winning the offline decoded-candidate ranking does not prove fragment-zone compatibility. `SCENE.HQR[101]` is now the top decoded interior candidate overall, but `inspect-room 219 219` still dies on `InvalidFragmentZoneBounds`.
 - A same-index compatibility win can still be trivial. `86/86` currently outranks `19/19` and clears the checked-in fragment-zone rules, but only because it has `fragment_count=0` and `grm_zone_count=0`; `187/187` is the first compatible same-index pair that actually has fragment-zone data (`fragment_count=2`, `grm_zone_count=2`, `compatible_zone_count=2`).
 - `inspect-room --json` reports probe counts and `BRK` summaries, not the projected fragment cells behind the comparison panel; even though `11/10` and `187/187` are now guarded-positive, use viewer/tests for per-cell deltas instead of expecting the CLI to surface fragment-cell projection details.
-- `187/187` zone `1` no-readjust cube `185` maps to `187/187`; decoded landing hits cell `27/29` with `target_height_mismatch`.
+- `187/187` zone `1` no-readjust cube `185` maps to `187/187`; landing cell `27/29` has raw surface `2048`, top `6400`.
 
 ## Canonical Entry Points
 

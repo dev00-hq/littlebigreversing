@@ -278,6 +278,10 @@ const RoomTransitionRawCellSummary = struct {
     status: []const u8,
     occupied: bool,
     surface_top_y: ?i32,
+    surface_total_height: ?u8,
+    surface_stack_depth: ?u8,
+    surface_floor_type: ?u8,
+    surface_shape_class: ?[]const u8,
     standability: ?[]const u8,
 };
 
@@ -299,6 +303,10 @@ const RoomTransitionDiagnosticCandidateSummary = struct {
     cell: RoomTransitionGridCellSummary,
     world_bounds: RoomTransitionWorldBoundsSummary,
     surface_top_y: i32,
+    surface_total_height: u8,
+    surface_stack_depth: u8,
+    surface_floor_type: u8,
+    surface_shape_class: []const u8,
     standability: []const u8,
     x_distance: i32,
     z_distance: i32,
@@ -2319,6 +2327,10 @@ fn roomTransitionRawCellSummary(
         .status = @tagName(probe.status),
         .occupied = probe.occupied,
         .surface_top_y = if (probe.surface) |surface| surface.top_y else null,
+        .surface_total_height = if (probe.surface) |surface| surface.total_height else null,
+        .surface_stack_depth = if (probe.surface) |surface| surface.stack_depth else null,
+        .surface_floor_type = if (probe.surface) |surface| surface.top_floor_type else null,
+        .surface_shape_class = if (probe.surface) |surface| @tagName(surface.top_shape_class) else null,
         .standability = if (probe.standability) |standability| @tagName(standability) else null,
     };
 }
@@ -2346,6 +2358,10 @@ fn roomTransitionDiagnosticCandidateSummary(
             .max_z = candidate.world_bounds.max_z,
         },
         .surface_top_y = candidate.surface.top_y,
+        .surface_total_height = candidate.surface.total_height,
+        .surface_stack_depth = candidate.surface.stack_depth,
+        .surface_floor_type = candidate.surface.top_floor_type,
+        .surface_shape_class = @tagName(candidate.surface.top_shape_class),
         .standability = @tagName(candidate.standability),
         .x_distance = candidate.x_distance,
         .z_distance = candidate.z_distance,
@@ -4524,10 +4540,18 @@ test "inspect-room-transitions payload exposes guarded 187/187 no-readjust desti
     try std.testing.expectEqual(true, post_load.raw_cell.occupied);
     try std.testing.expectEqual(@as(?RoomTransitionGridCellSummary, .{ .x = 27, .z = 29 }), post_load.raw_cell.cell);
     try std.testing.expectEqual(@as(?i32, 2048), post_load.raw_cell.surface_top_y);
+    try std.testing.expectEqual(@as(?u8, 8), post_load.raw_cell.surface_total_height);
+    try std.testing.expectEqual(@as(?u8, 1), post_load.raw_cell.surface_stack_depth);
+    try std.testing.expectEqual(@as(?u8, 0), post_load.raw_cell.surface_floor_type);
+    try std.testing.expectEqualStrings("solid", post_load.raw_cell.surface_shape_class.?);
     try std.testing.expectEqualStrings("within_occupied_bounds", post_load.occupied_coverage.relation);
     const nearest_standable = post_load.nearest_standable orelse return error.MissingNearestStandable;
     try std.testing.expectEqual(RoomTransitionGridCellSummary{ .x = 27, .z = 29 }, nearest_standable.cell);
     try std.testing.expectEqual(@as(i32, 6400), nearest_standable.surface_top_y);
+    try std.testing.expectEqual(@as(u8, 25), nearest_standable.surface_total_height);
+    try std.testing.expectEqual(@as(u8, 1), nearest_standable.surface_stack_depth);
+    try std.testing.expectEqual(@as(u8, 0), nearest_standable.surface_floor_type);
+    try std.testing.expectEqualStrings("solid", nearest_standable.surface_shape_class);
 }
 
 test "inspect-room-transitions payload exposes scene-2 secret-room key gate runtime effects" {
