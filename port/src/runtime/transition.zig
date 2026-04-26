@@ -224,10 +224,13 @@ fn resolveFinalLandingWorldPosition(
     _ = source_background_entry_index;
     return switch (transition.destination_world_position_kind) {
         .final_landing => .{ .resolved = transition.destination_world_position },
-        .provisional_zone_relative => resolveInteriorPostLoadLandingAdjustment(
-            next_room,
-            transition.destination_world_position,
-        ),
+        .provisional_zone_relative => if (transition.dont_readjust_twinsen)
+            .{ .resolved = transition.destination_world_position }
+        else
+            resolveInteriorPostLoadLandingAdjustment(
+                next_room,
+                transition.destination_world_position,
+            ),
     };
 }
 
@@ -288,7 +291,6 @@ fn unsupportedPendingRoomTransitionReason(
 ) ?TransitionRejectionReason {
     if (transition.yaw != 0) return .unsupported_yaw;
     if (transition.test_brick) return .unsupported_test_brick;
-    if (transition.dont_readjust_twinsen) return .unsupported_dont_readjust_twinsen;
     return null;
 }
 
@@ -604,6 +606,70 @@ test "guarded 3/3 rejects the exterior-facing change-cube destination" {
             try std.testing.expectEqual(TransitionRejectionReason.unsupported_destination_cube, value.reason);
         },
         .committed => return error.UnexpectedCommittedRoomTransition,
+    }
+}
+
+test "guarded 187/187 resolves no-readjust self destination before rejecting decoded landing" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 187, 187);
+    defer room.deinit(allocator);
+
+    var current_session = try viewer_shell.initSession(allocator, &room);
+    defer current_session.deinit(allocator);
+    const seeded_position = try locomotion.seedSessionToNearestStandableStart(&room, &current_session);
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
+
+    const zone = room.scene.zones[1];
+    const semantics = switch (zone.semantics) {
+        .change_cube => |value| value,
+        else => return error.ExpectedChangeCubeZoneSemantics,
+    };
+    const destination_world_position = locomotion.WorldPointSnapshot{
+        .x = semantics.destination_x,
+        .y = semantics.destination_y,
+        .z = semantics.destination_z,
+    };
+    try std.testing.expectEqual(@as(i16, 185), semantics.destination_cube);
+    try std.testing.expect(semantics.dont_readjust_twinsen);
+    try current_session.setPendingRoomTransition(.{
+        .source_zone_index = zone.index,
+        .destination_cube = semantics.destination_cube,
+        .destination_world_position_kind = .provisional_zone_relative,
+        .destination_world_position = destination_world_position,
+        .yaw = semantics.yaw,
+        .test_brick = semantics.test_brick,
+        .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
+    });
+
+    const transition_result = try applyPendingRoomTransition(
+        allocator,
+        resolved,
+        &room,
+        &current_session,
+        &locomotion_status,
+        locomotion_status,
+    );
+
+    switch (transition_result) {
+        .rejected => |value| {
+            try std.testing.expectEqual(@as(usize, 187), value.source_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 187), value.source_background_entry_index);
+            try std.testing.expectEqual(@as(i16, 185), value.destination_cube);
+            try std.testing.expectEqual(TransitionRejectionReason.unsupported_destination_world_position, value.reason);
+            try std.testing.expectEqual(seeded_position, value.hero_position);
+        },
+        .committed => return error.UnexpectedCommittedRoomTransition,
+    }
+
+    try std.testing.expectEqual(@as(usize, 187), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 187), room.background.entry_index);
+    try std.testing.expectEqual(seeded_position, current_session.heroWorldPosition());
+    switch (locomotion_status) {
+        .seeded_valid => |value| try std.testing.expectEqual(seeded_position, value.hero_position),
+        else => return error.UnexpectedLocomotionStatus,
     }
 }
 

@@ -9,15 +9,15 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 - Keep background inspection separate from `inspect-scene`.
 - Use classic zero-based HQR access where loader slot `0` matters.
 - Keep this pack interior-only until evidence justifies broader convergence.
-- Keep decoded scene zones, fragment-zone layout, and runtime containing-zone membership as separate surfaces.
+- Keep scene zones, fragment-zone layout, and runtime zone membership separate.
 
 ## Current Parity Status
 
-- `inspect-background` is implemented with the loader-faithful header, `TabAllCube`, `GRI`, and `BLL` path for canonical interior backgrounds.
-- `19/19`, `2/2`, `11/10`, and `187/187` are guarded-positive viewer pairs. Seeding reaches `19/19` via explicit `39/6`; `2/2`, `11/10`, and `187/187` use runtime-owned nearest-standable seeding, with `187/187` as the first fragment-bearing same-index compatible pair.
+- `inspect-background` implements loader-faithful header, `TabAllCube`, `GRI`, and `BLL` for interiors.
+- `19/19`, `2/2`, `11/10`, `187/187` are guarded-positive viewer pairs. `19/19` seeds via `39/6`; others use runtime nearest-standable seeding.
 - `SCENE.HQR[44]` with `LBA_BKG.HQR[2]` now fails at the guarded seam for the right reason: `ViewerSceneMustBeInterior`, not unsupported life.
 - The old `219/219` blocker remains, but it is no longer the top offline decoded interior candidate; `inspect-room 219 219 --json` still emits `reason=invalid_fragment_zone_bounds` plus six per-zone issue lines before rethrowing `InvalidFragmentZoneBounds`.
-- `triage-same-index-decoded-interior-candidates` is now the canonical offline report for ranked same-index fragment-zone compatibility: `86/86` is the highest-ranked compatible pair overall, and `187/187` is the first compatible pair with both fragments and GRM zones present.
+- `triage-same-index-decoded-interior-candidates` is canonical: `86/86` ranks highest; `187/187` is first with both fragments and GRM zones.
 - Exterior `.ILE/.OBL`, full brick rasterization, and actor visual binding stay outside this pack.
 
 ## Known Traps
@@ -29,6 +29,7 @@ Own the interior `LBA_BKG.HQR` decode path and the bounded viewer evidence surfa
 - Winning the offline decoded-candidate ranking does not prove fragment-zone compatibility. `SCENE.HQR[101]` is now the top decoded interior candidate overall, but `inspect-room 219 219` still dies on `InvalidFragmentZoneBounds`.
 - A same-index compatibility win can still be trivial. `86/86` currently outranks `19/19` and clears the checked-in fragment-zone rules, but only because it has `fragment_count=0` and `grm_zone_count=0`; `187/187` is the first compatible same-index pair that actually has fragment-zone data (`fragment_count=2`, `grm_zone_count=2`, `compatible_zone_count=2`).
 - `inspect-room --json` reports probe counts and `BRK` summaries, not the projected fragment cells behind the comparison panel; even though `11/10` and `187/187` are now guarded-positive, use viewer/tests for per-cell deltas instead of expecting the CLI to surface fragment-cell projection details.
+- `187/187` transition zone `1` has no-readjust cube `185`; guarded mapping resolves it to `187/187`, but the decoded landing remains unsupported.
 
 ## Canonical Entry Points
 
