@@ -287,12 +287,31 @@ const RoomTransitionOccupiedCoverageSummary = struct {
     z_cells_from_bounds: usize,
 };
 
+const RoomTransitionWorldBoundsSummary = struct {
+    min_x: i32,
+    max_x: i32,
+    min_z: i32,
+    max_z: i32,
+};
+
+const RoomTransitionDiagnosticCandidateSummary = struct {
+    cell: RoomTransitionGridCellSummary,
+    world_bounds: RoomTransitionWorldBoundsSummary,
+    surface_top_y: i32,
+    standability: []const u8,
+    x_distance: i32,
+    z_distance: i32,
+    distance_sq: i64,
+};
+
 const RoomTransitionPostLoadDiagnosticsSummary = struct {
     move_target_status: []const u8,
     shadow_adjustment_failure: ?[]const u8,
     provisional_world_position: RoomTransitionWorldPositionSummary,
     raw_cell: RoomTransitionRawCellSummary,
     occupied_coverage: RoomTransitionOccupiedCoverageSummary,
+    nearest_occupied: ?RoomTransitionDiagnosticCandidateSummary,
+    nearest_standable: ?RoomTransitionDiagnosticCandidateSummary,
 };
 
 const RoomTransitionProbeSummary = struct {
@@ -2021,6 +2040,8 @@ fn inspectSingleRoomTransition(
                 .provisional_world_position = roomTransitionWorldPositionSummary(failure.provisional_world_position),
                 .raw_cell = roomTransitionRawCellSummary(failure.raw_cell),
                 .occupied_coverage = roomTransitionOccupiedCoverageSummary(failure.occupied_coverage),
+                .nearest_occupied = if (failure.nearest_occupied) |candidate| roomTransitionDiagnosticCandidateSummary(candidate) else null,
+                .nearest_standable = if (failure.nearest_standable) |candidate| roomTransitionDiagnosticCandidateSummary(candidate) else null,
             } else null,
         },
     };
@@ -2066,6 +2087,25 @@ fn roomTransitionOccupiedCoverageSummary(
         .occupied_bounds = coverage.occupied_bounds,
         .x_cells_from_bounds = coverage.x_cells_from_bounds,
         .z_cells_from_bounds = coverage.z_cells_from_bounds,
+    };
+}
+
+fn roomTransitionDiagnosticCandidateSummary(
+    candidate: runtime_query.DiagnosticCandidate,
+) RoomTransitionDiagnosticCandidateSummary {
+    return .{
+        .cell = .{ .x = candidate.cell.x, .z = candidate.cell.z },
+        .world_bounds = .{
+            .min_x = candidate.world_bounds.min_x,
+            .max_x = candidate.world_bounds.max_x,
+            .min_z = candidate.world_bounds.min_z,
+            .max_z = candidate.world_bounds.max_z,
+        },
+        .surface_top_y = candidate.surface.top_y,
+        .standability = @tagName(candidate.standability),
+        .x_distance = candidate.x_distance,
+        .z_distance = candidate.z_distance,
+        .distance_sq = candidate.distance_sq,
     };
 }
 
@@ -4212,6 +4252,12 @@ test "inspect-room-transitions payload exposes guarded 3/3 post-load diagnostics
         try std.testing.expectEqualStrings("outside_occupied_bounds", post_load.occupied_coverage.relation);
         try std.testing.expectEqual(@as(usize, 38), post_load.occupied_coverage.x_cells_from_bounds);
         try std.testing.expectEqual(@as(usize, 29), post_load.occupied_coverage.z_cells_from_bounds);
+        const nearest_standable = post_load.nearest_standable orelse return error.MissingNearestStandable;
+        try std.testing.expectEqual(RoomTransitionGridCellSummary{ .x = 15, .z = 26 }, nearest_standable.cell);
+        try std.testing.expectEqual(@as(i32, 6400), nearest_standable.surface_top_y);
+        try std.testing.expectEqualStrings("standable", nearest_standable.standability);
+        try std.testing.expectEqual(@as(i32, 20481), nearest_standable.x_distance);
+        try std.testing.expectEqual(@as(i32, 14337), nearest_standable.z_distance);
     }
     try std.testing.expect(found_zone_1);
 }

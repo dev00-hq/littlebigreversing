@@ -48,6 +48,8 @@ pub const PostLoadAdjustmentFailure = struct {
     move_target_status: runtime_query.MoveTargetStatus,
     raw_cell: runtime_query.WorldPointCellProbe,
     occupied_coverage: runtime_query.OccupiedCoverageProbe,
+    nearest_occupied: ?runtime_query.DiagnosticCandidate,
+    nearest_standable: ?runtime_query.DiagnosticCandidate,
     shadow_adjustment_failure: ?ShadowAdjustmentFailure,
 };
 
@@ -244,6 +246,8 @@ fn resolveInteriorPostLoadLandingAdjustment(
                 .move_target_status = evaluation.status,
                 .raw_cell = evaluation.raw_cell,
                 .occupied_coverage = evaluation.occupied_coverage,
+                .nearest_occupied = try query.nearestOccupiedCandidateAtWorldPoint(provisional_world_position),
+                .nearest_standable = try query.nearestStandableCandidateAtWorldPoint(provisional_world_position),
                 .shadow_adjustment_failure = null,
             },
         };
@@ -259,6 +263,8 @@ fn resolveInteriorPostLoadLandingAdjustment(
                     .move_target_status = evaluation.status,
                     .raw_cell = evaluation.raw_cell,
                     .occupied_coverage = evaluation.occupied_coverage,
+                    .nearest_occupied = try query.nearestOccupiedCandidateAtWorldPoint(provisional_world_position),
+                    .nearest_standable = try query.nearestStandableCandidateAtWorldPoint(provisional_world_position),
                     .shadow_adjustment_failure = shadowAdjustmentFailureFromError(err).?,
                 },
             };
@@ -603,6 +609,8 @@ test "guarded 3/3 post-load rejection carries provisional landing diagnostics" {
                 destination_query.evaluateHeroMoveTarget(provisional_world_position).occupied_coverage,
                 failure.occupied_coverage,
             );
+            try std.testing.expect(failure.nearest_occupied != null);
+            try std.testing.expect(failure.nearest_standable != null);
             try std.testing.expectEqual(expected_shadow_failure, failure.shadow_adjustment_failure);
         },
         .committed => return error.UnexpectedCommittedRoomTransition,

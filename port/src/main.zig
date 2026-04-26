@@ -492,8 +492,10 @@ fn printTransitionResult(stderr: anytype, transition_result: runtime_transition.
             if (value.post_load_adjustment_failure) |failure| {
                 var post_load_raw_cell_buffer: [32]u8 = undefined;
                 var post_load_occupied_bounds_buffer: [48]u8 = undefined;
+                var post_load_nearest_occupied_buffer: [32]u8 = undefined;
+                var post_load_nearest_standable_buffer: [32]u8 = undefined;
                 try stderr.print(
-                    "event=room_transition_rejected source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} reason={s} hero_x={d} hero_y={d} hero_z={d} post_load_target_status={s} post_load_raw_cell={s} post_load_raw_cell_status={s} post_load_occupied_coverage={s} post_load_occupied_bounds={s} post_load_occupied_bounds_dx={d} post_load_occupied_bounds_dz={d} post_load_shadow_adjustment_failure={s} provisional_x={d} provisional_y={d} provisional_z={d}\n",
+                    "event=room_transition_rejected source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} reason={s} hero_x={d} hero_y={d} hero_z={d} post_load_target_status={s} post_load_raw_cell={s} post_load_raw_cell_status={s} post_load_occupied_coverage={s} post_load_occupied_bounds={s} post_load_occupied_bounds_dx={d} post_load_occupied_bounds_dz={d} post_load_nearest_occupied={s} post_load_nearest_standable={s} post_load_shadow_adjustment_failure={s} provisional_x={d} provisional_y={d} provisional_z={d}\n",
                     .{
                         value.source_scene_entry_index,
                         value.source_background_entry_index,
@@ -509,6 +511,8 @@ fn printTransitionResult(stderr: anytype, transition_result: runtime_transition.
                         formatPostLoadOccupiedBounds(&post_load_occupied_bounds_buffer, failure.occupied_coverage),
                         failure.occupied_coverage.x_cells_from_bounds,
                         failure.occupied_coverage.z_cells_from_bounds,
+                        formatPostLoadDiagnosticCandidate(&post_load_nearest_occupied_buffer, failure.nearest_occupied),
+                        formatPostLoadDiagnosticCandidate(&post_load_nearest_standable_buffer, failure.nearest_standable),
                         formatOptionalShadowAdjustmentFailure(failure.shadow_adjustment_failure),
                         failure.provisional_world_position.x,
                         failure.provisional_world_position.y,
@@ -550,6 +554,18 @@ fn formatPostLoadOccupiedBounds(
         buffer,
         "{d}..{d}/{d}..{d}",
         .{ bounds.min_x, bounds.max_x, bounds.min_z, bounds.max_z },
+    ) catch "format_error";
+}
+
+fn formatPostLoadDiagnosticCandidate(
+    buffer: []u8,
+    candidate: ?runtime_query.DiagnosticCandidate,
+) []const u8 {
+    const value = candidate orelse return "none";
+    return std.fmt.bufPrint(
+        buffer,
+        "{d}/{d}:dx={d}:dz={d}:top_y={d}",
+        .{ value.cell.x, value.cell.z, value.x_distance, value.z_distance, value.surface.top_y },
     ) catch "format_error";
 }
 
@@ -654,6 +670,54 @@ test "transition rejection diagnostics include post-load adjustment details when
                     .x_cells_from_bounds = 0,
                     .z_cells_from_bounds = 0,
                 },
+                .nearest_occupied = .{
+                    .kind = .occupied,
+                    .cell = .{ .x = 56, .z = 55 },
+                    .world_bounds = .{
+                        .min_x = 28672,
+                        .max_x = 29183,
+                        .min_z = 28160,
+                        .max_z = 28671,
+                    },
+                    .surface = .{
+                        .cell = .{ .x = 56, .z = 55 },
+                        .total_height = 16,
+                        .top_y = 3840,
+                        .stack_depth = 1,
+                        .top_floor_type = 0,
+                        .top_shape = 0,
+                        .top_shape_class = .solid,
+                        .top_brick_index = 1,
+                    },
+                    .standability = .standable,
+                    .x_distance = 0,
+                    .z_distance = 0,
+                    .distance_sq = 0,
+                },
+                .nearest_standable = .{
+                    .kind = .standable,
+                    .cell = .{ .x = 56, .z = 55 },
+                    .world_bounds = .{
+                        .min_x = 28672,
+                        .max_x = 29183,
+                        .min_z = 28160,
+                        .max_z = 28671,
+                    },
+                    .surface = .{
+                        .cell = .{ .x = 56, .z = 55 },
+                        .total_height = 16,
+                        .top_y = 3840,
+                        .stack_depth = 1,
+                        .top_floor_type = 0,
+                        .top_shape = 0,
+                        .top_shape_class = .solid,
+                        .top_brick_index = 1,
+                    },
+                    .standability = .standable,
+                    .x_distance = 0,
+                    .z_distance = 0,
+                    .distance_sq = 0,
+                },
                 .shadow_adjustment_failure = .world_cell_empty,
             },
         },
@@ -663,6 +727,8 @@ test "transition rejection diagnostics include post-load adjustment details when
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_raw_cell=57/55") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_occupied_coverage=within_occupied_bounds") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_occupied_bounds=40..60/20..55") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_nearest_occupied=56/55:dx=0:dz=0:top_y=3840") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_nearest_standable=56/55:dx=0:dz=0:top_y=3840") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_shadow_adjustment_failure=world_cell_empty") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "provisional_x=29184 provisional_y=3840 provisional_z=28416") != null);
 }

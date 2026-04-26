@@ -576,6 +576,36 @@ pub const WorldQuery = struct {
         };
     }
 
+    pub fn nearestOccupiedCandidateAtWorldPoint(
+        self: WorldQuery,
+        world_position: WorldPointSnapshot,
+    ) !?DiagnosticCandidate {
+        return self.findNearestCandidateForHypothesis(
+            world_position.x,
+            world_position.z,
+            .canonical_axis_aligned_512,
+            .occupied,
+        ) catch |err| switch (err) {
+            error.HeroStartNoOccupiedCell => null,
+            else => return err,
+        };
+    }
+
+    pub fn nearestStandableCandidateAtWorldPoint(
+        self: WorldQuery,
+        world_position: WorldPointSnapshot,
+    ) !?DiagnosticCandidate {
+        return self.findNearestCandidateForHypothesis(
+            world_position.x,
+            world_position.z,
+            .canonical_axis_aligned_512,
+            .standable,
+        ) catch |err| switch (err) {
+            error.HeroStartNoStandableCell => null,
+            else => return err,
+        };
+    }
+
     pub fn evaluateCardinalMoveOptions(
         self: WorldQuery,
         origin_world_position: WorldPointSnapshot,
