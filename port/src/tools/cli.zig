@@ -1917,6 +1917,14 @@ fn inspectSingleRoomTransition(
         .y = semantics.destination_y,
         .z = semantics.destination_z,
     };
+    const resolved_destination_entries = room_state.resolveGuardedTransitionRoomEntriesForCube(
+        allocator,
+        resolved,
+        semantics.destination_cube,
+    ) catch |err| switch (err) {
+        error.UnsupportedDestinationCube => null,
+        else => return err,
+    };
 
     var room = try room_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index);
     defer room.deinit(allocator);
@@ -1979,8 +1987,8 @@ fn inspectSingleRoomTransition(
             .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
             .result = "rejected",
             .rejection_reason = @tagName(value.reason),
-            .destination_scene_entry_index = null,
-            .destination_background_entry_index = null,
+            .destination_scene_entry_index = if (resolved_destination_entries) |entries| entries.scene_entry_index else null,
+            .destination_background_entry_index = if (resolved_destination_entries) |entries| entries.background_entry_index else null,
             .hero_position = roomTransitionWorldPositionSummary(value.hero_position),
             .post_load_diagnostics = if (value.post_load_adjustment_failure) |failure| .{
                 .move_target_status = @tagName(failure.move_target_status),
@@ -4140,6 +4148,8 @@ test "inspect-room-transitions payload exposes guarded 3/3 post-load diagnostics
             "unsupported_destination_post_load_adjustment",
             transition.rejection_reason.?,
         );
+        try std.testing.expectEqual(@as(?usize, 21), transition.destination_scene_entry_index);
+        try std.testing.expectEqual(@as(?usize, 21), transition.destination_background_entry_index);
         const post_load = transition.post_load_diagnostics orelse return error.MissingPostLoadDiagnostics;
         try std.testing.expectEqualStrings("target_empty", post_load.move_target_status);
         try std.testing.expect(post_load.shadow_adjustment_failure == null);
