@@ -13,7 +13,6 @@ const runtime_query = @import("world_query.zig");
 pub const TransitionRejectionReason = enum {
     unsupported_yaw,
     unsupported_test_brick,
-    unsupported_dont_readjust_twinsen,
     unsupported_exterior_destination_cube,
     unsupported_destination_cube,
     unsupported_destination_post_load_adjustment,
