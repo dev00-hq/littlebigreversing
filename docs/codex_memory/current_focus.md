@@ -9,11 +9,11 @@
 
 ## Active Streams
 
-- Phase 5 runtime/gameplay widening is current, with Phase 4 Branch A already settled.
-- Viewer/load widening stays on `19/19`, `2/2`, `11/10`, and `187/187`; `187/187` is the first fragment-bearing same-index compatible pair and still launches with `raw_invalid_start`, not an admitted spawn.
+- Phase 5 runtime/gameplay widening is current; Phase 4 Branch A is settled.
+- Viewer/load widening stays on `19/19`, `2/2`, `11/10`, `187/187`; `187/187` still launches `raw_invalid_start`, not admitted spawn.
 - Guarded `2/2` public exit is backed as exterior-facing `ChangeCube`; the port rejects it as `unsupported_exterior_destination_cube`.
-- `3/3` blockers stay rejected; live zone-`1` cube-`19` handoff lands in a Tralu's-dungeon-looking scene, not the intended cellar target.
-- `3/3` transition probe: zones `1/8` reject at `target_empty`; zone `15` rejects as unsupported cube.
+- `3/3` blockers stay rejected; live zone-`1` cube-`19` lands in a Tralu's-dungeon-looking scene, not the cellar target.
+- `3/3` probe: `1 -> 21/21` cell `56/55` and `8 -> 22/22` cell `56/62` are empty/outside occupied bounds; `15` rejects as unsupported cube.
 - `0013` door is scene-2 zone `0`: house/key side `2/1 -> 2/0` consumes one key and lands `(2562,2048,3322)` after shadow; cellar return `2/0 -> 2/1` is free and lands `(9725,1024,1098)`.
 - `0013` key source is scene `2/1` default action gated by `gameVar(0)==0`; it kills object `7`, grants object `0`, and sets `gameVar(0)=1`.
 - `0013` key pickup is poll-only proved on house side: `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`.

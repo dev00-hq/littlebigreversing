@@ -12,6 +12,7 @@ const scene_data = @import("../game_data/scene.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
 const life_audit = @import("../game_data/scene/life_audit.zig");
 const locomotion = @import("../runtime/locomotion.zig");
+const runtime_query = @import("../runtime/world_query.zig");
 const runtime_session = @import("../runtime/session.zig");
 const runtime_transition = @import("../runtime/transition.zig");
 const room_entry_state = @import("../runtime/room_entry_state.zig");
@@ -264,10 +265,34 @@ const RoomTransitionWorldPositionSummary = struct {
     z: i32,
 };
 
+const RoomTransitionGridCellSummary = struct {
+    x: usize,
+    z: usize,
+};
+
+const RoomTransitionRawCellSummary = struct {
+    world_x: i32,
+    world_z: i32,
+    cell: ?RoomTransitionGridCellSummary,
+    status: []const u8,
+    occupied: bool,
+    surface_top_y: ?i32,
+    standability: ?[]const u8,
+};
+
+const RoomTransitionOccupiedCoverageSummary = struct {
+    relation: []const u8,
+    occupied_bounds: ?room_state.CompositionBoundsSnapshot,
+    x_cells_from_bounds: usize,
+    z_cells_from_bounds: usize,
+};
+
 const RoomTransitionPostLoadDiagnosticsSummary = struct {
     move_target_status: []const u8,
     shadow_adjustment_failure: ?[]const u8,
     provisional_world_position: RoomTransitionWorldPositionSummary,
+    raw_cell: RoomTransitionRawCellSummary,
+    occupied_coverage: RoomTransitionOccupiedCoverageSummary,
 };
 
 const RoomTransitionProbeSummary = struct {
@@ -1994,6 +2019,8 @@ fn inspectSingleRoomTransition(
                 .move_target_status = @tagName(failure.move_target_status),
                 .shadow_adjustment_failure = if (failure.shadow_adjustment_failure) |shadow_failure| @tagName(shadow_failure) else null,
                 .provisional_world_position = roomTransitionWorldPositionSummary(failure.provisional_world_position),
+                .raw_cell = roomTransitionRawCellSummary(failure.raw_cell),
+                .occupied_coverage = roomTransitionOccupiedCoverageSummary(failure.occupied_coverage),
             } else null,
         },
     };
@@ -2014,6 +2041,31 @@ fn roomTransitionWorldPositionSummary(
         .x = position.x,
         .y = position.y,
         .z = position.z,
+    };
+}
+
+fn roomTransitionRawCellSummary(
+    probe: runtime_query.WorldPointCellProbe,
+) RoomTransitionRawCellSummary {
+    return .{
+        .world_x = probe.world_x,
+        .world_z = probe.world_z,
+        .cell = if (probe.cell) |cell| .{ .x = cell.x, .z = cell.z } else null,
+        .status = @tagName(probe.status),
+        .occupied = probe.occupied,
+        .surface_top_y = if (probe.surface) |surface| surface.top_y else null,
+        .standability = if (probe.standability) |standability| @tagName(standability) else null,
+    };
+}
+
+fn roomTransitionOccupiedCoverageSummary(
+    coverage: runtime_query.OccupiedCoverageProbe,
+) RoomTransitionOccupiedCoverageSummary {
+    return .{
+        .relation = @tagName(coverage.relation),
+        .occupied_bounds = coverage.occupied_bounds,
+        .x_cells_from_bounds = coverage.x_cells_from_bounds,
+        .z_cells_from_bounds = coverage.z_cells_from_bounds,
     };
 }
 
@@ -4154,6 +4206,12 @@ test "inspect-room-transitions payload exposes guarded 3/3 post-load diagnostics
         try std.testing.expectEqualStrings("target_empty", post_load.move_target_status);
         try std.testing.expect(post_load.shadow_adjustment_failure == null);
         try std.testing.expectEqual(transition.destination_world_position, post_load.provisional_world_position);
+        try std.testing.expectEqual(@as(?RoomTransitionGridCellSummary, .{ .x = 56, .z = 55 }), post_load.raw_cell.cell);
+        try std.testing.expectEqualStrings("empty", post_load.raw_cell.status);
+        try std.testing.expectEqual(false, post_load.raw_cell.occupied);
+        try std.testing.expectEqualStrings("outside_occupied_bounds", post_load.occupied_coverage.relation);
+        try std.testing.expectEqual(@as(usize, 38), post_load.occupied_coverage.x_cells_from_bounds);
+        try std.testing.expectEqual(@as(usize, 29), post_load.occupied_coverage.z_cells_from_bounds);
     }
     try std.testing.expect(found_zone_1);
 }

@@ -46,6 +46,8 @@ pub const TransitionApplyResult = union(enum) {
 pub const PostLoadAdjustmentFailure = struct {
     provisional_world_position: locomotion.WorldPointSnapshot,
     move_target_status: runtime_query.MoveTargetStatus,
+    raw_cell: runtime_query.WorldPointCellProbe,
+    occupied_coverage: runtime_query.OccupiedCoverageProbe,
     shadow_adjustment_failure: ?ShadowAdjustmentFailure,
 };
 
@@ -240,6 +242,8 @@ fn resolveInteriorPostLoadLandingAdjustment(
             .rejected = .{
                 .provisional_world_position = provisional_world_position,
                 .move_target_status = evaluation.status,
+                .raw_cell = evaluation.raw_cell,
+                .occupied_coverage = evaluation.occupied_coverage,
                 .shadow_adjustment_failure = null,
             },
         };
@@ -253,6 +257,8 @@ fn resolveInteriorPostLoadLandingAdjustment(
                 .rejected = .{
                     .provisional_world_position = provisional_world_position,
                     .move_target_status = evaluation.status,
+                    .raw_cell = evaluation.raw_cell,
+                    .occupied_coverage = evaluation.occupied_coverage,
                     .shadow_adjustment_failure = shadowAdjustmentFailureFromError(err).?,
                 },
             };
@@ -589,6 +595,14 @@ test "guarded 3/3 post-load rejection carries provisional landing diagnostics" {
             const failure = value.post_load_adjustment_failure orelse return error.MissingPostLoadAdjustmentFailure;
             try std.testing.expectEqual(provisional_world_position, failure.provisional_world_position);
             try std.testing.expectEqual(expected_status, failure.move_target_status);
+            try std.testing.expectEqual(
+                destination_query.evaluateHeroMoveTarget(provisional_world_position).raw_cell,
+                failure.raw_cell,
+            );
+            try std.testing.expectEqual(
+                destination_query.evaluateHeroMoveTarget(provisional_world_position).occupied_coverage,
+                failure.occupied_coverage,
+            );
             try std.testing.expectEqual(expected_shadow_failure, failure.shadow_adjustment_failure);
         },
         .committed => return error.UnexpectedCommittedRoomTransition,

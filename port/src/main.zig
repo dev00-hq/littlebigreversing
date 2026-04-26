@@ -490,8 +490,10 @@ fn printTransitionResult(stderr: anytype, transition_result: runtime_transition.
         ),
         .rejected => |value| {
             if (value.post_load_adjustment_failure) |failure| {
+                var post_load_raw_cell_buffer: [32]u8 = undefined;
+                var post_load_occupied_bounds_buffer: [48]u8 = undefined;
                 try stderr.print(
-                    "event=room_transition_rejected source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} reason={s} hero_x={d} hero_y={d} hero_z={d} post_load_target_status={s} post_load_shadow_adjustment_failure={s} provisional_x={d} provisional_y={d} provisional_z={d}\n",
+                    "event=room_transition_rejected source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} reason={s} hero_x={d} hero_y={d} hero_z={d} post_load_target_status={s} post_load_raw_cell={s} post_load_raw_cell_status={s} post_load_occupied_coverage={s} post_load_occupied_bounds={s} post_load_occupied_bounds_dx={d} post_load_occupied_bounds_dz={d} post_load_shadow_adjustment_failure={s} provisional_x={d} provisional_y={d} provisional_z={d}\n",
                     .{
                         value.source_scene_entry_index,
                         value.source_background_entry_index,
@@ -501,6 +503,12 @@ fn printTransitionResult(stderr: anytype, transition_result: runtime_transition.
                         value.hero_position.y,
                         value.hero_position.z,
                         @tagName(failure.move_target_status),
+                        formatPostLoadRawCell(&post_load_raw_cell_buffer, failure.raw_cell),
+                        @tagName(failure.raw_cell.status),
+                        @tagName(failure.occupied_coverage.relation),
+                        formatPostLoadOccupiedBounds(&post_load_occupied_bounds_buffer, failure.occupied_coverage),
+                        failure.occupied_coverage.x_cells_from_bounds,
+                        failure.occupied_coverage.z_cells_from_bounds,
                         formatOptionalShadowAdjustmentFailure(failure.shadow_adjustment_failure),
                         failure.provisional_world_position.x,
                         failure.provisional_world_position.y,
@@ -523,6 +531,26 @@ fn printTransitionResult(stderr: anytype, transition_result: runtime_transition.
             }
         },
     }
+}
+
+fn formatPostLoadRawCell(
+    buffer: []u8,
+    probe: runtime_query.WorldPointCellProbe,
+) []const u8 {
+    const cell = probe.cell orelse return "none";
+    return std.fmt.bufPrint(buffer, "{d}/{d}", .{ cell.x, cell.z }) catch "format_error";
+}
+
+fn formatPostLoadOccupiedBounds(
+    buffer: []u8,
+    coverage: runtime_query.OccupiedCoverageProbe,
+) []const u8 {
+    const bounds = coverage.occupied_bounds orelse return "none";
+    return std.fmt.bufPrint(
+        buffer,
+        "{d}..{d}/{d}..{d}",
+        .{ bounds.min_x, bounds.max_x, bounds.min_z, bounds.max_z },
+    ) catch "format_error";
 }
 
 fn formatOptionalShadowAdjustmentFailure(
@@ -606,12 +634,35 @@ test "transition rejection diagnostics include post-load adjustment details when
             .post_load_adjustment_failure = .{
                 .provisional_world_position = .{ .x = 29184, .y = 3840, .z = 28416 },
                 .move_target_status = .target_height_mismatch,
+                .raw_cell = .{
+                    .world_x = 29184,
+                    .world_z = 28416,
+                    .cell = .{ .x = 57, .z = 55 },
+                    .status = .occupied_surface,
+                    .occupied = true,
+                    .surface = null,
+                    .standability = null,
+                },
+                .occupied_coverage = .{
+                    .relation = .within_occupied_bounds,
+                    .occupied_bounds = .{
+                        .min_x = 40,
+                        .max_x = 60,
+                        .min_z = 20,
+                        .max_z = 55,
+                    },
+                    .x_cells_from_bounds = 0,
+                    .z_cells_from_bounds = 0,
+                },
                 .shadow_adjustment_failure = .world_cell_empty,
             },
         },
     });
 
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_target_status=target_height_mismatch") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_raw_cell=57/55") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_occupied_coverage=within_occupied_bounds") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_occupied_bounds=40..60/20..55") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "post_load_shadow_adjustment_failure=world_cell_empty") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "provisional_x=29184 provisional_y=3840 provisional_z=28416") != null);
 }
