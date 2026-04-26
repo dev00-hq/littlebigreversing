@@ -2117,8 +2117,18 @@ fn inspectSingleRoomTransition(
             .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
             .result = "rejected",
             .rejection_reason = @tagName(value.reason),
-            .destination_scene_entry_index = if (resolved_destination_entries) |entries| entries.scene_entry_index else null,
-            .destination_background_entry_index = if (resolved_destination_entries) |entries| entries.background_entry_index else null,
+            .destination_scene_entry_index = if (value.reason == .unsupported_exterior_destination_cube)
+                null
+            else if (resolved_destination_entries) |entries|
+                entries.scene_entry_index
+            else
+                null,
+            .destination_background_entry_index = if (value.reason == .unsupported_exterior_destination_cube)
+                null
+            else if (resolved_destination_entries) |entries|
+                entries.background_entry_index
+            else
+                null,
             .hero_position = roomTransitionWorldPositionSummary(value.hero_position),
             .post_load_diagnostics = if (value.post_load_adjustment_failure) |failure| roomTransitionPostLoadDiagnosticsSummary(failure) else null,
             .runtime_probe_position = if (runtime_probe_position) |probe_position| roomTransitionWorldPositionSummary(probe_position) else null,
@@ -4531,6 +4541,25 @@ test "inspect-room-transitions payload exposes guarded 3/3 interior commits" {
     try std.testing.expect(found_zone_1);
 }
 
+test "inspect-room-transitions payload keeps guarded 2/2 public exterior rejection unmapped" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const payload = try buildRoomTransitionInspectionPayload(allocator, resolved, 2, 2);
+    defer allocator.free(payload.transitions);
+
+    try std.testing.expectEqual(@as(usize, 1), payload.transition_count);
+    const transition = payload.transitions[0];
+    try std.testing.expectEqualStrings("decoded_change_cube", transition.source_kind);
+    try std.testing.expectEqual(@as(usize, 0), transition.source_zone_index);
+    try std.testing.expectEqual(@as(i16, 0), transition.destination_cube);
+    try std.testing.expectEqualStrings("rejected", transition.result);
+    try std.testing.expectEqualStrings("unsupported_exterior_destination_cube", transition.rejection_reason.?);
+    try std.testing.expect(transition.destination_scene_entry_index == null);
+    try std.testing.expect(transition.destination_background_entry_index == null);
+    try std.testing.expect(transition.post_load_diagnostics == null);
+}
 test "inspect-room-transitions payload exposes guarded 187/187 no-readjust destination blocker" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
