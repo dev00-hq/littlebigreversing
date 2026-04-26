@@ -279,6 +279,12 @@ pub const FragmentZoneAxisDiagnostic = struct {
     origin_aligned: ?bool,
     origin_remainder: ?i32,
     origin_cell: ?usize,
+    origin_floor_value: ?i32,
+    origin_floor_cell: ?usize,
+    origin_floor_delta: ?i32,
+    origin_ceil_value: ?i32,
+    origin_ceil_cell: ?usize,
+    origin_ceil_delta: ?i32,
     span_non_negative: bool,
     span_aligned: bool,
     span_remainder: ?i32,
@@ -1290,6 +1296,31 @@ fn describeFragmentZoneAxis(
         @as(usize, @intCast(@divTrunc(min_value, unit)))
     else
         null;
+    const origin_floor_value = if (origin_alignment_required and min_value >= 0 and !origin_aligned.?)
+        min_value - origin_remainder.?
+    else
+        null;
+    const origin_floor_cell = if (origin_floor_value) |value|
+        @as(usize, @intCast(@divTrunc(value, unit)))
+    else
+        null;
+    const origin_floor_delta = if (origin_floor_value) |value|
+        value - min_value
+    else
+        null;
+    const origin_ceil_value = if (origin_floor_value) |value|
+        value + unit
+    else
+        null;
+    const origin_ceil_cell = if (origin_ceil_value) |value|
+        @as(usize, @intCast(@divTrunc(value, unit)))
+    else
+        null;
+    const origin_ceil_delta = if (origin_ceil_value) |value|
+        value - min_value
+    else
+        null;
+
     const span_aligned = span_non_negative and @mod(delta, unit) == 0;
     const span_remainder = if (span_non_negative)
         @as(i32, @mod(delta, unit))
@@ -1308,6 +1339,12 @@ fn describeFragmentZoneAxis(
         .origin_aligned = origin_aligned,
         .origin_remainder = origin_remainder,
         .origin_cell = origin_cell,
+        .origin_floor_value = origin_floor_value,
+        .origin_floor_cell = origin_floor_cell,
+        .origin_floor_delta = origin_floor_delta,
+        .origin_ceil_value = origin_ceil_value,
+        .origin_ceil_cell = origin_ceil_cell,
+        .origin_ceil_delta = origin_ceil_delta,
         .span_non_negative = span_non_negative,
         .span_aligned = span_aligned,
         .span_remainder = span_remainder,
@@ -1360,6 +1397,12 @@ test "inspectRoomFragmentZoneDiagnostics explains the 219 219 invalid fragment-z
     try std.testing.expectEqual(false, first.z_axis.origin_aligned.?);
     try std.testing.expectEqual(@as(?i32, 112), first.z_axis.origin_remainder);
     try std.testing.expectEqual(@as(?usize, null), first.z_axis.origin_cell);
+    try std.testing.expectEqual(@as(?i32, 4096), first.z_axis.origin_floor_value);
+    try std.testing.expectEqual(@as(?usize, 8), first.z_axis.origin_floor_cell);
+    try std.testing.expectEqual(@as(?i32, -112), first.z_axis.origin_floor_delta);
+    try std.testing.expectEqual(@as(?i32, 4608), first.z_axis.origin_ceil_value);
+    try std.testing.expectEqual(@as(?usize, 9), first.z_axis.origin_ceil_cell);
+    try std.testing.expectEqual(@as(?i32, 400), first.z_axis.origin_ceil_delta);
 
     const third = diagnostics.zones[2];
     try std.testing.expectEqual(@as(usize, 11), third.zone_index);

@@ -1841,7 +1841,7 @@ fn inspectRoomFragmentZones(
     for (payload.zones) |zone| {
         var fragment_dimensions_buffer: [32]u8 = undefined;
         try stderr.print(
-            "zone_index={d} zone_num={d} grm_index={d} initially_on={} issue={s} fragment_entry_index={any} fragment_dimensions={s} x_bounds={d}..{d} x_origin_aligned={any} x_origin_remainder={any} x_cells={any} y_bounds={d}..{d} y_span_aligned={} y_span_remainder={any} y_cells={any} z_bounds={d}..{d} z_origin_aligned={any} z_origin_remainder={any} z_cells={any}\n",
+            "zone_index={d} zone_num={d} grm_index={d} initially_on={} issue={s} fragment_entry_index={any} fragment_dimensions={s} x_bounds={d}..{d} x_origin_aligned={any} x_origin_remainder={any} x_floor={any}/{any} x_ceil={any}/{any} x_cells={any} y_bounds={d}..{d} y_span_aligned={} y_span_remainder={any} y_cells={any} z_bounds={d}..{d} z_origin_aligned={any} z_origin_remainder={any} z_floor={any}/{any} z_ceil={any}/{any} z_cells={any}\n",
             .{
                 zone.zone_index,
                 zone.zone_num,
@@ -1854,6 +1854,10 @@ fn inspectRoomFragmentZones(
                 zone.x_axis.max_value,
                 zone.x_axis.origin_aligned,
                 zone.x_axis.origin_remainder,
+                zone.x_axis.origin_floor_value,
+                zone.x_axis.origin_floor_cell,
+                zone.x_axis.origin_ceil_value,
+                zone.x_axis.origin_ceil_cell,
                 zone.x_axis.cell_count,
                 zone.y_axis.min_value,
                 zone.y_axis.max_value,
@@ -1864,6 +1868,10 @@ fn inspectRoomFragmentZones(
                 zone.z_axis.max_value,
                 zone.z_axis.origin_aligned,
                 zone.z_axis.origin_remainder,
+                zone.z_axis.origin_floor_value,
+                zone.z_axis.origin_floor_cell,
+                zone.z_axis.origin_ceil_value,
+                zone.z_axis.origin_ceil_cell,
                 zone.z_axis.cell_count,
             },
         );
@@ -2656,7 +2664,7 @@ fn printFragmentZoneBoundsDiagnostic(
 
         if (fragmentZoneAxisDiagnostic(zone)) |axis| {
             try writer.print(
-                "event=fragment_zone_validation_issue scene_entry_index={d} background_entry_index={d} zone_index={d} zone_num={d} grm_index={d} fragment_entry_index={any} axis={s} min_value={d} max_value={d} unit={d} failure_reason={s} issue={s}\n",
+                "event=fragment_zone_validation_issue scene_entry_index={d} background_entry_index={d} zone_index={d} zone_num={d} grm_index={d} fragment_entry_index={any} axis={s} min_value={d} max_value={d} unit={d} failure_reason={s} issue={s} origin_floor_value={any} origin_floor_cell={any} origin_floor_delta={any} origin_ceil_value={any} origin_ceil_cell={any} origin_ceil_delta={any}\n",
                 .{
                     diagnostics_snapshot.scene_entry_index,
                     diagnostics_snapshot.background_entry_index,
@@ -2670,6 +2678,12 @@ fn printFragmentZoneBoundsDiagnostic(
                     axis.unit,
                     fragmentZoneFailureReasonName(zone.issue, axis),
                     @tagName(zone.issue),
+                    axis.origin_floor_value,
+                    axis.origin_floor_cell,
+                    axis.origin_floor_delta,
+                    axis.origin_ceil_value,
+                    axis.origin_ceil_cell,
+                    axis.origin_ceil_delta,
                 },
             );
         } else {
@@ -4197,6 +4211,12 @@ fn testFragmentZoneAxisDiagnostic(
         .origin_aligned = origin_aligned,
         .origin_remainder = origin_remainder,
         .origin_cell = if (origin_aligned == null) null else 0,
+        .origin_floor_value = null,
+        .origin_floor_cell = null,
+        .origin_floor_delta = null,
+        .origin_ceil_value = null,
+        .origin_ceil_cell = null,
+        .origin_ceil_delta = null,
         .span_non_negative = true,
         .span_aligned = true,
         .span_remainder = 0,
@@ -4232,6 +4252,12 @@ fn testFragmentZoneDiagnostic(
                 .origin_aligned = true,
                 .origin_remainder = 0,
                 .origin_cell = 0,
+                .origin_floor_value = null,
+                .origin_floor_cell = null,
+                .origin_floor_delta = null,
+                .origin_ceil_value = null,
+                .origin_ceil_cell = null,
+                .origin_ceil_delta = null,
                 .span_non_negative = true,
                 .span_aligned = false,
                 .span_remainder = 511,
@@ -4671,6 +4697,10 @@ test "inspect-room-fragment-zones payload explains the 219 219 blocker" {
     try std.testing.expect(first.fragment_dimensions != null);
     try std.testing.expectEqual(false, first.z_axis.origin_aligned.?);
     try std.testing.expectEqual(@as(?i32, 112), first.z_axis.origin_remainder);
+    try std.testing.expectEqual(@as(?i32, 4096), first.z_axis.origin_floor_value);
+    try std.testing.expectEqual(@as(?usize, 8), first.z_axis.origin_floor_cell);
+    try std.testing.expectEqual(@as(?i32, 4608), first.z_axis.origin_ceil_value);
+    try std.testing.expectEqual(@as(?usize, 9), first.z_axis.origin_ceil_cell);
 
     const third = payload.zones[2];
     try std.testing.expectEqual(@as(usize, 11), third.zone_index);
@@ -4698,14 +4728,14 @@ test "inspect-room formats invalid-fragment-zone diagnostics with offending grm 
     const diagnostics_snapshot = try room_state.inspectRoomFragmentZoneDiagnostics(allocator, resolved, 219, 219);
     defer diagnostics_snapshot.deinit(allocator);
 
-    var buffer: [2048]u8 = undefined;
+    var buffer: [4096]u8 = undefined;
     var writer = std.Io.Writer.fixed(&buffer);
     try printFragmentZoneBoundsDiagnostic(&writer, diagnostics_snapshot);
 
     const output = writer.buffered();
     try std.testing.expect(std.mem.indexOf(u8, output, "event=room_load_rejected scene_entry_index=219 background_entry_index=219 reason=invalid_fragment_zone_bounds classic_loader_scene_number=217 scene_kind=interior invalid_fragment_zone_issue_count=6") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output, "event=fragment_zone_validation_issue scene_entry_index=219 background_entry_index=219 zone_index=1 zone_num=0 grm_index=0 fragment_entry_index=159 axis=z min_value=4208 max_value=5744 unit=512 failure_reason=misaligned_min issue=invalid_z_axis_origin") != null);
-    try std.testing.expect(std.mem.indexOf(u8, output, "event=fragment_zone_validation_issue scene_entry_index=219 background_entry_index=219 zone_index=11 zone_num=11 grm_index=1 fragment_entry_index=160 axis=x min_value=20048 max_value=20560 unit=512 failure_reason=misaligned_min issue=invalid_x_axis_origin") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "event=fragment_zone_validation_issue scene_entry_index=219 background_entry_index=219 zone_index=1 zone_num=0 grm_index=0 fragment_entry_index=159 axis=z min_value=4208 max_value=5744 unit=512 failure_reason=misaligned_min issue=invalid_z_axis_origin origin_floor_value=4096 origin_floor_cell=8 origin_floor_delta=-112 origin_ceil_value=4608 origin_ceil_cell=9 origin_ceil_delta=400") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "event=fragment_zone_validation_issue scene_entry_index=219 background_entry_index=219 zone_index=11 zone_num=11 grm_index=1 fragment_entry_index=160 axis=x min_value=20048 max_value=20560 unit=512 failure_reason=misaligned_min issue=invalid_x_axis_origin origin_floor_value=19968 origin_floor_cell=39 origin_floor_delta=-80 origin_ceil_value=20480 origin_ceil_cell=40 origin_ceil_delta=432") != null);
 }
 
 test "inspect-room rejects exterior scene entries" {

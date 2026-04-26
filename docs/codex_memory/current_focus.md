@@ -28,7 +28,7 @@
 - Guarded `187/187` gameplay beyond startup seed/zone-1 blocker is unproved.
 - Room `36/36` page 2 is renderer pagination; save/load is unsupported while dialog is active.
 - Wall mapping is deferred.
-- `inspect-room 219 219 --json` still fails `InvalidFragmentZoneBounds`.
+- `inspect-room 219 219 --json` still fails; fragment-zone CLI reports aligned-origin candidates.
 
 ## Next Actions
 
