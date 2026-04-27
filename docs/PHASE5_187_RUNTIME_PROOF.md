@@ -25,6 +25,8 @@ The recorded run immediately snapped from the requested source coordinate to `(2
 
 That is not a valid transition proof. It is consistent with an invalid teleport, fall/death, or safety reset back to a saved/start position.
 
+Future runs must prove this path from runtime state, not image pixels. Arm `tools/life_trace/life_loss_cdb_watch.py` on `ListVarGame[FLAG_CLOVER]` at `0x0049A08E`; a hit captures the CDB `kb` stack for the exact clover/life-loss write.
+
 ## Counterfactual
 
 `tools/fixtures/phase5_187_startcube_counterfactual.json` changed only `StartXCube` from `55` to `54`, but it used the same invalid source teleport. Because the run did not observe a real transition signal, it cannot prove or disprove the transition branch's causal model.
@@ -33,4 +35,4 @@ That is not a valid transition proof. It is consistent with an invalid teleport,
 
 Do not admit either the decoded `NewPos=(13824,5120,14848)` or the observed `(28416,2304,21760)` saved/respawn position as a valid `187/187` zone landing.
 
-The next proof must first validate the loaded runtime context and source coordinate frame, then observe real zone membership or `NewCube/NewPos` staging before drawing a transition conclusion.
+The next proof must first validate the loaded runtime context and source coordinate frame, then observe real zone membership or `NewCube/NewPos` staging before drawing a transition conclusion. If Twinsen loses a life, the admissible signal is the clover counter write stack, not screenshot analysis.

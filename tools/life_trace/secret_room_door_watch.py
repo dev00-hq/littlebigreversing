@@ -14,6 +14,10 @@ from typing import Callable, Iterable
 PROCESS_VM_READ = 0x0010
 PROCESS_QUERY_INFORMATION = 0x0400
 DEFAULT_PROCESS_NAME = "LBA2.EXE"
+LIST_VAR_GAME_GLOBAL = 0x00499E98
+LIST_VAR_GAME_SLOT_SIZE = 2
+FLAG_CLOVER = 251
+CLOVER_COUNTER = LIST_VAR_GAME_GLOBAL + (FLAG_CLOVER * LIST_VAR_GAME_SLOT_SIZE)
 
 
 @dataclass(frozen=True)
@@ -33,6 +37,7 @@ WATCH_FIELDS = (
     WatchField("new_pos_y", 0x00497F20),
     WatchField("new_pos_z", 0x00497F24),
     WatchField("nb_little_keys", 0x0049A0A6, 1),
+    WatchField("clovers", CLOVER_COUNTER, 2),
     WatchField("hero_count", 0x0049A198),
     WatchField("hero_x", 0x0049A1DA),
     WatchField("hero_y", 0x0049A1DE),
@@ -96,7 +101,7 @@ class ProcessReader:
             self.handle = 0
 
     def read_int(self, address: int, size: int) -> int:
-        if size not in {1, 4}:
+        if size not in {1, 2, 4}:
             raise ValueError(f"unsupported read size: {size}")
         buffer = ctypes.create_string_buffer(size)
         read = ctypes.c_size_t()
@@ -111,6 +116,8 @@ class ProcessReader:
             raise ctypes.WinError(ctypes.get_last_error())
         if size == 1:
             return buffer.raw[0]
+        if size == 2:
+            return struct.unpack("<h", buffer.raw)[0]
         return struct.unpack("<i", buffer.raw)[0]
 
     def __enter__(self) -> "ProcessReader":
@@ -210,6 +217,7 @@ def record_key(row: dict[str, object]) -> tuple[object, ...]:
         row["new_pos_y"],
         row["new_pos_z"],
         row["nb_little_keys"],
+        row["clovers"],
         row["hero_x"],
         row["hero_y"],
         row["hero_z"],

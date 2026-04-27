@@ -40,6 +40,7 @@ class SecretRoomDoorWatchTests(unittest.TestCase):
             "new_pos_y": 2049,
             "new_pos_z": 3322,
             "nb_little_keys": 1,
+            "clovers": 3,
             "hero_count": 9,
             "hero_x": 9730,
             "hero_y": 1025,
@@ -78,6 +79,8 @@ class SecretRoomDoorWatchTests(unittest.TestCase):
         self.assertEqual(3322, snap["new_pos_z"])
         self.assertEqual(1, snap["nb_little_keys"])
         self.assertEqual(1, reader.read_sizes[0x0049A0A6])
+        self.assertEqual(3, snap["clovers"])
+        self.assertEqual(2, reader.read_sizes[secret_room_door_watch.CLOVER_COUNTER])
         self.assertEqual(9730, snap["hero_x"])
         self.assertEqual(
             [
@@ -115,6 +118,18 @@ class SecretRoomDoorWatchTests(unittest.TestCase):
             secret_room_door_watch.record_key(second),
         )
 
+    def test_record_key_changes_when_clover_count_changes(self) -> None:
+        values = self.base_values()
+        first = secret_room_door_watch.snapshot(FakeReader(values).read_int)
+        changed = dict(values)
+        changed["clovers"] = 2
+        second = secret_room_door_watch.snapshot(FakeReader(changed).read_int)
+
+        self.assertNotEqual(
+            secret_room_door_watch.record_key(first),
+            secret_room_door_watch.record_key(second),
+        )
+
     def test_watch_once_writes_one_jsonl_row(self) -> None:
         reader = FakeReader(self.base_values())
 
@@ -134,6 +149,7 @@ class SecretRoomDoorWatchTests(unittest.TestCase):
         self.assertEqual(1, len(lines))
         self.assertIn('"active_cube":1', lines[0])
         self.assertIn('"nb_little_keys":1', lines[0])
+        self.assertIn('"clovers":3', lines[0])
         self.assertIn('"new_pos_z":3322', lines[0])
 
 

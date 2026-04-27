@@ -40,6 +40,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - `0013` door source is scene-2 zone `0`; keyed `2/1 -> 2/0`, free return `2/0 -> 2/1`.
 - In `inspect-room-transitions`, use runtime fields for `0013`; decoded rows alone are insufficient.
 - Use `secret_room_door_watch.py`; it reads `NbLittleKeys` as a byte.
+- Use `life_loss_cdb_watch.py` when life loss matters; it watches `ListVarGame[FLAG_CLOVER]` at `0x0049A08E` and captures the CDB stack for the write.
 - `0013` pickup is `FUN_00415e48` / `0x0041737c`, not `LM_GIVE_BONUS`.
 - W path is default action, not search action.
 - Use CDB watch scripts only for deliberate instruction-level proof; internal `DoLifeLoop` hooks use function/probe form.
