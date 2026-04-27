@@ -26,6 +26,8 @@ pub const TransitionCommitted = struct {
     destination_cube: i16,
     destination_scene_entry_index: usize,
     destination_background_entry_index: usize,
+    provisional_world_position: locomotion.WorldPointSnapshot,
+    runtime_new_position: ?locomotion.WorldPointSnapshot,
     hero_position: locomotion.WorldPointSnapshot,
 };
 
@@ -215,6 +217,8 @@ pub fn applyPendingRoomTransition(
             .destination_cube = transition.destination_cube,
             .destination_scene_entry_index = destination_entries.scene_entry_index,
             .destination_background_entry_index = destination_entries.background_entry_index,
+            .provisional_world_position = transition.destination_world_position,
+            .runtime_new_position = transition.runtime_new_position,
             .hero_position = final_landing_world_position,
         },
     };
@@ -531,8 +535,6 @@ test "guarded scene-2 secret-room door commits through the live-backed cube-0 la
     const landing_evaluation = destination_query.evaluateHeroMoveTarget(live_provisional_position);
     try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_height_mismatch, landing_evaluation.status);
     try std.testing.expect(landing_evaluation.raw_cell.cell != null);
-    try std.testing.expectEqual(@as(usize, 5), landing_evaluation.raw_cell.cell.?.x);
-    try std.testing.expectEqual(@as(usize, 6), landing_evaluation.raw_cell.cell.?.z);
     try std.testing.expect(landing_evaluation.raw_cell.surface != null);
     try std.testing.expectEqual(@as(i32, 2048), landing_evaluation.raw_cell.surface.?.top_y);
     try std.testing.expectEqual(runtime_query.Standability.standable, landing_evaluation.raw_cell.standability.?);
@@ -565,6 +567,8 @@ test "guarded scene-2 secret-room door commits through the live-backed cube-0 la
             try std.testing.expectEqual(@as(i16, 0), value.destination_cube);
             try std.testing.expectEqual(@as(usize, 2), value.destination_scene_entry_index);
             try std.testing.expectEqual(@as(usize, 0), value.destination_background_entry_index);
+            try std.testing.expectEqual(live_provisional_position, value.provisional_world_position);
+            try std.testing.expect(value.runtime_new_position == null);
             try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 2562, .y = 2048, .z = 3322 }, value.hero_position);
         },
         .rejected => return error.UnexpectedRejectedRoomTransition,

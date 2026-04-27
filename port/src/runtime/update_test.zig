@@ -524,8 +524,9 @@ test "runtime zone effects consume one key at the scene-2 house door unlock befo
     const transition = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
     try std.testing.expectEqual(door_zone.index, transition.source_zone_index);
     try std.testing.expectEqual(@as(i16, 0), transition.destination_cube);
-    try std.testing.expectEqual(runtime_session.PendingRoomTransitionDestinationPositionKind.provisional_zone_relative, transition.destination_world_position_kind);
-    try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 2562, .y = 2049, .z = 3322 }, transition.destination_world_position);
+    try std.testing.expectEqual(runtime_session.PendingRoomTransitionDestinationPositionKind.final_landing, transition.destination_world_position_kind);
+    try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9724, .y = 1024, .z = 782 }, transition.destination_world_position);
+    try std.testing.expectEqual(@as(?locomotion.WorldPointSnapshot, locomotion.WorldPointSnapshot{ .x = 9723, .y = 1277, .z = 762 }), transition.runtime_new_position);
     try std.testing.expectEqual(semantics.yaw, transition.yaw);
     try std.testing.expectEqual(semantics.test_brick, transition.test_brick);
     try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);
@@ -646,7 +647,9 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
         .committed => |value| {
             try std.testing.expectEqual(@as(usize, 2), value.destination_scene_entry_index);
             try std.testing.expectEqual(@as(usize, 0), value.destination_background_entry_index);
-            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 2562, .y = 2048, .z = 3322 }, value.hero_position);
+            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9724, .y = 1024, .z = 782 }, value.provisional_world_position);
+            try std.testing.expectEqual(@as(?locomotion.WorldPointSnapshot, locomotion.WorldPointSnapshot{ .x = 9723, .y = 1277, .z = 762 }), value.runtime_new_position);
+            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9724, .y = 1024, .z = 782 }, value.hero_position);
         },
         .rejected => return error.UnexpectedRejectedRoomTransition,
     }

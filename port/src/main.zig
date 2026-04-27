@@ -475,19 +475,28 @@ fn printNewRewardPickupEvents(
 
 fn printTransitionResult(stderr: anytype, transition_result: runtime_transition.TransitionApplyResult) !void {
     switch (transition_result) {
-        .committed => |value| try stderr.print(
-            "event=room_transition_committed source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} destination_scene_entry_index={d} destination_background_entry_index={d} hero_x={d} hero_y={d} hero_z={d}\n",
-            .{
-                value.source_scene_entry_index,
-                value.source_background_entry_index,
-                value.destination_cube,
-                value.destination_scene_entry_index,
-                value.destination_background_entry_index,
-                value.hero_position.x,
-                value.hero_position.y,
-                value.hero_position.z,
-            },
-        ),
+        .committed => |value| {
+            const runtime_new_position = value.runtime_new_position orelse value.provisional_world_position;
+            try stderr.print(
+                "event=room_transition_committed source_scene_entry_index={d} source_background_entry_index={d} destination_cube={d} destination_scene_entry_index={d} destination_background_entry_index={d} provisional_x={d} provisional_y={d} provisional_z={d} runtime_new_x={d} runtime_new_y={d} runtime_new_z={d} hero_x={d} hero_y={d} hero_z={d}\n",
+                .{
+                    value.source_scene_entry_index,
+                    value.source_background_entry_index,
+                    value.destination_cube,
+                    value.destination_scene_entry_index,
+                    value.destination_background_entry_index,
+                    value.provisional_world_position.x,
+                    value.provisional_world_position.y,
+                    value.provisional_world_position.z,
+                    runtime_new_position.x,
+                    runtime_new_position.y,
+                    runtime_new_position.z,
+                    value.hero_position.x,
+                    value.hero_position.y,
+                    value.hero_position.z,
+                },
+            );
+        },
         .rejected => |value| {
             if (value.post_load_adjustment_failure) |failure| {
                 var post_load_raw_cell_buffer: [32]u8 = undefined;
@@ -876,6 +885,8 @@ test "viewer secret-room validation door probes consume keys and return freely" 
     try std.testing.expectEqual(@as(usize, 0), room.background.entry_index);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=room_transition_committed") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "destination_background_entry_index=0") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "runtime_new_x=9723 runtime_new_y=1277 runtime_new_z=762") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "hero_x=9724 hero_y=1024 hero_z=782") != null);
 
     output.clearRetainingCapacity();
     const cellar_render = viewer_shell.buildRenderSnapshot(&room, runtime_session);

@@ -79,6 +79,7 @@ pub const PendingRoomTransition = struct {
     destination_cube: i16,
     destination_world_position_kind: PendingRoomTransitionDestinationPositionKind,
     destination_world_position: world_geometry.WorldPointSnapshot,
+    runtime_new_position: ?world_geometry.WorldPointSnapshot = null,
     yaw: i32,
     test_brick: bool,
     dont_readjust_twinsen: bool,

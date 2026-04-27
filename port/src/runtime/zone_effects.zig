@@ -32,6 +32,21 @@ const secret_room_house_to_cellar_trigger_min_y: i32 = 1024;
 const secret_room_house_to_cellar_trigger_max_y: i32 = 1025;
 const secret_room_house_to_cellar_trigger_min_z: i32 = 700;
 const secret_room_house_to_cellar_trigger_max_z: i32 = 1200;
+const secret_room_house_to_cellar_provisional_destination = world_geometry.WorldPointSnapshot{
+    .x = 9723,
+    .y = 1277,
+    .z = 762,
+};
+const secret_room_house_to_cellar_port_landing = world_geometry.WorldPointSnapshot{
+    .x = 9724,
+    .y = 1024,
+    .z = 782,
+};
+const secret_room_house_to_cellar_probe_position = world_geometry.WorldPointSnapshot{
+    .x = 9730,
+    .y = 1025,
+    .z = 762,
+};
 const secret_room_cellar_to_house_trigger_min_x: i32 = 9680;
 const secret_room_cellar_to_house_trigger_max_x: i32 = 9780;
 const secret_room_cellar_to_house_trigger_min_y: i32 = 1024;
@@ -111,11 +126,9 @@ pub fn applyContainingZoneEffects(
                     pending_transition = .{
                         .source_zone_index = zone.index,
                         .destination_cube = semantics.destination_cube,
-                        .destination_world_position_kind = .provisional_zone_relative,
-                        .destination_world_position = classicZoneChangeCubeDestinationWorldPosition(
-                            zone,
-                            hero_world_position,
-                        ),
+                        .destination_world_position_kind = .final_landing,
+                        .destination_world_position = secret_room_house_to_cellar_port_landing,
+                        .runtime_new_position = secret_room_house_to_cellar_provisional_destination,
                         .yaw = semantics.yaw,
                         .test_brick = semantics.test_brick,
                         .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
@@ -280,6 +293,21 @@ pub fn secretRoomHouseDoorProbePosition(
     }
 
     return secret_room_house_unlock_probe_position;
+}
+
+pub fn secretRoomHouseToCellarProbePosition(
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    zone: room_state.ZoneBoundsSnapshot,
+) ?world_geometry.WorldPointSnapshot {
+    if (scene_entry_index != secret_room_scene_entry_index or
+        background_entry_index != secret_room_house_background_entry_index or
+        zone.index != secret_room_house_to_cellar_zone_index)
+    {
+        return null;
+    }
+
+    return secret_room_house_to_cellar_probe_position;
 }
 
 fn classicZoneChangeCubeDestinationWorldPosition(
