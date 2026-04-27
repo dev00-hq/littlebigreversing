@@ -1,0 +1,102 @@
+{
+  "schema_version": "phase5-187-runtime-proof-v1",
+  "source_run": "work/live_proofs/phase5_187187_transition_probe_run4_no_scene_start_sync",
+  "slack_report": "https://dev00-workspace.slack.com/archives/C0AUMGHR5M4/p1777251547018399",
+  "launch_save": {
+    "argv": [
+      "LBA2.EXE",
+      "SAVE\\inside dark monk1.LBA"
+    ],
+    "save_name": "inside dark monk1",
+    "num_version": 164,
+    "num_cube": 185,
+    "raw_scene_entry_index": 187,
+    "initial_pose": {
+      "active_cube": 185,
+      "x": 28647,
+      "y": 2304,
+      "z": 21741,
+      "beta": 2102
+    },
+    "initial_context": {
+      "scene_start": {
+        "x": 28648,
+        "y": 2572,
+        "z": 23036
+      },
+      "start_cube": {
+        "x": 55,
+        "y": 11,
+        "z": 44
+      }
+    }
+  },
+  "zone": {
+    "scene": 187,
+    "background": 187,
+    "index": 1,
+    "kind": "change_cube",
+    "num": 185,
+    "bounds": {
+      "x0": 1024,
+      "y0": 0,
+      "z0": 4096,
+      "x1": 2048,
+      "y1": 512,
+      "z1": 5120
+    },
+    "decoded_destination": {
+      "cube": 185,
+      "x": 13824,
+      "y": 5120,
+      "z": 14848
+    },
+    "source_relative_destination": {
+      "cube": 185,
+      "x": 14336,
+      "y": 5376,
+      "z": 15360
+    },
+    "dont_readjust_twinsen": true
+  },
+  "probe": {
+    "source": {
+      "x": 1536,
+      "y": 256,
+      "z": 4608
+    },
+    "sync_scene_start": false,
+    "final_verdict": "loaded_cube185_live_zone1_destination",
+    "final_pose": {
+      "active_cube": 185,
+      "new_cube": -1,
+      "x": 28416,
+      "y": 2304,
+      "z": 21760,
+      "beta": 2102
+    },
+    "final_context": {
+      "scene_start": {
+        "x": 28648,
+        "y": 2572,
+        "z": 23036
+      },
+      "start_cube": {
+        "x": 55,
+        "y": 11,
+        "z": 44
+      }
+    }
+  },
+  "port_contract": {
+    "decoded_position_status": "keep_rejected",
+    "decoded_rejection_reason": "unsupported_destination_height_mismatch",
+    "live_landing_model": "saved_cube_start_context",
+    "next_action": "Do not admit decoded NewPos for 187/187; model the saved-context landing only through a bounded transition contract."
+  },
+  "screenshots": [
+    "00-loaded.png",
+    "01-source-zone.png",
+    "02-final.png"
+  ]
+}
