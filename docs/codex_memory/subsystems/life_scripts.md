@@ -41,6 +41,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - In `inspect-room-transitions`, use runtime fields for `0013`; decoded rows alone are insufficient.
 - Use `secret_room_door_watch.py`; it reads `NbLittleKeys` as a byte.
 - For no-debugger life-loss detection, launch with the WinMM proxy and `LBA2_RUNTIME_WATCH=1`; it writes `life_loss_detected` rows when `ListVarGame[FLAG_CLOVER]` at `0x0049A08E` decreases.
+- Use `runtime_watch_run.py --scenario phase5-0013-door` for the guarded no-CDB 0013 cellar-door proof lane; it hides autosave, rejects wrong-save coordinates, writes watcher logs, and screenshots load/door/cellar.
 - Use `life_loss_cdb_watch.py` only when the exact write stack matters; it watches the same counter and captures the CDB stack for the write.
 - `0013` pickup is `FUN_00415e48` / `0x0041737c`, not `LM_GIVE_BONUS`.
 - W path is default action, not search action.
@@ -51,6 +52,7 @@ Own life-program decoding and original-runtime evidence lanes.
 ## Canonical Entry Points
 
 - `tools/life_trace/secret_room_door_watch.py`
+- `tools/life_trace/runtime_watch_run.py`
 - `tools/runtime_shims/lba2_winmm_proxy`
 - `tools/life_trace/secret_room_key_counter_cdb_watch.py`
 - `tools/life_trace/secret_room_key_frida_probe.py`

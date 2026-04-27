@@ -15,6 +15,7 @@
 - Life loss must be detected by runtime evidence: the WinMM proxy's `LBA2_RUNTIME_WATCH=1` path records no-debugger `life_loss_detected` rows from `ListVarGame[FLAG_CLOVER]` (`0x0049A08E`); `tools/life_trace/life_loss_cdb_watch.py` is reserved for exact writer-stack proof.
 - `2/2` public exit rejects as exterior; `3/3` zones `1`/`8` commit as Tralu; zone `15` rejects.
 - Original runtime uses the checked-in WinMM MCI proxy shim.
+- `tools/life_trace/runtime_watch_run.py --scenario phase5-0013-door` is the current no-CDB Phase 5 runtime watcher runner: it hides autosave, validates exact 0013 direct-save coordinates, enables `LBA2_RUNTIME_WATCH=1`, captures screenshots, and records cellar-door transition snapshots.
 - `0013` fixture `tools/fixtures/phase5_0013_runtime_proof.json` covers CLI save load, key pickup, key-consume door, cellar entry, and Down-return.
 - `0013` source is scene `2/1` default action; pickup is `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`.
 - `inspect-room-transitions 2 1/2 0 --json` exposes no-key lock, key consumption, and synthetic free cellar return.
