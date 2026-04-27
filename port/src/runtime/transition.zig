@@ -553,7 +553,7 @@ test "guarded scene-2 reverse secret-room door commits through the live-backed c
     var destination_room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
     defer destination_room.deinit(allocator);
     const destination_query = runtime_query.init(&destination_room);
-    const live_provisional_position = locomotion.WorldPointSnapshot{ .x = 9725, .y = 1278, .z = 1098 };
+    const live_provisional_position = locomotion.WorldPointSnapshot{ .x = 2562, .y = 2049, .z = 3686 };
     const landing_evaluation = destination_query.evaluateHeroMoveTarget(live_provisional_position);
     try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_height_mismatch, landing_evaluation.status);
     try std.testing.expect(landing_evaluation.raw_cell.cell != null);
@@ -588,7 +588,7 @@ test "guarded scene-2 reverse secret-room door commits through the live-backed c
             try std.testing.expectEqual(@as(i16, 1), value.destination_cube);
             try std.testing.expectEqual(@as(usize, 2), value.destination_scene_entry_index);
             try std.testing.expectEqual(@as(usize, 1), value.destination_background_entry_index);
-            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9725, .y = 1024, .z = 1098 }, value.hero_position);
+            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 2562, .y = 1024, .z = 3686 }, value.hero_position);
         },
         .rejected => return error.UnexpectedRejectedRoomTransition,
     }

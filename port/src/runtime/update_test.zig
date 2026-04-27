@@ -481,7 +481,7 @@ test "runtime zone effects record a generic change-cube transition from guarded 
     try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);
 }
 
-test "runtime zone effects consume one key and preserve source offset on the scene-2 house-to-cellar door" {
+test "runtime zone effects consume one key at the scene-2 house door unlock before the cellar transition" {
     const allocator = std.testing.allocator;
     const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -501,49 +501,39 @@ test "runtime zone effects consume one key and preserve source offset on the sce
     try std.testing.expectEqual(@as(i32, 2048), semantics.destination_y);
     try std.testing.expectEqual(@as(i32, 3072), semantics.destination_z);
 
-    const samples = [_]struct {
-        source: locomotion.WorldPointSnapshot,
-        expected_destination: locomotion.WorldPointSnapshot,
-    }{
-        .{
-            .source = .{ .x = 9730, .y = 1025, .z = 762 },
-            .expected_destination = .{ .x = 2562, .y = 2049, .z = 3322 },
-        },
-        .{
-            .source = .{ .x = 9731, .y = 1025, .z = 1189 },
-            .expected_destination = .{ .x = 2563, .y = 2049, .z = 3749 },
-        },
-    };
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{ .x = 3050, .y = 2048, .z = 4034 });
+    current_session.setLittleKeyCount(1);
 
-    for (samples) |sample| {
-        var current_session = try initSession(&room);
-        defer current_session.deinit(std.testing.allocator);
-        current_session.setHeroWorldPosition(sample.source);
-        current_session.setLittleKeyCount(1);
+    const unlock_effect = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
+    try std.testing.expect(!unlock_effect.triggered_room_transition);
+    try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, .house_consumed_key), unlock_effect.secret_room_door_event);
+    try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+    try std.testing.expect(current_session.secretRoomHouseDoorUnlocked());
+    try std.testing.expectEqual(@as(?runtime_session.PendingRoomTransition, null), current_session.pendingRoomTransition());
 
-        var zone_membership: runtime_query.ContainingZoneSet = .{};
-        try zone_membership.append(door_zone);
-        const effect_summary = try zone_effects.applyContainingZoneEffects(&room, &current_session, zone_membership.slice());
+    current_session.setHeroWorldPosition(.{ .x = 9730, .y = 1025, .z = 762 });
+    var zone_membership: runtime_query.ContainingZoneSet = .{};
+    try zone_membership.append(door_zone);
+    const transition_effect = try zone_effects.applyContainingZoneEffects(&room, &current_session, zone_membership.slice());
 
-        try std.testing.expect(effect_summary.triggered_room_transition);
-        try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, .house_consumed_key), effect_summary.secret_room_door_event);
-        try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
-        const transition = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
-        try std.testing.expectEqual(door_zone.index, transition.source_zone_index);
-        try std.testing.expectEqual(@as(i16, 0), transition.destination_cube);
-        try std.testing.expectEqual(runtime_session.PendingRoomTransitionDestinationPositionKind.provisional_zone_relative, transition.destination_world_position_kind);
-        try std.testing.expectEqual(sample.expected_destination, transition.destination_world_position);
-        try std.testing.expectEqual(semantics.yaw, transition.yaw);
-        try std.testing.expectEqual(semantics.test_brick, transition.test_brick);
-        try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);
-    }
+    try std.testing.expect(transition_effect.triggered_room_transition);
+    try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, null), transition_effect.secret_room_door_event);
+    try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+    const transition = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
+    try std.testing.expectEqual(door_zone.index, transition.source_zone_index);
+    try std.testing.expectEqual(@as(i16, 0), transition.destination_cube);
+    try std.testing.expectEqual(runtime_session.PendingRoomTransitionDestinationPositionKind.provisional_zone_relative, transition.destination_world_position_kind);
+    try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 2562, .y = 2049, .z = 3322 }, transition.destination_world_position);
+    try std.testing.expectEqual(semantics.yaw, transition.yaw);
+    try std.testing.expectEqual(semantics.test_brick, transition.test_brick);
+    try std.testing.expectEqual(semantics.dont_readjust_twinsen, transition.dont_readjust_twinsen);
 
     var locked_session = try initSession(&room);
     defer locked_session.deinit(std.testing.allocator);
-    locked_session.setHeroWorldPosition(samples[0].source);
-    var zone_membership: runtime_query.ContainingZoneSet = .{};
-    try zone_membership.append(door_zone);
-    const locked_effect = try zone_effects.applyContainingZoneEffects(&room, &locked_session, zone_membership.slice());
+    locked_session.setHeroWorldPosition(.{ .x = 3050, .y = 2048, .z = 4034 });
+    const locked_effect = try zone_effects.applyContainingZoneEffects(&room, &locked_session, &.{});
     try std.testing.expect(!locked_effect.triggered_room_transition);
     try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, .house_locked_no_key), locked_effect.secret_room_door_event);
     try std.testing.expectEqual(@as(?runtime_session.PendingRoomTransition, null), locked_session.pendingRoomTransition());
@@ -559,7 +549,7 @@ test "runtime zone effects return from cellar to house without consuming a key" 
 
     var current_session = try initSession(&room);
     defer current_session.deinit(std.testing.allocator);
-    current_session.setHeroWorldPosition(.{ .x = 3056, .y = 2048, .z = 3659 });
+    current_session.setHeroWorldPosition(.{ .x = 9730, .y = 1025, .z = 1126 });
 
     const without_key = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
     try std.testing.expect(without_key.triggered_room_transition);
@@ -567,7 +557,7 @@ test "runtime zone effects return from cellar to house without consuming a key" 
     try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
     current_session.clearPendingRoomTransition();
 
-    current_session.setHeroWorldPosition(.{ .x = 3056, .y = 2048, .z = 3659 });
+    current_session.setHeroWorldPosition(.{ .x = 9730, .y = 1025, .z = 1126 });
     try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
 
     current_session.setLittleKeyCount(1);
@@ -580,7 +570,7 @@ test "runtime zone effects return from cellar to house without consuming a key" 
     try std.testing.expectEqual(@as(usize, 0), transition.source_zone_index);
     try std.testing.expectEqual(@as(i16, 1), transition.destination_cube);
     try std.testing.expectEqual(runtime_session.PendingRoomTransitionDestinationPositionKind.provisional_zone_relative, transition.destination_world_position_kind);
-    try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9725, .y = 1278, .z = 1098 }, transition.destination_world_position);
+    try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 2562, .y = 2049, .z = 3686 }, transition.destination_world_position);
     try std.testing.expectEqual(@as(i32, 0), transition.yaw);
     try std.testing.expect(!transition.test_brick);
     try std.testing.expect(!transition.dont_readjust_twinsen);
@@ -628,12 +618,20 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
     try std.testing.expectEqual(@as(usize, 1), current_session.rewardPickupEvents().len);
     try std.testing.expectEqual(runtime_session.RuntimeBonusKind.little_key, current_session.rewardPickupEvents()[0].kind);
 
-    var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
+    current_session.setHeroWorldPosition(.{ .x = 3050, .y = 2048, .z = 4034 });
+    const unlock_effect = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
+    try std.testing.expect(!unlock_effect.triggered_room_transition);
+    try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, .house_consumed_key), unlock_effect.secret_room_door_event);
+    try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+    try std.testing.expect(current_session.secretRoomHouseDoorUnlocked());
+
     current_session.setHeroWorldPosition(.{ .x = 9730, .y = 1025, .z = 762 });
+    var locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
     var door_zone_membership: runtime_query.ContainingZoneSet = .{};
     try door_zone_membership.append(room.scene.zones[0]);
     const forward_effect = try zone_effects.applyContainingZoneEffects(&room, &current_session, door_zone_membership.slice());
     try std.testing.expect(forward_effect.triggered_room_transition);
+    try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, null), forward_effect.secret_room_door_event);
     try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
 
     const forward_transition = try runtime_transition.applyPendingRoomTransition(
@@ -656,7 +654,7 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
     try std.testing.expectEqual(@as(usize, 0), room.background.entry_index);
 
     locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
-    current_session.setHeroWorldPosition(.{ .x = 3056, .y = 2048, .z = 3659 });
+    current_session.setHeroWorldPosition(.{ .x = 9730, .y = 1025, .z = 1126 });
     const reverse_effect = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
     try std.testing.expect(reverse_effect.triggered_room_transition);
     try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
@@ -673,7 +671,7 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
         .committed => |value| {
             try std.testing.expectEqual(@as(usize, 2), value.destination_scene_entry_index);
             try std.testing.expectEqual(@as(usize, 1), value.destination_background_entry_index);
-            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9725, .y = 1024, .z = 1098 }, value.hero_position);
+            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 2562, .y = 1024, .z = 3686 }, value.hero_position);
         },
         .rejected => return error.UnexpectedRejectedRoomTransition,
     }

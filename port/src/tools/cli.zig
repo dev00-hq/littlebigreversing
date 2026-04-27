@@ -4622,9 +4622,9 @@ test "inspect-room-transitions payload exposes scene-2 secret-room key gate runt
     try std.testing.expectEqualStrings("decoded_change_cube", transition.source_kind);
     try std.testing.expectEqual(@as(usize, 0), transition.source_zone_index);
     try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
-        .x = 9730,
-        .y = 1025,
-        .z = 762,
+        .x = 3050,
+        .y = 2048,
+        .z = 4034,
     }, transition.runtime_probe_position.?);
 
     const no_key = transition.runtime_no_key_effect orelse return error.MissingRuntimeNoKeyEffect;
@@ -4637,21 +4637,13 @@ test "inspect-room-transitions payload exposes scene-2 secret-room key gate runt
     const with_key = transition.runtime_with_key_effect orelse return error.MissingRuntimeWithKeyEffect;
     try std.testing.expectEqual(@as(u8, 1), with_key.little_keys_before);
     try std.testing.expectEqual(@as(u8, 0), with_key.little_keys_after);
-    try std.testing.expect(with_key.triggered_room_transition);
+    try std.testing.expect(!with_key.triggered_room_transition);
     try std.testing.expectEqualStrings("house_consumed_key", with_key.secret_room_door_event.?);
-    try std.testing.expectEqual(@as(?i16, 0), with_key.pending_destination_cube);
-    try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
-        .x = 2562,
-        .y = 2049,
-        .z = 3322,
-    }, with_key.pending_destination_world_position.?);
-    try std.testing.expectEqual(@as(?usize, 2), with_key.destination_scene_entry_index);
-    try std.testing.expectEqual(@as(?usize, 0), with_key.destination_background_entry_index);
-    try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
-        .x = 2562,
-        .y = 2048,
-        .z = 3322,
-    }, with_key.hero_position.?);
+    try std.testing.expect(with_key.pending_destination_cube == null);
+    try std.testing.expect(with_key.pending_destination_world_position == null);
+    try std.testing.expect(with_key.destination_scene_entry_index == null);
+    try std.testing.expect(with_key.destination_background_entry_index == null);
+    try std.testing.expect(with_key.hero_position == null);
 }
 
 test "inspect-room-transitions payload exposes scene-2 synthetic cellar return runtime effects" {
@@ -4676,9 +4668,9 @@ test "inspect-room-transitions payload exposes scene-2 synthetic cellar return r
     try std.testing.expectEqual(@as(?usize, 2), transition.destination_scene_entry_index);
     try std.testing.expectEqual(@as(?usize, 1), transition.destination_background_entry_index);
     try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
-        .x = 9725,
+        .x = 2562,
         .y = 1024,
-        .z = 1098,
+        .z = 3686,
     }, transition.hero_position);
 
     const no_key = transition.runtime_no_key_effect orelse return error.MissingRuntimeNoKeyEffect;

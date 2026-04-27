@@ -127,8 +127,9 @@ const secret_room_key_var_game_index: u8 = 0;
 const secret_room_key_source_position = WorldPointSnapshot{ .x = 1280, .y = 2048, .z = 5376 };
 const secret_room_key_pickup_x: i32 = 3826;
 const secret_room_key_pickup_z: i32 = 4366;
-const secret_room_house_door_position = WorldPointSnapshot{ .x = 9730, .y = 1025, .z = 762 };
-const secret_room_cellar_return_position = WorldPointSnapshot{ .x = 3056, .y = 2048, .z = 3659 };
+const secret_room_house_door_unlock_position = WorldPointSnapshot{ .x = 3050, .y = 2048, .z = 4034 };
+const secret_room_house_to_cellar_position = WorldPointSnapshot{ .x = 9730, .y = 1025, .z = 762 };
+const secret_room_cellar_return_position = WorldPointSnapshot{ .x = 9730, .y = 1025, .z = 1126 };
 const reward_scene_entry: usize = 19;
 const reward_background_entry: usize = 19;
 const reward_object_index: usize = 2;
@@ -218,13 +219,14 @@ fn jumpToSecretRoomValidationTarget(
     current_session: *Session,
     target: SecretRoomValidationTarget,
 ) !?WorldPointSnapshot {
-    const position = try secretRoomValidationTargetPosition(room, target);
+    const position = try secretRoomValidationTargetPosition(room, current_session.*, target);
     if (position) |resolved| current_session.setHeroWorldPosition(resolved);
     return position;
 }
 
 fn secretRoomValidationTargetPosition(
     room: *const RoomSnapshot,
+    current_session: Session,
     target: SecretRoomValidationTarget,
 ) !?WorldPointSnapshot {
     if (room.scene.entry_index != secret_room_scene_entry) return null;
@@ -238,7 +240,10 @@ fn secretRoomValidationTargetPosition(
         else
             null,
         .house_door => if (room.background.entry_index == secret_room_background_entry)
-            secret_room_house_door_position
+            if (current_session.secretRoomHouseDoorUnlocked())
+                secret_room_house_to_cellar_position
+            else
+                secret_room_house_door_unlock_position
         else
             null,
         .cellar_return => if (room.background.entry_index == secret_room_cellar_background_entry)
@@ -900,11 +905,14 @@ fn secretRoomValidationChecklistLine(
     const source_exact = room.background.entry_index == secret_room_background_entry and
         hasScenarioZoneNum(exact_zones, 0);
     const door_exact = room.background.entry_index == secret_room_background_entry and
-        hasZoneIndex(exact_zones, 0);
-    const cellar_return_exact = room.background.entry_index == secret_room_cellar_background_entry and
-        hero_position.x >= 3000 and hero_position.x <= 3128 and
+        ((hero_position.x >= 3000 and hero_position.x <= 3128 and
         hero_position.y == 2048 and
-        hero_position.z >= 3600 and hero_position.z <= 3712;
+        hero_position.z >= 3984 and hero_position.z <= 4096) or
+        hasZoneIndex(exact_zones, 0));
+    const cellar_return_exact = room.background.entry_index == secret_room_cellar_background_entry and
+        hero_position.x >= 9680 and hero_position.x <= 9780 and
+        hero_position.y >= 1024 and hero_position.y <= 1025 and
+        hero_position.z >= 1040 and hero_position.z <= 1180;
     return std.fmt.bufPrint(
         &buffer.aux_3,
         "SRC {s} PICK {s} DOOR {s} RET {s}",

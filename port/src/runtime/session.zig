@@ -119,6 +119,7 @@ pub const Session = struct {
     magic_level: u8,
     magic_point: u8,
     little_key_count: u8,
+    secret_room_house_door_unlocked: bool,
     current_dialog_id: ?i16,
     objects: []ObjectState,
     object_behaviors: []ObjectBehaviorState,
@@ -144,6 +145,7 @@ pub const Session = struct {
             .magic_level = 0,
             .magic_point = 0,
             .little_key_count = 0,
+            .secret_room_house_door_unlocked = false,
             .current_dialog_id = null,
             .objects = &.{},
             .object_behaviors = &.{},
@@ -181,6 +183,7 @@ pub const Session = struct {
             .magic_level = 0,
             .magic_point = 0,
             .little_key_count = 0,
+            .secret_room_house_door_unlocked = false,
             .current_dialog_id = null,
             .objects = owned_objects,
             .object_behaviors = owned_object_behaviors,
@@ -297,6 +300,10 @@ pub const Session = struct {
         return self.little_key_count;
     }
 
+    pub fn secretRoomHouseDoorUnlocked(self: Session) bool {
+        return self.secret_room_house_door_unlocked;
+    }
+
     pub fn currentDialogId(self: Session) ?i16 {
         return self.current_dialog_id;
     }
@@ -324,6 +331,10 @@ pub const Session = struct {
         if (self.little_key_count == 0) return false;
         self.little_key_count -= 1;
         return true;
+    }
+
+    pub fn setSecretRoomHouseDoorUnlocked(self: *Session, unlocked: bool) void {
+        self.secret_room_house_door_unlocked = unlocked;
     }
 
     pub fn setCurrentDialogId(self: *Session, dialog_id: i16) !void {
@@ -734,6 +745,7 @@ test "runtime session can replace room-local state while preserving durable runt
     runtime_session.setMagicLevelAndRefill(2);
     runtime_session.setMagicPoint(17);
     runtime_session.setLittleKeyCount(1);
+    runtime_session.setSecretRoomHouseDoorUnlocked(true);
     try runtime_session.setCurrentDialogId(42);
     try runtime_session.setPendingRoomTransition(.{
         .source_zone_index = 0,
@@ -758,6 +770,7 @@ test "runtime session can replace room-local state while preserving durable runt
     try std.testing.expectEqual(@as(u8, 2), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 17), runtime_session.magicPoint());
     try std.testing.expectEqual(@as(u8, 1), runtime_session.littleKeyCount());
+    try std.testing.expect(runtime_session.secretRoomHouseDoorUnlocked());
     try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
     try std.testing.expectEqual(@as(?PendingRoomTransition, null), runtime_session.pendingRoomTransition());
     try std.testing.expectEqual(@as(i32, 2560), runtime_session.heroWorldPosition().x);

@@ -1562,7 +1562,7 @@ test "viewer secret-room validation hotkeys jump to proof positions" {
         .proof_house_door,
     );
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_validation_zone_effects, door_result.post_key_action);
-    try std.testing.expectEqual(viewer_shell.WorldPointSnapshot{ .x = 9730, .y = 1025, .z = 762 }, runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(viewer_shell.WorldPointSnapshot{ .x = 3050, .y = 2048, .z = 4034 }, runtime_session.heroWorldPosition());
 
     const tick_result = try viewer_shell.handleKeyDown(
         &room,
@@ -1649,7 +1649,7 @@ test "viewer 0013 key overlay follows pickup and cellar return state" {
     defer cellar_room.deinit(allocator);
     try runtime_session.replaceRoomLocalState(
         allocator,
-        .{ .x = 3056, .y = 2048, .z = 3659 },
+        .{ .x = 9730, .y = 1025, .z = 1126 },
         cellar_room.scene.objects,
         cellar_room.scene.object_behavior_seeds,
     );

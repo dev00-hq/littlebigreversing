@@ -849,9 +849,31 @@ test "viewer secret-room validation door probes consume keys and return freely" 
         keyed_result,
     );
     try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
-    try std.testing.expectEqual(@as(usize, 0), room.background.entry_index);
+    try std.testing.expectEqual(@as(usize, 1), room.background.entry_index);
     try std.testing.expectEqual(@as(u8, 0), runtime_session.littleKeyCount());
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "status=key_consumed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=room_transition_committed") == null);
+
+    output.clearRetainingCapacity();
+    const transition_result = try viewer_shell.handleKeyDown(
+        &room,
+        &runtime_session,
+        initial_catalog,
+        initial_interaction,
+        locomotion_status,
+        .proof_house_door,
+    );
+    try applyScheduledWorldStep(
+        allocator,
+        resolved,
+        &output.writer,
+        &room,
+        &runtime_session,
+        &locomotion_status,
+        transition_result,
+    );
+    try std.testing.expectEqual(@as(usize, 2), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 0), room.background.entry_index);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "event=room_transition_committed") != null);
     try std.testing.expect(std.mem.indexOf(u8, output.written(), "destination_background_entry_index=0") != null);
 
