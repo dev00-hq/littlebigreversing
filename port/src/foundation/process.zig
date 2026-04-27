@@ -1,19 +1,63 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-pub fn currentIo() std.Io {
-    if (builtin.is_test) return std.testing.io;
-    return .default;
+pub const RuntimeIo = if (builtin.is_test) struct {
+    pub fn init() RuntimeIo {
+        return .{};
+    }
+
+    pub fn deinit(self: *RuntimeIo) void {
+        _ = self;
+    }
+
+    pub fn io(self: *RuntimeIo) std.Io {
+        _ = self;
+        return std.testing.io;
+    }
+} else struct {
+    threaded: std.Io.Threaded,
+
+    pub fn init() RuntimeIo {
+        return .{ .threaded = .init(std.heap.page_allocator, .{}) };
+    }
+
+    pub fn deinit(self: *RuntimeIo) void {
+        self.threaded.deinit();
+    }
+
+    pub fn io(self: *RuntimeIo) std.Io {
+        return self.threaded.io();
+    }
+};
+
+pub fn currentPathAlloc(allocator: std.mem.Allocator) ![:0]u8 {
+    var runtime_io = RuntimeIo.init();
+    defer runtime_io.deinit();
+    return std.process.currentPathAlloc(runtime_io.io(), allocator);
 }
 
-pub fn runWithArgs(comptime callback: anytype) !void {
-    var gpa_state = std.heap.DebugAllocator(.{}){};
-    defer _ = gpa_state.deinit();
-    const allocator = gpa_state.allocator();
+pub fn executablePathAlloc(allocator: std.mem.Allocator) ![:0]u8 {
+    var runtime_io = RuntimeIo.init();
+    defer runtime_io.deinit();
+    return std.process.executablePathAlloc(runtime_io.io(), allocator);
+}
 
-    const raw_args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, raw_args);
-    const args = if (raw_args.len > 0) raw_args[1..] else raw_args[0..0];
+pub fn runWithArgs(init: std.process.Init, comptime callback: anytype) !void {
+    const allocator = init.gpa;
 
-    try callback(allocator, args);
+    var iterator = try std.process.Args.Iterator.initAllocator(init.minimal.args, allocator);
+    defer iterator.deinit();
+    _ = iterator.skip();
+
+    var args: std.ArrayList([]const u8) = .empty;
+    defer {
+        for (args.items) |arg| allocator.free(arg);
+        args.deinit(allocator);
+    }
+
+    while (iterator.next()) |arg| {
+        try args.append(allocator, try allocator.dupe(u8, arg));
+    }
+
+    try callback(allocator, args.items, init.io);
 }

@@ -38,7 +38,7 @@ fn parseArgUsize(value: []const u8) !usize {
     return std.fmt.parseInt(usize, value, 10) catch return error.InvalidIntegerArgument;
 }
 
-fn writeReport(allocator: std.mem.Allocator, value: ProbeReport) !void {
+fn writeReport(allocator: std.mem.Allocator, io: std.Io, value: ProbeReport) !void {
     var out: std.Io.Writer.Allocating = .init(allocator);
     defer out.deinit();
     var stringify: std.json.Stringify = .{
@@ -46,8 +46,8 @@ fn writeReport(allocator: std.mem.Allocator, value: ProbeReport) !void {
         .options = .{ .whitespace = .indent_2 },
     };
     try stringify.write(value);
-    try std.fs.File.stdout().writeAll(out.written());
-    try std.fs.File.stdout().writeAll("\n");
+    try std.Io.File.stdout().writeStreamingAll(io, out.written());
+    try std.Io.File.stdout().writeStreamingAll(io, "\n");
 }
 
 fn findSceneObjectByIndex(
@@ -206,13 +206,10 @@ fn firstTrackCompatibilityIssue(
     return null;
 }
 
-pub fn main() !void {
-    var gpa_state = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa_state.deinit();
-    const allocator = gpa_state.allocator();
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
 
-    const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
     if (args.len != 4) {
         std.debug.print(
             "usage: zig run src\\sidequest_room_actor_seed_admission_probe.zig -- <scene-entry> <background-entry> <object-index>\n",
@@ -276,11 +273,11 @@ pub fn main() !void {
 
     const tick_result = runtime_update.tick(&seeded_room, &session) catch |err| {
         report.runtime_tick_error = @errorName(err);
-        try writeReport(allocator, report);
+        try writeReport(allocator, init.io, report);
         return;
     };
 
     report.runtime_tick_succeeded = true;
     report.runtime_updated_object_count = tick_result.updated_object_count;
-    try writeReport(allocator, report);
+    try writeReport(allocator, init.io, report);
 }

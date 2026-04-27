@@ -152,7 +152,7 @@ pub fn listDecodedInteriorSceneCandidates(
         }
     }
 
-    std.mem.sort(DecodedInteriorSceneCandidate, candidates.items, {}, struct {
+    std.sort.block(DecodedInteriorSceneCandidate, candidates.items, {}, struct {
         fn lessThan(_: void, lhs: DecodedInteriorSceneCandidate, rhs: DecodedInteriorSceneCandidate) bool {
             return lhs.scene_entry_index < rhs.scene_entry_index;
         }
@@ -187,7 +187,7 @@ pub fn rankDecodedInteriorSceneCandidates(
         };
     }
 
-    std.mem.sort(RankedDecodedInteriorSceneCandidate, ranked, {}, lessThanRankedDecodedInteriorSceneCandidate);
+    std.sort.block(RankedDecodedInteriorSceneCandidate, ranked, {}, lessThanRankedDecodedInteriorSceneCandidate);
 
     return ranked;
 }
@@ -370,7 +370,7 @@ test "ranked decoded interior scene candidates use the stable richness ordering"
         },
     };
 
-    std.mem.sort(RankedDecodedInteriorSceneCandidate, &ranked, {}, lessThanRankedDecodedInteriorSceneCandidate);
+    std.sort.block(RankedDecodedInteriorSceneCandidate, &ranked, {}, lessThanRankedDecodedInteriorSceneCandidate);
 
     try std.testing.expectEqual(@as(usize, 88), ranked[0].scene_entry_index);
     try std.testing.expectEqual(@as(usize, 44), ranked[1].scene_entry_index);

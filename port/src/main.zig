@@ -19,13 +19,13 @@ const zone_effects = @import("runtime/zone_effects.zig");
 const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
 const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
 
-pub fn main() !void {
-    return process.runWithArgs(run);
+pub fn main(init: std.process.Init) !void {
+    return process.runWithArgs(init, run);
 }
 
-fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
+fn run(allocator: std.mem.Allocator, args: []const []const u8, io: std.Io) !void {
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(io, &stderr_buffer);
     const stderr = &stderr_writer.interface;
 
     const parsed = viewer_shell.parseArgs(allocator, args) catch |err| {

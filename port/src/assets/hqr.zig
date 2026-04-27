@@ -36,37 +36,46 @@ pub const ParsedEntry = struct {
 // without exposing a copyable resource owner to callers.
 pub const ClassicArchiveSession = opaque {
     pub fn init(allocator: std.mem.Allocator, absolute_path: []const u8) !*ClassicArchiveSession {
-        var file = try std.fs.openFileAbsolute(absolute_path, .{});
-        errdefer file.close();
-
-        const size = try fileSize(file);
-        const table = try loadClassicTableFromFile(allocator, &file, size);
-        errdefer allocator.free(table.offsets);
-
         const session_impl = try allocator.create(ClassicArchiveSessionImpl);
         errdefer allocator.destroy(session_impl);
 
         session_impl.* = .{
             .allocator = allocator,
-            .file = file,
-            .size = size,
-            .table_end = table.table_end,
-            .classic_offsets = table.offsets,
+            .runtime_io = process.RuntimeIo.init(),
+            .file = undefined,
+            .size = 0,
+            .table_end = 0,
+            .classic_offsets = &.{},
         };
+        errdefer session_impl.runtime_io.deinit();
+
+        const io = session_impl.runtime_io.io();
+        session_impl.file = try std.Io.Dir.openFileAbsolute(io, absolute_path, .{});
+        errdefer session_impl.file.close(io);
+
+        const size = try fileSize(io, session_impl.file);
+        const table = try loadClassicTableFromFile(allocator, io, &session_impl.file, size);
+        errdefer allocator.free(table.offsets);
+
+        session_impl.size = size;
+        session_impl.table_end = table.table_end;
+        session_impl.classic_offsets = table.offsets;
         return @ptrCast(session_impl);
     }
 
     pub fn deinit(self: *ClassicArchiveSession) void {
         const session_impl = self.impl();
+        const io = session_impl.runtime_io.io();
         session_impl.allocator.free(session_impl.classic_offsets);
-        session_impl.file.close();
+        session_impl.file.close(io);
+        session_impl.runtime_io.deinit();
         session_impl.allocator.destroy(session_impl);
     }
 
     pub fn readEntryToBytes(self: *ClassicArchiveSession, allocator: std.mem.Allocator, classic_index: usize) ![]u8 {
         const session_impl = self.impl();
         const entry = try parseClassicEntryRangeFromOffsets(session_impl.size, session_impl.table_end, session_impl.classic_offsets, classic_index);
-        return readParsedEntryFromFile(allocator, &session_impl.file, entry);
+        return readParsedEntryFromFile(allocator, session_impl.runtime_io.io(), &session_impl.file, entry);
     }
 
     fn impl(self: *ClassicArchiveSession) *ClassicArchiveSessionImpl {
@@ -76,7 +85,8 @@ pub const ClassicArchiveSession = opaque {
 
 const ClassicArchiveSessionImpl = struct {
     allocator: std.mem.Allocator,
-    file: std.fs.File,
+    runtime_io: process.RuntimeIo,
+    file: std.Io.File,
     size: u64,
     table_end: u32,
     classic_offsets: []u32,
@@ -93,15 +103,19 @@ const resource_header_size = 10;
 // Test binaries repeatedly decode the same real archive entries; cache raw bytes
 // by archive path and entry index so broad asset-backed suites stay incremental.
 var test_entry_cache_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-var test_entry_cache_mutex: std.Thread.Mutex = .{};
+var test_entry_cache_mutex: std.Io.Mutex = .init;
 var test_entry_cache = std.StringHashMap([]const u8).init(std.heap.page_allocator);
 
 pub fn loadArchive(allocator: std.mem.Allocator, absolute_path: []const u8) !HqrArchive {
-    var file = try std.fs.openFileAbsolute(absolute_path, .{});
-    defer file.close();
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
 
-    const size = try fileSize(file);
-    const parsed = try parseTableFromFile(allocator, &file, size);
+    var file = try std.Io.Dir.openFileAbsolute(io, absolute_path, .{});
+    defer file.close(io);
+
+    const size = try fileSize(io, file);
+    const parsed = try parseTableFromFile(allocator, io, &file, size);
     defer allocator.free(parsed);
 
     var entries: std.ArrayList(HqrEntry) = .empty;
@@ -115,7 +129,7 @@ pub fn loadArchive(allocator: std.mem.Allocator, absolute_path: []const u8) !Hqr
             .index = entry.index,
             .offset = entry.offset,
             .byte_length = entry.byte_length,
-            .sha256 = try hashRangeAlloc(allocator, &file, entry.offset, entry.byte_length),
+            .sha256 = try hashRangeAlloc(allocator, io, &file, entry.offset, entry.byte_length),
         });
     }
 
@@ -126,11 +140,15 @@ pub fn loadArchive(allocator: std.mem.Allocator, absolute_path: []const u8) !Hqr
 }
 
 pub fn listNonEmptyEntryIndices(allocator: std.mem.Allocator, absolute_path: []const u8) ![]usize {
-    var file = try std.fs.openFileAbsolute(absolute_path, .{});
-    defer file.close();
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
 
-    const size = try fileSize(file);
-    const parsed = try parseTableFromFile(allocator, &file, size);
+    var file = try std.Io.Dir.openFileAbsolute(io, absolute_path, .{});
+    defer file.close(io);
+
+    const size = try fileSize(io, file);
+    const parsed = try parseTableFromFile(allocator, io, &file, size);
     defer allocator.free(parsed);
 
     var entry_indices: std.ArrayList(usize) = .empty;
@@ -196,11 +214,15 @@ pub fn parseResourceHeader(raw_entry: []const u8) !ResourceHeader {
 }
 
 fn readRawEntryFromFile(allocator: std.mem.Allocator, absolute_path: []const u8, entry_index: usize) ![]u8 {
-    var file = try std.fs.openFileAbsolute(absolute_path, .{});
-    defer file.close();
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
 
-    const size = try fileSize(file);
-    const parsed = try parseTableFromFile(allocator, &file, size);
+    var file = try std.Io.Dir.openFileAbsolute(io, absolute_path, .{});
+    defer file.close(io);
+
+    const size = try fileSize(io, file);
+    const parsed = try parseTableFromFile(allocator, io, &file, size);
     defer allocator.free(parsed);
 
     if (entry_index == 0 or entry_index > parsed.len) return error.EntryIndexOutOfRange;
@@ -208,7 +230,7 @@ fn readRawEntryFromFile(allocator: std.mem.Allocator, absolute_path: []const u8,
     const bytes = try allocator.alloc(u8, entry.byte_length);
     errdefer allocator.free(bytes);
 
-    const read = try readFileAt(file, bytes, entry.offset);
+    const read = try readFileAt(io, file, bytes, entry.offset);
     if (read != bytes.len) return error.UnexpectedEndOfFile;
     return bytes;
 }
@@ -244,12 +266,16 @@ fn extractEntryToBytesCachedByKind(
     const lookup_key = try buildCachedEntryKeyAlloc(allocator, absolute_path, entry_index, kind);
     defer allocator.free(lookup_key);
 
-    test_entry_cache_mutex.lock();
+    var cache_lock_io = process.RuntimeIo.init();
+    defer cache_lock_io.deinit();
+    const cache_lock = cache_lock_io.io();
+
+    test_entry_cache_mutex.lockUncancelable(cache_lock);
     if (test_entry_cache.get(lookup_key)) |cached| {
-        test_entry_cache_mutex.unlock();
+        test_entry_cache_mutex.unlock(cache_lock);
         return allocator.dupe(u8, cached);
     }
-    test_entry_cache_mutex.unlock();
+    test_entry_cache_mutex.unlock(cache_lock);
 
     const bytes = switch (kind) {
         .raw => try readRawEntryFromFile(allocator, absolute_path, entry_index),
@@ -257,8 +283,8 @@ fn extractEntryToBytesCachedByKind(
     };
     errdefer allocator.free(bytes);
 
-    test_entry_cache_mutex.lock();
-    defer test_entry_cache_mutex.unlock();
+    test_entry_cache_mutex.lockUncancelable(cache_lock);
+    defer test_entry_cache_mutex.unlock(cache_lock);
     if (test_entry_cache.get(lookup_key)) |cached| {
         allocator.free(bytes);
         return allocator.dupe(u8, cached);
@@ -272,7 +298,7 @@ fn extractEntryToBytesCachedByKind(
 }
 
 fn tempDirAbsolutePathAlloc(allocator: std.mem.Allocator, tmp: *const std.testing.TmpDir, sub_path: []const u8) ![]u8 {
-    const cwd = try std.process.getCwdAlloc(allocator);
+    const cwd = try process.currentPathAlloc(allocator);
     defer allocator.free(cwd);
     return std.fs.path.join(allocator, &.{ cwd, ".zig-cache", "tmp", &tmp.sub_path, sub_path });
 }
@@ -295,9 +321,13 @@ pub fn extractEntryToPath(
 
     if (std.fs.path.dirname(output_path)) |parent| try paths_mod.makePathAbsolute(parent);
 
-    var file = try std.fs.createFileAbsolute(output_path, .{ .truncate = true });
-    defer file.close();
-    try file.writeAll(bytes);
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
+
+    var file = try std.Io.Dir.createFileAbsolute(io, output_path, .{ .truncate = true });
+    defer file.close(io);
+    try file.writeStreamingAll(io, bytes);
 
     return hashBytesAlloc(allocator, bytes);
 }
@@ -330,25 +360,26 @@ pub fn parseTableFromBytes(allocator: std.mem.Allocator, bytes: []const u8) ![]P
     }{ .bytes = bytes });
 }
 
-fn parseTableFromFile(allocator: std.mem.Allocator, file: *std.fs.File, size: u64) ![]ParsedEntry {
+fn parseTableFromFile(allocator: std.mem.Allocator, io: std.Io, file: *std.Io.File, size: u64) ![]ParsedEntry {
     return parseTable(allocator, size, struct {
-        file: *std.fs.File,
+        io: std.Io,
+        file: *std.Io.File,
 
         fn readAt(self: @This(), offset: u64, buffer: []u8) !void {
-            _ = try readFileAt(self.file.*, buffer, offset);
+            _ = try readFileAt(self.io, self.file.*, buffer, offset);
         }
-    }{ .file = file });
+    }{ .io = io, .file = file });
 }
 
-fn parseClassicEntryRangeFromFile(file: *std.fs.File, size: u64, classic_index: usize) !ParsedEntry {
+fn parseClassicEntryRangeFromFile(io: std.Io, file: *std.Io.File, size: u64, classic_index: usize) !ParsedEntry {
     if (size < 8) return error.InvalidArchiveSize;
 
     var header: [4]u8 = undefined;
-    _ = try readFileAt(file.*, &header, 0);
+    _ = try readFileAt(io, file.*, &header, 0);
     const table_end = std.mem.readInt(u32, &header, .little);
     if (table_end < 8 or table_end % 4 != 0 or table_end > size) return error.InvalidTableHeader;
 
-    return parseClassicEntryRangeWithHeader(file, size, table_end, classic_index);
+    return parseClassicEntryRangeWithHeader(io, file, size, table_end, classic_index);
 }
 
 const ClassicTable = struct {
@@ -356,18 +387,18 @@ const ClassicTable = struct {
     offsets: []u32,
 };
 
-fn loadClassicTableFromFile(allocator: std.mem.Allocator, file: *std.fs.File, size: u64) !ClassicTable {
+fn loadClassicTableFromFile(allocator: std.mem.Allocator, io: std.Io, file: *std.Io.File, size: u64) !ClassicTable {
     if (size < 8) return error.InvalidArchiveSize;
 
     var header: [4]u8 = undefined;
-    const header_read = try readFileAt(file.*, &header, 0);
+    const header_read = try readFileAt(io, file.*, &header, 0);
     if (header_read != header.len) return error.UnexpectedEndOfFile;
     const table_end = std.mem.readInt(u32, &header, .little);
     if (table_end < 8 or table_end % 4 != 0 or table_end > size) return error.InvalidTableHeader;
 
     const table_bytes = try allocator.alloc(u8, @intCast(table_end));
     defer allocator.free(table_bytes);
-    const table_read = try readFileAt(file.*, table_bytes, 0);
+    const table_read = try readFileAt(io, file.*, table_bytes, 0);
     if (table_read != table_bytes.len) return error.UnexpectedEndOfFile;
 
     const entry_count: usize = @intCast(table_end / 4);
@@ -385,13 +416,13 @@ fn loadClassicTableFromFile(allocator: std.mem.Allocator, file: *std.fs.File, si
     };
 }
 
-fn parseClassicEntryRangeWithHeader(file: *std.fs.File, size: u64, table_end: u32, classic_index: usize) !ParsedEntry {
+fn parseClassicEntryRangeWithHeader(io: std.Io, file: *std.Io.File, size: u64, table_end: u32, classic_index: usize) !ParsedEntry {
     var header: [4]u8 = undefined;
 
     const entry_table_offset = @as(u64, @intCast(classic_index)) * 4;
     if (entry_table_offset >= table_end) return error.EntryIndexOutOfRange;
 
-    _ = try readFileAt(file.*, &header, entry_table_offset);
+    _ = try readFileAt(io, file.*, &header, entry_table_offset);
     const offset = std.mem.readInt(u32, &header, .little);
     if (offset == 0) return error.EntryIndexOutOfRange;
     if (offset < table_end or offset > size) return error.InvalidArchiveOffset;
@@ -399,7 +430,7 @@ fn parseClassicEntryRangeWithHeader(file: *std.fs.File, size: u64, table_end: u3
     var next_offset: u64 = size;
     var search_offset = entry_table_offset + 4;
     while (search_offset < table_end) : (search_offset += 4) {
-        _ = try readFileAt(file.*, &header, search_offset);
+        _ = try readFileAt(io, file.*, &header, search_offset);
         const candidate = std.mem.readInt(u32, &header, .little);
         if (candidate == 0 or candidate <= offset) continue;
         if (candidate > size) return error.InvalidArchiveOffset;
@@ -439,11 +470,11 @@ fn parseClassicEntryRangeFromOffsets(size: u64, table_end: u32, offsets: []const
     };
 }
 
-fn readParsedEntryFromFile(allocator: std.mem.Allocator, file: *std.fs.File, entry: ParsedEntry) ![]u8 {
+fn readParsedEntryFromFile(allocator: std.mem.Allocator, io: std.Io, file: *std.Io.File, entry: ParsedEntry) ![]u8 {
     const bytes = try allocator.alloc(u8, entry.byte_length);
     errdefer allocator.free(bytes);
 
-    const read = try readFileAt(file.*, bytes, entry.offset);
+    const read = try readFileAt(io, file.*, bytes, entry.offset);
     if (read != bytes.len) return error.UnexpectedEndOfFile;
     return bytes;
 }
@@ -499,7 +530,7 @@ fn parseTable(allocator: std.mem.Allocator, size: u64, reader_ctx: anytype) ![]P
     return parsed;
 }
 
-fn hashRangeAlloc(allocator: std.mem.Allocator, file: *std.fs.File, offset: u32, byte_length: u32) ![]const u8 {
+fn hashRangeAlloc(allocator: std.mem.Allocator, io: std.Io, file: *std.Io.File, offset: u32, byte_length: u32) ![]const u8 {
     if (byte_length == 0) return hashBytesAlloc(allocator, "");
 
     var digest = std.crypto.hash.sha2.Sha256.init(.{});
@@ -510,7 +541,7 @@ fn hashRangeAlloc(allocator: std.mem.Allocator, file: *std.fs.File, offset: u32,
     while (remaining > 0) {
         const chunk_len = @min(remaining, buffer.len);
         const chunk = buffer[0..chunk_len];
-        const read = try readFileAt(file.*, chunk, current_offset);
+        const read = try readFileAt(io, file.*, chunk, current_offset);
         digest.update(chunk[0..read]);
         current_offset += read;
         remaining -= read;
@@ -522,12 +553,12 @@ fn hashRangeAlloc(allocator: std.mem.Allocator, file: *std.fs.File, offset: u32,
     return allocator.dupe(u8, &encoded);
 }
 
-fn fileSize(file: std.fs.File) !u64 {
-    return (try file.stat()).size;
+fn fileSize(io: std.Io, file: std.Io.File) !u64 {
+    return (try file.stat(io)).size;
 }
 
-fn readFileAt(file: std.fs.File, buffer: []u8, offset: u64) !usize {
-    return file.preadAll(buffer, offset);
+fn readFileAt(io: std.Io, file: std.Io.File, buffer: []u8, offset: u64) !usize {
+    return file.readPositionalAll(io, buffer, offset);
 }
 
 fn hashBytesAlloc(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
@@ -626,7 +657,7 @@ test "listNonEmptyEntryIndices skips empty entries" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    try tmp.dir.writeFile(.{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
     const absolute = try tempDirAbsolutePathAlloc(allocator, &tmp, "fixture.hqr");
     defer allocator.free(absolute);
 
@@ -760,7 +791,7 @@ test "out of range entry access fails" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    try tmp.dir.writeFile(.{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
     const absolute = try tempDirAbsolutePathAlloc(allocator, &tmp, "fixture.hqr");
     defer allocator.free(absolute);
 
@@ -772,7 +803,7 @@ test "classic entry access rejects empty and out-of-range synthetic slots" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    try tmp.dir.writeFile(.{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
     const absolute = try tempDirAbsolutePathAlloc(allocator, &tmp, "fixture.hqr");
     defer allocator.free(absolute);
 

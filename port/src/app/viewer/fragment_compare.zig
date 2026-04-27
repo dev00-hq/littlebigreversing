@@ -123,8 +123,8 @@ pub fn buildFragmentComparisonCatalog(
         }
     }
 
-    std.mem.sort(FragmentComparisonEntry, ranked.items, {}, lessThanRankedEntry);
-    std.mem.sort(FragmentComparisonEntry, cells.items, {}, lessThanCellEntry);
+    std.sort.block(FragmentComparisonEntry, ranked.items, {}, lessThanRankedEntry);
+    std.sort.block(FragmentComparisonEntry, cells.items, {}, lessThanCellEntry);
 
     const ranked_entries = try ranked.toOwnedSlice(allocator);
     errdefer allocator.free(ranked_entries);

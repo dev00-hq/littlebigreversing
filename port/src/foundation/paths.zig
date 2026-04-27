@@ -17,7 +17,7 @@ pub const ResolvedPaths = struct {
 };
 
 pub fn resolveFromExecutable(allocator: std.mem.Allocator, asset_root_override: ?[]const u8) !ResolvedPaths {
-    const exe_path = try std.fs.selfExePathAlloc(allocator);
+    const exe_path = try process.executablePathAlloc(allocator);
     defer allocator.free(exe_path);
 
     const exe_dir = std.fs.path.dirname(exe_path) orelse return error.InvalidExecutablePath;
@@ -68,7 +68,9 @@ pub fn ensurePhase1WorkDirs(allocator: std.mem.Allocator, paths: ResolvedPaths) 
 }
 
 pub fn makePathAbsolute(absolute_path: []const u8) !void {
-    std.fs.cwd().makePath(absolute_path) catch |err| switch (err) {
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    std.Io.Dir.cwd().createDirPath(runtime_io.io(), absolute_path) catch |err| switch (err) {
         error.PathAlreadyExists => return,
         else => return err,
     };
@@ -76,13 +78,13 @@ pub fn makePathAbsolute(absolute_path: []const u8) !void {
 
 fn absolutePathAlloc(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     if (std.fs.path.isAbsolute(path)) return allocator.dupe(u8, path);
-    const cwd = try std.process.getCwdAlloc(allocator);
+    const cwd = try process.currentPathAlloc(allocator);
     defer allocator.free(cwd);
     return std.fs.path.join(allocator, &.{ cwd, path });
 }
 
 fn tempDirAbsolutePathAlloc(allocator: std.mem.Allocator, tmp: *const std.testing.TmpDir, sub_path: []const u8) ![]u8 {
-    const cwd = try std.process.getCwdAlloc(allocator);
+    const cwd = try process.currentPathAlloc(allocator);
     defer allocator.free(cwd);
     return std.fs.path.join(allocator, &.{ cwd, ".zig-cache", "tmp", &tmp.sub_path, sub_path });
 }
@@ -92,7 +94,7 @@ test "path resolution keeps canonical work root and override" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    try tmp.dir.makePath("assets");
+    try tmp.dir.createDirPath(std.testing.io, "assets");
     const repo_root = try tempDirAbsolutePathAlloc(allocator, &tmp, ".");
     defer allocator.free(repo_root);
     const asset_override = try tempDirAbsolutePathAlloc(allocator, &tmp, "assets");

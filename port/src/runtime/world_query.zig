@@ -732,7 +732,7 @@ pub const WorldQuery = struct {
             }
         }
 
-        std.mem.sort(ObservedTopYDeltaBucket, delta_buckets.items, {}, lessThanTopYDeltaBucket);
+        std.sort.block(ObservedTopYDeltaBucket, delta_buckets.items, {}, lessThanTopYDeltaBucket);
         summary.top_y_delta_buckets = try delta_buckets.toOwnedSlice(allocator);
         return summary;
     }
@@ -2354,7 +2354,7 @@ test "runtime world query ranks checked-in unchecked evidence rooms and finds no
         try scanUncheckedEvidenceRoomCandidate(allocator, resolved, 44, 2),
         try scanUncheckedEvidenceRoomCandidate(allocator, resolved, 11, 10),
     };
-    std.mem.sort(UncheckedEvidenceRoomCandidateScan, &candidates, {}, lessThanUncheckedEvidenceRoomCandidate);
+    std.sort.block(UncheckedEvidenceRoomCandidateScan, &candidates, {}, lessThanUncheckedEvidenceRoomCandidate);
 
     try std.testing.expectEqual(
         UncheckedEvidenceRoomCandidateStatus.ranked,

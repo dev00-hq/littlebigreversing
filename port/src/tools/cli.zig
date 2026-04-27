@@ -157,8 +157,10 @@ const InspectRoomIntelligenceTimings = struct {
     fn flush(self: *InspectRoomIntelligenceTimings) void {
         if (!self.enabled) return;
 
+        var runtime_io = process.RuntimeIo.init();
+        defer runtime_io.deinit();
         var stderr_buffer: [512]u8 = undefined;
-        var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+        var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
         const stderr = &stderr_writer.interface;
         stderr.print(
             "inspect_room_intelligence_timings env_var={s} output={s} selection_ms={d} scene_load_ms={d} background_load_ms={d} validation_ms={d} augmentation_ms={d} augmentation_ran={} serialization_ms={d} total_ms={d}\n",
@@ -187,12 +189,27 @@ const InspectRoomIntelligenceTimings = struct {
 };
 
 fn nowNs() u64 {
-    return @intCast(std.time.nanoTimestamp());
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    return @intCast(std.Io.Clock.awake.now(runtime_io.io()).nanoseconds);
+}
+
+fn writeStdoutLine(bytes: []const u8) !void {
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
+    const stdout = std.Io.File.stdout();
+    try stdout.writeStreamingAll(io, bytes);
+    try stdout.writeStreamingAll(io, "\n");
 }
 
 fn inspectRoomIntelligenceTimingsEnabled(allocator: std.mem.Allocator) !bool {
-    const value = std.process.getEnvVarOwned(allocator, inspect_room_intelligence_timings_env_var) catch |err| switch (err) {
-        error.EnvironmentVariableNotFound => return false,
+    const value = std.process.Environ.getAlloc(
+        .{ .block = .global },
+        allocator,
+        inspect_room_intelligence_timings_env_var,
+    ) catch |err| switch (err) {
+        error.EnvironmentVariableMissing => return false,
         else => return err,
     };
     defer allocator.free(value);
@@ -1053,8 +1070,10 @@ fn inventoryAssets(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPat
     defer allocator.free(output_path);
     try writeJson(output_path, json);
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "status", .value = "ok" },
@@ -1076,13 +1095,14 @@ fn inspectHqr(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths, r
         defer allocator.free(payload.entries);
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try stderr.print("asset_path={s} entry_count={d}\n", .{ relative_path, archive.entry_count });
     for (archive.entries) |entry| {
@@ -1139,8 +1159,10 @@ fn extractEntry(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
     const sha = try hqr.extractEntryToPath(allocator, absolute_path, entry_index, output_path);
     defer allocator.free(sha);
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "status", .value = "ok" },
@@ -1181,13 +1203,14 @@ fn inspectBackground(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
         };
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "command", .value = "inspect-background" },
@@ -1337,13 +1360,14 @@ fn inspectScene(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths,
         };
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "command", .value = "inspect-scene" },
@@ -1394,8 +1418,10 @@ fn inspectRoom(
     background_entry_index: usize,
     output_json: bool,
 ) !void {
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
 
     const room = room_state.loadRoomSnapshot(allocator, resolved, scene_entry_index, background_entry_index) catch |err| {
@@ -1417,8 +1443,7 @@ fn inspectRoom(
     if (output_json) {
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
     try diagnostics.printLine(stderr, &.{
@@ -1531,13 +1556,14 @@ fn inspectRoomTransitions(
     if (output_json) {
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "command", .value = "inspect-room-transitions" },
@@ -1775,8 +1801,7 @@ fn writeInspectRoomIntelligenceJson(output_path: ?[]const u8, json: []const u8) 
     if (output_path) |path| {
         try writeJson(path, json);
     } else {
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
     }
 }
 
@@ -1807,8 +1832,10 @@ fn inspectRoomFragmentZones(
     background_entry_index: usize,
     output_json: bool,
 ) !void {
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
 
     const diagnostics_snapshot = room_state.inspectRoomFragmentZoneDiagnostics(allocator, resolved, scene_entry_index, background_entry_index) catch |err| {
@@ -1827,8 +1854,7 @@ fn inspectRoomFragmentZones(
     if (output_json) {
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
 
@@ -2513,13 +2539,14 @@ fn auditLifePrograms(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedP
         };
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "command", .value = "audit-life-programs" },
@@ -2622,13 +2649,14 @@ fn rankDecodedInteriorCandidates(
     if (output_json) {
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "command", .value = "rank-decoded-interior-candidates" },
@@ -2670,13 +2698,14 @@ fn triageSameIndexDecodedInteriorCandidates(
     if (output_json) {
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try printSameIndexDecodedInteriorCandidateTriagePayload(stderr, payload);
     try stderr.flush();
@@ -3026,13 +3055,14 @@ fn inspectLifeProgram(allocator: std.mem.Allocator, resolved: paths_mod.Resolved
     if (parsed.output_json) {
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "command", .value = "inspect-life-program" },
@@ -3372,8 +3402,10 @@ fn generateFixtures(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPa
     defer allocator.free(output_path);
     try writeJson(output_path, json);
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
     try diagnostics.printLine(stderr, &.{
         .{ .key = "status", .value = "ok" },
@@ -3384,8 +3416,10 @@ fn generateFixtures(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPa
 }
 
 fn validatePhase1(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths) !void {
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stderr_buffer: [4096]u8 = undefined;
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+    var stderr_writer = std.Io.File.stderr().writer(runtime_io.io(), &stderr_buffer);
     const stderr = &stderr_writer.interface;
 
     const inventory = try catalog.generateAssetCatalog(allocator, resolved);
@@ -3456,10 +3490,13 @@ fn ensureMatchingFile(
     absolute_path: []const u8,
     expected: []const u8,
 ) !void {
-    const actual = std.fs.cwd().readFileAlloc(
-        std.heap.page_allocator,
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const actual = std.Io.Dir.cwd().readFileAlloc(
+        runtime_io.io(),
         absolute_path,
-        32 * 1024 * 1024,
+        std.heap.page_allocator,
+        .limited(32 * 1024 * 1024),
     ) catch |err| {
         if (err == error.FileNotFound) {
             try diagnostics.printLine(writer, &.{
@@ -3517,10 +3554,13 @@ fn firstDiffIndex(actual: []const u8, expected: []const u8) ?usize {
 
 fn writeJson(path: []const u8, bytes: []const u8) !void {
     if (std.fs.path.dirname(path)) |parent| try paths_mod.makePathAbsolute(parent);
-    var file = try std.fs.createFileAbsolute(path, .{ .truncate = true });
-    defer file.close();
-    try file.writeAll(bytes);
-    try file.writeAll("\n");
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
+    var file = try std.Io.Dir.createFileAbsolute(io, path, .{ .truncate = true });
+    defer file.close(io);
+    try file.writeStreamingAll(io, bytes);
+    try file.writeStreamingAll(io, "\n");
 }
 
 fn stringifyJsonAlloc(allocator: std.mem.Allocator, value: anytype) ![]u8 {
@@ -3657,7 +3697,7 @@ fn buildUnsupportedLifeSummary(
         }
     }
 
-    std.mem.sort(UnsupportedLifeSummaryEntry, summary.items, {}, struct {
+    std.sort.block(UnsupportedLifeSummaryEntry, summary.items, {}, struct {
         fn lessThan(_: void, lhs: UnsupportedLifeSummaryEntry, rhs: UnsupportedLifeSummaryEntry) bool {
             return lhs.opcode_id < rhs.opcode_id;
         }
@@ -3855,13 +3895,14 @@ fn inspectLifeCatalog(allocator: std.mem.Allocator, output_json: bool) !void {
     if (output_json) {
         const json = try stringifyJsonAlloc(allocator, payload);
         defer allocator.free(json);
-        try std.fs.File.stdout().writeAll(json);
-        try std.fs.File.stdout().writeAll("\n");
+        try writeStdoutLine(json);
         return;
     }
 
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
     var stdout_buffer: [1024]u8 = undefined;
-    var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
+    var stdout_writer = std.Io.File.stdout().writer(runtime_io.io(), &stdout_buffer);
     const stdout = &stdout_writer.interface;
     try stdout.print(
         "command={s} schema_version={s} opcode_count={d} supported_opcode_count={d} unsupported_opcode_count={d} function_count={d} comparator_count={d} return_type_count={d}\n",

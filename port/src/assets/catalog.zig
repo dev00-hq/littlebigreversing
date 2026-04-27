@@ -1,5 +1,6 @@
 const std = @import("std");
 const paths_mod = @import("../foundation/paths.zig");
+const process = @import("../foundation/process.zig");
 
 pub const required_phase1_files = [_][]const u8{
     "SCENE.HQR",
@@ -64,21 +65,29 @@ const CatalogJson = struct {
 };
 
 pub fn validateExplicitRequirements(asset_root: []const u8) !void {
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
+
     for (required_phase1_files) |relative_path| {
         const full_path = try std.fs.path.join(std.heap.page_allocator, &.{ asset_root, relative_path });
         defer std.heap.page_allocator.free(full_path);
 
-        const file = std.fs.openFileAbsolute(full_path, .{}) catch return error.MissingRequiredPhase1File;
-        file.close();
+        const file = std.Io.Dir.openFileAbsolute(io, full_path, .{}) catch return error.MissingRequiredPhase1File;
+        file.close(io);
     }
 }
 
 pub fn listRequiredVoxFiles(allocator: std.mem.Allocator, asset_root: []const u8) ![][]const u8 {
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
+
     const vox_root = try std.fs.path.join(allocator, &.{ asset_root, "VOX" });
     defer allocator.free(vox_root);
 
-    var dir = try std.fs.openDirAbsolute(vox_root, .{ .iterate = true });
-    defer dir.close();
+    var dir = try std.Io.Dir.openDirAbsolute(io, vox_root, .{ .iterate = true });
+    defer dir.close(io);
 
     var vox_files: std.ArrayList([]const u8) = .empty;
     errdefer {
@@ -87,7 +96,7 @@ pub fn listRequiredVoxFiles(allocator: std.mem.Allocator, asset_root: []const u8
     }
 
     var iter = dir.iterate();
-    while (try iter.next()) |entry| {
+    while (try iter.next(io)) |entry| {
         if (entry.kind != .file) continue;
         if (!std.ascii.endsWithIgnoreCase(entry.name, ".VOX")) continue;
         try vox_files.append(allocator, try std.fmt.allocPrint(allocator, "VOX/{s}", .{entry.name}));
@@ -105,8 +114,12 @@ pub fn listRequiredVoxFiles(allocator: std.mem.Allocator, asset_root: []const u8
 }
 
 pub fn listIslandPairs(allocator: std.mem.Allocator, asset_root: []const u8) ![]IslandPair {
-    var dir = try std.fs.openDirAbsolute(asset_root, .{ .iterate = true });
-    defer dir.close();
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
+
+    var dir = try std.Io.Dir.openDirAbsolute(io, asset_root, .{ .iterate = true });
+    defer dir.close(io);
 
     var stem_map = std.StringHashMap(struct { has_ile: bool, has_obl: bool }).init(allocator);
     defer {
@@ -116,7 +129,7 @@ pub fn listIslandPairs(allocator: std.mem.Allocator, asset_root: []const u8) ![]
     }
 
     var iter = dir.iterate();
-    while (try iter.next()) |entry| {
+    while (try iter.next(io)) |entry| {
         if (entry.kind != .file) continue;
         if (!std.ascii.endsWithIgnoreCase(entry.name, ".ILE") and !std.ascii.endsWithIgnoreCase(entry.name, ".OBL")) continue;
 
@@ -165,6 +178,10 @@ pub fn listIslandPairs(allocator: std.mem.Allocator, asset_root: []const u8) ![]
 }
 
 pub fn generateAssetCatalog(allocator: std.mem.Allocator, resolved: paths_mod.ResolvedPaths) ![]AssetCatalogEntry {
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
+
     try validateExplicitRequirements(resolved.asset_root);
     const vox_files = try listRequiredVoxFiles(allocator, resolved.asset_root);
     defer {
@@ -177,8 +194,8 @@ pub fn generateAssetCatalog(allocator: std.mem.Allocator, resolved: paths_mod.Re
         allocator.free(island_pairs);
     }
 
-    var asset_dir = try std.fs.openDirAbsolute(resolved.asset_root, .{ .iterate = true });
-    defer asset_dir.close();
+    var asset_dir = try std.Io.Dir.openDirAbsolute(io, resolved.asset_root, .{ .iterate = true });
+    defer asset_dir.close(io);
     var walker = try asset_dir.walk(allocator);
     defer walker.deinit();
 
@@ -188,7 +205,7 @@ pub fn generateAssetCatalog(allocator: std.mem.Allocator, resolved: paths_mod.Re
         inventory.deinit(allocator);
     }
 
-    while (try walker.next()) |entry| {
+    while (try walker.next(io)) |entry| {
         if (entry.kind != .file) continue;
 
         const normalized_path = try normalizeRelativePath(allocator, entry.path);
@@ -196,9 +213,9 @@ pub fn generateAssetCatalog(allocator: std.mem.Allocator, resolved: paths_mod.Re
 
         const absolute_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, normalized_path });
         defer allocator.free(absolute_path);
-        var file = try std.fs.openFileAbsolute(absolute_path, .{});
-        defer file.close();
-        const stat = try file.stat();
+        var file = try std.Io.Dir.openFileAbsolute(io, absolute_path, .{});
+        defer file.close(io);
+        const stat = try file.stat(io);
 
         try inventory.append(allocator, .{
             .relative_path = try allocator.dupe(u8, normalized_path),
@@ -325,15 +342,23 @@ fn isRequiredPhase1(relative_path: []const u8) bool {
 }
 
 fn sha256FileAlloc(allocator: std.mem.Allocator, absolute_path: []const u8) ![]const u8 {
-    var file = try std.fs.openFileAbsolute(absolute_path, .{});
-    defer file.close();
+    var runtime_io = process.RuntimeIo.init();
+    defer runtime_io.deinit();
+    const io = runtime_io.io();
 
+    var file = try std.Io.Dir.openFileAbsolute(io, absolute_path, .{});
+    defer file.close(io);
+
+    const stat = try file.stat(io);
     var digest = std.crypto.hash.sha2.Sha256.init(.{});
     var buffer: [64 * 1024]u8 = undefined;
-    while (true) {
-        const read = try file.readAll(&buffer);
+    var offset: u64 = 0;
+    while (offset < stat.size) {
+        const chunk = buffer[0..@min(buffer.len, stat.size - offset)];
+        const read = try file.readPositionalAll(io, chunk, offset);
         if (read == 0) break;
-        digest.update(buffer[0..read]);
+        digest.update(chunk[0..read]);
+        offset += read;
     }
 
     var out: [32]u8 = undefined;
@@ -351,17 +376,17 @@ fn normalizeRelativePath(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
 }
 
 fn tempDirAbsolutePathAlloc(allocator: std.mem.Allocator, tmp: *const std.testing.TmpDir, sub_path: []const u8) ![]u8 {
-    const cwd = try std.process.getCwdAlloc(allocator);
+    const cwd = try process.currentPathAlloc(allocator);
     defer allocator.free(cwd);
     return std.fs.path.join(allocator, &.{ cwd, ".zig-cache", "tmp", &tmp.sub_path, sub_path });
 }
 
-fn writeTestAssetFile(allocator: std.mem.Allocator, dir: std.fs.Dir, asset_root: []const u8, relative_path: []const u8, data: []const u8) !void {
+fn writeTestAssetFile(allocator: std.mem.Allocator, dir: std.Io.Dir, asset_root: []const u8, relative_path: []const u8, data: []const u8) !void {
     const sub_path = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ asset_root, relative_path });
     defer allocator.free(sub_path);
 
-    if (std.fs.path.dirname(sub_path)) |parent| try dir.makePath(parent);
-    try dir.writeFile(.{ .sub_path = sub_path, .data = data });
+    if (std.fs.path.dirname(sub_path)) |parent| try dir.createDirPath(std.testing.io, parent);
+    try dir.writeFile(std.testing.io, .{ .sub_path = sub_path, .data = data });
 }
 
 fn expectCatalogEntryEqual(expected: AssetCatalogEntry, actual: AssetCatalogEntry) !void {
@@ -391,7 +416,7 @@ test "catalog generation is deterministic and json stable" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    try tmp.dir.makePath("assets");
+    try tmp.dir.createDirPath(std.testing.io, "assets");
     for (required_phase1_files) |relative_path| {
         try writeTestAssetFile(allocator, tmp.dir, "assets", relative_path, "phase1");
     }
