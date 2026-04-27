@@ -211,6 +211,8 @@ pub fn generateAssetCatalog(allocator: std.mem.Allocator, resolved: paths_mod.Re
         const normalized_path = try normalizeRelativePath(allocator, entry.path);
         defer allocator.free(normalized_path);
 
+        if (isGeneratedRuntimeArtifact(normalized_path)) continue;
+
         const absolute_path = try std.fs.path.join(allocator, &.{ resolved.asset_root, normalized_path });
         defer allocator.free(absolute_path);
         var file = try std.Io.Dir.openFileAbsolute(io, absolute_path, .{});
@@ -341,6 +343,24 @@ fn isRequiredPhase1(relative_path: []const u8) bool {
     return false;
 }
 
+fn isGeneratedRuntimeArtifact(relative_path: []const u8) bool {
+    if (startsWithIgnoreCase(relative_path, "SAVE/")) return true;
+    if (startsWithIgnoreCase(relative_path, "work/")) return true;
+    if (std.ascii.eqlIgnoreCase(relative_path, "LBA2.CFG")) return true;
+    if (std.ascii.eqlIgnoreCase(relative_path, "dxwnd.log")) return true;
+    if (std.ascii.eqlIgnoreCase(relative_path, "lba2_runtime_watch.log")) return true;
+    if (std.ascii.eqlIgnoreCase(relative_path, "winmm.dll")) return true;
+    if (startsWithIgnoreCase(relative_path, "winmm.dll.bak-")) return true;
+    if (std.ascii.eqlIgnoreCase(relative_path, "winmm_proxy.log")) return true;
+    if (std.ascii.eqlIgnoreCase(relative_path, "winmm_real.dll")) return true;
+    return false;
+}
+
+fn startsWithIgnoreCase(haystack: []const u8, needle: []const u8) bool {
+    if (haystack.len < needle.len) return false;
+    return std.ascii.eqlIgnoreCase(haystack[0..needle.len], needle);
+}
+
 fn sha256FileAlloc(allocator: std.mem.Allocator, absolute_path: []const u8) ![]const u8 {
     var runtime_io = process.RuntimeIo.init();
     defer runtime_io.deinit();
@@ -409,6 +429,11 @@ test "classification and locale detection follow phase0 policy" {
     try std.testing.expectEqualStrings("english", detectLocale("VOX/EN_GAM.VOX").?);
     try std.testing.expect(isRequiredPhase1("VOX/EN_GAM.VOX"));
     try std.testing.expect(isRequiredPhase1("ASCENCE.ILE"));
+    try std.testing.expect(isGeneratedRuntimeArtifact("SAVE/current.lba"));
+    try std.testing.expect(isGeneratedRuntimeArtifact("work/live_proofs/proof.png"));
+    try std.testing.expect(isGeneratedRuntimeArtifact("winmm.dll.bak-20260427-044930"));
+    try std.testing.expect(isGeneratedRuntimeArtifact("LBA2.CFG"));
+    try std.testing.expect(!isGeneratedRuntimeArtifact("ADELINE.LOG"));
 }
 
 test "catalog generation is deterministic and json stable" {
@@ -425,6 +450,16 @@ test "catalog generation is deterministic and json stable" {
     try writeTestAssetFile(allocator, tmp.dir, "assets", "CITADEL.OBL", "island-obl");
     try writeTestAssetFile(allocator, tmp.dir, "assets", "CITADEL.ILE", "island-ile");
     try writeTestAssetFile(allocator, tmp.dir, "assets", "MUSIC/THEME_01.XMI", "music");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "SAVE/current.lba", "save");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "SAVE/autosave.lba.generated-runtime-watch-20260427-103011", "save");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "work/live_proofs/proof.png", "proof");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "winmm.dll", "shim");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "winmm.dll.bak-20260427-044930", "shim-backup");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "winmm_real.dll", "real-dll");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "winmm_proxy.log", "shim-log");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "lba2_runtime_watch.log", "watch-log");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "dxwnd.log", "dxwnd-log");
+    try writeTestAssetFile(allocator, tmp.dir, "assets", "LBA2.CFG", "runtime-config");
 
     const repo_root = try tempDirAbsolutePathAlloc(allocator, &tmp, ".");
     const asset_root = try tempDirAbsolutePathAlloc(allocator, &tmp, "assets");
@@ -464,4 +499,9 @@ test "catalog generation is deterministic and json stable" {
     try std.testing.expect(std.mem.indexOf(u8, json_first, "\"asset_root\": \"work/_innoextract_full/Speedrun/Windows/LBA2_cdrom/LBA2\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, json_first, "\"relative_path\": \"CITADEL.ILE\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, json_first, "\"relative_path\": \"VOX/FR_GAM.VOX\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json_first, "\"relative_path\": \"SAVE/current.lba\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, json_first, "\"relative_path\": \"work/live_proofs/proof.png\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, json_first, "\"relative_path\": \"winmm.dll\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, json_first, "\"relative_path\": \"winmm_real.dll\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, json_first, "\"relative_path\": \"LBA2.CFG\"") == null);
 }
