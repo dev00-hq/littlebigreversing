@@ -37,6 +37,8 @@ const secret_room_house_to_cellar_provisional_destination = world_geometry.World
     .y = 1277,
     .z = 762,
 };
+// Runtime NewPos is retained as proof data, but it is not a decoded footing
+// coordinate in cube 0. Gameplay commits through this validated landing.
 const secret_room_house_to_cellar_port_landing = world_geometry.WorldPointSnapshot{
     .x = 9724,
     .y = 1024,
