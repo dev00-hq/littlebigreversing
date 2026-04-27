@@ -2248,6 +2248,44 @@ test "runtime world query rejects scene-object anchors without floor-truth scori
     try std.testing.expectEqual(MappingEvidenceDisposition.diagnostic_candidate_only_not_better, assessment.comparison.disposition);
 }
 
+test "phase5 0013 runtime landing coordinates expose geometry parity gap" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var cellar_room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer cellar_room.deinit(allocator);
+    const cellar_query = init(&cellar_room);
+    const runtime_cellar_entry = WorldPointSnapshot{ .x = 9686, .y = 1024, .z = 762 };
+    const current_port_cellar_entry = WorldPointSnapshot{ .x = 9724, .y = 1024, .z = 782 };
+    const runtime_cellar_eval = cellar_query.evaluateHeroMoveTarget(runtime_cellar_entry);
+    const current_port_cellar_eval = cellar_query.evaluateHeroMoveTarget(current_port_cellar_entry);
+
+    try std.testing.expectEqual(MoveTargetStatus.target_empty, runtime_cellar_eval.status);
+    try std.testing.expectEqual(MoveTargetStatus.target_empty, current_port_cellar_eval.status);
+    try std.testing.expectEqual(GridCell{ .x = 18, .z = 1 }, runtime_cellar_eval.raw_cell.cell.?);
+    try std.testing.expectEqual(GridCell{ .x = 18, .z = 1 }, current_port_cellar_eval.raw_cell.cell.?);
+
+    const cellar_nearest = try cellar_query.nearestStandableCandidateAtWorldPoint(runtime_cellar_entry) orelse return error.MissingNearestStandable;
+    try std.testing.expectEqual(GridCell{ .x = 18, .z = 1 }, cellar_nearest.cell);
+    try std.testing.expectEqual(@as(i32, 6400), cellar_nearest.surface.top_y);
+
+    var house_room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer house_room.deinit(allocator);
+    const house_query = init(&house_room);
+    const runtime_house_return = WorldPointSnapshot{ .x = 2562, .y = 2048, .z = 3686 };
+    const current_port_house_return = WorldPointSnapshot{ .x = 2562, .y = 1024, .z = 3686 };
+    const runtime_house_eval = house_query.evaluateHeroMoveTarget(runtime_house_return);
+    const current_port_house_eval = house_query.evaluateHeroMoveTarget(current_port_house_return);
+
+    try std.testing.expectEqual(MoveTargetStatus.target_height_mismatch, runtime_house_eval.status);
+    try std.testing.expectEqual(MoveTargetStatus.allowed, current_port_house_eval.status);
+    try std.testing.expectEqual(GridCell{ .x = 5, .z = 7 }, runtime_house_eval.raw_cell.cell.?);
+    try std.testing.expectEqual(GridCell{ .x = 5, .z = 7 }, current_port_house_eval.raw_cell.cell.?);
+    try std.testing.expectEqual(@as(i32, 1024), runtime_house_eval.raw_cell.surface.?.top_y);
+    try std.testing.expectEqual(@as(i32, 1024), current_port_house_eval.raw_cell.surface.?.top_y);
+}
+
 test "runtime world query ranks zones ahead of scene objects for the bounded extra-anchor investigation" {
     const room = try room_fixtures.guarded1919();
 
