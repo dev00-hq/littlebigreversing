@@ -36,6 +36,12 @@
 5. If you discover a new repo trap or recurring confusion point, update `ISSUES.md` and keep the architecture pack aligned with that trap surface.
 6. Never reintroduce v1 files or schema labels.
 
+## Reporting
+
+- Always send completion, blocker, and unattended-work reports to the LBR Slack channel (`#lbr`, `C0AVAUZ4077`).
+- `#lbr` is the default channel to send Slack messages to the user.
+- If the game is opened, publish phone-viewable screenshots or reports first, then include the phone-share URL in the LBR Slack update.
+
 # Issues logging
 - The role of the `ISSUES.md` file is to describe common mistakes and confusion points that the agents might encounter as they work in this project. If you ever counter something in the project that surprises you, please alert the developer working with you and indicate that this is the case in the ISSUES.md file to help future agents from having the same issue.
 

@@ -149,7 +149,7 @@ pub fn build(b: *std.Build) void {
 
 fn requirePathExists(b: *std.Build, relative_path: []const u8) void {
     const absolute_path = b.pathFromRoot(relative_path);
-    std.Io.Dir.accessAbsolute(b.graph.io, absolute_path, .{}) catch {
+    std.fs.accessAbsolute(absolute_path, .{}) catch {
         std.debug.panic("missing required SDL2 dependency: {s}", .{absolute_path});
     };
 }

@@ -3,7 +3,7 @@ const hqr = @import("hqr.zig");
 const paths_mod = @import("../foundation/paths.zig");
 
 fn tempDirAbsolutePathAlloc(allocator: std.mem.Allocator, tmp: *const std.testing.TmpDir, sub_path: []const u8) ![]u8 {
-    const cwd = try std.process.currentPathAlloc(std.testing.io, allocator);
+    const cwd = try std.process.getCwdAlloc(allocator);
     defer allocator.free(cwd);
     return std.fs.path.join(allocator, &.{ cwd, ".zig-cache", "tmp", &tmp.sub_path, sub_path });
 }

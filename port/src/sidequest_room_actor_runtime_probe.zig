@@ -50,8 +50,8 @@ fn writeReport(allocator: std.mem.Allocator, value: ProbeReport) !void {
         .options = .{ .whitespace = .indent_2 },
     };
     try stringify.write(value);
-    try std.Io.File.stdout().writeStreamingAll(process.currentIo(), out.written());
-    try std.Io.File.stdout().writeStreamingAll(process.currentIo(), "\n");
+    try std.fs.File.stdout().writeAll(out.written());
+    try std.fs.File.stdout().writeAll("\n");
 }
 
 pub fn main() !void {

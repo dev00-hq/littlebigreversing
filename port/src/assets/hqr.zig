@@ -36,8 +36,8 @@ pub const ParsedEntry = struct {
 // without exposing a copyable resource owner to callers.
 pub const ClassicArchiveSession = opaque {
     pub fn init(allocator: std.mem.Allocator, absolute_path: []const u8) !*ClassicArchiveSession {
-        var file = try std.Io.Dir.openFileAbsolute(process.currentIo(), absolute_path, .{});
-        errdefer file.close(process.currentIo());
+        var file = try std.fs.openFileAbsolute(absolute_path, .{});
+        errdefer file.close();
 
         const size = try fileSize(file);
         const table = try loadClassicTableFromFile(allocator, &file, size);
@@ -59,7 +59,7 @@ pub const ClassicArchiveSession = opaque {
     pub fn deinit(self: *ClassicArchiveSession) void {
         const session_impl = self.impl();
         session_impl.allocator.free(session_impl.classic_offsets);
-        session_impl.file.close(process.currentIo());
+        session_impl.file.close();
         session_impl.allocator.destroy(session_impl);
     }
 
@@ -76,7 +76,7 @@ pub const ClassicArchiveSession = opaque {
 
 const ClassicArchiveSessionImpl = struct {
     allocator: std.mem.Allocator,
-    file: std.Io.File,
+    file: std.fs.File,
     size: u64,
     table_end: u32,
     classic_offsets: []u32,
@@ -93,12 +93,12 @@ const resource_header_size = 10;
 // Test binaries repeatedly decode the same real archive entries; cache raw bytes
 // by archive path and entry index so broad asset-backed suites stay incremental.
 var test_entry_cache_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-var test_entry_cache_mutex: std.Io.Mutex = .init;
+var test_entry_cache_mutex: std.Thread.Mutex = .{};
 var test_entry_cache = std.StringHashMap([]const u8).init(std.heap.page_allocator);
 
 pub fn loadArchive(allocator: std.mem.Allocator, absolute_path: []const u8) !HqrArchive {
-    var file = try std.Io.Dir.openFileAbsolute(process.currentIo(), absolute_path, .{});
-    defer file.close(process.currentIo());
+    var file = try std.fs.openFileAbsolute(absolute_path, .{});
+    defer file.close();
 
     const size = try fileSize(file);
     const parsed = try parseTableFromFile(allocator, &file, size);
@@ -126,8 +126,8 @@ pub fn loadArchive(allocator: std.mem.Allocator, absolute_path: []const u8) !Hqr
 }
 
 pub fn listNonEmptyEntryIndices(allocator: std.mem.Allocator, absolute_path: []const u8) ![]usize {
-    var file = try std.Io.Dir.openFileAbsolute(process.currentIo(), absolute_path, .{});
-    defer file.close(process.currentIo());
+    var file = try std.fs.openFileAbsolute(absolute_path, .{});
+    defer file.close();
 
     const size = try fileSize(file);
     const parsed = try parseTableFromFile(allocator, &file, size);
@@ -196,8 +196,8 @@ pub fn parseResourceHeader(raw_entry: []const u8) !ResourceHeader {
 }
 
 fn readRawEntryFromFile(allocator: std.mem.Allocator, absolute_path: []const u8, entry_index: usize) ![]u8 {
-    var file = try std.Io.Dir.openFileAbsolute(process.currentIo(), absolute_path, .{});
-    defer file.close(process.currentIo());
+    var file = try std.fs.openFileAbsolute(absolute_path, .{});
+    defer file.close();
 
     const size = try fileSize(file);
     const parsed = try parseTableFromFile(allocator, &file, size);
@@ -244,12 +244,12 @@ fn extractEntryToBytesCachedByKind(
     const lookup_key = try buildCachedEntryKeyAlloc(allocator, absolute_path, entry_index, kind);
     defer allocator.free(lookup_key);
 
-    test_entry_cache_mutex.lockUncancelable(process.currentIo());
+    test_entry_cache_mutex.lock();
     if (test_entry_cache.get(lookup_key)) |cached| {
-        test_entry_cache_mutex.unlock(process.currentIo());
+        test_entry_cache_mutex.unlock();
         return allocator.dupe(u8, cached);
     }
-    test_entry_cache_mutex.unlock(process.currentIo());
+    test_entry_cache_mutex.unlock();
 
     const bytes = switch (kind) {
         .raw => try readRawEntryFromFile(allocator, absolute_path, entry_index),
@@ -257,8 +257,8 @@ fn extractEntryToBytesCachedByKind(
     };
     errdefer allocator.free(bytes);
 
-    test_entry_cache_mutex.lockUncancelable(process.currentIo());
-    defer test_entry_cache_mutex.unlock(process.currentIo());
+    test_entry_cache_mutex.lock();
+    defer test_entry_cache_mutex.unlock();
     if (test_entry_cache.get(lookup_key)) |cached| {
         allocator.free(bytes);
         return allocator.dupe(u8, cached);
@@ -272,7 +272,7 @@ fn extractEntryToBytesCachedByKind(
 }
 
 fn tempDirAbsolutePathAlloc(allocator: std.mem.Allocator, tmp: *const std.testing.TmpDir, sub_path: []const u8) ![]u8 {
-    const cwd = try std.process.currentPathAlloc(std.testing.io, allocator);
+    const cwd = try std.process.getCwdAlloc(allocator);
     defer allocator.free(cwd);
     return std.fs.path.join(allocator, &.{ cwd, ".zig-cache", "tmp", &tmp.sub_path, sub_path });
 }
@@ -295,9 +295,9 @@ pub fn extractEntryToPath(
 
     if (std.fs.path.dirname(output_path)) |parent| try paths_mod.makePathAbsolute(parent);
 
-    var file = try std.Io.Dir.createFileAbsolute(process.currentIo(), output_path, .{ .truncate = true });
-    defer file.close(process.currentIo());
-    try file.writeStreamingAll(process.currentIo(), bytes);
+    var file = try std.fs.createFileAbsolute(output_path, .{ .truncate = true });
+    defer file.close();
+    try file.writeAll(bytes);
 
     return hashBytesAlloc(allocator, bytes);
 }
@@ -330,9 +330,9 @@ pub fn parseTableFromBytes(allocator: std.mem.Allocator, bytes: []const u8) ![]P
     }{ .bytes = bytes });
 }
 
-fn parseTableFromFile(allocator: std.mem.Allocator, file: *std.Io.File, size: u64) ![]ParsedEntry {
+fn parseTableFromFile(allocator: std.mem.Allocator, file: *std.fs.File, size: u64) ![]ParsedEntry {
     return parseTable(allocator, size, struct {
-        file: *std.Io.File,
+        file: *std.fs.File,
 
         fn readAt(self: @This(), offset: u64, buffer: []u8) !void {
             _ = try readFileAt(self.file.*, buffer, offset);
@@ -340,7 +340,7 @@ fn parseTableFromFile(allocator: std.mem.Allocator, file: *std.Io.File, size: u6
     }{ .file = file });
 }
 
-fn parseClassicEntryRangeFromFile(file: *std.Io.File, size: u64, classic_index: usize) !ParsedEntry {
+fn parseClassicEntryRangeFromFile(file: *std.fs.File, size: u64, classic_index: usize) !ParsedEntry {
     if (size < 8) return error.InvalidArchiveSize;
 
     var header: [4]u8 = undefined;
@@ -356,7 +356,7 @@ const ClassicTable = struct {
     offsets: []u32,
 };
 
-fn loadClassicTableFromFile(allocator: std.mem.Allocator, file: *std.Io.File, size: u64) !ClassicTable {
+fn loadClassicTableFromFile(allocator: std.mem.Allocator, file: *std.fs.File, size: u64) !ClassicTable {
     if (size < 8) return error.InvalidArchiveSize;
 
     var header: [4]u8 = undefined;
@@ -385,7 +385,7 @@ fn loadClassicTableFromFile(allocator: std.mem.Allocator, file: *std.Io.File, si
     };
 }
 
-fn parseClassicEntryRangeWithHeader(file: *std.Io.File, size: u64, table_end: u32, classic_index: usize) !ParsedEntry {
+fn parseClassicEntryRangeWithHeader(file: *std.fs.File, size: u64, table_end: u32, classic_index: usize) !ParsedEntry {
     var header: [4]u8 = undefined;
 
     const entry_table_offset = @as(u64, @intCast(classic_index)) * 4;
@@ -439,7 +439,7 @@ fn parseClassicEntryRangeFromOffsets(size: u64, table_end: u32, offsets: []const
     };
 }
 
-fn readParsedEntryFromFile(allocator: std.mem.Allocator, file: *std.Io.File, entry: ParsedEntry) ![]u8 {
+fn readParsedEntryFromFile(allocator: std.mem.Allocator, file: *std.fs.File, entry: ParsedEntry) ![]u8 {
     const bytes = try allocator.alloc(u8, entry.byte_length);
     errdefer allocator.free(bytes);
 
@@ -499,7 +499,7 @@ fn parseTable(allocator: std.mem.Allocator, size: u64, reader_ctx: anytype) ![]P
     return parsed;
 }
 
-fn hashRangeAlloc(allocator: std.mem.Allocator, file: *std.Io.File, offset: u32, byte_length: u32) ![]const u8 {
+fn hashRangeAlloc(allocator: std.mem.Allocator, file: *std.fs.File, offset: u32, byte_length: u32) ![]const u8 {
     if (byte_length == 0) return hashBytesAlloc(allocator, "");
 
     var digest = std.crypto.hash.sha2.Sha256.init(.{});
@@ -522,12 +522,12 @@ fn hashRangeAlloc(allocator: std.mem.Allocator, file: *std.Io.File, offset: u32,
     return allocator.dupe(u8, &encoded);
 }
 
-fn fileSize(file: std.Io.File) !u64 {
-    return (try file.stat(process.currentIo())).size;
+fn fileSize(file: std.fs.File) !u64 {
+    return (try file.stat()).size;
 }
 
-fn readFileAt(file: std.Io.File, buffer: []u8, offset: u64) !usize {
-    return file.readPositional(process.currentIo(), &.{buffer}, offset);
+fn readFileAt(file: std.fs.File, buffer: []u8, offset: u64) !usize {
+    return file.preadAll(buffer, offset);
 }
 
 fn hashBytesAlloc(allocator: std.mem.Allocator, bytes: []const u8) ![]const u8 {
@@ -626,7 +626,7 @@ test "listNonEmptyEntryIndices skips empty entries" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
+    try tmp.dir.writeFile(.{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
     const absolute = try tempDirAbsolutePathAlloc(allocator, &tmp, "fixture.hqr");
     defer allocator.free(absolute);
 
@@ -760,7 +760,7 @@ test "out of range entry access fails" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
+    try tmp.dir.writeFile(.{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
     const absolute = try tempDirAbsolutePathAlloc(allocator, &tmp, "fixture.hqr");
     defer allocator.free(absolute);
 
@@ -772,7 +772,7 @@ test "classic entry access rejects empty and out-of-range synthetic slots" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
+    try tmp.dir.writeFile(.{ .sub_path = "fixture.hqr", .data = fixture_bytes.sample_hqr_with_hole[0..] });
     const absolute = try tempDirAbsolutePathAlloc(allocator, &tmp, "fixture.hqr");
     defer allocator.free(absolute);
 
