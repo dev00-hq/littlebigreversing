@@ -32,9 +32,9 @@ TARGET_ZONE = WatchZone(
 )
 
 RUNTIME_SOURCE_PROBE = {
-    "x": 2656,
-    "y": 1792,
-    "z": 3141,
+    "x": 1536,
+    "y": 256,
+    "z": 4608,
 }
 
 EXPECTED_DESTINATION = {
@@ -42,6 +42,13 @@ EXPECTED_DESTINATION = {
     "x": 13824,
     "y": 5120,
     "z": 14848,
+}
+
+LIVE_ZONE1_DESTINATION = {
+    "cube": 185,
+    "x": 28416,
+    "y": 2304,
+    "z": 21760,
 }
 
 HEIGHT_CLASSIFICATION = {
@@ -169,6 +176,9 @@ def classify_observation(row: dict[str, Any]) -> str:
         "y": int(hero["y"]),
         "z": int(hero["z"]),
     }
+    live_position = {k: LIVE_ZONE1_DESTINATION[k] for k in ("x", "y", "z")}
+    if active_cube == LIVE_ZONE1_DESTINATION["cube"] and hero_pos == live_position:
+        return "loaded_cube185_live_zone1_destination"
     if active_cube == EXPECTED_DESTINATION["cube"]:
         if hero_pos["y"] == EXPECTED_DESTINATION["y"]:
             return "loaded_cube185_kept_decoded_y"
@@ -325,6 +335,7 @@ def main() -> int:
                         },
                     },
                     "expected_destination": EXPECTED_DESTINATION,
+                    "live_zone1_destination": LIVE_ZONE1_DESTINATION,
                     "height_classification": HEIGHT_CLASSIFICATION,
                     "final_snapshot": initial,
                     "jsonl": str(jsonl_path),
@@ -418,6 +429,7 @@ def main() -> int:
                 },
                 "source_probe_position": {"x": args.source_x, "y": args.source_y, "z": args.source_z},
                 "expected_destination": EXPECTED_DESTINATION,
+                "live_zone1_destination": LIVE_ZONE1_DESTINATION,
                 "height_classification": HEIGHT_CLASSIFICATION,
                 "final_verdict": classify_observation(final),
                 "final_snapshot": final,

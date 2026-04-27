@@ -40,7 +40,8 @@ class Phase5187TransitionProbeTests(unittest.TestCase):
         self.assertEqual(185, probe.TARGET_ZONE.num)
         self.assertEqual((1024, 0, 4096, 2048, 512, 5120), probe.TARGET_ZONE.bounds)
         self.assertEqual({"cube": 185, "x": 13824, "y": 5120, "z": 14848}, probe.EXPECTED_DESTINATION)
-        self.assertEqual({"x": 2656, "y": 1792, "z": 3141}, probe.RUNTIME_SOURCE_PROBE)
+        self.assertEqual({"cube": 185, "x": 28416, "y": 2304, "z": 21760}, probe.LIVE_ZONE1_DESTINATION)
+        self.assertEqual({"x": 1536, "y": 256, "z": 4608}, probe.RUNTIME_SOURCE_PROBE)
 
 
     def write_save_stub(self, path: Path, *, version: int, num_cube: int, name: str) -> None:
@@ -76,6 +77,10 @@ class Phase5187TransitionProbeTests(unittest.TestCase):
         self.assertEqual("transition_globals_staged_expected_destination", verdict)
 
     def test_classifies_destination_height_outcomes_after_cube_load(self) -> None:
+        live_zone1 = probe.classify_observation(
+            self.row(active_cube=185, new_cube=-1, new_y=0, hero_y=2304)
+            | {"hero_object": {"x": 28416, "y": 2304, "z": 21760}}
+        )
         decoded = probe.classify_observation(
             self.row(active_cube=185, new_cube=185, new_y=5120, hero_y=5120)
         )
@@ -86,6 +91,7 @@ class Phase5187TransitionProbeTests(unittest.TestCase):
             self.row(active_cube=185, new_cube=185, new_y=5120, hero_y=6400)
         )
 
+        self.assertEqual("loaded_cube185_live_zone1_destination", live_zone1)
         self.assertEqual("loaded_cube185_kept_decoded_y", decoded)
         self.assertEqual("loaded_cube185_snapped_to_raw_cell_top", raw_cell)
         self.assertEqual("loaded_cube185_snapped_to_nearest_standable", standable)
