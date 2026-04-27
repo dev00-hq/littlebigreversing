@@ -1,7 +1,7 @@
 {
-  "schema_version": "phase5-187-runtime-proof-v1",
-  "source_run": "work/live_proofs/phase5_187187_transition_probe_run4_no_scene_start_sync",
-  "slack_report": "https://dev00-workspace.slack.com/archives/C0AUMGHR5M4/p1777251547018399",
+  "schema_version": "phase5-187-runtime-reassessment-v2",
+  "source_run": "work/live_proofs/phase5_187187_startcube_counterfactual_54_11_44",
+  "slack_report": "https://dev00-workspace.slack.com/archives/C0AVAUZ4077/p1777276664546719",
   "launch_save": {
     "argv": [
       "LBA2.EXE",
@@ -66,7 +66,11 @@
       "z": 4608
     },
     "sync_scene_start": false,
-    "final_verdict": "loaded_cube185_live_zone1_destination",
+    "post_teleport_zone_membership": [],
+    "transition_signal_observed": false,
+    "respawn_or_safety_reset_suspected": true,
+    "clover_visible_after_source_teleport": true,
+    "final_verdict": "invalid_source_probe_respawned_or_safety_reset",
     "final_pose": {
       "active_cube": 185,
       "new_cube": -1,
@@ -91,12 +95,13 @@
   "port_contract": {
     "decoded_position_status": "keep_rejected",
     "decoded_rejection_reason": "unsupported_destination_height_mismatch",
-    "live_landing_model": "saved_cube_start_context",
-    "next_action": "Do not admit decoded NewPos for 187/187; model the saved-context landing only through a bounded transition contract."
+    "runtime_transition_status": "unproved",
+    "saved_or_respawn_position_status": "do_not_admit",
+    "next_action": "Do not admit decoded NewPos or the observed saved/respawn position for 187/187 until a source probe stays in the intended loaded context and observes a real transition signal."
   },
   "screenshots": [
     "00-loaded.png",
-    "01-source-zone.png",
-    "02-final.png"
+    "02-source-zone.png",
+    "03-final.png"
   ]
 }

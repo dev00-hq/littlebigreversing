@@ -55,6 +55,8 @@ LIVE_ZONE1_DESTINATION = {
     "z": 21760,
 }
 
+INVALID_SOURCE_PROBE_VERDICT = "invalid_source_probe_respawned_or_safety_reset"
+
 HEIGHT_CLASSIFICATION = {
     "decoded_y": 5120,
     "raw_cell_surface_top_y": 2048,
@@ -249,6 +251,8 @@ def classify_observation(row: dict[str, Any]) -> str:
     }
     live_position = {k: LIVE_ZONE1_DESTINATION[k] for k in ("x", "y", "z")}
     if active_cube == LIVE_ZONE1_DESTINATION["cube"] and hero_pos == live_position:
+        if not transition.get("zones") and new_cube == -1:
+            return INVALID_SOURCE_PROBE_VERDICT
         return "loaded_cube185_live_zone1_destination"
     if active_cube == EXPECTED_DESTINATION["cube"]:
         if hero_pos["y"] == EXPECTED_DESTINATION["y"]:

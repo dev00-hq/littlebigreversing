@@ -261,38 +261,18 @@ fn resolveSavedCubeStartContextLanding(
     source_background_entry_index: usize,
     transition: runtime_session.PendingRoomTransition,
 ) !FinalLandingResolution {
-    if (source_scene_entry_index != 187 or
-        source_background_entry_index != 187 or
-        transition.source_zone_index != 1 or
-        transition.destination_cube != 185)
-    {
-        return .{
-            .rejected = .{
-                .reason = .unsupported_destination_world_position,
-                .diagnostics = try destinationWorldPositionDiagnostics(
-                    next_room,
-                    destination_world_position,
-                ),
-            },
-        };
-    }
-
-    if (!std.meta.eql(
-        destination_world_position,
-        locomotion.WorldPointSnapshot{ .x = 28416, .y = 2304, .z = 21760 },
-    )) {
-        return .{
-            .rejected = .{
-                .reason = .unsupported_destination_world_position,
-                .diagnostics = try destinationWorldPositionDiagnostics(
-                    next_room,
-                    destination_world_position,
-                ),
-            },
-        };
-    }
-
-    return .{ .resolved = destination_world_position };
+    _ = source_scene_entry_index;
+    _ = source_background_entry_index;
+    _ = transition;
+    return .{
+        .rejected = .{
+            .reason = .unsupported_destination_world_position,
+            .diagnostics = try destinationWorldPositionDiagnostics(
+                next_room,
+                destination_world_position,
+            ),
+        },
+    };
 }
 
 fn resolveNoReadjustLanding(
@@ -794,7 +774,7 @@ test "guarded 187/187 resolves no-readjust self destination before rejecting dec
     }
 }
 
-test "guarded 187/187 saved-context landing commits to the live runtime proof position" {
+test "guarded 187/187 saved-context landing remains unadmitted after invalid teleport proof" {
     const allocator = std.testing.allocator;
     const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -813,7 +793,7 @@ test "guarded 187/187 saved-context landing commits to the live runtime proof po
         runtime_query.MoveTargetStatus.target_height_mismatch,
         runtime_query.init(&room).evaluateHeroMoveTarget(initial_position).status,
     );
-    _ = try locomotion.seedSessionToNearestStandableStart(&room, &current_session);
+    const seeded_position = try locomotion.seedSessionToNearestStandableStart(&room, &current_session);
     var locomotion_status = try locomotion.inspectCurrentStatusRequiringAdmittedSeed(&room, current_session);
 
     const zone = room.scene.zones[1];
@@ -836,8 +816,8 @@ test "guarded 187/187 saved-context landing commits to the live runtime proof po
     try std.testing.expectEqual(@as(i16, 185), semantics.destination_cube);
     try std.testing.expect(semantics.dont_readjust_twinsen);
     try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 13824, .y = 5120, .z = 14848 }, decoded_destination);
-    // From tools/fixtures/phase5_187_runtime_proof.json: saved StartCube=(55,11,44)
-    // and SceneStart=(28648,2572,23036) drive this bounded live landing.
+    // The earlier live run teleported into an invalid source volume and reset to
+    // this position with no transition signal. Do not admit it as a zone landing.
     try current_session.setPendingRoomTransition(.{
         .source_zone_index = zone.index,
         .destination_cube = semantics.destination_cube,
@@ -858,27 +838,15 @@ test "guarded 187/187 saved-context landing commits to the live runtime proof po
     );
 
     switch (transition_result) {
-        .committed => |value| {
-            try std.testing.expectEqual(@as(usize, 187), value.source_scene_entry_index);
-            try std.testing.expectEqual(@as(usize, 187), value.source_background_entry_index);
-            try std.testing.expectEqual(@as(i16, 185), value.destination_cube);
-            try std.testing.expectEqual(@as(usize, 187), value.destination_scene_entry_index);
-            try std.testing.expectEqual(@as(usize, 187), value.destination_background_entry_index);
-            try std.testing.expectEqual(live_saved_context_landing, value.hero_position);
+        .rejected => |value| {
+            try std.testing.expectEqual(TransitionRejectionReason.unsupported_destination_world_position, value.reason);
         },
-        .rejected => return error.UnexpectedRejectedRoomTransition,
+        .committed => return error.UnexpectedCommittedRoomTransition,
     }
 
     try std.testing.expectEqual(@as(usize, 187), room.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 187), room.background.entry_index);
-    try std.testing.expectEqual(live_saved_context_landing, current_session.heroWorldPosition());
-    switch (locomotion_status) {
-        .raw_invalid_current => |value| {
-            try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_height_mismatch, value.reason);
-            try std.testing.expectEqual(live_saved_context_landing, value.hero_position);
-        },
-        else => return error.UnexpectedLocomotionStatus,
-    }
+    try std.testing.expectEqual(seeded_position, current_session.heroWorldPosition());
 }
 
 test "final-landing transitions still reject invalid destination positions explicitly" {

@@ -127,7 +127,7 @@ class Phase5187TransitionProbeTests(unittest.TestCase):
             self.row(active_cube=185, new_cube=185, new_y=5120, hero_y=6400)
         )
 
-        self.assertEqual("loaded_cube185_live_zone1_destination", live_zone1)
+        self.assertEqual(probe.INVALID_SOURCE_PROBE_VERDICT, live_zone1)
         self.assertEqual("loaded_cube185_kept_decoded_y", decoded)
         self.assertEqual("loaded_cube185_snapped_to_raw_cell_top", raw_cell)
         self.assertEqual("loaded_cube185_snapped_to_nearest_standable", standable)

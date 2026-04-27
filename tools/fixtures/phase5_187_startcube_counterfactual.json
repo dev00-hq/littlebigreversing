@@ -1,5 +1,5 @@
 {
-  "schema_version": "phase5-187-startcube-counterfactual-v1",
+  "schema_version": "phase5-187-startcube-counterfactual-v2",
   "source_run": "work/live_proofs/phase5_187187_startcube_counterfactual_54_11_44",
   "slack_report": "https://dev00-workspace.slack.com/archives/C0AVAUZ4077/p1777276664546719",
   "source_probe_position": {
@@ -8,6 +8,9 @@
     "z": 4608
   },
   "sync_candidate_source": false,
+  "post_teleport_zone_membership": [],
+  "transition_signal_observed": false,
+  "respawn_or_safety_reset_suspected": true,
   "start_cube_override": {
     "before": {
       "scene_start": {
@@ -46,7 +49,7 @@
     "y": 5376,
     "z": 15360
   },
-  "final_verdict": "loaded_cube185_live_zone1_destination",
+  "final_verdict": "invalid_source_probe_respawned_or_safety_reset",
   "final_pose": {
     "active_cube": 185,
     "new_cube": -1,
@@ -57,8 +60,9 @@
   },
   "conclusion": {
     "start_cube_alone_causal": false,
+    "counterfactual_invalid_for_transition_causality": true,
     "decoded_position_still_rejected": true,
-    "next_action": "Do not generalize saved-context landing from StartCube alone; isolate another context field or ChangeCube mode discriminator."
+    "next_action": "Do not use this run as transition-branch evidence; first prove a source coordinate remains inside the intended loaded context and fires a real transition."
   },
   "screenshots": [
     "00-loaded.png",
