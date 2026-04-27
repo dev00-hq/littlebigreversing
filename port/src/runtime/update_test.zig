@@ -100,6 +100,48 @@ fn standablePositionAtWorldXZ(
     };
 }
 
+fn requireJsonField(value: std.json.Value, field: []const u8) !std.json.Value {
+    return switch (value) {
+        .object => |object| object.get(field) orelse error.MissingJsonField,
+        else => error.ExpectedJsonObject,
+    };
+}
+
+fn expectJsonString(value: std.json.Value, expected: []const u8) !void {
+    switch (value) {
+        .string => |actual| try std.testing.expectEqualStrings(expected, actual),
+        else => return error.ExpectedJsonString,
+    }
+}
+
+fn expectJsonInteger(value: std.json.Value, expected: i64) !void {
+    switch (value) {
+        .integer => |actual| try std.testing.expectEqual(expected, actual),
+        else => return error.ExpectedJsonInteger,
+    }
+}
+
+fn jsonInteger(value: std.json.Value) !i32 {
+    return switch (value) {
+        .integer => |actual| std.math.cast(i32, actual) orelse error.JsonIntegerOutOfRange,
+        else => error.ExpectedJsonInteger,
+    };
+}
+
+fn expectJsonPoint(value: std.json.Value, expected: locomotion.WorldPointSnapshot) !void {
+    try std.testing.expectEqual(expected.x, try jsonInteger(try requireJsonField(value, "x")));
+    try std.testing.expectEqual(expected.y, try jsonInteger(try requireJsonField(value, "y")));
+    try std.testing.expectEqual(expected.z, try jsonInteger(try requireJsonField(value, "z")));
+}
+
+fn jsonPoint(value: std.json.Value) !locomotion.WorldPointSnapshot {
+    return .{
+        .x = try jsonInteger(try requireJsonField(value, "x")),
+        .y = try jsonInteger(try requireJsonField(value, "y")),
+        .z = try jsonInteger(try requireJsonField(value, "z")),
+    };
+}
+
 fn primeScene1919RewardBurst(
     room: *const room_state.RoomSnapshot,
     current_session: *runtime_session.Session,
@@ -582,13 +624,60 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
     const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
 
+    const fixture_path = try std.fs.path.join(allocator, &.{ resolved.repo_root, "tools/fixtures/phase5_0013_runtime_proof.json" });
+    defer allocator.free(fixture_path);
+    const fixture_json = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        fixture_path,
+        allocator,
+        .limited(64 * 1024),
+    );
+    defer allocator.free(fixture_json);
+    var parsed_fixture = try std.json.parseFromSlice(std.json.Value, allocator, fixture_json, .{});
+    defer parsed_fixture.deinit();
+
+    const fixture = parsed_fixture.value;
+    try expectJsonString(try requireJsonField(fixture, "schema_version"), "phase5-0013-runtime-proof-v1");
+    const generated_save = try requireJsonField(fixture, "generated_save");
+    try expectJsonString(
+        try requireJsonField(generated_save, "game_pathname"),
+        "SAVE\\scene2-bg1-key-midpoint-facing-key.LBA",
+    );
+    try expectJsonString(
+        try requireJsonField(generated_save, "player_name"),
+        "scene2-bg1-key-midpoint-facing-key",
+    );
+    try expectJsonInteger(try requireJsonField(generated_save, "num_version"), 0xA4);
+    const start_pose = try requireJsonField(generated_save, "start_pose");
+    try expectJsonInteger(try requireJsonField(start_pose, "active_cube"), 0);
+
+    const key = try requireJsonField(fixture, "key");
+    const key_spawn_extra = try requireJsonField(key, "spawn_extra");
+    const key_landing = try jsonPoint(try requireJsonField(key, "landing"));
+    const key_pickup = try requireJsonField(key, "pickup");
+    const door = try requireJsonField(fixture, "door");
+    const door_source = try requireJsonField(door, "source");
+    const door_target = try requireJsonField(door, "target");
+    const door_key_consumed = try requireJsonField(door, "key_consumed");
+    const door_key_consumed_hero = try requireJsonField(door_key_consumed, "hero");
+    const cellar_transition = try requireJsonField(door, "cellar_transition");
+    const cellar_transition_new_pos = try jsonPoint(try requireJsonField(cellar_transition, "new_pos"));
+    const ret = try requireJsonField(fixture, "return");
+    const return_transition = try requireJsonField(ret, "transition");
+    const return_probe_position = try jsonPoint(try requireJsonField(return_transition, "hero_before_commit"));
+    const return_new_pos = try jsonPoint(try requireJsonField(return_transition, "new_pos"));
+    const return_final_house = try requireJsonField(ret, "final_house");
+    const return_final_house_hero = try jsonPoint(try requireJsonField(return_final_house, "hero"));
+
     var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
     defer room.deinit(allocator);
+    try expectJsonInteger(try requireJsonField(door_source, "scene"), @intCast(room.scene.entry_index));
+    try expectJsonInteger(try requireJsonField(door_source, "background"), @intCast(room.background.entry_index));
 
     var current_session = try initSession(&room);
     defer current_session.deinit(std.testing.allocator);
 
-    current_session.setHeroWorldPosition(.{ .x = 1280, .y = 2048, .z = 5376 });
+    current_session.setHeroWorldPosition(try jsonPoint(start_pose));
     try current_session.submitHeroIntent(.default_action);
     const spawn_tick = try runtime_update.tick(&room, &current_session);
     try std.testing.expect(spawn_tick.consumed_hero_intent);
@@ -596,9 +685,7 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
     switch (spawn_tick.locomotion_status) {
         .raw_invalid_current => |value| {
             try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_height_mismatch, value.reason);
-            try std.testing.expectEqual(@as(usize, 1), value.zone_membership.slice().len);
-            try std.testing.expectEqual(.scenario, value.zone_membership.slice()[0].kind);
-            try std.testing.expectEqual(@as(i16, 0), value.zone_membership.slice()[0].num);
+            try std.testing.expectEqual(@as(usize, 0), value.zone_membership.slice().len);
         },
         else => return error.UnexpectedLocomotionStatus,
     }
@@ -606,8 +693,11 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
     try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(0));
     try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
     try std.testing.expectEqual(@as(usize, 1), current_session.rewardCollectibles().len);
+    try expectJsonInteger(try requireJsonField(key_spawn_extra, "sprite"), current_session.rewardCollectibles()[0].sprite_index);
+    try expectJsonInteger(try requireJsonField(key_spawn_extra, "divers"), current_session.rewardCollectibles()[0].quantity);
+    try expectJsonPoint(try requireJsonField(key_spawn_extra, "origin"), current_session.rewardCollectibles()[0].motion_start_world_position);
 
-    current_session.setHeroWorldPosition(try standablePositionAtWorldXZ(&room, 3826, 4366));
+    current_session.setHeroWorldPosition(try standablePositionAtWorldXZ(&room, key_landing.x, key_landing.z));
     var pickup_attempts: usize = 0;
     while (current_session.littleKeyCount() == 0 and pickup_attempts < 6) : (pickup_attempts += 1) {
         const pickup_tick = try runtime_update.tick(&room, &current_session);
@@ -618,12 +708,15 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
     try std.testing.expectEqual(@as(usize, 0), current_session.rewardCollectibles().len);
     try std.testing.expectEqual(@as(usize, 1), current_session.rewardPickupEvents().len);
     try std.testing.expectEqual(runtime_session.RuntimeBonusKind.little_key, current_session.rewardPickupEvents()[0].kind);
+    try expectJsonInteger(try requireJsonField(key_pickup, "nb_little_keys_after"), current_session.littleKeyCount());
+    try expectJsonInteger(try requireJsonField(key_pickup, "key_extras_after"), @intCast(current_session.rewardCollectibles().len));
 
-    current_session.setHeroWorldPosition(.{ .x = 3050, .y = 2048, .z = 4034 });
+    current_session.setHeroWorldPosition(try jsonPoint(door_key_consumed_hero));
     const unlock_effect = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
     try std.testing.expect(!unlock_effect.triggered_room_transition);
     try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, .house_consumed_key), unlock_effect.secret_room_door_event);
     try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+    try expectJsonInteger(try requireJsonField(door_key_consumed, "nb_little_keys_after"), current_session.littleKeyCount());
     try std.testing.expect(current_session.secretRoomHouseDoorUnlocked());
 
     current_session.setHeroWorldPosition(.{ .x = 9730, .y = 1025, .z = 762 });
@@ -634,6 +727,9 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
     try std.testing.expect(forward_effect.triggered_room_transition);
     try std.testing.expectEqual(@as(?zone_effects.SecretRoomDoorEvent, null), forward_effect.secret_room_door_event);
     try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+    const pending_forward = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
+    try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9724, .y = 1024, .z = 782 }, pending_forward.destination_world_position);
+    try std.testing.expectEqual(@as(?locomotion.WorldPointSnapshot, cellar_transition_new_pos), pending_forward.runtime_new_position);
 
     const forward_transition = try runtime_transition.applyPendingRoomTransition(
         allocator,
@@ -645,10 +741,10 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
     );
     switch (forward_transition) {
         .committed => |value| {
-            try std.testing.expectEqual(@as(usize, 2), value.destination_scene_entry_index);
-            try std.testing.expectEqual(@as(usize, 0), value.destination_background_entry_index);
+            try expectJsonInteger(try requireJsonField(door_target, "scene"), @intCast(value.destination_scene_entry_index));
+            try expectJsonInteger(try requireJsonField(door_target, "background"), @intCast(value.destination_background_entry_index));
             try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9724, .y = 1024, .z = 782 }, value.provisional_world_position);
-            try std.testing.expectEqual(@as(?locomotion.WorldPointSnapshot, locomotion.WorldPointSnapshot{ .x = 9723, .y = 1277, .z = 762 }), value.runtime_new_position);
+            try std.testing.expectEqual(@as(?locomotion.WorldPointSnapshot, cellar_transition_new_pos), value.runtime_new_position);
             try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 9724, .y = 1024, .z = 782 }, value.hero_position);
         },
         .rejected => return error.UnexpectedRejectedRoomTransition,
@@ -657,10 +753,13 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
     try std.testing.expectEqual(@as(usize, 0), room.background.entry_index);
 
     locomotion_status = try locomotion.inspectCurrentStatus(&room, current_session);
-    current_session.setHeroWorldPosition(.{ .x = 9730, .y = 1025, .z = 1126 });
+    current_session.setHeroWorldPosition(return_probe_position);
     const reverse_effect = try zone_effects.applyContainingZoneEffects(&room, &current_session, &.{});
     try std.testing.expect(reverse_effect.triggered_room_transition);
     try std.testing.expectEqual(@as(u8, 0), current_session.littleKeyCount());
+    const pending_reverse = current_session.pendingRoomTransition() orelse return error.MissingPendingRoomTransition;
+    try std.testing.expectEqual(return_new_pos, pending_reverse.destination_world_position);
+    try std.testing.expectEqual(@as(?locomotion.WorldPointSnapshot, null), pending_reverse.runtime_new_position);
 
     const reverse_transition = try runtime_transition.applyPendingRoomTransition(
         allocator,
@@ -674,7 +773,8 @@ test "runtime 0013 key seam carries through update-owned pickup, keyed cellar en
         .committed => |value| {
             try std.testing.expectEqual(@as(usize, 2), value.destination_scene_entry_index);
             try std.testing.expectEqual(@as(usize, 1), value.destination_background_entry_index);
-            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 2562, .y = 1024, .z = 3686 }, value.hero_position);
+            try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = return_final_house_hero.x, .y = 1024, .z = return_final_house_hero.z }, value.hero_position);
+            try std.testing.expectEqual(@as(?locomotion.WorldPointSnapshot, null), value.runtime_new_position);
         },
         .rejected => return error.UnexpectedRejectedRoomTransition,
     }

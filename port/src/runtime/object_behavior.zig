@@ -69,10 +69,17 @@ const secret_room_key_motion_start_world_position = world_geometry.WorldPointSna
 };
 
 const secret_room_key_motion_target_world_position = world_geometry.WorldPointSnapshot{
-    .x = 3826,
+    .x = 3768,
     .y = 2144,
     .z = 4366,
 };
+const secret_room_generated_save_key_source_position = world_geometry.WorldPointSnapshot{
+    .x = 3478,
+    .y = 2048,
+    .z = 4772,
+};
+const secret_room_generated_save_key_source_tolerance_xz: i32 = 96;
+const secret_room_generated_save_key_source_tolerance_y: i32 = 0;
 
 const RuntimeFunctionValue = union(enum) {
     s8_value: i8,
@@ -239,7 +246,12 @@ fn applySecretRoomDefaultAction(
 
     const query = runtime_query.init(room);
     if (current_session.gameVar(secret_room_key_var_game_index) != 0 or hasSecretRoomKeyCollectible(current_session.*)) return;
-    if (!try heroInsideSecretRoomKeyScenarioZone(query, current_session.heroWorldPosition())) return;
+    const hero_position = current_session.heroWorldPosition();
+    if (!try heroInsideSecretRoomKeyScenarioZone(query, hero_position) and
+        !heroAtGeneratedSaveKeySource(hero_position))
+    {
+        return;
+    }
 
     const key_landing_cell = try query.gridCellAtWorldPoint(
         secret_room_key_motion_target_world_position.x,
@@ -308,6 +320,16 @@ fn heroInsideSecretRoomKeyScenarioZone(
         if (zone.kind == .scenario and zone.num == secret_room_key_scenario_zone_num) return true;
     }
     return false;
+}
+
+fn heroAtGeneratedSaveKeySource(hero_position: world_geometry.WorldPointSnapshot) bool {
+    return absDiff(hero_position.x, secret_room_generated_save_key_source_position.x) <= secret_room_generated_save_key_source_tolerance_xz and
+        absDiff(hero_position.y, secret_room_generated_save_key_source_position.y) <= secret_room_generated_save_key_source_tolerance_y and
+        absDiff(hero_position.z, secret_room_generated_save_key_source_position.z) <= secret_room_generated_save_key_source_tolerance_xz;
+}
+
+fn absDiff(lhs: i32, rhs: i32) i32 {
+    return if (lhs >= rhs) lhs - rhs else rhs - lhs;
 }
 
 fn applyScene3636AdvanceStory(

@@ -1546,10 +1546,10 @@ test "viewer secret-room validation hotkeys jump to proof positions" {
         .proof_key_pickup,
     );
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, pickup_result.post_key_action);
-    const expected_pickup_cell = try runtime_query.init(&room).gridCellAtWorldPoint(3826, 4366);
+    const expected_pickup_cell = try runtime_query.init(&room).gridCellAtWorldPoint(3768, 4366);
     const expected_pickup_surface = try runtime_query.init(&room).cellTopSurface(expected_pickup_cell.x, expected_pickup_cell.z);
     try std.testing.expectEqual(
-        viewer_shell.WorldPointSnapshot{ .x = 3826, .y = expected_pickup_surface.top_y, .z = 4366 },
+        viewer_shell.WorldPointSnapshot{ .x = 3768, .y = expected_pickup_surface.top_y, .z = 4366 },
         runtime_session.heroWorldPosition(),
     );
 
@@ -1632,9 +1632,9 @@ test "viewer 0013 key overlay follows pickup and cellar return state" {
     try runtime_session.submitHeroIntent(.default_action);
     _ = try runtime_update.tick(&room, &runtime_session);
 
-    const key_landing_cell = try runtime_query.init(&room).gridCellAtWorldPoint(3826, 4366);
+    const key_landing_cell = try runtime_query.init(&room).gridCellAtWorldPoint(3768, 4366);
     const key_landing_surface = try runtime_query.init(&room).cellTopSurface(key_landing_cell.x, key_landing_cell.z);
-    runtime_session.setHeroWorldPosition(.{ .x = 3826, .y = key_landing_surface.top_y, .z = 4366 });
+    runtime_session.setHeroWorldPosition(.{ .x = 3768, .y = key_landing_surface.top_y, .z = 4366 });
     while (runtime_session.littleKeyCount() == 0) {
         _ = try runtime_update.tick(&room, &runtime_session);
     }

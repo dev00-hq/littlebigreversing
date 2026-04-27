@@ -136,7 +136,7 @@ test "runtime object behavior applies guarded 2/1 default action to spawn the li
     try std.testing.expectEqual(@as(u8, 1), spawn_event.quantity);
 
     const key = current_session.rewardCollectibles()[0];
-    const key_landing_cell = try runtime_query.init(&room).gridCellAtWorldPoint(3826, 4366);
+    const key_landing_cell = try runtime_query.init(&room).gridCellAtWorldPoint(3768, 4366);
     const key_landing_surface = try runtime_query.init(&room).cellTopSurface(key_landing_cell.x, key_landing_cell.z);
     try std.testing.expectEqual(@as(usize, 7), key.source_object_index);
     try std.testing.expectEqual(runtime_session.RuntimeBonusKind.little_key, key.kind);
@@ -147,7 +147,7 @@ test "runtime object behavior applies guarded 2/1 default action to spawn the li
     try std.testing.expectEqual(@as(i32, 3072), key.motion_start_world_position.x);
     try std.testing.expectEqual(@as(i32, 3072), key.motion_start_world_position.y);
     try std.testing.expectEqual(@as(i32, 5120), key.motion_start_world_position.z);
-    try std.testing.expectEqual(@as(i32, 3826), key.motion_target_world_position.x);
+    try std.testing.expectEqual(@as(i32, 3768), key.motion_target_world_position.x);
     try std.testing.expectEqual(@as(i32, 2144), key.motion_target_world_position.y);
     try std.testing.expectEqual(@as(i32, 4366), key.motion_target_world_position.z);
     try std.testing.expect(!key.settled);
