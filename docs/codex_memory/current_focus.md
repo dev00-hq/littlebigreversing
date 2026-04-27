@@ -12,7 +12,7 @@
 - Port `187/187` zone `1` cube `185` still rejects decoded landing `(13824,5120,14848)` as `unsupported_destination_height_mismatch`.
 - `187/187` runtime probe is invalidated: teleporting to `(1536,256,4608)` immediately snapped to `(28416,2304,21760)` with `zones=[]`, `new_cube=-1`, and a clover/life-loss indicator. Treat this as invalid teleport/death/safety reset, not a transition.
 - `inside dark monk1.LBA` is only proven as a cube-`185` save with raw scene entry `187`; it is not proof that decoded `187/187` coordinates are valid in the loaded runtime frame.
-- Life loss must be detected by runtime evidence: `tools/life_trace/life_loss_cdb_watch.py` arms a CDB write watch on `ListVarGame[FLAG_CLOVER]` (`0x0049A08E`) and records the stack.
+- Life loss must be detected by runtime evidence: the WinMM proxy's `LBA2_RUNTIME_WATCH=1` path records no-debugger `life_loss_detected` rows from `ListVarGame[FLAG_CLOVER]` (`0x0049A08E`); `tools/life_trace/life_loss_cdb_watch.py` is reserved for exact writer-stack proof.
 - `2/2` public exit rejects as exterior; `3/3` zones `1`/`8` commit as Tralu; zone `15` rejects.
 - Original runtime uses the checked-in WinMM MCI proxy shim.
 - `0013` fixture `tools/fixtures/phase5_0013_runtime_proof.json` covers CLI save load, key pickup, key-consume door, cellar entry, and Down-return.

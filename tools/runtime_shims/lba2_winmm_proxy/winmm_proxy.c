@@ -2,9 +2,21 @@
 #include <windows.h>
 #include <mmsystem.h>
 #define LBA2_FAKE_MCI_DEVICE 1
+#define LBA2_RUNTIME_WATCH_LOG "lba2_runtime_watch.log"
+#define LBA2_RUNTIME_WATCH_POLL_MS 50
+#define LBA2_FLAG_CLOVER 251
+#define LBA2_CLOVER_COUNTER 0x0049A08E
+#define LBA2_ACTIVE_CUBE 0x00497F04
+#define LBA2_NEW_CUBE 0x0047561C
+#define LBA2_HERO_X 0x0049A1DA
+#define LBA2_HERO_Y 0x0049A1DE
+#define LBA2_HERO_Z 0x0049A1E2
+#define LBA2_HERO_BETA 0x0049A1EA
 
 extern IMAGE_DOS_HEADER __ImageBase;
 static HMODULE real_winmm;
+static HANDLE runtime_watch_thread;
+static volatile LONG runtime_watch_stop;
 
 static FARPROC real_proc(const char *name) {
     if (real_winmm == NULL) {
@@ -59,6 +71,180 @@ static void log_mci_call(const char *api, UINT msg, DWORD_PTR params, MCIERROR b
         DWORD written = 0;
         WriteFile(file, line, lstrlenA(line), &written, NULL);
         CloseHandle(file);
+    }
+}
+
+static BOOL env_truthy(const char *name) {
+    char value[16];
+    DWORD len = GetEnvironmentVariableA(name, value, sizeof(value));
+    if (len == 0) {
+        return FALSE;
+    }
+    if (value[0] == '0' || value[0] == 'n' || value[0] == 'N') {
+        return FALSE;
+    }
+    if (lstrcmpiA(value, "false") == 0 || lstrcmpiA(value, "off") == 0) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static DWORD runtime_watch_poll_ms(void) {
+    char value[16];
+    DWORD len = GetEnvironmentVariableA("LBA2_RUNTIME_WATCH_POLL_MS", value, sizeof(value));
+    if (len == 0 || len >= sizeof(value)) {
+        return LBA2_RUNTIME_WATCH_POLL_MS;
+    }
+
+    DWORD poll_ms = 0;
+    for (DWORD i = 0; value[i] >= '0' && value[i] <= '9'; ++i) {
+        poll_ms = (poll_ms * 10) + (DWORD)(value[i] - '0');
+    }
+    if (poll_ms < 10 || poll_ms > 5000) {
+        return LBA2_RUNTIME_WATCH_POLL_MS;
+    }
+    return poll_ms;
+}
+
+static void runtime_watch_log_path(char *path, DWORD path_len) {
+    DWORD env_len = GetEnvironmentVariableA("LBA2_RUNTIME_WATCH_LOG", path, path_len);
+    if (env_len > 0 && env_len < path_len) {
+        return;
+    }
+
+    DWORD len = GetModuleFileNameA((HMODULE)&__ImageBase, path, path_len);
+    if (len == 0 || len >= path_len) {
+        lstrcpynA(path, LBA2_RUNTIME_WATCH_LOG, path_len);
+        return;
+    }
+    BOOL found_separator = FALSE;
+    for (DWORD i = len; i > 0; --i) {
+        if (path[i - 1] == '\\' || path[i - 1] == '/') {
+            path[i] = 0;
+            found_separator = TRUE;
+            break;
+        }
+    }
+    if (!found_separator) {
+        lstrcpynA(path, LBA2_RUNTIME_WATCH_LOG, path_len);
+        return;
+    }
+    if (lstrlenA(path) + (int)sizeof(LBA2_RUNTIME_WATCH_LOG) >= (int)path_len) {
+        lstrcpynA(path, LBA2_RUNTIME_WATCH_LOG, path_len);
+        return;
+    }
+    lstrcatA(path, LBA2_RUNTIME_WATCH_LOG);
+}
+
+static void append_runtime_watch_line(const char *line) {
+    char path[MAX_PATH];
+    runtime_watch_log_path(path, sizeof(path));
+    HANDLE file = CreateFileA(path, FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (file != INVALID_HANDLE_VALUE) {
+        DWORD written = 0;
+        WriteFile(file, line, lstrlenA(line), &written, NULL);
+        CloseHandle(file);
+    }
+}
+
+static BOOL read_i16_addr(DWORD address, SHORT *out) {
+    __try {
+        *out = *(volatile SHORT *)address;
+        return TRUE;
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return FALSE;
+    }
+}
+
+static BOOL read_i32_addr(DWORD address, LONG *out) {
+    __try {
+        *out = *(volatile LONG *)address;
+        return TRUE;
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return FALSE;
+    }
+}
+
+static LONG read_i32_addr_or(DWORD address, LONG fallback) {
+    LONG value = fallback;
+    read_i32_addr(address, &value);
+    return value;
+}
+
+static void append_runtime_watch_snapshot(const char *event_name, SHORT previous, SHORT current) {
+    LONG active_cube = read_i32_addr_or(LBA2_ACTIVE_CUBE, -1);
+    LONG new_cube = read_i32_addr_or(LBA2_NEW_CUBE, -1);
+    LONG x = read_i32_addr_or(LBA2_HERO_X, 0);
+    LONG y = read_i32_addr_or(LBA2_HERO_Y, 0);
+    LONG z = read_i32_addr_or(LBA2_HERO_Z, 0);
+    LONG beta = read_i32_addr_or(LBA2_HERO_BETA, 0);
+    char line[512];
+    wsprintfA(
+        line,
+        "{\"event\":\"%s\",\"tick\":%lu,\"counter\":\"ListVarGame[FLAG_CLOVER]\",\"address\":\"0x%08lx\",\"flag_clover\":%d,\"previous\":%d,\"current\":%d,\"delta\":%d,\"active_cube\":%ld,\"new_cube\":%ld,\"hero\":{\"x\":%ld,\"y\":%ld,\"z\":%ld,\"beta\":%ld}}\r\n",
+        event_name,
+        GetTickCount(),
+        (DWORD)LBA2_CLOVER_COUNTER,
+        LBA2_FLAG_CLOVER,
+        previous,
+        current,
+        (int)current - (int)previous,
+        active_cube,
+        new_cube,
+        x,
+        y,
+        z,
+        beta);
+    append_runtime_watch_line(line);
+}
+
+static DWORD WINAPI runtime_watch_main(LPVOID param) {
+    (void)param;
+    DWORD poll_ms = runtime_watch_poll_ms();
+    SHORT previous = 0;
+    BOOL has_previous = read_i16_addr(LBA2_CLOVER_COUNTER, &previous);
+    if (has_previous) {
+        append_runtime_watch_snapshot("watch_started", previous, previous);
+    } else {
+        append_runtime_watch_line("{\"event\":\"watch_started\",\"counter\":\"ListVarGame[FLAG_CLOVER]\",\"address\":\"0x0049a08e\",\"status\":\"initial_read_failed\"}\r\n");
+    }
+
+    while (InterlockedCompareExchange(&runtime_watch_stop, 0, 0) == 0) {
+        SHORT current = 0;
+        if (read_i16_addr(LBA2_CLOVER_COUNTER, &current)) {
+            if (!has_previous) {
+                previous = current;
+                has_previous = TRUE;
+                append_runtime_watch_snapshot("watch_recovered", current, current);
+            } else if (current != previous) {
+                append_runtime_watch_snapshot("clover_changed", previous, current);
+                if (current < previous) {
+                    append_runtime_watch_snapshot("life_loss_detected", previous, current);
+                }
+                previous = current;
+            }
+        }
+        Sleep(poll_ms);
+    }
+
+    append_runtime_watch_line("{\"event\":\"watch_stopped\"}\r\n");
+    return 0;
+}
+
+static void start_runtime_watch(void) {
+    if (!env_truthy("LBA2_RUNTIME_WATCH")) {
+        return;
+    }
+    InterlockedExchange(&runtime_watch_stop, 0);
+    runtime_watch_thread = CreateThread(NULL, 0, runtime_watch_main, NULL, 0, NULL);
+}
+
+static void stop_runtime_watch(void) {
+    InterlockedExchange(&runtime_watch_stop, 1);
+    if (runtime_watch_thread != NULL) {
+        WaitForSingleObject(runtime_watch_thread, 250);
+        CloseHandle(runtime_watch_thread);
+        runtime_watch_thread = NULL;
     }
 }
 
@@ -345,6 +531,12 @@ MMRESULT WINAPI proxy_timeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK c
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved) {
     (void)instance;
     (void)reserved;
+    if (reason == DLL_PROCESS_ATTACH) {
+        DisableThreadLibraryCalls(instance);
+        start_runtime_watch();
+    } else if (reason == DLL_PROCESS_DETACH) {
+        stop_runtime_watch();
+    }
     if (reason == DLL_PROCESS_DETACH && real_winmm != NULL) {
         FreeLibrary(real_winmm);
         real_winmm = NULL;
