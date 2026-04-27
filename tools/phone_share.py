@@ -374,8 +374,11 @@ def publish_image(args: argparse.Namespace) -> None:
     with Image.open(source) as raw:
         image = raw.copy()
         image.thumbnail((max_width, 100000), Image.Resampling.LANCZOS)
-        if image.mode not in ("RGB", "L"):
-            background = Image.new("RGB", image.size, (255, 255, 255))
+        if args.kind == "game" and "A" in image.getbands():
+            image = image.convert("RGB")
+        elif image.mode not in ("RGB", "L"):
+            matte = (0, 0, 0) if args.kind == "game" else (255, 255, 255)
+            background = Image.new("RGB", image.size, matte)
             if "A" in image.getbands():
                 background.paste(image, mask=image.getchannel("A"))
             else:

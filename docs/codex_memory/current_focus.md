@@ -16,6 +16,7 @@
 - `3/3` zones `1`/`8` now commit as Tralu: cube `19 -> 21/19`, `20 -> 22/20`; zone `15` remains unsupported.
 - Original-runtime CD gate uses run3 MCI shim until mixed-mode media is proved.
 - `0013` door is scene-2 zone `0`: `2/1 -> 2/0` consumes one key and lands `(2562,2048,3322)` after shadow; `2/0 -> 2/1` is free and lands `(9725,1024,1098)`.
+- `0013` canonical runtime fixture is `tools/fixtures/phase5_0013_runtime_proof.json`: CLI-loaded generated save, key pickup, door key-consume, cellar transition, and Down-return to house are all memory-validated.
 - `0013` key source is scene `2/1` default action gated by `gameVar(0)==0`; it kills obj `7`, grants obj `0`, and sets `gameVar(0)=1`.
 - `0013` key pickup proved: `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`.
 - `inspect-room-transitions 2 1/2 0 --json` exposes no-key lock, key consumption, and the synthetic free cellar return.
@@ -38,6 +39,7 @@
 - Use `secret_room_door_watch.py`; prefer Frida/read-only over CDB.
 - Internal `DoLifeLoop` instruction hooks use function/probe form; live `SPRITE_CLE` proof is enough for `0013`.
 - Save helpers: overwrite only, never `CurrentSaveGame()`, then CLI-argv reload with autosave guard and memory coordinates.
+- For `0013` implementation/regression work, read `docs/PHASE5_0013_RUNTIME_PROOF.md` and assert the fixture before touching new runtime behavior.
 - Otherwise choose the next bounded Phase 5 seam from an existing guarded gameplay slice.
 - Use `dialog_text_dump.py` only if room-36 needs proof; no save/load during active dialog.
 

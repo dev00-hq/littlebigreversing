@@ -1,0 +1,162 @@
+{
+  "schema_version": "phase5-0013-runtime-proof-v1",
+  "source_run": "work/live_proofs/phase5_0013_key_cellar_return_live_20260426_r3",
+  "generated_save": {
+    "argv": [
+      "LBA2.EXE",
+      "SAVE\\scene2-bg1-key-midpoint-facing-key.LBA"
+    ],
+    "game_pathname": "SAVE\\scene2-bg1-key-midpoint-facing-key.LBA",
+    "player_name": "scene2-bg1-key-midpoint-facing-key",
+    "num_version": 164,
+    "start_pose": {
+      "active_cube": 0,
+      "x": 3478,
+      "y": 2048,
+      "z": 4772,
+      "beta": 3584
+    }
+  },
+  "controls": {
+    "spawn_key": {
+      "key": "W",
+      "seconds": 0.45
+    },
+    "pickup_key": {
+      "key": "UP",
+      "heading_beta": 1428
+    },
+    "walk_through_door": {
+      "key": "UP",
+      "heading_beta": 2583
+    },
+    "return_to_house": {
+      "key": "DOWN",
+      "seconds": 5.0
+    }
+  },
+  "key": {
+    "spawn_extra": {
+      "sprite": 6,
+      "divers": 1,
+      "origin": {
+        "x": 3072,
+        "y": 3072,
+        "z": 5120
+      }
+    },
+    "landing": {
+      "x": 3768,
+      "y": 2144,
+      "z": 4366
+    },
+    "pickup": {
+      "nb_little_keys_before": 0,
+      "nb_little_keys_after": 1,
+      "key_extras_after": 0,
+      "hero": {
+        "active_cube": 0,
+        "x": 3547,
+        "y": 2048,
+        "z": 4711,
+        "beta": 1428
+      }
+    }
+  },
+  "door": {
+    "source": {
+      "scene": 2,
+      "background": 1,
+      "active_cube": 0
+    },
+    "target": {
+      "scene": 2,
+      "background": 0,
+      "active_cube": 1
+    },
+    "key_consumed": {
+      "nb_little_keys_before": 1,
+      "nb_little_keys_after": 0,
+      "hero": {
+        "active_cube": 0,
+        "x": 3050,
+        "y": 2048,
+        "z": 4034,
+        "beta": 2583
+      }
+    },
+    "cellar_transition": {
+      "active_cube_before": 0,
+      "active_cube_after": 1,
+      "hero": {
+        "x": 9686,
+        "y": 1024,
+        "z": 762,
+        "beta": 2583
+      },
+      "new_pos": {
+        "x": 9723,
+        "y": 1277,
+        "z": 762
+      }
+    },
+    "final_cellar": {
+      "active_cube": 1,
+      "hero": {
+        "x": 9355,
+        "y": 1024,
+        "z": 762,
+        "beta": 2583
+      },
+      "new_pos": {
+        "x": 9723,
+        "y": 1277,
+        "z": 762
+      }
+    }
+  },
+  "return": {
+    "source": {
+      "scene": 2,
+      "background": 0,
+      "active_cube": 1
+    },
+    "target": {
+      "scene": 2,
+      "background": 1,
+      "active_cube": 0
+    },
+    "transition": {
+      "active_cube_before": 1,
+      "active_cube_after": 0,
+      "hero_before_commit": {
+        "x": 9730,
+        "y": 1025,
+        "z": 1126,
+        "beta": 2583
+      },
+      "new_pos": {
+        "x": 2562,
+        "y": 2049,
+        "z": 3686
+      }
+    },
+    "final_house": {
+      "active_cube": 0,
+      "hero": {
+        "x": 2562,
+        "y": 2048,
+        "z": 3686,
+        "beta": 2583
+      }
+    }
+  },
+  "screenshots": [
+    "01_loaded_midpoint_facing_key.png",
+    "04_key_picked_up.png",
+    "05_facing_door_after_pickup.png",
+    "06_door_unlocked_key_consumed.png",
+    "08_final_cellar.png",
+    "10_final_house_return.png"
+  ]
+}

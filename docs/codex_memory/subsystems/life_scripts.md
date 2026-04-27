@@ -17,6 +17,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - Guarded `19/19` reward pickups require same admitted landing cell plus existing proximity/cap checks.
 - `0013` key source is W/default action: `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0`, `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
 - `0013` key pickup is Frida poll-only proved: `SPRITE_CLE`, `Divers=1`, `NbLittleKeys 0 -> 1`; viewer covers W, pickup overlay, keyed cellar entry, and free return.
+- `0013` end-to-end runtime proof is canonicalized in `tools/fixtures/phase5_0013_runtime_proof.json` and `docs/PHASE5_0013_RUNTIME_PROOF.md`: generated-save load, W key spawn, pickup, door key-consume, cellar transition, and Down-return are memory-validated.
 - `inspect-room-transitions` is runtime-aware for `0013`: `2/1` reports no-key/key paths; `2/0` includes synthetic free return.
 - Named saves: direct globals + pose context + `SaveGame(TRUE)`: `PlayerName` `0x0049762c`, `GamePathname` `0x00497424`, `NumVersion=0xA4` at `0x00475620`, hero pose, `SceneStart` `0x0049a0a8..b0`, `StartCube` `0x0049a0e4..ec`.
 - Named loads: `LBA2.EXE SAVE\<name>.LBA` with runtime `SAVE\` file and autosave hidden/restored so `PlayerGameList()` cannot clobber `GamePathname`.
@@ -44,6 +45,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - W path is default action, not search action.
 - Use `secret_room_key_counter_cdb_watch.py` only for deliberate CDB watches.
 - Internal `DoLifeLoop` hooks use function/probe form; callbacks-object form is only for real function entries.
+- For LBA2 screenshots, preserve RGB for game captures; alpha may be bogus and can blank phone-share output if used as transparency.
 - On Sendell, use `CurrentDial` global `0x004CCF10`; old `0x00475630` / `513` is a trap.
 - Room-36 page 2 is renderer pagination; do not reintroduce `514` without new classic proof.
 

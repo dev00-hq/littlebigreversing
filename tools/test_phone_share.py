@@ -162,6 +162,40 @@ class PhoneShareTest(unittest.TestCase):
         with Image.open(output) as compressed:
             self.assertEqual(compressed.size, (1024, 768))
 
+    @unittest.skipIf(phone_share.Image is None, "Pillow not installed")
+    def test_publish_game_image_ignores_bad_alpha_channel(self) -> None:
+        from PIL import Image
+
+        paths = self.paths()
+        source = paths.repo_root / "game_bad_alpha.png"
+        image = Image.new("RGBA", (16, 16), (180, 60, 40, 0))
+        image.save(source)
+
+        args = type(
+            "Args",
+            (),
+            {
+                "source": source,
+                "share_dir": paths.share_dir,
+                "kind": "game",
+                "caption": "Bad alpha game capture",
+                "status": None,
+                "quality": 100,
+                "max_width": None,
+            },
+        )()
+
+        phone_share.publish_image(args)
+
+        manifest = phone_share.read_manifest(paths)
+        output = paths.share_dir / manifest["images"][0]["file"]
+        with Image.open(output) as compressed:
+            pixel = compressed.convert("RGB").getpixel((0, 0))
+
+        self.assertGreater(pixel[0], 120)
+        self.assertLess(pixel[1], 120)
+        self.assertLess(pixel[2], 120)
+
 
 if __name__ == "__main__":
     unittest.main()
