@@ -71,6 +71,7 @@ pub const RewardPickupEvent = struct {
 pub const PendingRoomTransitionDestinationPositionKind = enum {
     provisional_zone_relative,
     final_landing,
+    saved_cube_start_context,
 };
 
 pub const PendingRoomTransition = struct {

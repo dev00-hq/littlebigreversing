@@ -171,27 +171,30 @@ pub fn applyPendingRoomTransition(
         next_room.scene.object_behavior_seeds,
     );
     defer transition_probe_session.deinit(allocator);
-    const destination_locomotion_status = locomotion.inspectCurrentStatusRequiringAdmittedSeed(&next_room, transition_probe_session) catch |err| switch (err) {
-        error.LocomotionStatusInvalidPosition => {
-            const diagnostics = try destinationWorldPositionDiagnostics(
-                &next_room,
-                final_landing_world_position,
-            );
-            next_room_owned = false;
-            next_room.deinit(allocator);
-            return rejectPendingRoomTransition(
-                current_session,
-                locomotion_status,
-                pre_commit_locomotion_status,
-                source_scene_entry_index,
-                source_background_entry_index,
-                transition.destination_cube,
-                .unsupported_destination_world_position,
-                diagnostics,
-            );
-        },
-        else => return err,
-    };
+    const destination_locomotion_status = if (transition.destination_world_position_kind == .saved_cube_start_context)
+        try locomotion.inspectCurrentStatus(&next_room, transition_probe_session)
+    else
+        locomotion.inspectCurrentStatusRequiringAdmittedSeed(&next_room, transition_probe_session) catch |err| switch (err) {
+            error.LocomotionStatusInvalidPosition => {
+                const diagnostics = try destinationWorldPositionDiagnostics(
+                    &next_room,
+                    final_landing_world_position,
+                );
+                next_room_owned = false;
+                next_room.deinit(allocator);
+                return rejectPendingRoomTransition(
+                    current_session,
+                    locomotion_status,
+                    pre_commit_locomotion_status,
+                    source_scene_entry_index,
+                    source_background_entry_index,
+                    transition.destination_cube,
+                    .unsupported_destination_world_position,
+                    diagnostics,
+                );
+            },
+            else => return err,
+        };
 
     try current_session.replaceRoomLocalState(
         allocator,
@@ -229,10 +232,15 @@ fn resolveFinalLandingWorldPosition(
     _ = current_session;
     _ = locomotion_status;
     _ = pre_commit_locomotion_status;
-    _ = source_scene_entry_index;
-    _ = source_background_entry_index;
     return switch (transition.destination_world_position_kind) {
         .final_landing => .{ .resolved = transition.destination_world_position },
+        .saved_cube_start_context => resolveSavedCubeStartContextLanding(
+            next_room,
+            transition.destination_world_position,
+            source_scene_entry_index,
+            source_background_entry_index,
+            transition,
+        ),
         .provisional_zone_relative => if (transition.dont_readjust_twinsen)
             resolveNoReadjustLanding(
                 next_room,
@@ -244,6 +252,47 @@ fn resolveFinalLandingWorldPosition(
                 transition.destination_world_position,
             ),
     };
+}
+
+fn resolveSavedCubeStartContextLanding(
+    next_room: *const room_state.RoomSnapshot,
+    destination_world_position: locomotion.WorldPointSnapshot,
+    source_scene_entry_index: usize,
+    source_background_entry_index: usize,
+    transition: runtime_session.PendingRoomTransition,
+) !FinalLandingResolution {
+    if (source_scene_entry_index != 187 or
+        source_background_entry_index != 187 or
+        transition.source_zone_index != 1 or
+        transition.destination_cube != 185)
+    {
+        return .{
+            .rejected = .{
+                .reason = .unsupported_destination_world_position,
+                .diagnostics = try destinationWorldPositionDiagnostics(
+                    next_room,
+                    destination_world_position,
+                ),
+            },
+        };
+    }
+
+    if (!std.meta.eql(
+        destination_world_position,
+        locomotion.WorldPointSnapshot{ .x = 28416, .y = 2304, .z = 21760 },
+    )) {
+        return .{
+            .rejected = .{
+                .reason = .unsupported_destination_world_position,
+                .diagnostics = try destinationWorldPositionDiagnostics(
+                    next_room,
+                    destination_world_position,
+                ),
+            },
+        };
+    }
+
+    return .{ .resolved = destination_world_position };
 }
 
 fn resolveNoReadjustLanding(
@@ -741,6 +790,93 @@ test "guarded 187/187 resolves no-readjust self destination before rejecting dec
     try std.testing.expectEqual(seeded_position, current_session.heroWorldPosition());
     switch (locomotion_status) {
         .seeded_valid => |value| try std.testing.expectEqual(seeded_position, value.hero_position),
+        else => return error.UnexpectedLocomotionStatus,
+    }
+}
+
+test "guarded 187/187 saved-context landing commits to the live runtime proof position" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 187, 187);
+    defer room.deinit(allocator);
+
+    var current_session = try viewer_shell.initSession(allocator, &room);
+    defer current_session.deinit(allocator);
+    const initial_position = locomotion.WorldPointSnapshot{
+        .x = 28647,
+        .y = 2304,
+        .z = 21741,
+    };
+    try std.testing.expectEqual(
+        runtime_query.MoveTargetStatus.target_height_mismatch,
+        runtime_query.init(&room).evaluateHeroMoveTarget(initial_position).status,
+    );
+    _ = try locomotion.seedSessionToNearestStandableStart(&room, &current_session);
+    var locomotion_status = try locomotion.inspectCurrentStatusRequiringAdmittedSeed(&room, current_session);
+
+    const zone = room.scene.zones[1];
+    const semantics = switch (zone.semantics) {
+        .change_cube => |value| value,
+        else => return error.ExpectedChangeCubeZoneSemantics,
+    };
+    const decoded_destination = locomotion.WorldPointSnapshot{
+        .x = semantics.destination_x,
+        .y = semantics.destination_y,
+        .z = semantics.destination_z,
+    };
+    const live_saved_context_landing = locomotion.WorldPointSnapshot{
+        .x = 28416,
+        .y = 2304,
+        .z = 21760,
+    };
+
+    try std.testing.expectEqual(@as(usize, 1), zone.index);
+    try std.testing.expectEqual(@as(i16, 185), semantics.destination_cube);
+    try std.testing.expect(semantics.dont_readjust_twinsen);
+    try std.testing.expectEqual(locomotion.WorldPointSnapshot{ .x = 13824, .y = 5120, .z = 14848 }, decoded_destination);
+    // From tools/fixtures/phase5_187_runtime_proof.json: saved StartCube=(55,11,44)
+    // and SceneStart=(28648,2572,23036) drive this bounded live landing.
+    try current_session.setPendingRoomTransition(.{
+        .source_zone_index = zone.index,
+        .destination_cube = semantics.destination_cube,
+        .destination_world_position_kind = .saved_cube_start_context,
+        .destination_world_position = live_saved_context_landing,
+        .yaw = semantics.yaw,
+        .test_brick = semantics.test_brick,
+        .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
+    });
+
+    const transition_result = try applyPendingRoomTransition(
+        allocator,
+        resolved,
+        &room,
+        &current_session,
+        &locomotion_status,
+        locomotion_status,
+    );
+
+    switch (transition_result) {
+        .committed => |value| {
+            try std.testing.expectEqual(@as(usize, 187), value.source_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 187), value.source_background_entry_index);
+            try std.testing.expectEqual(@as(i16, 185), value.destination_cube);
+            try std.testing.expectEqual(@as(usize, 187), value.destination_scene_entry_index);
+            try std.testing.expectEqual(@as(usize, 187), value.destination_background_entry_index);
+            try std.testing.expectEqual(live_saved_context_landing, value.hero_position);
+        },
+        .rejected => return error.UnexpectedRejectedRoomTransition,
+    }
+
+    try std.testing.expectEqual(@as(usize, 187), room.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 187), room.background.entry_index);
+    try std.testing.expectEqual(live_saved_context_landing, current_session.heroWorldPosition());
+    switch (locomotion_status) {
+        .raw_invalid_current => |value| {
+            try std.testing.expectEqual(runtime_query.MoveTargetStatus.target_height_mismatch, value.reason);
+            try std.testing.expectEqual(live_saved_context_landing, value.hero_position);
+        },
         else => return error.UnexpectedLocomotionStatus,
     }
 }
