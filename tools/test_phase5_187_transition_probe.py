@@ -43,6 +43,35 @@ class Phase5187TransitionProbeTests(unittest.TestCase):
         self.assertEqual({"cube": 185, "x": 28416, "y": 2304, "z": 21760}, probe.LIVE_ZONE1_DESTINATION)
         self.assertEqual({"x": 1536, "y": 256, "z": 4608}, probe.RUNTIME_SOURCE_PROBE)
 
+    def test_classic_context_reads_start_position_fields(self) -> None:
+        values = {
+            address: index
+            for index, (address, _size) in enumerate(probe.CLASSIC_CONTEXT_FIELDS.values(), start=1)
+        }
+
+        class Reader:
+            def read_int(self, address: int, size: int) -> int:
+                assert size == 4
+                return values[address]
+
+        context = probe.read_classic_context(Reader())
+
+        self.assertEqual(
+            {
+                "scene_start_x": 1,
+                "scene_start_y": 2,
+                "scene_start_z": 3,
+                "start_x_cube": 4,
+                "start_y_cube": 5,
+                "start_z_cube": 6,
+            },
+            context,
+        )
+
+    def test_classic_zone_relative_destination_uses_probe_offset(self) -> None:
+        destination = probe.classic_zone_relative_destination(probe.RUNTIME_SOURCE_PROBE)
+
+        self.assertEqual({"cube": 185, "x": 14336, "y": 5376, "z": 15360}, destination)
 
     def write_save_stub(self, path: Path, *, version: int, num_cube: int, name: str) -> None:
         path.write_bytes(bytes([version]) + int(num_cube).to_bytes(4, "little", signed=True) + name.encode("ascii") + b"\x00payload")

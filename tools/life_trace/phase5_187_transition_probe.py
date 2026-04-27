@@ -57,6 +57,15 @@ HEIGHT_CLASSIFICATION = {
     "nearest_standable_surface_top_y": 6400,
 }
 
+CLASSIC_CONTEXT_FIELDS = {
+    "scene_start_x": (0x0049A0A8, 4),
+    "scene_start_y": (0x0049A0AC, 4),
+    "scene_start_z": (0x0049A0B0, 4),
+    "start_x_cube": (0x0049A0E4, 4),
+    "start_y_cube": (0x0049A0E8, 4),
+    "start_z_cube": (0x0049A0EC, 4),
+}
+
 EXPECTED_SAVE_NUM_CUBE = 185
 EXPECTED_SAVE_RAW_SCENE_ENTRY = 187
 
@@ -153,7 +162,24 @@ def combined_snapshot(reader: ProcessReader, injector: HeadingInjector) -> dict[
     hero = injector.snapshot()
     return {
         "transition_globals": transition,
+        "classic_context": read_classic_context(reader),
         "hero_object": hero,
+    }
+
+
+def read_classic_context(reader: ProcessReader) -> dict[str, int]:
+    return {
+        name: reader.read_int(address, size)
+        for name, (address, size) in CLASSIC_CONTEXT_FIELDS.items()
+    }
+
+
+def classic_zone_relative_destination(source_position: dict[str, int]) -> dict[str, int]:
+    return {
+        "cube": TARGET_ZONE.num,
+        "x": EXPECTED_DESTINATION["x"] + int(source_position["x"]) - TARGET_ZONE.bounds[0],
+        "y": EXPECTED_DESTINATION["y"] + int(source_position["y"]) - TARGET_ZONE.bounds[1],
+        "z": EXPECTED_DESTINATION["z"] + int(source_position["z"]) - TARGET_ZONE.bounds[2],
     }
 
 
@@ -335,6 +361,9 @@ def main() -> int:
                         },
                     },
                     "expected_destination": EXPECTED_DESTINATION,
+                    "source_relative_destination": classic_zone_relative_destination(
+                        {"x": args.source_x, "y": args.source_y, "z": args.source_z}
+                    ),
                     "live_zone1_destination": LIVE_ZONE1_DESTINATION,
                     "height_classification": HEIGHT_CLASSIFICATION,
                     "final_snapshot": initial,
@@ -429,6 +458,9 @@ def main() -> int:
                 },
                 "source_probe_position": {"x": args.source_x, "y": args.source_y, "z": args.source_z},
                 "expected_destination": EXPECTED_DESTINATION,
+                "source_relative_destination": classic_zone_relative_destination(
+                    {"x": args.source_x, "y": args.source_y, "z": args.source_z}
+                ),
                 "live_zone1_destination": LIVE_ZONE1_DESTINATION,
                 "height_classification": HEIGHT_CLASSIFICATION,
                 "final_verdict": classify_observation(final),
