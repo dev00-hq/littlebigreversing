@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import ctypes
 import json
 import shutil
 import subprocess
@@ -17,6 +18,9 @@ from life_trace_windows import WindowCapture, WindowInput
 from scenes.load_game import direct_launch_argv, drive_direct_save_launch_startup, resolve_direct_launch_save
 from secret_room_door_watch import ProcessReader, WatchZone, find_pid_by_name, snapshot as transition_snapshot
 
+
+PROCESS_VM_WRITE = 0x0020
+PROCESS_VM_OPERATION = 0x0008
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 EXE = REPO_ROOT / "work" / "_innoextract_full" / "Speedrun" / "Windows" / "LBA2_cdrom" / "LBA2" / "LBA2.EXE"
@@ -100,10 +104,51 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-teleport-source", action="store_true", help="Only observe; do not write hero coordinates.")
     parser.add_argument("--no-sync-candidate-source", action="store_true", help="Do not sync candidate/scene-start globals to the teleported source probe.")
     parser.add_argument("--source-sustain-sec", type=float, default=0.0, help="Reapply the source probe pose for this many seconds before polling.")
+    parser.add_argument("--override-start-cube", default=None, help="Counterfactual StartCube override as X,Y,Z written before source trigger.")
     parser.add_argument("--keep-process", action="store_true", help="Leave a launched LBA2.EXE running after the probe.")
     parser.add_argument("--no-kill-existing", action="store_true", help="Do not kill existing LBA2.EXE before direct launch.")
     parser.add_argument("--hide-autosave", action=argparse.BooleanOptionalAction, default=True, help="Temporarily hide SAVE\\autosave.lba during direct launch so startup cannot fall back to AUTOSAVE.")
     return parser.parse_args()
+
+
+def parse_start_cube_override(value: str | None) -> dict[str, int] | None:
+    if value is None:
+        return None
+    parts = [part.strip() for part in value.split(",")]
+    if len(parts) != 3:
+        raise ValueError("--override-start-cube must be X,Y,Z")
+    x, y, z = (int(part, 0) for part in parts)
+    return {"start_x_cube": x, "start_y_cube": y, "start_z_cube": z}
+
+
+def write_process_int(pid: int, address: int, value: int, size: int) -> None:
+    if size != 4:
+        raise ValueError(f"unsupported write size: {size}")
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    handle = kernel32.OpenProcess(PROCESS_VM_WRITE | PROCESS_VM_OPERATION, False, pid)
+    if not handle:
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        payload = ctypes.c_int32(value)
+        written = ctypes.c_size_t()
+        ok = kernel32.WriteProcessMemory(
+            handle,
+            ctypes.c_void_p(address),
+            ctypes.byref(payload),
+            size,
+            ctypes.byref(written),
+        )
+        if not ok or written.value != size:
+            raise ctypes.WinError(ctypes.get_last_error())
+    finally:
+        kernel32.CloseHandle(handle)
+
+
+def apply_start_cube_override(pid: int, override: dict[str, int]) -> dict[str, int]:
+    for field_name, value in override.items():
+        address, size = CLASSIC_CONTEXT_FIELDS[field_name]
+        write_process_int(pid, address, value, size)
+    return dict(override)
 
 
 def kill_lba2() -> None:
@@ -322,6 +367,7 @@ def resolve_pid(args: argparse.Namespace, proc: subprocess.Popen[bytes] | None) 
 
 def main() -> int:
     args = parse_args()
+    start_cube_override = parse_start_cube_override(args.override_start_cube)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     jsonl_path = out_dir / "runtime-proof.jsonl"
@@ -376,6 +422,29 @@ def main() -> int:
                 print(json.dumps(summary, indent=2))
                 return 2
 
+            start_cube_override_result: dict[str, Any] | None = None
+            if start_cube_override is not None:
+                before_override = combined_snapshot(reader, injector)
+                applied_override = apply_start_cube_override(pid, start_cube_override)
+                time.sleep(0.05)
+                after_override = combined_snapshot(reader, injector)
+                start_cube_override_result = {
+                    "requested": start_cube_override,
+                    "applied": applied_override,
+                    "before_context": before_override["classic_context"],
+                    "after_context": after_override["classic_context"],
+                }
+                write_jsonl(
+                    jsonl_path,
+                    {
+                        "phase": "after_start_cube_override",
+                        "start_cube_override": start_cube_override_result,
+                        "snapshot": after_override,
+                    },
+                )
+                observations.append(after_override)
+                screenshots.append(capture_screenshot(capture, pid, out_dir / "01-start-cube-override.png"))
+
             teleport_result: dict[str, Any] | None = None
             if not args.no_teleport_source:
                 teleport_result = injector.teleport_xyz(
@@ -420,7 +489,7 @@ def main() -> int:
                     },
                 )
                 observations.append(after_teleport)
-                screenshots.append(capture_screenshot(capture, pid, out_dir / "01-source-zone.png"))
+                screenshots.append(capture_screenshot(capture, pid, out_dir / "02-source-zone.png"))
 
             deadline = time.monotonic() + args.duration_sec
             while time.monotonic() < deadline:
@@ -438,10 +507,11 @@ def main() -> int:
                     break
                 time.sleep(args.poll_sec)
 
-            screenshots.append(capture_screenshot(capture, pid, out_dir / "02-final.png"))
+            screenshots.append(capture_screenshot(capture, pid, out_dir / "03-final.png"))
             final = observations[-1]
             summary = {
                 "schema": "phase5-187187-runtime-proof-v1",
+                "start_cube_override": start_cube_override_result,
                 "target_zone": {
                     "index": TARGET_ZONE.index,
                     "kind": TARGET_ZONE.kind,

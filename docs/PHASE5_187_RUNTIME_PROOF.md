@@ -13,6 +13,12 @@ The canonical fixture is `tools/fixtures/phase5_187_runtime_proof.json`, distill
 - The live runtime instead lands at `(28416,2304,21760)` in cube `185` with `new_cube=-1`.
 - The saved context remains `SceneStart=(28648,2572,23036)` and `StartCube=(55,11,44)`.
 
+## Counterfactual
+
+`tools/fixtures/phase5_187_startcube_counterfactual.json` records a direct runtime run where only `StartXCube` was patched from `55` to `54` before triggering the same source zone. `SceneStart` stayed `(28648,2572,23036)`, candidate/source sync stayed disabled, and the live landing still resolved to `(28416,2304,21760)`.
+
+This falsifies the simple `StartCube`-alone causal model. The bounded port admission remains a saved-context proof point, not a general transition model.
+
 ## Port Contract
 
 Do not admit the decoded `NewPos` as the live landing for this seam. The current port rejection for the decoded landing remains correct until the saved cube-start/context landing path is modeled explicitly and bounded by tests.

@@ -68,6 +68,13 @@ class Phase5187TransitionProbeTests(unittest.TestCase):
             context,
         )
 
+    def test_parse_start_cube_override(self) -> None:
+        self.assertEqual(
+            {"start_x_cube": 54, "start_y_cube": 11, "start_z_cube": 44},
+            probe.parse_start_cube_override("54,11,44"),
+        )
+        self.assertIsNone(probe.parse_start_cube_override(None))
+
     def test_classic_zone_relative_destination_uses_probe_offset(self) -> None:
         destination = probe.classic_zone_relative_destination(probe.RUNTIME_SOURCE_PROBE)
 

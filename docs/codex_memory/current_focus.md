@@ -10,7 +10,8 @@
 
 - Guarded loads: `19/19`, `2/2`, `11/10`, `187/187`; `44/2` rejects.
 - Port `187/187` zone `1` cube `185` still rejects decoded landing `(13824,5120,14848)` as `unsupported_destination_height_mismatch`.
-- `187/187` fixture `tools/fixtures/phase5_187_runtime_proof.json` proves source `(1536,256,4608)` lands at `(28416,2304,21760)` without syncing `SceneStart`; saved `StartCube=(55,11,44)` appears to drive it.
+- `187/187` fixture `tools/fixtures/phase5_187_runtime_proof.json` proves source `(1536,256,4608)` lands at `(28416,2304,21760)` without syncing `SceneStart`.
+- `187/187` counterfactual `tools/fixtures/phase5_187_startcube_counterfactual.json` patches `StartCube=(55,11,44)` to `(54,11,44)` with `SceneStart` unchanged and still lands at `(28416,2304,21760)`; `StartCube` alone is not the causal model.
 - `2/2` public exit rejects as exterior; `3/3` zones `1`/`8` commit as Tralu; zone `15` rejects.
 - Original runtime uses the checked-in WinMM MCI proxy shim.
 - `0013` fixture `tools/fixtures/phase5_0013_runtime_proof.json` covers CLI save load, key pickup, key-consume door, cellar entry, and Down-return.

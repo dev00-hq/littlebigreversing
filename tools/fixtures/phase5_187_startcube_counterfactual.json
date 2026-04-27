@@ -1,0 +1,69 @@
+{
+  "schema_version": "phase5-187-startcube-counterfactual-v1",
+  "source_run": "work/live_proofs/phase5_187187_startcube_counterfactual_54_11_44",
+  "slack_report": "https://dev00-workspace.slack.com/archives/C0AVAUZ4077/p1777276664546719",
+  "source_probe_position": {
+    "x": 1536,
+    "y": 256,
+    "z": 4608
+  },
+  "sync_candidate_source": false,
+  "start_cube_override": {
+    "before": {
+      "scene_start": {
+        "x": 28648,
+        "y": 2572,
+        "z": 23036
+      },
+      "start_cube": {
+        "x": 55,
+        "y": 11,
+        "z": 44
+      }
+    },
+    "after": {
+      "scene_start": {
+        "x": 28648,
+        "y": 2572,
+        "z": 23036
+      },
+      "start_cube": {
+        "x": 54,
+        "y": 11,
+        "z": 44
+      }
+    }
+  },
+  "decoded_destination": {
+    "cube": 185,
+    "x": 13824,
+    "y": 5120,
+    "z": 14848
+  },
+  "source_relative_destination": {
+    "cube": 185,
+    "x": 14336,
+    "y": 5376,
+    "z": 15360
+  },
+  "final_verdict": "loaded_cube185_live_zone1_destination",
+  "final_pose": {
+    "active_cube": 185,
+    "new_cube": -1,
+    "x": 28416,
+    "y": 2304,
+    "z": 21760,
+    "beta": 2102
+  },
+  "conclusion": {
+    "start_cube_alone_causal": false,
+    "decoded_position_still_rejected": true,
+    "next_action": "Do not generalize saved-context landing from StartCube alone; isolate another context field or ChangeCube mode discriminator."
+  },
+  "screenshots": [
+    "00-loaded.png",
+    "01-start-cube-override.png",
+    "02-source-zone.png",
+    "03-final.png"
+  ]
+}
