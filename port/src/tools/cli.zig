@@ -4653,6 +4653,41 @@ test "inspect-room-transitions payload keeps guarded 2/2 public exterior rejecti
     try std.testing.expect(transition.destination_background_entry_index == null);
     try std.testing.expect(transition.post_load_diagnostics == null);
 }
+
+test "inspect-room-transitions payload keeps guarded 11/10 transitions unsupported" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const payload = try buildRoomTransitionInspectionPayload(allocator, resolved, 11, 10);
+    defer allocator.free(payload.transitions);
+
+    try std.testing.expectEqual(@as(usize, 2), payload.transition_count);
+
+    var found_zone_22 = false;
+    var found_zone_33 = false;
+    for (payload.transitions) |transition| {
+        try std.testing.expectEqualStrings("decoded_change_cube", transition.source_kind);
+        try std.testing.expectEqualStrings("rejected", transition.result);
+        try std.testing.expectEqualStrings("unsupported_destination_cube", transition.rejection_reason.?);
+        try std.testing.expect(transition.destination_scene_entry_index == null);
+        try std.testing.expect(transition.destination_background_entry_index == null);
+        try std.testing.expect(transition.post_load_diagnostics == null);
+
+        if (transition.source_zone_index == 22) {
+            found_zone_22 = true;
+            try std.testing.expectEqual(@as(i16, 11), transition.destination_cube);
+        } else if (transition.source_zone_index == 33) {
+            found_zone_33 = true;
+            try std.testing.expectEqual(@as(i16, 67), transition.destination_cube);
+        } else {
+            return error.UnexpectedGuarded1110TransitionZone;
+        }
+    }
+    try std.testing.expect(found_zone_22);
+    try std.testing.expect(found_zone_33);
+}
+
 test "inspect-room-transitions payload exposes guarded 187/187 no-readjust destination blocker" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
