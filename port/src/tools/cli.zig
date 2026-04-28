@@ -362,6 +362,8 @@ const RoomTransitionRuntimeEffectSummary = struct {
 
 const RoomTransitionProbeSummary = struct {
     source_kind: []const u8,
+    canonical_result_source: []const u8,
+    canonical_runtime_contract: ?[]const u8,
     source_zone_index: usize,
     source_zone_num: i16,
     destination_cube: i16,
@@ -1576,9 +1578,11 @@ fn inspectRoomTransitions(
     );
     for (payload.transitions) |transition| {
         try stderr.print(
-            "source_kind={s} source_zone_index={d} source_zone_num={d} destination_cube={d} result={s} rejection_reason={s} destination_scene_entry_index={any} destination_background_entry_index={any} post_load_target_status={s} post_load_shadow_adjustment_failure={s} provisional_x={d} provisional_y={d} provisional_z={d} hero_x={d} hero_y={d} hero_z={d} runtime_no_key_event={s} runtime_no_key_result={s} runtime_no_key_after={d} runtime_with_key_event={s} runtime_with_key_result={s} runtime_with_key_after={d} runtime_unlocked_event={s} runtime_unlocked_result={s} runtime_unlocked_after={d}\n",
+            "source_kind={s} canonical_result_source={s} canonical_runtime_contract={s} source_zone_index={d} source_zone_num={d} destination_cube={d} result={s} rejection_reason={s} destination_scene_entry_index={any} destination_background_entry_index={any} post_load_target_status={s} post_load_shadow_adjustment_failure={s} provisional_x={d} provisional_y={d} provisional_z={d} hero_x={d} hero_y={d} hero_z={d} runtime_no_key_event={s} runtime_no_key_result={s} runtime_no_key_after={d} runtime_with_key_event={s} runtime_with_key_result={s} runtime_with_key_after={d} runtime_unlocked_event={s} runtime_unlocked_result={s} runtime_unlocked_after={d}\n",
             .{
                 transition.source_kind,
+                transition.canonical_result_source,
+                transition.canonical_runtime_contract orelse "none",
                 transition.source_zone_index,
                 transition.source_zone_num,
                 transition.destination_cube,
@@ -2118,6 +2122,16 @@ fn inspectSingleRoomTransition(
         )
     else
         null;
+    const canonical_result_source = decodedTransitionCanonicalResultSource(
+        scene_entry_index,
+        background_entry_index,
+        zone,
+    );
+    const canonical_runtime_contract = decodedTransitionCanonicalRuntimeContract(
+        scene_entry_index,
+        background_entry_index,
+        zone,
+    );
     try current_session.setPendingRoomTransition(.{
         .source_zone_index = zone.index,
         .destination_cube = semantics.destination_cube,
@@ -2140,6 +2154,8 @@ fn inspectSingleRoomTransition(
     return switch (transition_result) {
         .committed => |value| .{
             .source_kind = "decoded_change_cube",
+            .canonical_result_source = canonical_result_source,
+            .canonical_runtime_contract = canonical_runtime_contract,
             .source_zone_index = zone.index,
             .source_zone_num = zone.num,
             .destination_cube = semantics.destination_cube,
@@ -2163,6 +2179,8 @@ fn inspectSingleRoomTransition(
         },
         .rejected => |value| .{
             .source_kind = "decoded_change_cube",
+            .canonical_result_source = canonical_result_source,
+            .canonical_runtime_contract = canonical_runtime_contract,
             .source_zone_index = zone.index,
             .source_zone_num = zone.num,
             .destination_cube = semantics.destination_cube,
@@ -2230,6 +2248,8 @@ fn inspectSecretRoomCellarReturnTransition(
 
     return .{
         .source_kind = "runtime_synthetic",
+        .canonical_result_source = "runtime_synthetic",
+        .canonical_runtime_contract = "secret_room_cellar_return_free",
         .source_zone_index = 0,
         .source_zone_num = 0,
         .destination_cube = pending_destination_cube,
@@ -2251,6 +2271,28 @@ fn inspectSecretRoomCellarReturnTransition(
         .runtime_with_key_effect = runtime_with_key_effect,
         .runtime_unlocked_effect = null,
     };
+}
+
+fn decodedTransitionCanonicalResultSource(
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    zone: room_state.ZoneBoundsSnapshot,
+) []const u8 {
+    if (zone_effects.secretRoomHouseDoorProbePosition(scene_entry_index, background_entry_index, zone) != null) {
+        return "runtime_effects";
+    }
+    return "decoded_transition";
+}
+
+fn decodedTransitionCanonicalRuntimeContract(
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    zone: room_state.ZoneBoundsSnapshot,
+) ?[]const u8 {
+    if (zone_effects.secretRoomHouseDoorProbePosition(scene_entry_index, background_entry_index, zone) != null) {
+        return "secret_room_key_gate_to_cellar";
+    }
+    return null;
 }
 
 fn inspectRoomTransitionRuntimeEffect(
@@ -4645,6 +4687,8 @@ test "inspect-room-transitions payload keeps guarded 2/2 public exterior rejecti
     try std.testing.expectEqual(@as(usize, 1), payload.transition_count);
     const transition = payload.transitions[0];
     try std.testing.expectEqualStrings("decoded_change_cube", transition.source_kind);
+    try std.testing.expectEqualStrings("decoded_transition", transition.canonical_result_source);
+    try std.testing.expect(transition.canonical_runtime_contract == null);
     try std.testing.expectEqual(@as(usize, 0), transition.source_zone_index);
     try std.testing.expectEqual(@as(i16, 0), transition.destination_cube);
     try std.testing.expectEqualStrings("rejected", transition.result);
@@ -4668,6 +4712,8 @@ test "inspect-room-transitions payload keeps guarded 11/10 transitions unsupport
     var found_zone_33 = false;
     for (payload.transitions) |transition| {
         try std.testing.expectEqualStrings("decoded_change_cube", transition.source_kind);
+        try std.testing.expectEqualStrings("decoded_transition", transition.canonical_result_source);
+        try std.testing.expect(transition.canonical_runtime_contract == null);
         try std.testing.expectEqualStrings("rejected", transition.result);
         try std.testing.expectEqualStrings("unsupported_destination_cube", transition.rejection_reason.?);
         try std.testing.expect(transition.destination_scene_entry_index == null);
@@ -4699,6 +4745,8 @@ test "inspect-room-transitions payload exposes guarded 187/187 no-readjust desti
     try std.testing.expectEqual(@as(usize, 1), payload.transition_count);
     const transition = payload.transitions[0];
     try std.testing.expectEqualStrings("decoded_change_cube", transition.source_kind);
+    try std.testing.expectEqualStrings("decoded_transition", transition.canonical_result_source);
+    try std.testing.expect(transition.canonical_runtime_contract == null);
     try std.testing.expectEqual(@as(usize, 1), transition.source_zone_index);
     try std.testing.expectEqual(@as(i16, 185), transition.destination_cube);
     try std.testing.expectEqual(true, transition.dont_readjust_twinsen);
@@ -4748,6 +4796,8 @@ test "inspect-room-transitions payload exposes scene-2 secret-room key gate runt
     try std.testing.expectEqual(@as(usize, 1), payload.transition_count);
     const transition = payload.transitions[0];
     try std.testing.expectEqualStrings("decoded_change_cube", transition.source_kind);
+    try std.testing.expectEqualStrings("runtime_effects", transition.canonical_result_source);
+    try std.testing.expectEqualStrings("secret_room_key_gate_to_cellar", transition.canonical_runtime_contract.?);
     try std.testing.expectEqual(@as(usize, 0), transition.source_zone_index);
     try std.testing.expectEqual(RoomTransitionWorldPositionSummary{
         .x = 3050,
@@ -4827,6 +4877,8 @@ test "inspect-room-transitions payload exposes scene-2 synthetic cellar return r
     }
     const transition = synthetic_transition orelse return error.MissingSyntheticCellarReturn;
 
+    try std.testing.expectEqualStrings("runtime_synthetic", transition.canonical_result_source);
+    try std.testing.expectEqualStrings("secret_room_cellar_return_free", transition.canonical_runtime_contract.?);
     try std.testing.expectEqual(@as(i16, 1), transition.destination_cube);
     try std.testing.expectEqual(@as(?usize, 2), transition.destination_scene_entry_index);
     try std.testing.expectEqual(@as(?usize, 1), transition.destination_background_entry_index);

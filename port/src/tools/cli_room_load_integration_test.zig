@@ -122,6 +122,28 @@ fn expectJsonInteger(value: std.json.Value, expected: i64) !void {
     }
 }
 
+fn jsonInteger(value: std.json.Value) !i64 {
+    return switch (value) {
+        .integer => |actual| actual,
+        else => error.ExpectedJsonInteger,
+    };
+}
+
+fn expectJsonPointMatchesFixture(actual: std.json.Value, fixture_point: std.json.Value) !void {
+    try expectJsonInteger(
+        try requireJsonField(actual, "x"),
+        try jsonInteger(try requireJsonField(fixture_point, "x")),
+    );
+    try expectJsonInteger(
+        try requireJsonField(actual, "y"),
+        try jsonInteger(try requireJsonField(fixture_point, "y")),
+    );
+    try expectJsonInteger(
+        try requireJsonField(actual, "z"),
+        try jsonInteger(try requireJsonField(fixture_point, "z")),
+    );
+}
+
 fn expectJsonBool(value: std.json.Value, expected: bool) !void {
     switch (value) {
         .bool => |actual| try std.testing.expectEqual(expected, actual),
@@ -525,6 +547,74 @@ test "inspect-room-intelligence keeps the guarded 2/2 public door as the only en
     try expectJsonInteger(try requireJsonField(matching_zone, "x1"), 10239);
     try expectJsonInteger(try requireJsonField(matching_zone, "y1"), 2815);
     try expectJsonInteger(try requireJsonField(matching_zone, "z1"), 1535);
+}
+
+test "inspect-room-transitions identifies the 0013 runtime contract as canonical" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-room-transitions",
+        "2",
+        "1",
+        "--json",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    const fixture_path = try std.fs.path.join(allocator, &.{ resolved.repo_root, "tools/fixtures/phase5_0013_runtime_proof.json" });
+    defer allocator.free(fixture_path);
+    const fixture_bytes = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        fixture_path,
+        allocator,
+        .limited(1024 * 1024),
+    );
+    defer allocator.free(fixture_bytes);
+
+    try expectExited(result.term, 0);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+    const fixture = try std.json.parseFromSlice(std.json.Value, allocator, fixture_bytes, .{});
+    defer fixture.deinit();
+
+    const root = parsed.value;
+    try expectJsonString(try requireJsonField(root, "command"), "inspect-room-transitions");
+    try expectJsonInteger(try requireJsonField(root, "source_scene_entry_index"), 2);
+    try expectJsonInteger(try requireJsonField(root, "source_background_entry_index"), 1);
+    try expectJsonInteger(try requireJsonField(root, "transition_count"), 1);
+
+    const transition = try requireJsonArrayItem(try requireJsonField(root, "transitions"), 0);
+    try expectJsonString(try requireJsonField(transition, "source_kind"), "decoded_change_cube");
+    try expectJsonString(try requireJsonField(transition, "canonical_result_source"), "runtime_effects");
+    try expectJsonString(try requireJsonField(transition, "canonical_runtime_contract"), "secret_room_key_gate_to_cellar");
+
+    const no_key = try requireJsonField(transition, "runtime_no_key_effect");
+    try expectJsonBool(try requireJsonField(no_key, "triggered_room_transition"), false);
+    try expectJsonString(try requireJsonField(no_key, "secret_room_door_event"), "house_locked_no_key");
+
+    const with_key = try requireJsonField(transition, "runtime_with_key_effect");
+    try expectJsonBool(try requireJsonField(with_key, "triggered_room_transition"), false);
+    try expectJsonString(try requireJsonField(with_key, "secret_room_door_event"), "house_consumed_key");
+    try expectJsonInteger(
+        try requireJsonField(with_key, "little_keys_before"),
+        try jsonInteger(try requireJsonField(try requireJsonField(try requireJsonField(fixture.value, "door"), "key_consumed"), "nb_little_keys_before")),
+    );
+    try expectJsonInteger(
+        try requireJsonField(with_key, "little_keys_after"),
+        try jsonInteger(try requireJsonField(try requireJsonField(try requireJsonField(fixture.value, "door"), "key_consumed"), "nb_little_keys_after")),
+    );
+
+    const unlocked = try requireJsonField(transition, "runtime_unlocked_effect");
+    try expectJsonBool(try requireJsonField(unlocked, "triggered_room_transition"), true);
+    try expectJsonString(try requireJsonField(unlocked, "result"), "committed");
+    try expectJsonInteger(try requireJsonField(unlocked, "destination_scene_entry_index"), 2);
+    try expectJsonInteger(try requireJsonField(unlocked, "destination_background_entry_index"), 0);
+    try expectJsonPointMatchesFixture(
+        try requireJsonField(unlocked, "pending_runtime_new_position"),
+        try requireJsonField(try requireJsonField(try requireJsonField(fixture.value, "door"), "cellar_transition"), "new_pos"),
+    );
 }
 
 test "inspect-room-intelligence subprocess keeps validation failures in JSON for non-interior rooms" {
