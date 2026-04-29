@@ -2,6 +2,7 @@ const fragment_compare = @import("fragment_compare.zig");
 const render = @import("render.zig");
 const sdl = @import("../../platform/sdl.zig");
 const runtime_locomotion = @import("../../runtime/locomotion.zig");
+const world_geometry = @import("../../runtime/world_geometry.zig");
 
 pub const InteractionState = struct {
     control_mode: render.ControlMode,
@@ -17,11 +18,18 @@ pub const PostKeyAction = enum {
     apply_validation_zone_effects,
 };
 
+pub const RuntimeCommand = union(enum) {
+    none,
+    seed_locomotion,
+    set_hero_world_position: world_geometry.WorldPointSnapshot,
+};
+
 pub const KeyDownResult = struct {
     interaction: InteractionState,
     locomotion_status: runtime_locomotion.LocomotionStatus,
     should_print_locomotion_diagnostic: bool = false,
     post_key_action: PostKeyAction = .none,
+    runtime_command: RuntimeCommand = .none,
 };
 
 pub fn initialInteractionState(catalog: fragment_compare.FragmentComparisonCatalog) InteractionState {

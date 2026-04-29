@@ -301,6 +301,7 @@ fn applyScheduledWorldStep(
     locomotion_status: *viewer_shell.ViewerLocomotionStatus,
     key_result: viewer_shell.ViewerKeyDownResult,
 ) !void {
+    try applyViewerRuntimeCommand(room, runtime_session, locomotion_status, key_result.runtime_command);
     switch (key_result.post_key_action) {
         .none => {
             if (key_result.should_print_locomotion_diagnostic) {
@@ -319,10 +320,10 @@ fn applyScheduledWorldStep(
                     room,
                     runtime_session,
                     locomotion_status,
-                    key_result.locomotion_status,
+                    locomotion_status.*,
                 );
             } else {
-                locomotion_status.* = key_result.locomotion_status;
+                locomotion_status.* = try locomotion.inspectCurrentStatus(room, runtime_session.*);
             }
             if (key_result.should_print_locomotion_diagnostic) {
                 try viewer_shell.printLocomotionStatusDiagnostic(stderr, locomotion_status.*);
@@ -361,6 +362,25 @@ fn applyScheduledWorldStep(
                     previous_reward_pickup_event_count,
                 );
             }
+        },
+    }
+}
+
+fn applyViewerRuntimeCommand(
+    room: *const viewer_shell.RoomSnapshot,
+    runtime_session: *viewer_shell.Session,
+    locomotion_status: *viewer_shell.ViewerLocomotionStatus,
+    runtime_command: viewer_shell.ViewerRuntimeCommand,
+) !void {
+    switch (runtime_command) {
+        .none => {},
+        .seed_locomotion => {
+            _ = try viewer_shell.seedSessionToLocomotionFixture(room, runtime_session);
+            locomotion_status.* = try locomotion.inspectCurrentStatus(room, runtime_session.*);
+        },
+        .set_hero_world_position => |position| {
+            runtime_session.setHeroWorldPosition(position);
+            locomotion_status.* = try locomotion.inspectCurrentStatus(room, runtime_session.*);
         },
     }
 }

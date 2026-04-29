@@ -635,7 +635,7 @@ pub const WorldQuery = struct {
     ) !ContainingZoneSet {
         var containing: ContainingZoneSet = .{};
         for (self.room.scene.zones) |zone| {
-            if (!zoneContainsWorldPoint(zone, world_position)) continue;
+            if (!runtimeSceneZoneContainsWorldPoint(zone, world_position)) continue;
             try containing.append(zone);
         }
         return containing;
@@ -1677,13 +1677,13 @@ fn moveTargetStatusForProbe(raw_cell: WorldPointCellProbe, hero_y: i32) MoveTarg
     };
 }
 
-fn zoneContainsWorldPoint(zone: room_state.ZoneBoundsSnapshot, world_position: WorldPointSnapshot) bool {
+pub fn runtimeSceneZoneContainsWorldPoint(zone: room_state.ZoneBoundsSnapshot, world_position: WorldPointSnapshot) bool {
     return world_position.x >= zone.x_min and
-        world_position.x <= zone.x_max and
+        world_position.x < zone.x_max and
         world_position.y >= zone.y_min and
         world_position.y <= zone.y_max and
         world_position.z >= zone.z_min and
-        world_position.z <= zone.z_max;
+        world_position.z < zone.z_max;
 }
 
 fn worldPointSteppedInDirection(
@@ -2284,6 +2284,34 @@ test "phase5 0013 runtime landing coordinates expose geometry parity gap" {
     try std.testing.expectEqual(GridCell{ .x = 5, .z = 7 }, current_port_house_eval.raw_cell.cell.?);
     try std.testing.expectEqual(@as(i32, 1024), runtime_house_eval.raw_cell.surface.?.top_y);
     try std.testing.expectEqual(@as(i32, 1024), current_port_house_eval.raw_cell.surface.?.top_y);
+}
+
+test "runtime scene-zone membership uses classic half-open xz maxima" {
+    const room = try room_fixtures.guarded22();
+    const query = init(room);
+    const zone = room.scene.zones[0];
+
+    const inside_min = try query.containingZonesAtWorldPoint(.{
+        .x = zone.x_min,
+        .y = zone.y_min,
+        .z = zone.z_min,
+    });
+    try std.testing.expectEqual(@as(usize, 1), inside_min.slice().len);
+    try std.testing.expectEqual(zone.index, inside_min.slice()[0].index);
+
+    const outside_x_max = try query.containingZonesAtWorldPoint(.{
+        .x = zone.x_max,
+        .y = zone.y_min,
+        .z = zone.z_min,
+    });
+    try std.testing.expectEqual(@as(usize, 0), outside_x_max.slice().len);
+
+    const outside_z_max = try query.containingZonesAtWorldPoint(.{
+        .x = zone.x_min,
+        .y = zone.y_min,
+        .z = zone.z_max,
+    });
+    try std.testing.expectEqual(@as(usize, 0), outside_z_max.slice().len);
 }
 
 test "runtime world query ranks zones ahead of scene objects for the bounded extra-anchor investigation" {

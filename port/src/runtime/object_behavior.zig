@@ -717,7 +717,7 @@ fn currentHeroScenarioZone(
     var current_zone: i8 = -1;
     for (room.scene.zones) |zone| {
         if (zone.kind != .scenario) continue;
-        if (!classicZoneContainsWorldPoint(zone, hero_position)) continue;
+        if (!runtime_query.runtimeSceneZoneContainsWorldPoint(zone, hero_position)) continue;
         current_zone = std.math.cast(i8, zone.num) orelse return error.UnsupportedScene1919Object2ZoneNumberRange;
     }
     return current_zone;
@@ -751,18 +751,6 @@ fn trackWaitTicks(instruction: track_program.TrackInstruction) !u8 {
         },
         else => error.UnsupportedScene1919Object2TrackOpcode,
     };
-}
-
-fn classicZoneContainsWorldPoint(
-    zone: room_state.ZoneBoundsSnapshot,
-    world_position: world_geometry.WorldPointSnapshot,
-) bool {
-    return world_position.x >= zone.x_min and
-        world_position.x < zone.x_max and
-        world_position.y >= zone.y_min and
-        world_position.y <= zone.y_max and
-        world_position.z >= zone.z_min and
-        world_position.z < zone.z_max;
 }
 
 fn setTrackState(

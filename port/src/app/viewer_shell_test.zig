@@ -1239,15 +1239,10 @@ test "viewer key handling seeds fragment rooms and leaves movement intent queued
     try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, seed_result.interaction.control_mode);
     try std.testing.expect(seed_result.should_print_locomotion_diagnostic);
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, seed_result.post_key_action);
-    switch (seed_result.locomotion_status) {
-        .seeded_valid => |value| {
-            try std.testing.expectEqual(runtime_session.heroWorldPosition(), value.hero_position);
-        },
-        else => return error.UnexpectedViewerLocomotionStatus,
-    }
+    try std.testing.expectEqual(viewer_shell.ViewerRuntimeCommand.seed_locomotion, seed_result.runtime_command);
 
     const seeded_fragment_selection = seed_result.interaction.fragment_selection;
-    const seeded_position = runtime_session.heroWorldPosition();
+    const initial_position = runtime_session.heroWorldPosition();
     const move_result = try viewer_shell.handleKeyDown(
         room,
         &runtime_session,
@@ -1260,7 +1255,7 @@ test "viewer key handling seeds fragment rooms and leaves movement intent queued
     try std.testing.expect(!move_result.should_print_locomotion_diagnostic);
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, move_result.post_key_action);
     try std.testing.expect(std.meta.eql(seeded_fragment_selection, move_result.interaction.fragment_selection));
-    try std.testing.expectEqual(seeded_position, runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(initial_position, runtime_session.heroWorldPosition());
     try std.testing.expectEqual(seed_result.locomotion_status, move_result.locomotion_status);
     try std.testing.expectEqual(@as(usize, 0), runtime_session.frame_index);
     try std.testing.expectEqual(
@@ -1506,7 +1501,7 @@ test "viewer 0013 key overlay exposes source-ready state before default action" 
     try std.testing.expectEqualStrings("SRC N PICK N DOOR N RET N", overlay.lines[3]);
 }
 
-test "viewer secret-room validation hotkeys jump to proof positions" {
+test "viewer secret-room validation hotkeys request proof positions without mutating session" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -1523,6 +1518,7 @@ test "viewer secret-room validation hotkeys jump to proof positions" {
     var runtime_session = try initViewerSession(&room);
     defer runtime_session.deinit(allocator);
     const initial_status = try runtime_locomotion.inspectCurrentStatus(&room, runtime_session);
+    const initial_position = runtime_session.heroWorldPosition();
     const interaction = viewer_shell.initialInteractionState(catalog);
 
     const source_result = try viewer_shell.handleKeyDown(
@@ -1535,7 +1531,11 @@ test "viewer secret-room validation hotkeys jump to proof positions" {
     );
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.none, source_result.post_key_action);
     try std.testing.expect(source_result.should_print_locomotion_diagnostic);
-    try std.testing.expectEqual(viewer_shell.WorldPointSnapshot{ .x = 1280, .y = 2048, .z = 5376 }, runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(initial_position, runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(
+        viewer_shell.ViewerRuntimeCommand{ .set_hero_world_position = .{ .x = 1280, .y = 2048, .z = 5376 } },
+        source_result.runtime_command,
+    );
 
     const pickup_result = try viewer_shell.handleKeyDown(
         &room,
@@ -1549,8 +1549,12 @@ test "viewer secret-room validation hotkeys jump to proof positions" {
     const expected_pickup_cell = try runtime_query.init(&room).gridCellAtWorldPoint(3768, 4366);
     const expected_pickup_surface = try runtime_query.init(&room).cellTopSurface(expected_pickup_cell.x, expected_pickup_cell.z);
     try std.testing.expectEqual(
-        viewer_shell.WorldPointSnapshot{ .x = 3768, .y = expected_pickup_surface.top_y, .z = 4366 },
+        initial_position,
         runtime_session.heroWorldPosition(),
+    );
+    try std.testing.expectEqual(
+        viewer_shell.ViewerRuntimeCommand{ .set_hero_world_position = .{ .x = 3768, .y = expected_pickup_surface.top_y, .z = 4366 } },
+        pickup_result.runtime_command,
     );
 
     const door_result = try viewer_shell.handleKeyDown(
@@ -1562,7 +1566,11 @@ test "viewer secret-room validation hotkeys jump to proof positions" {
         .proof_house_door,
     );
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.apply_validation_zone_effects, door_result.post_key_action);
-    try std.testing.expectEqual(viewer_shell.WorldPointSnapshot{ .x = 3050, .y = 2048, .z = 4034 }, runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(initial_position, runtime_session.heroWorldPosition());
+    try std.testing.expectEqual(
+        viewer_shell.ViewerRuntimeCommand{ .set_hero_world_position = .{ .x = 3050, .y = 2048, .z = 4034 } },
+        door_result.runtime_command,
+    );
 
     const tick_result = try viewer_shell.handleKeyDown(
         &room,

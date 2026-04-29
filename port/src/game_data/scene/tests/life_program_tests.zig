@@ -196,6 +196,26 @@ test "life decoder recognizes every live opcode id from the checked-in runtime" 
     }
 }
 
+test "life catalog fixed instruction lengths match supported fixed-width decoder samples" {
+    const allocator = std.testing.allocator;
+    @setEvalBranchQuota(20_000);
+
+    inline for (std.meta.fields(life_program.LifeOpcode)) |field| {
+        const opcode: life_program.LifeOpcode = @enumFromInt(field.value);
+        const fixed_length = opcode.fixedInstructionByteLength();
+        if (fixed_length != null and support.isLifeOpcodeSupportedIndependent(opcode)) {
+            const bytes = try support.buildLifeInstructionSample(allocator, opcode);
+            defer allocator.free(bytes);
+
+            const instructions = try life_program.decodeLifeProgram(allocator, bytes);
+            defer allocator.free(instructions);
+
+            const instruction = if (opcode == .LM_CASE or opcode == .LM_OR_CASE) instructions[1] else instructions[0];
+            try std.testing.expectEqual(fixed_length.?, instruction.byte_length);
+        }
+    }
+}
+
 test "life decoder treats LM_DEFAULT and LM_END_SWITCH as one-byte structural markers" {
     const allocator = std.testing.allocator;
     const bytes = try allocator.dupe(u8, &.{

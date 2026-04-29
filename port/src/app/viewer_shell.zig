@@ -96,6 +96,7 @@ pub const ViewerObjectState = runtime_session.ObjectState;
 
 pub const ViewerInteractionState = controller.InteractionState;
 pub const ViewerPostKeyAction = controller.PostKeyAction;
+pub const ViewerRuntimeCommand = controller.RuntimeCommand;
 pub const ViewerKeyDownResult = controller.KeyDownResult;
 
 pub const locomotion_fixture_scene_entry: usize = 19;
@@ -196,16 +197,6 @@ pub fn seedSessionToLocomotionFixture(room: *const RoomSnapshot, current_session
 
     const position = try positionForExplicitLocomotionFixture(query, locomotion_fixture_cell);
     current_session.setHeroWorldPosition(position);
-    return position;
-}
-
-fn jumpToSecretRoomValidationTarget(
-    room: *const RoomSnapshot,
-    current_session: *Session,
-    target: SecretRoomValidationTarget,
-) !?WorldPointSnapshot {
-    const position = try secretRoomValidationTargetPosition(room, current_session.*, target);
-    if (position) |resolved| current_session.setHeroWorldPosition(resolved);
     return position;
 }
 
@@ -461,7 +452,6 @@ pub fn handleKeyDown(
                 };
             }
 
-            _ = try seedSessionToLocomotionFixture(room, current_session);
             return .{
                 .interaction = .{
                     .control_mode = .locomotion,
@@ -470,8 +460,9 @@ pub fn handleKeyDown(
                     .view_mode = interaction.view_mode,
                     .fragment_selection = interaction.fragment_selection,
                 },
-                .locomotion_status = try runtime_locomotion.inspectCurrentStatus(room, current_session.*),
+                .locomotion_status = locomotion_status,
                 .should_print_locomotion_diagnostic = true,
+                .runtime_command = .seed_locomotion,
             };
         },
         .left, .right, .up, .down => {
@@ -512,11 +503,7 @@ pub fn handleKeyDown(
                 .proof_cellar_return => .cellar_return,
                 else => unreachable,
             };
-            const jumped = try jumpToSecretRoomValidationTarget(room, current_session, target);
-            const next_status = if (jumped != null)
-                try runtime_locomotion.inspectCurrentStatus(room, current_session.*)
-            else
-                locomotion_status;
+            const jump_position = try secretRoomValidationTargetPosition(room, current_session.*, target);
             return .{
                 .interaction = .{
                     .control_mode = .locomotion,
@@ -525,16 +512,17 @@ pub fn handleKeyDown(
                     .view_mode = interaction.view_mode,
                     .fragment_selection = interaction.fragment_selection,
                 },
-                .locomotion_status = next_status,
-                .should_print_locomotion_diagnostic = jumped != null,
+                .locomotion_status = locomotion_status,
+                .should_print_locomotion_diagnostic = jump_position != null,
                 .post_key_action = switch (target) {
                     .house_door,
                     .cellar_return,
-                    => if (jumped != null) .apply_validation_zone_effects else .none,
+                    => if (jump_position != null) .apply_validation_zone_effects else .none,
                     .key_source,
                     .key_pickup,
                     => .none,
                 },
+                .runtime_command = if (jump_position) |position| .{ .set_hero_world_position = position } else .none,
             };
         },
         .w => {
