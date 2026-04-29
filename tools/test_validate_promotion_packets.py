@@ -3,6 +3,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 import unittest
+import json
 
 from tools import validate_promotion_packets
 
@@ -10,6 +11,33 @@ from tools import validate_promotion_packets
 class PromotionPacketValidationTests(unittest.TestCase):
     def test_checked_in_manifest_is_valid(self) -> None:
         validate_promotion_packets.validate_manifest()
+
+    def test_three_three_live_negative_fixture_pins_non_promotion_facts(self) -> None:
+        fixture_path = (
+            validate_promotion_packets.REPO_ROOT
+            / "tools"
+            / "fixtures"
+            / "promotion_packets"
+            / "phase5_003_003_zone1_cellar_to_cube19_live_negative.json"
+        )
+        proof = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+        self.assertEqual("promotion-packet-evidence-v1", proof["schema"])
+        self.assertEqual("phase5_003_003_zone1_cellar_to_cube19", proof["packet_id"])
+        self.assertEqual("live_negative", proof["status"])
+        self.assertEqual("zone_transition", proof["evidence_class"])
+        self.assertEqual(3, proof["source"]["scene"])
+        self.assertEqual(3, proof["source"]["background"])
+        self.assertEqual(1, proof["source"]["zone_index"])
+        self.assertEqual(19, proof["decoded_candidate"]["destination_cube"])
+        observations = proof["live_observations"]
+        self.assertTrue(observations["direct_center_zone_membership_observed"])
+        self.assertTrue(observations["edge_crossing_attempted"])
+        self.assertFalse(observations["new_cube_19_observed"])
+        self.assertFalse(observations["active_cube_19_observed"])
+        self.assertFalse(observations["new_pos_observed"])
+        self.assertEqual(1024, observations["final_y"])
+        self.assertEqual("decoded_candidate_live_negative", proof["verdict"])
 
     def test_canonical_runtime_requires_promotable_status(self) -> None:
         packet = {

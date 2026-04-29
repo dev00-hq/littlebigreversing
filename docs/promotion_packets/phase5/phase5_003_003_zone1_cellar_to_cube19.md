@@ -20,7 +20,7 @@
 
 ## Original Runtime Live Evidence
 
-The corrected `phase5_33_cellar_probe.py` run loaded `0013-weapon.LBA` and tested the zone `1` candidate. Direct-center hero-object injection briefly observed zone membership, but neither direct-center nor outside-to-inside injected edge crossing produced `NewCube=19` or `active_cube=19`. Twinsen fell to `y=1024`.
+`tools/fixtures/promotion_packets/phase5_003_003_zone1_cellar_to_cube19_live_negative.json` records the durable live-negative summary. The corrected `phase5_33_cellar_probe.py` run loaded `0013-weapon.LBA` and tested the zone `1` candidate. Direct-center hero-object injection briefly observed zone membership, but neither direct-center nor outside-to-inside injected edge crossing produced `NewCube=19` or `active_cube=19`. Twinsen fell to `y=1024`.
 
 ## Runtime Invariant
 
@@ -32,7 +32,9 @@ No positive gameplay test is admitted. A future positive test must cite a packet
 
 ## Negative Test
 
-Existing transition and CLI tests may expose the decoded candidate, but runtime widening must reject treating `3/3` zone `1` as live gameplay behavior until the packet status changes.
+- `port/src/tools/cli.zig`: `inspect-room-transitions payload keeps guarded 3/3 decoded candidates non-canonical` asserts zone `1` has no `canonical_runtime_contract`.
+- `tools/test_validate_promotion_packets.py`: `test_checked_in_manifest_is_valid` asserts the live-negative fixture is present through the manifest.
+- `tools/test_validate_promotion_packets.py`: `test_three_three_live_negative_fixture_pins_non_promotion_facts` asserts the checked-in fixture keeps `status=live_negative`, `destination_cube=19`, and no runtime transition signal.
 
 ## Reproduction Command
 

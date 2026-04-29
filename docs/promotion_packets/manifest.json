@@ -18,7 +18,7 @@
       "status": "live_negative",
       "evidence_class": "zone_transition",
       "packet": "docs/promotion_packets/phase5/phase5_003_003_zone1_cellar_to_cube19.md",
-      "fixture": null,
+      "fixture": "tools/fixtures/promotion_packets/phase5_003_003_zone1_cellar_to_cube19_live_negative.json",
       "runtime_contracts": [],
       "canonical_runtime": false
     }

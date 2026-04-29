@@ -4648,7 +4648,7 @@ test "inspect-room json keeps the guarded canonical interior pair stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"fragment_count\": 0") != null);
 }
 
-test "inspect-room-transitions payload exposes guarded 3/3 interior commits" {
+test "inspect-room-transitions payload keeps guarded 3/3 decoded candidates non-canonical" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -4667,6 +4667,7 @@ test "inspect-room-transitions payload exposes guarded 3/3 interior commits" {
         found_zone_1 = true;
         try std.testing.expectEqual(@as(i16, 19), transition.destination_cube);
         try std.testing.expectEqualStrings("committed", transition.result);
+        try std.testing.expect(transition.canonical_runtime_contract == null);
         try std.testing.expect(transition.rejection_reason == null);
         try std.testing.expectEqual(@as(?usize, 21), transition.destination_scene_entry_index);
         try std.testing.expectEqual(@as(?usize, 19), transition.destination_background_entry_index);
