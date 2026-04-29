@@ -386,6 +386,9 @@ const RoomTransitionProbeSummary = struct {
     runtime_unlocked_effect: ?RoomTransitionRuntimeEffectSummary,
 };
 
+// Promotion-packet validation scans CLI-owned contract literals, including non-transition runtime seams.
+const magic_ball_pickup_canonical_runtime_contract = "magic_ball_pickup";
+
 const RoomTransitionInspectionPayload = struct {
     command: []const u8,
     source_scene_entry_index: usize,
@@ -5005,4 +5008,3 @@ test "inspect-room rejects exterior scene entries" {
 
     try std.testing.expectError(error.ViewerSceneMustBeInterior, inspectRoom(allocator, resolved, 212, 212, true));
 }
-

@@ -5,7 +5,7 @@
 - `id`: `phase5_magic_ball_pickup`
 - `status`: `live_positive`
 - `evidence_class`: `inventory_state`
-- `canonical_runtime`: `false`
+- `canonical_runtime`: `true`
 
 ## Exact Seam Identity
 
@@ -26,16 +26,16 @@ Classic `COMMON.H` defines `FLAG_BALLE_MAGIQUE` as game variable index `1`. The 
 
 ## Runtime Invariant
 
-Picking up the early cellar magic ball sets `ListVarGame[FLAG_BALLE_MAGIQUE]` from `0` to `1`. This packet does not yet promote port runtime behavior; it records the live-positive proof needed before the port implements the seam.
+Picking up the early cellar magic ball sets `ListVarGame[FLAG_BALLE_MAGIQUE]` from `0` to `1`. The promoted port contract is `magic_ball_pickup`: scene `2/background 0` default action near object `3` sets game var `1` exactly once and does not imply dialog text, magic refill, inventory-menu rendering, or throwing behavior.
 
 ## Positive Test
 
 - `tools/test_validate_promotion_packets.py` pins the checked-in fixture.
-- Planned port test: fixture-backed runtime assertion that the cellar magic-ball pickup mutates the magic-ball inventory flag once the seam is implemented.
+- `port/src/runtime/object_behavior_test.zig` asserts the live-backed cellar pickup pose mutates game var `1` without changing magic level/point or opening dialog.
 
 ## Negative Test
 
-Until the port seam is implemented, `canonical_runtime` stays `false` and `runtime_contracts` stays empty. The promotion-packet validator prevents treating this packet as a runtime contract.
+The negative boundary remains the same: this packet promotes only `magic_ball_pickup`. It does not promote New Game equivalence, the Sendell portrait clue, dialog text ownership, magic refill, inventory-menu behavior, or throwing/usability.
 
 ## Reproduction Command
 
@@ -70,3 +70,4 @@ This proof closes the Phase 0 magic-ball pickup gap only for the durable invento
 
 - 2026-04-29: Initial live-positive packet from the manual cellar pickup proof.
 - 2026-04-29: Added repeatable launch proof from `SAVE\new-game-cellar.LBA` with autosave hidden.
+- 2026-04-29: Promoted the narrow `magic_ball_pickup` port runtime contract.

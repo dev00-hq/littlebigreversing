@@ -37,8 +37,10 @@
       "evidence_class": "inventory_state",
       "packet": "docs/promotion_packets/phase5/phase5_magic_ball_pickup.md",
       "fixture": "tools/fixtures/promotion_packets/phase5_magic_ball_pickup_live_positive.json",
-      "runtime_contracts": [],
-      "canonical_runtime": false
+      "runtime_contracts": [
+        "magic_ball_pickup"
+      ],
+      "canonical_runtime": true
     }
   ]
 }

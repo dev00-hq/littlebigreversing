@@ -23,6 +23,9 @@ const secret_room_key_scenario_zone_num: i16 = 0;
 const secret_room_key_var_game_index: u8 = 0;
 const secret_room_key_sprite_index: i16 = 6;
 const secret_room_key_quantity: u8 = 1;
+const secret_room_magic_ball_object_index: usize = 3;
+const magic_ball_flag_index: u8 = 1;
+const magic_ball_pickup_distance: i32 = 1024;
 const sendell_scene_entry_index: usize = 36;
 const sendell_background_entry_index: usize = 36;
 const sendell_object_index: usize = 2;
@@ -239,6 +242,7 @@ fn applySecretRoomDefaultAction(
         return;
     }
     if (room.background.entry_index == secret_room_cellar_background_entry_index) {
+        if (try applyScene2CellarMagicBallPickup(current_session)) return;
         try applyScene2CellarMessageAction(room, current_session);
         return;
     }
@@ -287,6 +291,17 @@ fn applySecretRoomDefaultAction(
     current_session.setGameVar(secret_room_key_var_game_index, 1);
 }
 
+fn applyScene2CellarMagicBallPickup(
+    current_session: *runtime_session.Session,
+) !bool {
+    if (current_session.gameVar(magic_ball_flag_index) != 0) return false;
+    const magic_ball = current_session.objectSnapshotByIndex(secret_room_magic_ball_object_index) orelse return false;
+    if (!heroWithinMagicBallPickupDistance(current_session.heroWorldPosition(), magic_ball)) return false;
+
+    current_session.setGameVar(magic_ball_flag_index, 1);
+    return true;
+}
+
 fn applyScene2CellarMessageAction(
     room: *const room_state.RoomSnapshot,
     current_session: *runtime_session.Session,
@@ -326,6 +341,16 @@ fn heroAtGeneratedSaveKeySource(hero_position: world_geometry.WorldPointSnapshot
     return absDiff(hero_position.x, secret_room_generated_save_key_source_position.x) <= secret_room_generated_save_key_source_tolerance_xz and
         absDiff(hero_position.y, secret_room_generated_save_key_source_position.y) <= secret_room_generated_save_key_source_tolerance_y and
         absDiff(hero_position.z, secret_room_generated_save_key_source_position.z) <= secret_room_generated_save_key_source_tolerance_xz;
+}
+
+fn heroWithinMagicBallPickupDistance(
+    hero_position: world_geometry.WorldPointSnapshot,
+    magic_ball: runtime_session.ObjectState,
+) bool {
+    const dx: i64 = hero_position.x - magic_ball.x;
+    const dz: i64 = hero_position.z - magic_ball.z;
+    const threshold: i64 = magic_ball_pickup_distance;
+    return (dx * dx) + (dz * dz) < threshold * threshold;
 }
 
 fn absDiff(lhs: i32, rhs: i32) i32 {

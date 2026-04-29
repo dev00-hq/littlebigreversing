@@ -170,6 +170,7 @@ class PromotionPacketValidationTests(unittest.TestCase):
 
         self.assertIn("secret_room_key_gate_to_cellar", contracts)
         self.assertIn("secret_room_cellar_return_free", contracts)
+        self.assertIn("magic_ball_pickup", contracts)
 
 
 if __name__ == "__main__":

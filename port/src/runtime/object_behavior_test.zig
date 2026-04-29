@@ -12,6 +12,7 @@ const runtime_session = @import("session.zig");
 
 const sendell_ball_flag_index: u8 = reference_metadata.sendell_ball_flag.index;
 const lightning_spell_flag_index: u8 = reference_metadata.lightning_spell_flag.index;
+const magic_ball_flag_index: u8 = 1;
 
 fn initSession(room: *const room_state.RoomSnapshot) !runtime_session.Session {
     return runtime_session.Session.initWithObjects(
@@ -179,6 +180,30 @@ test "runtime object behavior opens and clears scene-2 cellar message zones" {
     try object_behavior.applyHeroIntent(&room, &current_session, .advance_story);
     try std.testing.expectEqual(@as(?i16, null), current_session.currentDialogId());
     try std.testing.expect(!object_behavior.cellarMessageAwaitsAdvance(&room, current_session));
+}
+
+test "runtime object behavior applies the live-backed scene-2 cellar magic-ball pickup" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{ .x = 5293, .y = 1024, .z = 1786 });
+    current_session.setGameVar(magic_ball_flag_index, 0);
+
+    try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
+
+    try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(magic_ball_flag_index));
+    try std.testing.expectEqual(@as(u8, 0), current_session.magicLevel());
+    try std.testing.expectEqual(@as(u8, 0), current_session.magicPoint());
+    try std.testing.expectEqual(@as(?i16, null), current_session.currentDialogId());
+
+    try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
+    try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(magic_ball_flag_index));
 }
 
 test "runtime object behavior ignores scene-2 cellar default action outside message zones" {

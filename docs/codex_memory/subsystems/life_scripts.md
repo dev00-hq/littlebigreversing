@@ -34,7 +34,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - `0013-weapon.LBA` is the cellar-side source save, not Tralu.
 - `3/3` zones `1`/`8` are live-negative: zone membership appeared, but no destination cube or nonzero `NewPos`; zone `8` ended in clover loss/reset.
 - The `3/3` zone `1`/`8` packets are `live_negative`; do not widen gameplay from decoded candidates.
-- `phase5_magic_ball_pickup` is live-positive and repeatable: `SAVE\new-game-cellar.LBA`, autosave hidden, `FLAG_BALLE_MAGIQUE 0 -> 1`; magic level/point/model id stayed `0`.
+- `phase5_magic_ball_pickup` is canonical runtime: scene `2/0` default action near object `3` sets game var `1` `0 -> 1`; magic level/point/model id stayed `0`.
 - `0013` door source is scene-2 zone `0`; keyed `2/1 -> 2/0`, free return `2/0 -> 2/1`.
 - In `inspect-room-transitions`, use runtime fields for `0013`; decoded rows alone are insufficient.
 - Use `secret_room_door_watch.py`; it reads `NbLittleKeys` as a byte.

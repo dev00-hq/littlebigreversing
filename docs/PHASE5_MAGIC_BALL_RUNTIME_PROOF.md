@@ -22,6 +22,6 @@ The repeatable run screenshots `01_initial.png`, `02_magic_ball_flag_change.png`
 
 ## Porting Implications
 
-This proof promotes only the inventory/state mutation for owning the basic magic ball. It does not prove true New Game equivalence, the Sendell portrait clue, the dialog text payload, or generic inventory-menu behavior.
+This proof promotes only the inventory/state mutation for owning the basic magic ball. The port contract is `magic_ball_pickup`: scene `2/background 0` default action near object `3` sets game var `1` from `0` to `1`. It does not prove true New Game equivalence, the Sendell portrait clue, the dialog text payload, magic refill, throwing behavior, or generic inventory-menu behavior.
 
 The repeatable watcher is `tools/life_trace/phase5_magic_ball_probe.py`. With the game already open, use `--attach-pid`; with no existing `LBA2.EXE`, use `--launch-save` against `new-game-cellar.LBA`. The launch path uses the canonical named-save rule: run `LBA2.EXE SAVE\<name>.LBA` with autosave hidden during the proof.
