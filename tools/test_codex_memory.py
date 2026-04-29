@@ -204,6 +204,7 @@ Repo-scoped memory for tests.
             self.write(paths.subsystem_path(name), self.pack_doc(name.title()))
         for filename in codex_memory.HISTORY_FILES:
             self.write(paths.history_path(filename), "")
+        self.write(paths.lessons_path, "# Lessons\n")
 
         self.write(paths.repo_root / "AGENTS.md", "# agents\n")
         self.write(paths.repo_root / "ISSUES.md", "# issues\n")
@@ -248,6 +249,90 @@ Repo-scoped memory for tests.
         paths = self.make_paths()
         self.scaffold(paths)
         self.assertEqual(codex_memory.validate_all(paths), [])
+
+    def test_validate_accepts_valid_lessons_layer(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        self.write(
+            paths.lessons_path,
+            """# Lessons
+
+### trap.current-focus-heading-is-schema
+
+Status: active
+Confidence: high
+Last verified: 2026-04-29
+Tags: codex-memory, validation
+Related tests: tools/test_codex_memory.py
+Related files: tools/codex_memory.py, docs/codex_memory/current_focus.md
+
+`docs/codex_memory/current_focus.md` headings are part of the validated memory contract.
+""",
+        )
+        self.assertEqual(codex_memory.validate_all(paths), [])
+
+    def test_validate_rejects_malformed_lesson(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        self.write(
+            paths.lessons_path,
+            """# Lessons
+
+### note.bad-prefix
+
+Status: active
+Confidence: high
+Last verified: 2026-04-29
+Related files: tools/codex_memory.py
+
+Bad lesson.
+""",
+        )
+        errors = codex_memory.validate_all(paths)
+        self.assertTrue(any("stable id" in error for error in errors), errors)
+
+    def test_lesson_index_is_deterministic_and_validated_when_present(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        self.write(
+            paths.lessons_path,
+            """# Lessons
+
+### trap.current-focus-heading-is-schema
+
+Status: active
+Confidence: high
+Last verified: 2026-04-29
+Tags: codex-memory, validation
+Related tests: tools/test_codex_memory.py
+
+Do not rename required `current_focus.md` headings without updating validation.
+""",
+        )
+        lessons, errors = codex_memory.validate_lessons(paths)
+        self.assertEqual(errors, [])
+        index_path = paths.generated_dir / "memory_index.json"
+        self.write(index_path, codex_memory.render_lesson_index(paths, lessons))
+        first = index_path.read_text(encoding="utf-8")
+        self.write(index_path, codex_memory.render_lesson_index(paths, lessons))
+        self.assertEqual(first, index_path.read_text(encoding="utf-8"))
+        self.assertEqual(codex_memory.validate_all(paths), [])
+
+        self.write(index_path, first.replace("current-focus", "stale-focus"))
+        errors = codex_memory.validate_all(paths)
+        self.assertTrue(any("generated file is stale" in error for error in errors), errors)
+
+    def test_context_does_not_load_generated_task_briefing(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        lessons, errors = codex_memory.validate_lessons(paths)
+        self.assertEqual(errors, [])
+        self.write(
+            paths.generated_dir / "task_briefing.md",
+            codex_memory.render_briefing(paths, lessons, "memory validation", 5),
+        )
+        output = codex_memory.render_context(paths)
+        self.assertNotIn("# Generated Task Briefing", output)
 
     def test_validate_accepts_append_only_history_growth_relative_to_head(self) -> None:
         paths = self.make_paths()

@@ -1,0 +1,45 @@
+{
+  "generated_by": "python tools/codex_memory.py index",
+  "generated_marker": "GENERATED FILE. DO NOT EDIT.",
+  "lessons": [
+    {
+      "confidence": "high",
+      "heading": "decision.task-briefing-is-derived",
+      "id": "decision.task-briefing-is-derived",
+      "last_verified": "2026-04-29",
+      "status": "active",
+      "tags": [
+        "codex-memory",
+        "generated",
+        "canonical"
+      ],
+      "type": "decision"
+    },
+    {
+      "confidence": "high",
+      "heading": "trap.current-focus-heading-is-schema",
+      "id": "trap.current-focus-heading-is-schema",
+      "last_verified": "2026-04-29",
+      "status": "active",
+      "tags": [
+        "codex-memory",
+        "validation"
+      ],
+      "type": "trap"
+    },
+    {
+      "confidence": "high",
+      "heading": "trap.lessons-are-not-logs",
+      "id": "trap.lessons-are-not-logs",
+      "last_verified": "2026-04-29",
+      "status": "active",
+      "tags": [
+        "codex-memory",
+        "lessons",
+        "hard-cut"
+      ],
+      "type": "trap"
+    }
+  ],
+  "source_hash": "sha256:a7ad4ede48ca1a10858433c0b4363b95daf5aa698906ba8046515f8090c4801e"
+}

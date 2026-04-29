@@ -9,7 +9,7 @@ import subprocess
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 SCHEMA_VERSION = "codex-memory-v2"
@@ -141,6 +141,21 @@ COMMON_FIELDS = (
     "evidence_refs",
 )
 HISTORY_MODES = ("recent", "relevant")
+LESSON_PREFIXES = ("fact", "trap", "decision", "evidence", "policy")
+LESSON_STATUSES = ("active", "draft", "superseded", "rejected")
+LESSON_CONFIDENCES = ("low", "medium", "high")
+LESSON_REQUIRED_METADATA = ("Status", "Confidence", "Last verified")
+LESSON_OPTIONAL_METADATA = (
+    "Tags",
+    "Related tests",
+    "Related files",
+    "Evidence refs",
+    "Supersedes",
+    "Superseded by",
+)
+GENERATED_MARKER = "GENERATED FILE. DO NOT EDIT."
+DEFAULT_STALE_DAYS = 30
+DEFAULT_BRIEFING_EVENTS = 5
 ARCHITECTURE_DOC_CHURN_PATHS = frozenset(
     {
         "docs/PROMPT.md",
@@ -173,6 +188,14 @@ class MemoryPaths:
 
     def subsystem_path(self, name: str) -> Path:
         return self.subsystem_dir / f"{name}.md"
+
+    @property
+    def generated_dir(self) -> Path:
+        return self.docs_dir / "generated"
+
+    @property
+    def lessons_path(self) -> Path:
+        return self.docs_dir / "lessons.md"
 
 
 @dataclass(frozen=True)
@@ -216,6 +239,24 @@ class HistoryEntry:
     text_tokens: frozenset[str]
     path_tokens: frozenset[str]
     excluded_by_default: bool
+
+
+@dataclass(frozen=True)
+class Lesson:
+    id: str
+    type: str
+    status: str
+    confidence: str
+    last_verified: str
+    tags: tuple[str, ...]
+    related_tests: tuple[str, ...]
+    related_files: tuple[str, ...]
+    evidence_refs: tuple[str, ...]
+    supersedes: tuple[str, ...]
+    superseded_by: tuple[str, ...]
+    heading: str
+    body: str
+    text: str
 
 
 @dataclass(frozen=True)
@@ -265,6 +306,10 @@ def utc_now(value: str | None) -> str:
 def stable_hash(payload) -> str:
     text = json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def source_hash(payload) -> str:
+    return "sha256:" + stable_hash(payload)
 
 
 def make_id(kind: str, timestamp_utc: str, stable_fields: dict[str, str]) -> str:
@@ -328,6 +373,26 @@ def sections(content: str) -> dict[str, str]:
     return {name: "\n".join(lines).strip() for name, lines in result.items()}
 
 
+def first_section_body(content: str, heading: str) -> str:
+    marker = f"## {heading}"
+    if marker not in content:
+        return ""
+    lines = content.split(marker, 1)[1].splitlines()[1:]
+    result = []
+    for line in lines:
+        if line.startswith("## "):
+            break
+        result.append(line)
+    return "\n".join(result).strip()
+
+
+def compact_excerpt(text: str, max_chars: int) -> str:
+    normalized = "\n".join(line.rstrip() for line in text.strip().splitlines())
+    if len(normalized) <= max_chars:
+        return normalized
+    return normalized[: max_chars - 15].rstrip() + "\n\n[excerpt trimmed]"
+
+
 def validate_markdown_content(
     path: Path, content: str | None, required: tuple[str, ...], budget: int | None
 ) -> list[str]:
@@ -341,6 +406,137 @@ def validate_markdown_content(
     if budget is not None and len(content.encode("utf-8")) > budget:
         errors.append(f"{path}: exceeds {budget} byte budget")
     return errors
+
+
+def split_csv_metadata(value: str) -> tuple[str, ...]:
+    return tuple(item.strip() for item in value.split(",") if item.strip())
+
+
+def parse_lessons(content: str) -> tuple[list[Lesson], list[str]]:
+    if content.strip() == "":
+        return [], []
+    errors = [] if content.lstrip().startswith("# ") else [
+        "lessons.md: missing top-level heading"
+    ]
+    lesson_blocks: list[tuple[int, str, list[str]]] = []
+    current_line = 0
+    current_heading: str | None = None
+    current_lines: list[str] = []
+    for line_no, line in enumerate(content.splitlines(), start=1):
+        if line.startswith("### "):
+            if current_heading is not None:
+                lesson_blocks.append((current_line, current_heading, current_lines))
+            current_line = line_no
+            current_heading = line[4:].strip()
+            current_lines = []
+        elif current_heading is not None:
+            current_lines.append(line)
+    if current_heading is not None:
+        lesson_blocks.append((current_line, current_heading, current_lines))
+
+    lessons: list[Lesson] = []
+    seen_ids: set[str] = set()
+    for line_no, heading, raw_lines in lesson_blocks:
+        lesson_errors: list[str] = []
+        lesson_id = heading
+        match = re.fullmatch(
+            rf"({'|'.join(LESSON_PREFIXES)})\.[a-z0-9][a-z0-9._-]*", lesson_id
+        )
+        if not match:
+            lesson_errors.append(
+                f"lessons.md:{line_no}: lesson heading must be a stable id with one of these prefixes: {', '.join(prefix + '.' for prefix in LESSON_PREFIXES)}"
+            )
+            errors.extend(lesson_errors)
+            continue
+        if lesson_id in seen_ids:
+            lesson_errors.append(f"lessons.md:{line_no}: duplicate lesson id {lesson_id}")
+        else:
+            seen_ids.add(lesson_id)
+
+        metadata: dict[str, str] = {}
+        body_start = 0
+        for index, raw in enumerate(raw_lines):
+            line = raw.strip()
+            if not line:
+                continue
+            meta_match = re.fullmatch(r"([A-Za-z][A-Za-z ]+):\s*(.*)", line)
+            if not meta_match:
+                body_start = index
+                break
+            key, value = meta_match.groups()
+            if key not in LESSON_REQUIRED_METADATA + LESSON_OPTIONAL_METADATA:
+                lesson_errors.append(f"lessons.md:{line_no + index}: unsupported metadata field {key}")
+            if key in metadata:
+                lesson_errors.append(f"lessons.md:{line_no + index}: duplicate metadata field {key}")
+            metadata[key] = value.strip()
+            body_start = index + 1
+
+        for key in LESSON_REQUIRED_METADATA:
+            if not metadata.get(key):
+                lesson_errors.append(f"lessons.md:{line_no}: missing required metadata {key}:")
+        status = metadata.get("Status", "")
+        if status and status not in LESSON_STATUSES:
+            lesson_errors.append(
+                f"lessons.md:{line_no}: Status must be one of {', '.join(LESSON_STATUSES)}"
+            )
+        confidence = metadata.get("Confidence", "")
+        if confidence and confidence not in LESSON_CONFIDENCES:
+            lesson_errors.append(
+                f"lessons.md:{line_no}: Confidence must be one of {', '.join(LESSON_CONFIDENCES)}"
+            )
+        last_verified = metadata.get("Last verified", "")
+        if last_verified:
+            try:
+                date.fromisoformat(last_verified)
+            except ValueError:
+                lesson_errors.append(
+                    f"lessons.md:{line_no}: Last verified must parse as YYYY-MM-DD"
+                )
+
+        body = "\n".join(raw_lines[body_start:]).strip()
+        if not body:
+            lesson_errors.append(f"lessons.md:{line_no}: lesson body must not be empty")
+        if "example" in lesson_id.lower() or "should be removed" in body.lower():
+            lesson_errors.append(f"lessons.md:{line_no}: placeholder/example lesson content is not allowed")
+
+        if not any(
+            metadata.get(key)
+            for key in ("Related tests", "Related files", "Evidence refs", "Supersedes")
+        ):
+            lesson_errors.append(
+                f"lessons.md:{line_no}: lesson needs provenance via Related tests:, Related files:, Evidence refs:, or Supersedes:"
+            )
+
+        if lesson_errors:
+            errors.extend(lesson_errors)
+        else:
+            lessons.append(
+                Lesson(
+                    id=lesson_id,
+                    type=match.group(1),
+                    status=status,
+                    confidence=confidence,
+                    last_verified=last_verified,
+                    tags=split_csv_metadata(metadata.get("Tags", "")),
+                    related_tests=split_csv_metadata(metadata.get("Related tests", "")),
+                    related_files=split_csv_metadata(metadata.get("Related files", "")),
+                    evidence_refs=split_csv_metadata(metadata.get("Evidence refs", "")),
+                    supersedes=split_csv_metadata(metadata.get("Supersedes", "")),
+                    superseded_by=split_csv_metadata(metadata.get("Superseded by", "")),
+                    heading=heading,
+                    body=body,
+                    text="\n".join(raw_lines).strip(),
+                )
+            )
+    return lessons, errors
+
+
+def validate_lessons(paths: MemoryPaths) -> tuple[list[Lesson], list[str]]:
+    content = read_optional_text(paths.lessons_path)
+    if content is None:
+        return [], [f"missing file: {paths.lessons_path}"]
+    lessons, errors = parse_lessons(content)
+    return lessons, [error.replace("lessons.md", str(paths.lessons_path)) for error in errors]
 
 
 def parse_named_bullets(body: str, label: str) -> dict[str, str]:
@@ -588,6 +784,318 @@ def parse_focus_subsystems(paths: MemoryPaths) -> list[str]:
     )
 
 
+def lesson_index_payload(paths: MemoryPaths, lessons: list[Lesson]) -> dict:
+    lessons_text = read_text(paths.lessons_path)
+    return {
+        "generated_marker": GENERATED_MARKER,
+        "generated_by": "python tools/codex_memory.py index",
+        "source_hash": source_hash(
+            {
+                "lessons.md": lessons_text,
+            }
+        ),
+        "lessons": [
+            {
+                "id": lesson.id,
+                "type": lesson.type,
+                "status": lesson.status,
+                "confidence": lesson.confidence,
+                "last_verified": lesson.last_verified,
+                "tags": list(lesson.tags),
+                "heading": lesson.heading,
+            }
+            for lesson in sorted(lessons, key=lambda item: item.id)
+        ],
+    }
+
+
+def render_lesson_index(paths: MemoryPaths, lessons: list[Lesson]) -> str:
+    payload = lesson_index_payload(paths, lessons)
+    return json.dumps(payload, ensure_ascii=True, indent=2, sort_keys=True) + "\n"
+
+
+def generated_header(command: str, hash_value: str) -> str:
+    return "\n".join(
+        [
+            "<!--",
+            GENERATED_MARKER,
+            "",
+            "Generated by:",
+            f"  {command}",
+            "",
+            "Source hash:",
+            f"  {hash_value}",
+            "-->",
+        ]
+    )
+
+
+def stale_report_source_hash(paths: MemoryPaths, days: int, as_of: str) -> str:
+    return source_hash(
+        {"as_of": as_of, "days": days, "lessons.md": read_text(paths.lessons_path)}
+    )
+
+
+def render_stale_report(paths: MemoryPaths, lessons: list[Lesson], days: int, as_of: str) -> str:
+    today = date.fromisoformat(as_of)
+    stale: list[Lesson] = []
+    drafts: list[Lesson] = []
+    missing_provenance: list[Lesson] = []
+    missing_related_files: list[tuple[Lesson, str]] = []
+    for lesson in sorted(lessons, key=lambda item: item.id):
+        if lesson.status == "draft":
+            drafts.append(lesson)
+        if lesson.status == "active":
+            verified = date.fromisoformat(lesson.last_verified)
+            if (today - verified).days > days:
+                stale.append(lesson)
+        if not (
+            lesson.related_tests
+            or lesson.related_files
+            or lesson.evidence_refs
+            or lesson.supersedes
+        ):
+            missing_provenance.append(lesson)
+        for related in (*lesson.related_tests, *lesson.related_files, *lesson.evidence_refs):
+            if related.startswith("http://") or related.startswith("https://"):
+                continue
+            try:
+                normalized = normalize_path(related)
+            except ValueError:
+                continue
+            if not (paths.repo_root / normalized).exists():
+                missing_related_files.append((lesson, related))
+
+    command = f"python tools/codex_memory.py stale-scan --days {days} --as-of {as_of}"
+    parts = [
+        "# Lessons Stale Report",
+        "",
+        generated_header(command, stale_report_source_hash(paths, days, as_of)),
+        "",
+        f"As of: {as_of}",
+        f"Threshold: {days} days",
+        "",
+        "## Active Lessons Needing Review",
+        "",
+    ]
+    if stale:
+        parts.extend(
+            f"- `{lesson.id}` last verified {lesson.last_verified}"
+            for lesson in stale
+        )
+    else:
+        parts.append("- None.")
+    parts.extend(["", "## Draft Lessons", ""])
+    if drafts:
+        parts.extend(f"- `{lesson.id}`" for lesson in drafts)
+    else:
+        parts.append("- None.")
+    parts.extend(["", "## Missing Provenance", ""])
+    if missing_provenance:
+        parts.extend(f"- `{lesson.id}`" for lesson in missing_provenance)
+    else:
+        parts.append("- None.")
+    parts.extend(["", "## Missing Related Paths", ""])
+    if missing_related_files:
+        parts.extend(
+            f"- `{lesson.id}` references `{related}`"
+            for lesson, related in missing_related_files
+        )
+    else:
+        parts.append("- None.")
+    return "\n".join(parts).rstrip() + "\n"
+
+
+def task_events_tail(paths: MemoryPaths, count: int) -> list[dict]:
+    rows = load_jsonl(paths.history_path("task_events.jsonl"))
+    return [record for _, record in rows[-count:]]
+
+
+def briefing_source_payload(paths: MemoryPaths, task: str, event_count: int) -> dict:
+    source_files = [
+        "docs/codex_memory/project_brief.md",
+        "docs/codex_memory/current_focus.md",
+        "docs/codex_memory/lessons.md",
+        "docs/codex_memory/task_events.jsonl",
+        "ISSUES.md",
+    ]
+    return {
+        "task": task,
+        "event_count": event_count,
+        "sources": {
+            name: read_optional_text(paths.repo_root / name) or ""
+            for name in source_files
+        },
+    }
+
+
+def task_keywords(task: str) -> frozenset[str]:
+    return frozenset(token for token in TOKEN_PATTERN.findall(task.lower()) if len(token) > 2)
+
+
+def matching_lessons(lessons: list[Lesson], task: str) -> list[Lesson]:
+    keywords = task_keywords(task)
+    if not keywords:
+        return [
+            lesson
+            for lesson in sorted(lessons, key=lambda item: item.id)
+            if lesson.status == "active" and lesson.confidence == "high"
+        ][:8]
+    selected = []
+    for lesson in sorted(lessons, key=lambda item: item.id):
+        if lesson.status != "active":
+            continue
+        haystack = " ".join(
+            [
+                lesson.id,
+                lesson.heading,
+                lesson.body,
+                " ".join(lesson.tags),
+            ]
+        )
+        tokens = tokenize(haystack)
+        global_decision = lesson.type in {"decision", "policy"} and bool(
+            {"global", "canonical", "hard", "cut", "hard-cut"} & tokens
+        )
+        if global_decision or keywords & tokens:
+            selected.append(lesson)
+    return selected[:8]
+
+
+def matching_issue_lines(issues_text: str, task: str) -> list[str]:
+    keywords = task_keywords(task)
+    if not keywords:
+        return []
+    result = []
+    for line in issues_text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- ") and keywords & tokenize(stripped):
+            result.append(stripped)
+    return result[:12]
+
+
+def render_briefing(paths: MemoryPaths, lessons: list[Lesson], task: str, event_count: int) -> str:
+    payload = briefing_source_payload(paths, task, event_count)
+    project_brief = payload["sources"]["docs/codex_memory/project_brief.md"]
+    current_focus = payload["sources"]["docs/codex_memory/current_focus.md"]
+    issues = payload["sources"]["ISSUES.md"]
+    source_hash_value = source_hash(payload)
+    selected_lessons = matching_lessons(lessons, task)
+    issue_lines = matching_issue_lines(issues, task)
+    recent_events = task_events_tail(paths, event_count)
+    parts = [
+        "# Generated Task Briefing",
+        "",
+        generated_header(
+            f'python tools/codex_memory.py briefing --task "{task}"',
+            source_hash_value,
+        ),
+        "",
+        "## Task",
+        "",
+        task or "(no task provided)",
+        "",
+        "## Project Brief",
+        "",
+        compact_excerpt(project_brief, 1200),
+        "",
+        "## Current Focus",
+        "",
+        compact_excerpt(current_focus, 1800),
+        "",
+        "## Relevant Lessons",
+        "",
+    ]
+    if selected_lessons:
+        for lesson in selected_lessons:
+            parts.extend(
+                [
+                    f"### {lesson.id}",
+                    "",
+                    f"Status: {lesson.status}",
+                    f"Confidence: {lesson.confidence}",
+                    f"Last verified: {lesson.last_verified}",
+                    "",
+                    compact_excerpt(lesson.body, 700),
+                    "",
+                ]
+            )
+    else:
+        parts.append("- None selected.")
+    parts.extend(["", "## Relevant Open Issues", ""])
+    if issue_lines:
+        parts.extend(issue_lines)
+    else:
+        parts.append("- None selected.")
+    parts.extend(["", "## Recent Events", ""])
+    if recent_events:
+        for record in recent_events:
+            parts.append(
+                f"- {record.get('timestamp_utc', '')}: {record.get('stream', '')} - {record.get('summary', '')}"
+            )
+    else:
+        parts.append("- None.")
+    parts.extend(
+        [
+            "",
+            "## Required Checks",
+            "",
+            "- Run `python tools/codex_memory.py validate`.",
+            "- Run relevant project tests for touched areas.",
+            "- If runtime/gameplay seams are widened, validate promotion packets.",
+            "- Do not treat generated task briefing as canonical truth.",
+        ]
+    )
+    return "\n".join(parts).rstrip() + "\n"
+
+
+def parse_generated_command(content: str) -> str | None:
+    match = re.search(r"Generated by:\n  (.+)\n", content)
+    return match.group(1).strip() if match else None
+
+
+def parse_generated_task(content: str) -> str:
+    return first_section_body(content, "Task").strip()
+
+
+def validate_generated_files(paths: MemoryPaths, lessons: list[Lesson]) -> list[str]:
+    errors: list[str] = []
+    generated = paths.generated_dir
+    if not generated.exists():
+        return errors
+    allowed = {"memory_index.json", "stale_report.md", "task_briefing.md"}
+    for path in generated.iterdir():
+        if path.name not in allowed:
+            errors.append(f"{path}: unexpected generated file")
+            continue
+        content = read_text(path)
+        if GENERATED_MARKER not in content:
+            errors.append(f"{path}: missing generated-file marker")
+            continue
+        if path.name == "memory_index.json":
+            expected = render_lesson_index(paths, lessons)
+        elif path.name == "stale_report.md":
+            command = parse_generated_command(content) or ""
+            match = re.fullmatch(
+                r"python tools/codex_memory.py stale-scan --days ([0-9]+) --as-of ([0-9]{4}-[0-9]{2}-[0-9]{2})",
+                command,
+            )
+            if not match:
+                errors.append(f"{path}: stale report generated command must include --days and --as-of")
+                continue
+            days = int(match.group(1))
+            as_of = match.group(2)
+            expected = render_stale_report(paths, lessons, days, as_of)
+        else:
+            task = parse_generated_task(content)
+            expected = render_briefing(paths, lessons, task, DEFAULT_BRIEFING_EVENTS)
+        if content != expected:
+            errors.append(
+                f"{path}: generated file is stale; regenerate it with the command in its generated header"
+            )
+    return errors
+
+
 def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
     errors = []
     for rel in OBSOLETE_PATHS:
@@ -600,6 +1108,9 @@ def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
         content = read_optional_text(path)
         doc_texts[name] = content
         errors.extend(validate_markdown_content(path, content, required, budget))
+
+    lessons, lesson_errors = validate_lessons(paths)
+    errors.extend(lesson_errors)
 
     index_path = paths.subsystem_dir / "INDEX.md"
     index_text = read_optional_text(index_path)
@@ -711,6 +1222,9 @@ def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
                 )
             )
         errors.extend(validate_append_only_history_file(paths, f"{kind}.jsonl"))
+
+    if not lesson_errors:
+        errors.extend(validate_generated_files(paths, lessons))
 
     if errors:
         raise ValueError("\n".join(errors))
@@ -1249,6 +1763,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Repo-scoped Codex memory utilities")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("validate", help="Validate the v2 Codex memory tree")
+    sub.add_parser("index", help="Generate docs/codex_memory/generated/memory_index.json")
+    stale = sub.add_parser("stale-scan", help="Generate docs/codex_memory/generated/stale_report.md")
+    stale.add_argument("--days", type=int, default=DEFAULT_STALE_DAYS)
+    stale.add_argument("--as-of", default=date.today().isoformat())
+    briefing = sub.add_parser("briefing", help="Generate docs/codex_memory/generated/task_briefing.md")
+    briefing.add_argument("--task", required=True)
     context = sub.add_parser(
         "context", help="Render project/current focus plus selected subsystem packs"
     )
@@ -1362,6 +1882,43 @@ def main(argv: list[str] | None = None) -> int:
                 ),
                 end="",
             )
+            return 0
+        if args.command == "index":
+            lessons, errors = validate_lessons(paths)
+            if errors:
+                raise ValueError("\n".join(errors))
+            paths.generated_dir.mkdir(parents=True, exist_ok=True)
+            (paths.generated_dir / "memory_index.json").write_text(
+                render_lesson_index(paths, lessons), encoding="utf-8"
+            )
+            print(paths.generated_dir / "memory_index.json")
+            return 0
+        if args.command == "stale-scan":
+            if args.days < 1:
+                raise ValueError("--days must be at least 1")
+            try:
+                date.fromisoformat(args.as_of)
+            except ValueError as exc:
+                raise ValueError("--as-of must parse as YYYY-MM-DD") from exc
+            lessons, errors = validate_lessons(paths)
+            if errors:
+                raise ValueError("\n".join(errors))
+            paths.generated_dir.mkdir(parents=True, exist_ok=True)
+            (paths.generated_dir / "stale_report.md").write_text(
+                render_stale_report(paths, lessons, args.days, args.as_of), encoding="utf-8"
+            )
+            print(paths.generated_dir / "stale_report.md")
+            return 0
+        if args.command == "briefing":
+            lessons, errors = validate_lessons(paths)
+            if errors:
+                raise ValueError("\n".join(errors))
+            paths.generated_dir.mkdir(parents=True, exist_ok=True)
+            (paths.generated_dir / "task_briefing.md").write_text(
+                render_briefing(paths, lessons, args.task, DEFAULT_BRIEFING_EVENTS),
+                encoding="utf-8",
+            )
+            print(paths.generated_dir / "task_briefing.md")
             return 0
         if args.command == "add-policy":
             record = add_policy(

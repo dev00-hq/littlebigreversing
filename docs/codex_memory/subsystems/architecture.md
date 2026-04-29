@@ -11,6 +11,7 @@ Own repo direction, memory workflow, and the Zig port/original-runtime boundary.
 - `inspect-room-intelligence`, `cdb-agent`, and `ghb` are the canonical evidence layers.
 - `project_brief.md` plus `current_focus.md` are the only always-loaded memory docs.
 - Subsystem packs own current-state truth; typed JSONL files own durable structured history.
+- `lessons.md` owns curated durable operational lessons; generated memory files are derived context only.
 - `ISSUES.md` is the companion trap log for recurring repo confusion.
 
 ## Current Parity Status
@@ -48,6 +49,7 @@ Own repo direction, memory workflow, and the Zig port/original-runtime boundary.
 - `docs/LBA2_ZIG_PORT_PLAN.md`
 - `docs/codex_memory/project_brief.md`
 - `docs/codex_memory/current_focus.md`
+- `docs/codex_memory/lessons.md`
 - `docs/codex_memory/subsystems/intelligence.md`
 - `docs/codex_memory/subsystems/life_scripts.md`
 - `port/README.md`

@@ -5,13 +5,17 @@
 1. Read `project_brief.md` and `current_focus.md` at task start.
 2. Load only the subsystem packs needed for the task, or use `python3 tools/codex_memory.py context --path ...`.
 3. Use typed JSONL history only when current state or a blocked question needs durable history.
-4. Update `current_focus.md` only when active repo status changes, and append typed records for durable conclusions, blockers, or task state.
-5. If a new recurring repo trap is discovered, update `ISSUES.md` and keep the architecture subsystem pack consistent with it.
+4. Use `lessons.md` only for curated durable lessons that remain useful after an issue closes.
+5. Update `current_focus.md` only when active repo status changes, and append typed records for durable conclusions, blockers, or task state.
+6. If a new recurring repo trap is discovered, update `ISSUES.md` and keep the architecture subsystem pack consistent with it.
 
 ## Commands
 
 ```bash
 python3 tools/codex_memory.py validate
+python3 tools/codex_memory.py index
+python3 tools/codex_memory.py stale-scan
+python3 tools/codex_memory.py briefing --task "inspect 3/3 transition parity"
 python3 tools/codex_memory.py context
 python3 tools/codex_memory.py context --path port/src/game_data/background/parser.zig --include-history 3
 python3 tools/codex_memory.py context --path port/src/game_data/background/parser.zig --include-history 3 --history-mode relevant
@@ -28,6 +32,10 @@ python3 tools/codex_memory.py add-task-event --stream viewer-prep --status block
 - `project_brief.md` and `current_focus.md` are the only always-loaded Markdown files.
 - Subsystem packs own durable current-state truth for their subsystem; do not turn them into append-only changelogs.
 - Typed JSONL files are the only structured history layer.
+- `lessons.md` is curated operational truth for reusable traps, facts, evidence summaries, decisions, and policies. It is not a log or TODO list.
+- `ISSUES.md` owns unresolved work. Move only durable lessons from issues into `lessons.md`.
+- Generated files live under `docs/codex_memory/generated/`; they are reproducible derived context, not canonical truth.
+- `context` remains the canonical pickup command. `briefing --task ...` is a task-specific lens and must not replace canonical startup context.
 - When a JSONL history file already exists in `HEAD`, validation treats it as append-only. Restore old rows and append new ones; do not rewrite timestamped history in place.
 - Default canonical memory pickup excludes `sidequest/` and `LM_TASKS/` until those streams are explicitly promoted into the checked-in path.
 - `--include-history` keeps chronological `## Recent History` by default; `--history-mode relevant` is the opt-in ranked alternative for path/subsystem queries.
@@ -43,3 +51,20 @@ python3 tools/codex_memory.py add-task-event --stream viewer-prep --status block
 - each subsystem pack: `<= 4 KB`
 - summary-like JSONL fields: `<= 240` chars
 - `rationale` and `current_best_answer`: `<= 600` chars
+
+## Lessons
+
+Lesson sections use stable IDs as `###` headings. Supported prefixes are
+`fact.`, `trap.`, `decision.`, `evidence.`, and `policy.`.
+
+Each lesson section must include:
+
+- `Status:` one of `active`, `draft`, `superseded`, `rejected`
+- `Confidence:` one of `low`, `medium`, `high`
+- `Last verified:` as `YYYY-MM-DD`
+
+At least one provenance field is required: `Related tests:`, `Related files:`,
+`Evidence refs:`, or `Supersedes:`.
+
+Optional fields include `Tags:`, `Related tests:`, `Related files:`,
+`Evidence refs:`, `Supersedes:`, and `Superseded by:`.

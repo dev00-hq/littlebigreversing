@@ -1,3 +1,10 @@
+Issues lifecycle:
+  - investigation
+  - result found
+  - if reusable lesson: docs\codex_memory\lessons.md
+  - if enforceable: test/lint/validator
+  - issue closed
+
 # Common Agent Traps
 
 - `sidequest/` and `LM_TASKS/` are independent workstreams, not part of canonical memory pickup. Do not treat them as execution owners unless a prompt explicitly widens scope.
