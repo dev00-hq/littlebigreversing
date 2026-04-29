@@ -26,7 +26,7 @@ from runtime_watch_run import (
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_EXE = DEFAULT_GAME_DIR / "LBA2.EXE"
 DEFAULT_SAVE = REPO_ROOT / "work" / "saves" / "0013-weapon.LBA"
-DEFAULT_OUT_DIR = REPO_ROOT / "work" / "live_proofs" / "phase5_33_cellar_zone1"
+DEFAULT_OUT_DIR = REPO_ROOT / "work" / "live_proofs" / "phase5_33_cellar_zone"
 
 EXPECTED_SAVE = {
     "version_byte": 0xA4,
@@ -46,9 +46,28 @@ ZONE1 = {
     "port_destination_background_entry_index": 19,
 }
 
+ZONE8 = {
+    "source_scene_entry_index": 3,
+    "source_background_entry_index": 3,
+    "source_zone_index": 8,
+    "source_zone_num": 20,
+    "bounds": (27136, 1536, 7680, 28160, 3072, 8192),
+    "destination_cube": 20,
+    "decoded_destination": {"x": 28672, "y": 1536, "z": 31744},
+    "port_destination_scene_entry_index": 22,
+    "port_destination_background_entry_index": 20,
+}
+
+ZONES_BY_INDEX = {
+    1: ZONE1,
+    8: ZONE8,
+}
+
 ACCEPTED_VERDICTS = {
     "phase5_33_zone1_new_cube_observed",
     "phase5_33_zone1_active_cube_observed",
+    "phase5_33_zone8_new_cube_observed",
+    "phase5_33_zone8_active_cube_observed",
 }
 
 ATTEMPT_DIRECT_CENTER = "direct_center"
@@ -58,10 +77,11 @@ ATTEMPT_EDGE_CROSSING = "edge_crossing"
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Probe original LBA2 runtime evidence for the guarded 3/3 zone 1 "
+            "Probe original LBA2 runtime evidence for guarded 3/3 change-cube "
             "cellar-source destination-cube handoff."
         )
     )
+    parser.add_argument("--zone", type=int, choices=sorted(ZONES_BY_INDEX), default=1)
     parser.add_argument("--exe", default=str(DEFAULT_EXE))
     parser.add_argument("--launch-save", default=str(DEFAULT_SAVE))
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
@@ -164,26 +184,41 @@ def classify_verdict(
     source_clovers: int | None,
     *,
     attempt: str | None = None,
+    zone: dict[str, object] = ZONE1,
 ) -> tuple[str, str]:
+    zone_index = int(zone["source_zone_index"])
+    destination_cube = int(zone["destination_cube"])
     scoped_observations = attempt_observations(observations, attempt) if attempt is not None else observations
     for observation in observations:
         if attempt is not None and observation.get("attempt") != attempt:
             continue
         snapshot = observation["snapshot"]
-        if int(snapshot.get("new_cube", -1)) == ZONE1["destination_cube"]:
-            return "phase5_33_zone1_new_cube_observed", "NewCube matched decoded destination cube 19"
-        if int(snapshot.get("active_cube", -1)) == ZONE1["destination_cube"]:
-            return "phase5_33_zone1_active_cube_observed", "active_cube reached destination cube 19"
+        if int(snapshot.get("new_cube", -1)) == destination_cube:
+            return (
+                f"phase5_33_zone{zone_index}_new_cube_observed",
+                f"NewCube matched decoded destination cube {destination_cube}",
+            )
+        if int(snapshot.get("active_cube", -1)) == destination_cube:
+            return (
+                f"phase5_33_zone{zone_index}_active_cube_observed",
+                f"active_cube reached destination cube {destination_cube}",
+            )
     if source_clovers is not None:
         for observation in scoped_observations:
             snapshot = observation["snapshot"]
             if int(snapshot.get("clovers", source_clovers)) < source_clovers:
-                return "phase5_33_zone1_life_loss_detected", "clover counter decreased during source-zone probe"
+                return f"phase5_33_zone{zone_index}_life_loss_detected", "clover counter decreased during source-zone probe"
     if attempt == ATTEMPT_DIRECT_CENTER:
-        return "phase5_33_zone1_direct_center_no_transition", "direct center hero-object pose did not produce NewCube/active_cube destination signal"
+        return (
+            f"phase5_33_zone{zone_index}_direct_center_no_transition",
+            "direct center hero-object pose did not produce NewCube/active_cube destination signal",
+        )
     if attempt == ATTEMPT_EDGE_CROSSING:
-        return "phase5_33_zone1_edge_crossing_no_transition", "outside-to-inside injected hero-object crossing did not produce NewCube/active_cube destination signal"
-    return "phase5_33_zone1_transition_not_observed", "no NewCube/active_cube destination signal observed"
+        return (
+            f"phase5_33_zone{zone_index}_edge_crossing_no_transition",
+            "outside-to-inside injected hero-object crossing did not produce NewCube/active_cube destination signal",
+        )
+    return f"phase5_33_zone{zone_index}_transition_not_observed", "no NewCube/active_cube destination signal observed"
 
 
 def observe_attempt(
@@ -196,6 +231,7 @@ def observe_attempt(
     poll_sec: float,
     duration_sec: float,
     source_sustain_sec: float,
+    zone: dict[str, object],
 ) -> list[dict[str, object]]:
     observations: list[dict[str, object]] = []
     with ProcessMemory(process_pid) as memory:
@@ -219,7 +255,7 @@ def observe_attempt(
         row = read_snapshot(process_pid)
         observations.append({"phase": "poll", "attempt": attempt, "snapshot": row})
         write_jsonl(jsonl_path, observations[-1])
-        if int(row.get("new_cube", -1)) == ZONE1["destination_cube"] or int(row.get("active_cube", -1)) == ZONE1["destination_cube"]:
+        if int(row.get("new_cube", -1)) == int(zone["destination_cube"]) or int(row.get("active_cube", -1)) == int(zone["destination_cube"]):
             break
         if source_clovers is not None and int(row.get("clovers", source_clovers)) < source_clovers:
             break
@@ -228,9 +264,12 @@ def observe_attempt(
 
 
 def run_probe(args: argparse.Namespace) -> dict[str, object]:
+    source_zone = ZONES_BY_INDEX[args.zone]
     exe = Path(args.exe).resolve()
     launch_save = Path(args.launch_save).resolve()
     out_dir = Path(args.out_dir).resolve()
+    if args.out_dir == str(DEFAULT_OUT_DIR):
+        out_dir = out_dir.parent / f"{out_dir.name}{args.zone}"
     out_dir.mkdir(parents=True, exist_ok=True)
     jsonl_path = out_dir / "events.jsonl"
     summary_path = out_dir / "summary.json"
@@ -273,13 +312,13 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                     write_jsonl(jsonl_path, {"phase": "load_timeout_capture_failed", "error": str(error)})
                 observations.append({"phase": "load_timeout", "snapshot": loaded})
                 write_jsonl(jsonl_path, observations[-1])
-                verdict = "phase5_33_zone1_load_not_ready"
+                verdict = f"phase5_33_zone{args.zone}_load_not_ready"
                 reason = (
                     "runtime never reached the expected loaded 3/3 source save before teleport; "
                     "teleporting from a menu/CD prompt would not prove gameplay behavior"
                 )
                 summary = {
-                    "scenario": "phase5-3-3-zone1-cellar-source",
+                    "scenario": f"phase5-3-3-zone{args.zone}-cellar-source",
                     "verdict": verdict,
                     "reason": reason,
                     "pid": process.pid,
@@ -289,8 +328,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                     "launch_save": str(launch_save),
                     "save_header": header,
                     "autosave": autosave_state,
-                    "source_zone": ZONE1,
-                    "source_pose": zone_center(ZONE1),
+                    "source_zone": source_zone,
+                    "source_pose": zone_center(source_zone),
                     "screenshots": [asdict(record) for record in screenshots],
                     "observations": observations,
                     "created_at": datetime.now().isoformat(timespec="seconds"),
@@ -303,7 +342,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             write_jsonl(jsonl_path, observations[-1])
             source_clovers = int(loaded.get("clovers", 0))
 
-            source_pose = zone_center(ZONE1)
+            source_pose = zone_center(source_zone)
             direct_observations = observe_attempt(
                 process_pid=process.pid,
                 jsonl_path=jsonl_path,
@@ -313,30 +352,32 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 poll_sec=args.poll_sec,
                 duration_sec=args.duration_sec,
                 source_sustain_sec=args.source_sustain_sec,
+                zone=source_zone,
             )
             observations.extend(direct_observations)
             time.sleep(0.2)
-            screenshots.append(capture(capture_tool, process.pid, out_dir, "02_zone1_direct_center"))
+            screenshots.append(capture(capture_tool, process.pid, out_dir, f"02_zone{args.zone}_direct_center"))
             source_snapshot = read_snapshot(process.pid)
-            observations.append({"phase": "zone1_direct_center_final", "attempt": ATTEMPT_DIRECT_CENTER, "snapshot": source_snapshot})
+            observations.append({"phase": f"zone{args.zone}_direct_center_final", "attempt": ATTEMPT_DIRECT_CENTER, "snapshot": source_snapshot})
             write_jsonl(jsonl_path, observations[-1])
-            verdict, reason = classify_verdict(observations, source_clovers, attempt=ATTEMPT_DIRECT_CENTER)
+            verdict, reason = classify_verdict(observations, source_clovers, attempt=ATTEMPT_DIRECT_CENTER, zone=source_zone)
 
-            if verdict not in ACCEPTED_VERDICTS and verdict != "phase5_33_zone1_life_loss_detected":
+            if verdict not in ACCEPTED_VERDICTS and verdict != f"phase5_33_zone{args.zone}_life_loss_detected":
                 edge_observations = observe_attempt(
                     process_pid=process.pid,
                     jsonl_path=jsonl_path,
                     attempt=ATTEMPT_EDGE_CROSSING,
-                    poses=zone_edge_path(ZONE1),
+                    poses=zone_edge_path(source_zone),
                     source_clovers=source_clovers,
                     poll_sec=args.poll_sec,
                     duration_sec=args.duration_sec,
                     source_sustain_sec=args.source_sustain_sec,
+                    zone=source_zone,
                 )
                 observations.extend(edge_observations)
                 time.sleep(0.2)
-                screenshots.append(capture(capture_tool, process.pid, out_dir, "03_zone1_edge_crossing"))
-                verdict, reason = classify_verdict(observations, source_clovers, attempt=ATTEMPT_EDGE_CROSSING)
+                screenshots.append(capture(capture_tool, process.pid, out_dir, f"03_zone{args.zone}_edge_crossing"))
+                verdict, reason = classify_verdict(observations, source_clovers, attempt=ATTEMPT_EDGE_CROSSING, zone=source_zone)
 
             time.sleep(0.5)
             screenshots.append(capture(capture_tool, process.pid, out_dir, "04_final"))
@@ -353,7 +394,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                     process.wait(timeout=5.0)
 
     summary: dict[str, object] = {
-        "scenario": "phase5-3-3-zone1-cellar-source",
+        "scenario": f"phase5-3-3-zone{args.zone}-cellar-source",
         "verdict": verdict,
         "reason": reason,
         "pid": None if process is None else process.pid,
@@ -363,10 +404,10 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "launch_save": str(launch_save),
         "save_header": header,
         "autosave": autosave_state,
-        "source_zone": ZONE1,
-        "source_pose": zone_center(ZONE1),
-        "edge_start_pose": zone_edge_start(ZONE1),
-        "edge_path": zone_edge_path(ZONE1),
+        "source_zone": source_zone,
+        "source_pose": zone_center(source_zone),
+        "edge_start_pose": zone_edge_start(source_zone),
+        "edge_path": zone_edge_path(source_zone),
         "screenshots": [asdict(record) for record in screenshots],
         "observations": observations,
         "created_at": datetime.now().isoformat(timespec="seconds"),

@@ -19,7 +19,7 @@
 
 - `2/2` is not solved interior handoff/locomotion semantics.
 - `187/187` gameplay/transition beyond startup seed is unproved.
-- `3/3` remains decode-only/live-negative for gameplay.
+- `3/3` zones `1` and `8` remain live-negative for gameplay.
 - `inside dark monk1.LBA` proves only cube `185` save with raw scene entry `187`.
 - Room `36/36` page 2 is renderer pagination, not save/load behavior.
 - Wall mapping is deferred.
@@ -31,6 +31,7 @@
 - Before reopening `187/187`, require fresh mixed-mode CD proof with life-loss watcher enabled and target-zone membership or `NewCube/NewPos`.
 - Keep promotion packets current when widening Phase 5 seams.
 - Decoded candidates can stay visible in tooling, but runtime commits require `live_positive` or `approved_exception`.
+- Choose the next Phase 5 slice from a normal player affordance plus quest/world state, then prove the needed room, transition, dialog, inventory, or actor seam.
 
 ## Relevant Subsystem Packs
 

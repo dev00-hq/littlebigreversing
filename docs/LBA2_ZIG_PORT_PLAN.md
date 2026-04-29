@@ -105,6 +105,8 @@ Use explicit replan gates after the evidence baseline, the first-viewer gate, th
 
 - After Phase 4 resolves, port the object model, update loop, zone handling, collision and movement, and track execution needed for one playable path.
 - Under the current branch-A state, keep life-script decoding on the canonical supported boundary and use future tracing/stepping only to answer behavior questions that remain beyond structural decode.
+- Choose Phase 5 slices from normal player affordances in a known quest/world state, then prove the exact runtime seams needed for that affordance.
+- Do not treat decoded room edges as the product model. LBA2 progression is driven by world state, inventory, dialogue, location access, actor state, and flags; decoded transitions are candidate evidence until the runtime proves the player-facing route.
 - Expand from one behavior-bearing slice to a small vertical slice with room transitions, inventory or state mutation, dialog or text, and basic combat or interaction.
 
 ### Phase 6: Completion Layers

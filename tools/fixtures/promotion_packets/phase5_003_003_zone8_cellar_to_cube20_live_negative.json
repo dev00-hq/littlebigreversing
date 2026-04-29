@@ -1,0 +1,42 @@
+{
+  "schema": "promotion-packet-evidence-v1",
+  "packet_id": "phase5_003_003_zone8_cellar_to_cube20",
+  "status": "live_negative",
+  "evidence_class": "zone_transition",
+  "source": {
+    "scene": 3,
+    "background": 3,
+    "save": "0013-weapon.LBA",
+    "save_num_cube": 1,
+    "zone_index": 8,
+    "zone_num": 20
+  },
+  "decoded_candidate": {
+    "destination_cube": 20,
+    "destination_scene_entry_index": 22,
+    "destination_background_entry_index": 20,
+    "destination_position": {
+      "x": 28672,
+      "y": 1536,
+      "z": 31744
+    }
+  },
+  "live_observations": {
+    "direct_center_zone_membership_observed": true,
+    "edge_crossing_attempted": false,
+    "new_cube_20_observed": false,
+    "active_cube_20_observed": false,
+    "new_pos_observed": false,
+    "life_loss_observed": true,
+    "initial_clovers": 5,
+    "final_clovers": 4,
+    "final_active_cube": 1,
+    "final_new_cube": -1,
+    "final_y": 1024
+  },
+  "source_artifacts": [
+    "work/live_proofs/phase5_33_cellar_zone8_20260429/summary.json",
+    "work/live_proofs/phase5_33_cellar_zone8_20260429/events.jsonl"
+  ],
+  "verdict": "decoded_candidate_live_negative_life_loss"
+}

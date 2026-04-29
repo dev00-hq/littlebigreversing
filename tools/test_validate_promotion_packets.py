@@ -39,6 +39,35 @@ class PromotionPacketValidationTests(unittest.TestCase):
         self.assertEqual(1024, observations["final_y"])
         self.assertEqual("decoded_candidate_live_negative", proof["verdict"])
 
+    def test_three_three_zone8_live_negative_fixture_pins_non_promotion_facts(self) -> None:
+        fixture_path = (
+            validate_promotion_packets.REPO_ROOT
+            / "tools"
+            / "fixtures"
+            / "promotion_packets"
+            / "phase5_003_003_zone8_cellar_to_cube20_live_negative.json"
+        )
+        proof = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+        self.assertEqual("promotion-packet-evidence-v1", proof["schema"])
+        self.assertEqual("phase5_003_003_zone8_cellar_to_cube20", proof["packet_id"])
+        self.assertEqual("live_negative", proof["status"])
+        self.assertEqual("zone_transition", proof["evidence_class"])
+        self.assertEqual(3, proof["source"]["scene"])
+        self.assertEqual(3, proof["source"]["background"])
+        self.assertEqual(8, proof["source"]["zone_index"])
+        self.assertEqual(20, proof["decoded_candidate"]["destination_cube"])
+        observations = proof["live_observations"]
+        self.assertTrue(observations["direct_center_zone_membership_observed"])
+        self.assertFalse(observations["edge_crossing_attempted"])
+        self.assertFalse(observations["new_cube_20_observed"])
+        self.assertFalse(observations["active_cube_20_observed"])
+        self.assertFalse(observations["new_pos_observed"])
+        self.assertTrue(observations["life_loss_observed"])
+        self.assertEqual(4, observations["final_clovers"])
+        self.assertEqual(1024, observations["final_y"])
+        self.assertEqual("decoded_candidate_live_negative_life_loss", proof["verdict"])
+
     def test_canonical_runtime_requires_promotable_status(self) -> None:
         packet = {
             "id": "bad_decode_runtime",

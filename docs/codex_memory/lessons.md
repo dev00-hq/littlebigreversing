@@ -45,3 +45,20 @@ Related files: docs/codex_memory/README.md, ISSUES.md
 finished; add a lesson only when it states reusable future behavior, a durable
 trap, a decision, or an invariant that remains useful after the immediate issue
 is closed.
+
+### decision.phase5-uses-quest-state-not-room-graph
+
+Status: active
+Confidence: high
+Last verified: 2026-04-29
+Tags: phase5, runtime, promotion-packets, quest-state
+Related tests: tools/validate_promotion_packets.py
+Related files: docs/promotion_packets/README.md, docs/codex_memory/subsystems/architecture.md, ISSUES.md
+
+Phase 5 candidate selection must start from a normal player affordance in a
+known quest/world state, not from a decoded room-transition edge. LBA2 is a
+story-gated hub adventure: inventory, dialogue, quest flags, actor state,
+collision, current cube, and script conditions decide whether a decoded edge is
+gameplay-valid. Decoded room pairs and forced teleports are useful evidence
+surfaces, but they do not prove a playable route without runtime-owned state
+signals from the corresponding player path.

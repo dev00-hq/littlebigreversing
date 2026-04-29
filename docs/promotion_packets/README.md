@@ -49,6 +49,19 @@ The class list is intentionally extensible. As decoding and porting reveal bette
 
 `render_only` proof must not be reused as gameplay proof. For example, visual admission does not promote a `zone_transition`.
 
+## Gameplay Validity Boundary
+
+Promotion packets prove seams, not a room graph. A decoded room pair, zone, cube
+destination, or forced teleport is only a candidate until the original runtime
+shows the corresponding player-facing affordance in the relevant quest/world
+state. For gameplay promotion, name the state context as tightly as the room
+edge: inventory, quest flags, actor state, current cube, collision/locomotion
+path, and any dialogue or script condition that gates the behavior.
+
+Decoded transition data can guide probes, but it must not become the project
+ordering model. Phase 5 follows normal player routes first, then uses decode
+and live instrumentation to prove the exact runtime seam needed for that route.
+
 ## Decode-Only Boundary
 
 `decode_only` seams can produce candidate records, never commit records.
@@ -80,4 +93,4 @@ The validator is intentionally low-brittleness beyond runtime contract coverage.
 
 ## Current 3/3 Rule
 
-`3/3` zone `1` currently remains `zone_transition`, `live_negative`, and `canonical_runtime: false`. It cannot widen gameplay behavior until a new packet records a runtime-owned transition signal, or the user explicitly approves an `approved_exception`.
+`3/3` zones `1` and `8` currently remain `zone_transition`, `live_negative`, and `canonical_runtime: false`. They cannot widen gameplay behavior until a new packet records a runtime-owned transition signal from a valid player path and state context, or the user explicitly approves an `approved_exception`.

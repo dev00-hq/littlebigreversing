@@ -59,6 +59,37 @@ class Phase533CellarProbeTests(unittest.TestCase):
         self.assertGreater(path[2]["x"], phase5_33_cellar_probe.ZONE1["bounds"][0])
         self.assertEqual(4096, path[-1]["x"])
 
+    def test_zone8_center_targets_second_cellar_source_destination_handoff(self) -> None:
+        self.assertEqual(
+            {
+                "x": 27648,
+                "y": 2304,
+                "z": 7936,
+                "beta": 0,
+            },
+            phase5_33_cellar_probe.zone_center(phase5_33_cellar_probe.ZONE8),
+        )
+        self.assertEqual(20, phase5_33_cellar_probe.ZONE8["destination_cube"])
+        self.assertEqual(22, phase5_33_cellar_probe.ZONE8["port_destination_scene_entry_index"])
+        self.assertEqual(20, phase5_33_cellar_probe.ZONE8["port_destination_background_entry_index"])
+
+    def test_zone8_verdict_requires_its_own_runtime_destination(self) -> None:
+        verdict, _ = phase5_33_cellar_probe.classify_verdict(
+            [{"snapshot": {"new_cube": 20, "active_cube": 1, "clovers": 5}}],
+            5,
+            zone=phase5_33_cellar_probe.ZONE8,
+        )
+        self.assertEqual("phase5_33_zone8_new_cube_observed", verdict)
+        self.assertIn(verdict, phase5_33_cellar_probe.ACCEPTED_VERDICTS)
+
+        verdict, _ = phase5_33_cellar_probe.classify_verdict(
+            [{"snapshot": {"new_cube": 19, "active_cube": 1, "clovers": 5}}],
+            5,
+            zone=phase5_33_cellar_probe.ZONE8,
+        )
+        self.assertEqual("phase5_33_zone8_transition_not_observed", verdict)
+        self.assertNotIn(verdict, phase5_33_cellar_probe.ACCEPTED_VERDICTS)
+
     def test_verdict_requires_runtime_destination_or_reports_life_loss(self) -> None:
         verdict, _ = phase5_33_cellar_probe.classify_verdict(
             [{"snapshot": {"new_cube": 19, "active_cube": 1, "clovers": 5}}],

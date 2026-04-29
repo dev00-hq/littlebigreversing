@@ -15,10 +15,10 @@ Own life-program decoding and original-runtime evidence lanes.
 - `life_audit.zig` / `audit-life-programs` is canonical.
 - Guarded `19/19` object `2` has live-backed `Divers=5` multi-bonus semantics; do not generalize this to all `LM_GIVE_BONUS`.
 - `0013` key source is W/default action: `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0`, `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
-- `0013` is closed: proof doc, fixture, and promotion packet prove generated-save load, W key spawn/pickup, key-consume door, cellar transition, and Down-return.
+- `0013` is closed: proof doc, fixture, and packet prove save load, key pickup, key-consume door, cellar entry, and return.
 - `inspect-room-transitions` is runtime-aware for `0013`: `2/1` reports no-key/key paths; `2/0` includes synthetic free return.
-- Named saves set `PlayerName`, `GamePathname`, `NumVersion=0xA4`, hero pose, `SceneStart`, `StartCube`, then call `SaveGame(TRUE)`.
-- Named loads use `LBA2.EXE SAVE\<name>.LBA` with autosave hidden/restored.
+- Named saves set name/path/version, hero pose, `SceneStart`, `StartCube`, then `SaveGame(TRUE)`.
+- Named loads use `LBA2.EXE SAVE\<name>.LBA` with autosave hidden.
 - Room `36` keeps dialog id `3` across both visible Sendell pages and clears after the second ack.
 - Guarded `3/3` zones `1`/`8` are cellar-source destination handoffs: cube `19 -> 21/19`, cube `20 -> 22/20`.
 
@@ -31,13 +31,12 @@ Own life-program decoding and original-runtime evidence lanes.
 - The WinMM proxy is opt-in instrumentation; `LBA2_RUNTIME_WATCH=1` records `life_loss_detected` rows from `ListVarGame[FLAG_CLOVER]`.
 - Use `life_loss_cdb_watch.py` only when the exact write stack matters; it watches the same counter and captures the CDB stack.
 - `CurrentSaveGame()` is only `current.lba` and forces `0x24`/`SaveGame(FALSE)`.
-- `0013-weapon.LBA` is the right cellar-side source save; `3/3` zones `1` and `8` decode to destination cubes `19` and `20`, but the save itself is not Tralu.
-- Corrected `3/3` zone `1` live probe remains negative: zone membership, but no `NewCube=19`/`active_cube=19`; edge crossing also fails.
-- The `3/3` zone `1` promotion packet is `live_negative` and `canonical_runtime: false`; do not widen gameplay behavior from the decoded candidate.
+- `0013-weapon.LBA` is the cellar-side source save, not Tralu.
+- `3/3` zones `1`/`8` are live-negative: zone membership appeared, but no destination cube or nonzero `NewPos`; zone `8` ended in clover loss/reset.
+- The `3/3` zone `1`/`8` packets are `live_negative`; do not widen gameplay from decoded candidates.
 - `0013` door source is scene-2 zone `0`; keyed `2/1 -> 2/0`, free return `2/0 -> 2/1`.
 - In `inspect-room-transitions`, use runtime fields for `0013`; decoded rows alone are insufficient.
 - Use `secret_room_door_watch.py`; it reads `NbLittleKeys` as a byte.
-- Use `runtime_watch_run.py --scenario phase5-0013-door` for the guarded no-CDB 0013 cellar-door proof lane.
 - `0013` pickup is `FUN_00415e48` / `0x0041737c`, not `LM_GIVE_BONUS`.
 - W path is default action, not search action.
 - For LBA2 screenshots, preserve RGB for game captures; alpha may be bogus.

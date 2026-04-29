@@ -4,6 +4,8 @@
 
 Reverse-engineering and port-planning workspace for Twinsen's Little Big Adventure 2. The canonical implementation path moves through the Zig `port/` workspace, while original-runtime evidence tooling remains a separate supporting track.
 
+LBA2 gameplay is a story-gated, hub-based action-adventure: world state, inventory, dialogue, location access, actor state, and quest flags unlock affordances and change behavior. Do not model the campaign as a linear room graph.
+
 ## Repo Map
 
 - `docs/`: checked-in research, plans, subsystem memory packs, and reference memos
