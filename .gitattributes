@@ -1,3 +1,16 @@
+*.bmp binary
+*.dll binary
+*.dmp binary
+*.exe binary
+*.gif binary
+*.iso binary
+*.jpg binary
+*.jpeg binary
+*.lba binary
+*.png binary
+*.wav binary
+*.zip binary
+
 # Narrow Mergiraf pilot: enable syntax-aware merges only for Zig, JSON, and Python.
 *.zig merge=mergiraf
 *.json merge=mergiraf
