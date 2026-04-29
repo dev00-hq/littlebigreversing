@@ -62,6 +62,7 @@ Use explicit replan gates after the evidence baseline, the first-viewer gate, th
 - Freeze canonical runtime inputs to the extracted original CD data plus the preserved classic source tree.
 - Keep checked-in findings in `docs/` and generated indexes, catalogs, fixtures, and comparisons in `work/`.
 - Define golden targets covering one room, one exterior area, one actor, one dialog or voice path, and one cutscene path.
+- Include at least one golden quest-state target that ties location, inventory, dialogue, and flags to a player affordance.
 
 ### Phase 1: Foundation, Asset CLI, and Runtime Skeleton
 
@@ -112,7 +113,7 @@ Use explicit replan gates after the evidence baseline, the first-viewer gate, th
 ### Phase 6: Completion Layers
 
 - Add audio playback, voice routing, music behavior, menus, save or load, cutscenes, and remaining media subsystems.
-- Expand parity coverage scene-by-scene and subsystem-by-subsystem until campaign-complete behavior is realistic.
+- Expand parity coverage by quest-state coverage as well as scene-by-scene and subsystem-by-subsystem checks until campaign-complete behavior is realistic.
 - Only consider controlled modernization work after stable parity.
 
 ## Stable Module Boundaries
@@ -122,7 +123,7 @@ Organize the Zig project around a small set of stable modules:
 - `platform`: SDL2 windowing, timing, input, audio hooks, and filesystem abstraction
 - `assets`: HQR and container primitives, typed decoders, asset catalog, and fixture emitters
 - `game_data`: scene, room or background, actor, zone, track, animation, text, and voice metadata models
-- `runtime`: renderer, scene or world state, object update loop, life-program interpreter, and save or load state
+- `runtime`: renderer, scene or world state, quest/state flags, object update loop, life-program interpreter, and save or load state
 - `tools`: CLI inspectors, validators, scene dumpers, and comparison runners
 
 Expose a small set of first-class commands early:

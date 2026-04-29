@@ -29,5 +29,6 @@ Locked golden target ids:
 - `actor-player-scene2`
 - `dialog-voice-holomap`
 - `cutscene-ascenseu`
+- `quest-state-house-key-cellar-access`
 
 Phase 0 does not introduce Zig runtime code, SDL bootstrap, parsers, or a viewer. It exists to keep later implementation work from re-deciding inputs, evidence location, or first validation fixtures.

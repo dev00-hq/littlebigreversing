@@ -54,3 +54,21 @@ These are the locked phase 0 targets. They may change only through an explicit r
   - `evidence`: `11659` for the `VIDEO.HQR` ordering and `ASCENSEU.SMK`
   - `asset_entries`: `RESS.HQR[49]` from topic `6707`, post `175880`
 - current stance: strong enough to keep for the first cutscene baseline
+
+## `quest-state-house-key-cellar-access`
+
+- semantic label: early Twinsen-house affordance tying hidden-key pickup to cellar access
+- state context:
+  - location: early Twinsen-house state
+  - inventory: starts without the hidden key
+  - player affordance: find hidden key, open the keyed cellar door, enter and return from the cellar
+  - runtime gate: key pickup and consumption plus house/cellar active-cube changes
+- asset references:
+  - `SCENE.HQR[2]`
+  - `LBA_BKG.HQR[1]` house background
+  - `LBA_BKG.HQR[0]` cellar background
+- evidence anchors:
+  - `docs/lba2_walkthrough.md`: early route says to get the key in the back room and get the golden ball
+  - `docs/PHASE5_0013_RUNTIME_PROOF.md`: live proof records `NbLittleKeys 0 -> 1`, key consumption, and house/cellar cube changes
+  - `docs/promotion_packets/phase5/phase5_0013_key_door_cellar.md`: the key-door-cellar seam is `live_positive`
+- current stance: retrospective Phase 0 quest-state target added after the Phase 5 model correction; strong enough for hidden-key and cellar-access planning, but not a claim that New Game equivalence, Sendell portrait clues, dialogue/flags, or magic ball pickup are already promoted

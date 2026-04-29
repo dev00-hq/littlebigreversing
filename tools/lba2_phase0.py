@@ -224,6 +224,19 @@ def find_first_line(path: Path, pattern: str) -> dict[str, Any]:
     raise SystemExit(f"Pattern not found in {repo_relative(path)}: {pattern}")
 
 
+def find_first_doc_line(path: Path, pattern: str) -> dict[str, Any]:
+    regex = compile_regex(pattern)
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if regex.search(line):
+            return {
+                "kind": "checked_in_doc",
+                "line": line_no,
+                "path": repo_relative(path),
+                "text": line.strip(),
+            }
+    raise SystemExit(f"Pattern not found in {repo_relative(path)}: {pattern}")
+
+
 def ensure_roots() -> None:
     if not ASSET_ROOT.is_dir():
         raise SystemExit(f"Missing canonical asset root: {repo_relative(ASSET_ROOT)}")
@@ -594,6 +607,32 @@ def generate_evidence_bundle() -> dict[str, Any]:
                 "target_id": "cutscene-ascenseu",
                 "unresolved_questions": [],
             },
+            {
+                "asset_references": [
+                    {"entry_index": 2, "path": "SCENE.HQR", "role": "house scene"},
+                    {"entry_index": 1, "path": "LBA_BKG.HQR", "role": "house background"},
+                    {"entry_index": 0, "path": "LBA_BKG.HQR", "role": "cellar background"},
+                ],
+                "confidence_level": "high",
+                "semantic_label": "Early house key and cellar access affordance",
+                "state_context": {
+                    "location": "early Twinsen-house state",
+                    "inventory": "starts without the hidden key",
+                    "player_affordance": "find hidden key, open keyed cellar door, enter and return from cellar",
+                    "runtime_gate": "key pickup and consumption plus house/cellar active-cube changes",
+                },
+                "supporting_evidence": [
+                    find_first_doc_line(REPO_ROOT / "docs" / "lba2_walkthrough.md", r"Get the key first.*golden ball"),
+                    find_first_doc_line(REPO_ROOT / "docs" / "PHASE5_0013_RUNTIME_PROOF.md", r"NbLittleKeys 0 -> 1"),
+                    find_first_doc_line(REPO_ROOT / "docs" / "promotion_packets" / "phase5" / "phase5_0013_key_door_cellar.md", r"status`: `live_positive"),
+                ],
+                "target_id": "quest-state-house-key-cellar-access",
+                "unresolved_questions": [
+                    "True New Game state equivalence is not yet proved for this target.",
+                    "The exact magic ball pickup mutation is not yet promoted in the 0013 packet.",
+                    "The Sendell portrait clue and dialogue/flag surface are not part of this narrow target.",
+                ],
+            },
         ]
 
     for target in golden_targets:
@@ -619,10 +658,12 @@ def generate_evidence_bundle() -> dict[str, Any]:
                 "exterior-area-citadel-tavern-and-shop",
                 "dialog-voice-holomap",
                 "cutscene-ascenseu",
+                "quest-state-house-key-cellar-access",
             ],
             "provisional_facts": [
                 "TEXT.HQR pairing for VOX/EN_GAM.VOX entry 1 is provisional.",
                 "Hero body/animation linkage for SCENE.HQR entry 2 is provisional.",
+                "New Game equivalence, Sendell portrait dialogue/flags, and magic ball pickup state are not yet promoted as part of the 0013 runtime packet.",
             ],
         },
     }

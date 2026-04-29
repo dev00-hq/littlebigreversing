@@ -8,6 +8,7 @@ Phase 0 keeps these open as explicit evidence gaps instead of filling them with 
 - exterior numbering: the classic loader uses `LoadScene(numscene + 1)` while `inspect-scene` takes raw HQR entry indices; keep those two number spaces explicit and do not reintroduce the old `SCENE.HQR[4]` exterior misclassification
 - scene-5 regression: `SCENE.HQR[5]` is useful for zone-semantics regression checks, but it is not part of the locked phase 0 golden target set yet
 - dialog target: the English voice entry is locked, but the exact `TEXT.HQR` subtitle pairing remains provisional
+- quest-state target: the house key and cellar transition are promoted, but the exact magic ball pickup mutation, Sendell portrait clue, dialogue/flag surface, and true New Game state equivalence are not yet part of the locked runtime contract
 
 ## Next Strategic Gate Inputs
 
