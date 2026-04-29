@@ -55,6 +55,9 @@ function absAddr(absolute) {
 
 const ADDR = {
   heroBase: absAddr('0x0049a19c'),
+  candidateX: absAddr('0x0049a0a8'),
+  candidateY: absAddr('0x0049a0ac'),
+  candidateZ: absAddr('0x0049a0b0'),
 };
 
 const OFF = {
@@ -125,7 +128,7 @@ function applyHeading(targetBeta, syncBoundAngle, setOldBeta) {
   return readSnapshot();
 }
 
-function applyTeleport(targetX, targetY, targetZ, syncOldPosition) {
+function applyTeleport(targetX, targetY, targetZ, syncOldPosition, syncCandidatePosition) {
   const hero = heroAddr();
   hero.add(OFF.x).writeS32(targetX);
   hero.add(OFF.y).writeS32(targetY);
@@ -134,6 +137,11 @@ function applyTeleport(targetX, targetY, targetZ, syncOldPosition) {
     hero.add(OFF.oldX).writeS32(targetX);
     hero.add(OFF.oldY).writeS32(targetY);
     hero.add(OFF.oldZ).writeS32(targetZ);
+  }
+  if (syncCandidatePosition) {
+    ADDR.candidateX.writeS32(targetX);
+    ADDR.candidateY.writeS32(targetY);
+    ADDR.candidateZ.writeS32(targetZ);
   }
   return readSnapshot();
 }
@@ -145,8 +153,8 @@ rpc.exports = {
   applyheading(targetBeta, syncBoundAngle, setOldBeta) {
     return applyHeading(targetBeta, !!syncBoundAngle, !!setOldBeta);
   },
-  applyteleport(targetX, targetY, targetZ, syncOldPosition) {
-    return applyTeleport(targetX, targetY, targetZ, !!syncOldPosition);
+  applyteleport(targetX, targetY, targetZ, syncOldPosition, syncCandidatePosition) {
+    return applyTeleport(targetX, targetY, targetZ, !!syncOldPosition, !!syncCandidatePosition);
   },
 };
 """
@@ -271,6 +279,7 @@ class HeadingInjector:
         target_z: int,
         *,
         sync_old_position: bool = True,
+        sync_candidate_position: bool = False,
     ) -> dict[str, Any]:
         self.connect()
         snapshot = self._script.exports_sync.applyteleport(
@@ -278,6 +287,7 @@ class HeadingInjector:
             int(target_y),
             int(target_z),
             sync_old_position,
+            sync_candidate_position,
         )
         verified = enrich_snapshot(snapshot)
         verified["target_position"] = {
@@ -286,6 +296,7 @@ class HeadingInjector:
             "z": int(target_z),
         }
         verified["sync_old_position"] = sync_old_position
+        verified["sync_candidate_position"] = sync_candidate_position
         verified["final_delta_position"] = {
             "x": (None if verified.get("x") is None else int(verified["x"]) - int(target_x)),
             "y": (None if verified.get("y") is None else int(verified["y"]) - int(target_y)),
