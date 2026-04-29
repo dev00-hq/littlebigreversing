@@ -485,6 +485,7 @@ def validate_record(
     subsystems: set[str],
     *,
     enforce_canonical_id: bool = True,
+    enforce_text_limits: bool = True,
 ) -> list[str]:
     errors = []
     for field in COMMON_FIELDS + FIELD_RULES[kind]["required"]:
@@ -519,12 +520,12 @@ def validate_record(
                 errors.append(f"{path}:{line_no}: {exc}")
     for field in FIELD_RULES[kind]["short"]:
         try:
-            normalize_text(record[field], field)
+            normalize_text(record[field], field, 240 if enforce_text_limits else 10000)
         except ValueError as exc:
             errors.append(f"{path}:{line_no}: {exc}")
     for field in FIELD_RULES[kind]["long"]:
         try:
-            normalize_text(record[field], field, 600)
+            normalize_text(record[field], field, 600 if enforce_text_limits else 10000)
         except ValueError as exc:
             errors.append(f"{path}:{line_no}: {exc}")
     for field in FIELD_RULES[kind]["list"]:
@@ -536,7 +537,7 @@ def validate_record(
                 errors.append(f"{path}:{line_no}: {field} must contain only strings")
                 continue
             try:
-                normalize_text(item, field)
+                normalize_text(item, field, 240 if enforce_text_limits else 10000)
             except ValueError as exc:
                 errors.append(f"{path}:{line_no}: {exc}")
     if record["status"] not in STATUSES[kind]:
@@ -706,6 +707,7 @@ def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
                     line_no,
                     subsystem_set,
                     enforce_canonical_id=index >= head_line_count,
+                    enforce_text_limits=index >= head_line_count,
                 )
             )
         errors.extend(validate_append_only_history_file(paths, f"{kind}.jsonl"))
