@@ -4,6 +4,7 @@ const paths_mod = @import("../foundation/paths.zig");
 const sdl = @import("../platform/sdl.zig");
 const runtime_locomotion = @import("../runtime/locomotion.zig");
 const runtime_object_behavior = @import("../runtime/object_behavior.zig");
+const room_projection = @import("../runtime/room_projection.zig");
 const room_entry_state = @import("../runtime/room_entry_state.zig");
 const runtime_session = @import("../runtime/session.zig");
 const runtime_query = @import("../runtime/world_query.zig");
@@ -12,6 +13,7 @@ const render = @import("viewer/render.zig");
 const state = @import("../runtime/room_state.zig");
 const layout = @import("viewer/layout.zig");
 const fragment_compare = @import("viewer/fragment_compare.zig");
+const controller = @import("viewer/controller.zig");
 
 pub const window_width: i32 = 1440;
 pub const window_height: i32 = 900;
@@ -37,18 +39,18 @@ pub const CompositionBoundsSnapshot = state.CompositionBoundsSnapshot;
 pub const SurfaceShapeClass = state.SurfaceShapeClass;
 pub const CompositionTileSnapshot = state.CompositionTileSnapshot;
 pub const CompositionSnapshot = state.CompositionSnapshot;
-pub const CompositionRenderSnapshot = state.CompositionRenderSnapshot;
+pub const CompositionRenderSnapshot = room_projection.CompositionRenderSnapshot;
 pub const FragmentLibrarySnapshot = state.FragmentLibrarySnapshot;
 pub const FragmentZoneCellSnapshot = state.FragmentZoneCellSnapshot;
 pub const FragmentZoneSnapshot = state.FragmentZoneSnapshot;
-pub const FragmentRenderSnapshot = state.FragmentRenderSnapshot;
+pub const FragmentRenderSnapshot = room_projection.FragmentRenderSnapshot;
 pub const BackgroundSnapshot = state.BackgroundSnapshot;
 pub const RoomSnapshot = state.RoomSnapshot;
 pub const WorldPointSnapshot = world_geometry.WorldPointSnapshot;
 pub const WorldBounds = world_geometry.WorldBounds;
 pub const GridCell = world_geometry.GridCell;
 pub const CardinalDirection = world_geometry.CardinalDirection;
-pub const RenderSnapshot = state.RenderSnapshot;
+pub const RenderSnapshot = room_projection.RenderSnapshot;
 pub const Session = runtime_session.Session;
 pub const FrameUpdate = runtime_session.FrameUpdate;
 pub const DebugLayout = layout.DebugLayout;
@@ -92,26 +94,9 @@ pub const ViewerZoomLevel = render.ZoomLevel;
 pub const ViewerViewMode = render.ViewMode;
 pub const ViewerObjectState = runtime_session.ObjectState;
 
-pub const ViewerInteractionState = struct {
-    control_mode: ViewerControlMode,
-    sidebar_tab: ViewerSidebarTab,
-    zoom_level: ViewerZoomLevel,
-    view_mode: ViewerViewMode,
-    fragment_selection: FragmentComparisonSelection,
-};
-
-pub const ViewerPostKeyAction = enum {
-    none,
-    advance_world,
-    apply_validation_zone_effects,
-};
-
-pub const ViewerKeyDownResult = struct {
-    interaction: ViewerInteractionState,
-    locomotion_status: ViewerLocomotionStatus,
-    should_print_locomotion_diagnostic: bool = false,
-    post_key_action: ViewerPostKeyAction = .none,
-};
+pub const ViewerInteractionState = controller.InteractionState;
+pub const ViewerPostKeyAction = controller.PostKeyAction;
+pub const ViewerKeyDownResult = controller.KeyDownResult;
 
 pub const locomotion_fixture_scene_entry: usize = 19;
 pub const locomotion_fixture_background_entry: usize = 19;
@@ -194,7 +179,7 @@ pub fn initSession(allocator: std.mem.Allocator, room: *const RoomSnapshot) !Ses
 }
 
 pub fn buildRenderSnapshot(room: *const RoomSnapshot, current_session: Session) RenderSnapshot {
-    var snapshot = state.buildRenderSnapshotWithHeroPosition(room, current_session.heroWorldPosition());
+    var snapshot = room_projection.buildRenderSnapshotWithHeroPosition(room, current_session.heroWorldPosition());
     const runtime_objects = current_session.objectSnapshots();
     std.debug.assert(runtime_objects.len == 0 or runtime_objects.len == room.scene.objects.len);
     if (runtime_objects.len != 0) snapshot.objects = runtime_objects;
@@ -424,30 +409,15 @@ pub fn projectZoneBounds(snapshot: RenderSnapshot, schematic: sdl.Rect, zone: Zo
 }
 
 pub fn initialInteractionState(catalog: FragmentComparisonCatalog) ViewerInteractionState {
-    const fragment_selection = fragment_compare.initialFragmentComparisonSelection(catalog);
-    return .{
-        .control_mode = if (fragment_selection.focus == null) .locomotion else .fragment_navigation,
-        .sidebar_tab = .info,
-        .zoom_level = .fit,
-        .view_mode = .isometric,
-        .fragment_selection = fragment_selection,
-    };
+    return controller.initialInteractionState(catalog);
 }
 
 pub fn zoomIn(zoom_level: ViewerZoomLevel) ViewerZoomLevel {
-    return switch (zoom_level) {
-        .fit => .room,
-        .room => .detail,
-        .detail => .detail,
-    };
+    return controller.zoomIn(zoom_level);
 }
 
 pub fn zoomOut(zoom_level: ViewerZoomLevel) ViewerZoomLevel {
-    return switch (zoom_level) {
-        .fit => .fit,
-        .room => .fit,
-        .detail => .room,
-    };
+    return controller.zoomOut(zoom_level);
 }
 
 pub fn stepRankedFragmentComparisonSelection(
@@ -455,7 +425,7 @@ pub fn stepRankedFragmentComparisonSelection(
     selection: FragmentComparisonSelection,
     delta: i32,
 ) FragmentComparisonSelection {
-    return fragment_compare.stepRankedSelection(catalog, selection, delta);
+    return controller.stepRankedFragmentComparisonSelection(catalog, selection, delta);
 }
 
 pub fn stepCellFragmentComparisonSelection(
@@ -463,7 +433,7 @@ pub fn stepCellFragmentComparisonSelection(
     selection: FragmentComparisonSelection,
     delta: i32,
 ) FragmentComparisonSelection {
-    return fragment_compare.stepCellSelection(catalog, selection, delta);
+    return controller.stepCellFragmentComparisonSelection(catalog, selection, delta);
 }
 
 pub fn handleKeyDown(
@@ -474,6 +444,10 @@ pub fn handleKeyDown(
     locomotion_status: ViewerLocomotionStatus,
     key: ViewerKey,
 ) !ViewerKeyDownResult {
+    if (controller.handleInteractionKeyDown(catalog, interaction, locomotion_status, key)) |result| {
+        return result;
+    }
+
     switch (key) {
         .enter => {
             if (runtime_object_behavior.sendellStoryAwaitsAdvance(room, current_session.*) or
@@ -500,50 +474,7 @@ pub fn handleKeyDown(
                 .should_print_locomotion_diagnostic = true,
             };
         },
-        .tab => {
-            if (interaction.fragment_selection.focus == null) {
-                return .{
-                    .interaction = interaction,
-                    .locomotion_status = locomotion_status,
-                };
-            }
-
-            return .{
-                .interaction = .{
-                    .control_mode = switch (interaction.control_mode) {
-                        .locomotion => .fragment_navigation,
-                        .fragment_navigation => .locomotion,
-                    },
-                    .sidebar_tab = interaction.sidebar_tab,
-                    .zoom_level = interaction.zoom_level,
-                    .view_mode = interaction.view_mode,
-                    .fragment_selection = interaction.fragment_selection,
-                },
-                .locomotion_status = locomotion_status,
-            };
-        },
         .left, .right, .up, .down => {
-            if (interaction.control_mode == .fragment_navigation and interaction.fragment_selection.focus != null) {
-                const next_fragment_selection = switch (key) {
-                    .left => stepRankedFragmentComparisonSelection(catalog, interaction.fragment_selection, -1),
-                    .right => stepRankedFragmentComparisonSelection(catalog, interaction.fragment_selection, 1),
-                    .up => stepCellFragmentComparisonSelection(catalog, interaction.fragment_selection, -1),
-                    .down => stepCellFragmentComparisonSelection(catalog, interaction.fragment_selection, 1),
-                    else => unreachable,
-                };
-
-                return .{
-                    .interaction = .{
-                        .control_mode = interaction.control_mode,
-                        .sidebar_tab = interaction.sidebar_tab,
-                        .zoom_level = interaction.zoom_level,
-                        .view_mode = interaction.view_mode,
-                        .fragment_selection = next_fragment_selection,
-                    },
-                    .locomotion_status = locomotion_status,
-                };
-            }
-
             const direction: CardinalDirection = switch (key) {
                 .left => .west,
                 .right => .east,
@@ -564,53 +495,6 @@ pub fn handleKeyDown(
                 .interaction = interaction,
                 .locomotion_status = locomotion_status,
                 .post_key_action = .advance_world,
-            };
-        },
-        .c => {
-            return .{
-                .interaction = .{
-                    .control_mode = interaction.control_mode,
-                    .sidebar_tab = switch (interaction.sidebar_tab) {
-                        .info => .controls,
-                        .controls => .info,
-                    },
-                    .zoom_level = interaction.zoom_level,
-                    .view_mode = interaction.view_mode,
-                    .fragment_selection = interaction.fragment_selection,
-                },
-                .locomotion_status = locomotion_status,
-            };
-        },
-        .v => {
-            return .{
-                .interaction = .{
-                    .control_mode = interaction.control_mode,
-                    .sidebar_tab = interaction.sidebar_tab,
-                    .zoom_level = interaction.zoom_level,
-                    .view_mode = switch (interaction.view_mode) {
-                        .isometric => .grid,
-                        .grid => .isometric,
-                    },
-                    .fragment_selection = interaction.fragment_selection,
-                },
-                .locomotion_status = locomotion_status,
-            };
-        },
-        .zoom_in, .zoom_out, .zoom_reset => {
-            return .{
-                .interaction = .{
-                    .control_mode = interaction.control_mode,
-                    .sidebar_tab = interaction.sidebar_tab,
-                    .zoom_level = switch (key) {
-                        .zoom_in => zoomIn(interaction.zoom_level),
-                        .zoom_out => zoomOut(interaction.zoom_level),
-                        .zoom_reset => .fit,
-                        else => unreachable,
-                    },
-                    .view_mode = interaction.view_mode,
-                    .fragment_selection = interaction.fragment_selection,
-                },
-                .locomotion_status = locomotion_status,
             };
         },
         .space => {
@@ -661,6 +545,13 @@ pub fn handleKeyDown(
                 .post_key_action = .advance_world,
             };
         },
+        .tab,
+        .c,
+        .v,
+        .zoom_in,
+        .zoom_out,
+        .zoom_reset,
+        => unreachable,
     }
 }
 
@@ -906,9 +797,9 @@ fn secretRoomValidationChecklistLine(
         hasScenarioZoneNum(exact_zones, 0);
     const door_exact = room.background.entry_index == secret_room_background_entry and
         ((hero_position.x >= 3000 and hero_position.x <= 3128 and
-        hero_position.y == 2048 and
-        hero_position.z >= 3984 and hero_position.z <= 4096) or
-        hasZoneIndex(exact_zones, 0));
+            hero_position.y == 2048 and
+            hero_position.z >= 3984 and hero_position.z <= 4096) or
+            hasZoneIndex(exact_zones, 0));
     const cellar_return_exact = room.background.entry_index == secret_room_cellar_background_entry and
         hero_position.x >= 9680 and hero_position.x <= 9780 and
         hero_position.y >= 1024 and hero_position.y <= 1025 and

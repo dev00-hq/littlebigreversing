@@ -15,7 +15,7 @@ from runtime_watch_run import (
     ProcessMemory,
     autosave_hidden,
     capture,
-    kill_processes,
+    preflight_process_ownership,
     read_snapshot,
     set_hero_pose,
     stage_save,
@@ -93,6 +93,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--duration-sec", type=float, default=3.0)
     parser.add_argument("--keep-process", action="store_true")
     parser.add_argument("--no-hide-autosave", action="store_true")
+    parser.add_argument(
+        "--takeover-existing-processes",
+        action="store_true",
+        help="Kill existing LBA2.EXE/cdb.exe processes before launch. Default is fail-fast to protect manual proof sessions.",
+    )
     return parser.parse_args(argv)
 
 
@@ -278,7 +283,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
 
     header = validate_source_save(launch_save)
     save_arg = stage_save(exe, launch_save)
-    kill_processes()
+    preflight_process_ownership(takeover_existing_processes=args.takeover_existing_processes)
 
     screenshots = []
     observations: list[dict[str, object]] = []

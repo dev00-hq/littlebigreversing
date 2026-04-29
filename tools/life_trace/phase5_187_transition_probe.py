@@ -13,6 +13,7 @@ from types import SimpleNamespace
 from typing import Any, Iterator
 
 from heading_inject import DEFAULT_FRIDA_REPO, HeadingInjector
+from life_trace_runtime import preflight_owned_launch_processes
 from life_trace_shared import JsonlWriter, PersistedStatusEvent
 from life_trace_windows import WindowCapture, WindowInput
 from scenes.load_game import direct_launch_argv, drive_direct_save_launch_startup, resolve_direct_launch_save
@@ -109,6 +110,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--override-start-cube", default=None, help="Counterfactual StartCube override as X,Y,Z written before source trigger.")
     parser.add_argument("--keep-process", action="store_true", help="Leave a launched LBA2.EXE running after the probe.")
     parser.add_argument("--no-kill-existing", action="store_true", help="Do not kill existing LBA2.EXE before direct launch.")
+    parser.add_argument(
+        "--takeover-existing-processes",
+        action="store_true",
+        help="Kill existing LBA2.EXE before launch. Default is fail-fast to protect manual proof sessions.",
+    )
     parser.add_argument("--hide-autosave", action=argparse.BooleanOptionalAction, default=True, help="Temporarily hide SAVE\\autosave.lba during direct launch so startup cannot fall back to AUTOSAVE.")
     return parser.parse_args()
 
@@ -153,8 +159,8 @@ def apply_start_cube_override(pid: int, override: dict[str, int]) -> dict[str, i
     return dict(override)
 
 
-def kill_lba2() -> None:
-    subprocess.run(["taskkill", "/IM", "LBA2.EXE", "/F"], capture_output=True, text=True, check=False)
+def force_kill_process_tree(pid: int) -> None:
+    subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, text=True, check=False)
 
 
 def write_jsonl(path: Path, payload: dict[str, Any]) -> None:
@@ -303,9 +309,14 @@ def stage_runtime_save(exe: Path, source_save: Path) -> tuple[Path, Path]:
 def launch_game(args: argparse.Namespace, out_dir: Path) -> subprocess.Popen[bytes] | None:
     if args.attach_pid is not None or args.process_name is not None:
         return None
-    if not args.no_kill_existing:
-        kill_lba2()
     writer = JsonlWriter(out_dir, run_id="phase5-187187-runtime-proof")
+    if not args.no_kill_existing:
+        preflight_owned_launch_processes(
+            writer,
+            "LBA2.EXE",
+            extra_process_names=(),
+            takeover_existing_processes=args.takeover_existing_processes,
+        )
     launch_save = resolve_direct_launch_save(
         SimpleNamespace(launch_save=args.launch_save),
         writer,
@@ -343,7 +354,7 @@ def launch_game(args: argparse.Namespace, out_dir: Path) -> subprocess.Popen[byt
                     proc.terminate()
                     proc.wait(timeout=3)
                 except Exception:
-                    kill_lba2()
+                    force_kill_process_tree(proc.pid)
                 raise
             writer.write_event(
                 PersistedStatusEvent(
@@ -552,7 +563,7 @@ def main() -> int:
                 proc.terminate()
                 proc.wait(timeout=3)
             except Exception:
-                kill_lba2()
+                force_kill_process_tree(proc.pid)
     return 0
 
 

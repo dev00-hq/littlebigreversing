@@ -2,6 +2,7 @@ const std = @import("std");
 const paths_mod = @import("../../foundation/paths.zig");
 const background_data = @import("../../game_data/background.zig");
 const scene_data = @import("../../game_data/scene.zig");
+const projection = @import("../../runtime/room_projection.zig");
 const state = @import("../../runtime/room_state.zig");
 const room_fixtures = @import("../../testing/room_fixtures.zig");
 
@@ -235,7 +236,7 @@ test "viewer room snapshot keeps the guarded fragment-bearing 11/10 pair stable"
 test "viewer render snapshot derives a deterministic schematic from the supported room baseline" {
     const room = try room_fixtures.guarded1919();
 
-    const render = state.buildRenderSnapshot(room);
+    const render = projection.buildRenderSnapshot(room);
     try std.testing.expectEqual(@as(usize, 64), render.grid_width);
     try std.testing.expectEqual(@as(usize, 64), render.grid_depth);
     try std.testing.expectEqual(@as(i32, 0), render.world_bounds.min_x);

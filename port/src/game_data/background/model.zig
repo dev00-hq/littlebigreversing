@@ -391,6 +391,36 @@ pub const BackgroundCompositionSummary = struct {
     bricks: BrickPreviewLibrarySummary,
 };
 
+pub const BackgroundTopologyCompositionSummary = struct {
+    grid: GridCompositionSummary,
+    library: LayoutLibrarySummary,
+    fragments: FragmentLibrarySummary,
+};
+
+pub const BackgroundTopologyComposition = struct {
+    grid: GridComposition,
+    library: LayoutLibrary,
+    fragments: FragmentLibrary,
+
+    pub fn deinit(self: BackgroundTopologyComposition, allocator: std.mem.Allocator) void {
+        self.grid.deinit(allocator);
+        self.library.deinit(allocator);
+        self.fragments.deinit(allocator);
+    }
+
+    pub fn summary(self: BackgroundTopologyComposition) BackgroundTopologyCompositionSummary {
+        return .{
+            .grid = self.grid.summary(),
+            .library = self.library.summary(),
+            .fragments = self.fragments.summary(),
+        };
+    }
+
+    pub fn jsonStringify(self: BackgroundTopologyComposition, jw: anytype) !void {
+        try jw.write(self.summary());
+    }
+};
+
 pub const BackgroundComposition = struct {
     grid: GridComposition,
     library: LayoutLibrary,
@@ -415,6 +445,33 @@ pub const BackgroundComposition = struct {
 
     pub fn jsonStringify(self: BackgroundComposition, jw: anytype) !void {
         try jw.write(self.summary());
+    }
+};
+
+pub const BackgroundTopologyMetadata = struct {
+    entry_index: usize,
+    header_entry_index: usize,
+    header_compressed_header: hqr.ResourceHeader,
+    bkg_header: BkgHeader,
+    tab_all_cube_entry_index: usize,
+    tab_all_cube_compressed_header: hqr.ResourceHeader,
+    tab_all_cube_entry_count: usize,
+    tab_all_cube: TabAllCubeEntry,
+    remapped_cube_index: usize,
+    gri_entry_index: usize,
+    gri_compressed_header: hqr.ResourceHeader,
+    gri_header: GriHeader,
+    used_blocks: UsedBlockSummary,
+    column_table: ColumnTableMetadata,
+    grm_entry_index: usize,
+    bll_entry_index: usize,
+    bll_compressed_header: hqr.ResourceHeader,
+    bll: BllTableMetadata,
+    composition: BackgroundTopologyComposition,
+
+    pub fn deinit(self: BackgroundTopologyMetadata, allocator: std.mem.Allocator) void {
+        self.used_blocks.deinit(allocator);
+        self.composition.deinit(allocator);
     }
 };
 

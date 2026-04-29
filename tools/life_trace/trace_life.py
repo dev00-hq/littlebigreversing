@@ -136,6 +136,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Leave a spawned process running after the tracer exits.",
     )
+    parser.add_argument(
+        "--takeover-existing-processes",
+        action="store_true",
+        help="Kill existing LBA2.EXE/cdb.exe processes before launch. Default is fail-fast to protect manual proof sessions.",
+    )
     parser.add_argument("--run-root", default=str(DEFAULT_RUN_ROOT), help="Root directory for life_trace run bundles.")
     parser.add_argument(
         "--callsites-jsonl",

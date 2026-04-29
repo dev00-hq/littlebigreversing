@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import contextlib
 import ctypes
 import json
@@ -134,12 +135,59 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--poll-sec", type=float, default=0.05)
     parser.add_argument("--keep-process", action="store_true")
     parser.add_argument("--no-hide-autosave", action="store_true")
+    parser.add_argument(
+        "--takeover-existing-processes",
+        action="store_true",
+        help="Kill existing LBA2.EXE/cdb.exe processes before launch. Default is fail-fast to protect manual proof sessions.",
+    )
     return parser.parse_args(argv)
 
 
-def kill_processes() -> None:
-    for image in ("LBA2.EXE", "cdb.exe"):
+def parse_tasklist_csv_pids(stdout: str) -> list[int]:
+    pids: list[int] = []
+    for row in csv.reader(line for line in stdout.splitlines() if line.strip()):
+        if len(row) < 2:
+            continue
+        try:
+            pids.append(int(row[1]))
+        except ValueError:
+            continue
+    return pids
+
+
+def list_running_image_pids(image_name: str) -> list[int]:
+    completed = subprocess.run(
+        ["tasklist", "/FI", f"IMAGENAME eq {image_name}", "/FO", "CSV", "/NH"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return []
+    return parse_tasklist_csv_pids(completed.stdout)
+
+
+def kill_processes(process_names: tuple[str, ...] = ("LBA2.EXE", "cdb.exe")) -> None:
+    for image in process_names:
         subprocess.run(["taskkill", "/IM", image, "/F"], capture_output=True, text=True, check=False)
+
+
+def preflight_process_ownership(*, takeover_existing_processes: bool) -> dict[str, list[int]]:
+    running = {
+        image: pids
+        for image in ("LBA2.EXE", "cdb.exe")
+        if (pids := list_running_image_pids(image))
+    }
+    if not running:
+        return {}
+    if not takeover_existing_processes:
+        details = ", ".join(f"{image}={pids}" for image, pids in running.items())
+        raise RuntimeError(
+            f"existing proof process(es) detected: {details}; "
+            "rerun with --takeover-existing-processes to kill them explicitly"
+        )
+    kill_processes(tuple(running.keys()))
+    return running
 
 
 @contextlib.contextmanager
@@ -244,7 +292,7 @@ def run_phase5_0013_door(args: argparse.Namespace) -> dict[str, object]:
         path.unlink(missing_ok=True)
 
     save_arg = stage_save(exe, launch_save)
-    kill_processes()
+    preflight_process_ownership(takeover_existing_processes=args.takeover_existing_processes)
 
     env = os.environ.copy()
     env["LBA2_RUNTIME_WATCH"] = "1"

@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 
 LIFE_TRACE_PATH = Path(__file__).resolve().parent / "life_trace"
@@ -56,6 +57,39 @@ class RuntimeWatchRunTests(unittest.TestCase):
 
         self.assertEqual("watch_started", events[0]["event"])
         self.assertEqual("life_loss_detected", events[1]["event"])
+
+    def test_parse_tasklist_csv_pids_ignores_info_rows(self) -> None:
+        self.assertEqual(
+            [1234, 5678],
+            runtime_watch_run.parse_tasklist_csv_pids(
+                '"LBA2.EXE","1234","Console","1","8,192 K"\n'
+                'INFO: No tasks are running which match the specified criteria.\n'
+                '"cdb.exe","5678","Console","1","4,096 K"\n'
+            ),
+        )
+
+    def test_preflight_refuses_foreign_process_takeover_by_default(self) -> None:
+        with mock.patch.object(
+            runtime_watch_run,
+            "list_running_image_pids",
+            side_effect=lambda image: [111] if image == "LBA2.EXE" else [],
+        ):
+            with self.assertRaisesRegex(RuntimeError, "--takeover-existing-processes"):
+                runtime_watch_run.preflight_process_ownership(takeover_existing_processes=False)
+
+    def test_preflight_takeover_kills_only_running_images(self) -> None:
+        with (
+            mock.patch.object(
+                runtime_watch_run,
+                "list_running_image_pids",
+                side_effect=lambda image: [111] if image == "LBA2.EXE" else [],
+            ),
+            mock.patch.object(runtime_watch_run, "kill_processes") as mocked_kill,
+        ):
+            running = runtime_watch_run.preflight_process_ownership(takeover_existing_processes=True)
+
+        self.assertEqual({"LBA2.EXE": [111]}, running)
+        mocked_kill.assert_called_once_with(("LBA2.EXE",))
 
 
 if __name__ == "__main__":

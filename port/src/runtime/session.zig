@@ -2,6 +2,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 const room_fixtures = if (builtin.is_test) @import("../testing/room_fixtures.zig") else struct {};
 const room_state = @import("room_state.zig");
+const room_projection = @import("room_projection.zig");
 const world_geometry = @import("world_geometry.zig");
 
 pub const HeroWorldDelta = struct {
@@ -720,7 +721,7 @@ test "runtime render snapshots consume session state without duplicating guarded
         .z = 3333,
     });
 
-    const render = room_state.buildRenderSnapshotWithHeroPosition(room, runtime_session.heroWorldPosition());
+    const render = room_projection.buildRenderSnapshotWithHeroPosition(room, runtime_session.heroWorldPosition());
     try std.testing.expectEqual(@as(i32, 2222), render.hero_position.x);
     try std.testing.expectEqual(@as(i32, 640), render.hero_position.y);
     try std.testing.expectEqual(@as(i32, 3333), render.hero_position.z);

@@ -34,7 +34,7 @@ The hard-cut product policy applies throughout this roadmap: prefer one canonica
 
 - The old `Foundation + asset CLI` boundary is already behind the repo; that baseline has landed.
 - The first-viewer gate is crossed. The checked-in port already has a runtime-backed interior viewer path, `BRK`-backed top-surface previews, viewer-local comparison and HUD surfaces, and a canonical Windows verification gate in `scripts/verify_viewer.py`; the guarded room/load set is now `19/19`, `2/2`, and `11/10`, while `44/2` remains an explicit guarded `ViewerSceneMustBeInterior` rejection.
-- The first narrow runtime extraction has also landed: `runtime/session.zig` now initializes from explicit world-position input, while `runtime/room_state.zig` remains the mixed adapter that turns guarded `RoomSnapshot` data into that seed.
+- The first narrow runtime extraction has also landed: `runtime/session.zig` now initializes from explicit world-position input, `runtime/room_state.zig` remains the guarded `RoomSnapshot` adaptation boundary, and render projection is split into `runtime/room_projection.zig`.
 - The current implementation stream is guarded runtime/viewer maintenance and bounded widening on top of that validated runtime/viewer path, not another foundation/bootstrap slice.
 - The old switch-family life blocker is no longer the strategic gate. `LM_DEFAULT` and `LM_END_SWITCH` are structurally supported in the offline decoder, and the all-scenes life audit currently reports zero unsupported blobs.
 - `inspect-room-intelligence`, `cdb-agent`, and `ghb` are now the approved investigative layers for narrowing runtime gaps before widening guarded runtime support; downstream ranking and probe scripts remain supporting evidence, not canonical runtime truth.

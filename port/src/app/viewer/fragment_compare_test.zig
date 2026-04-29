@@ -1,4 +1,5 @@
 const std = @import("std");
+const projection = @import("../../runtime/room_projection.zig");
 const state = @import("../../runtime/room_state.zig");
 const room_fixtures = @import("../../testing/room_fixtures.zig");
 const fragment_compare = @import("fragment_compare.zig");
@@ -23,7 +24,7 @@ test "viewer fragment brick delta detects changed base bricks" {
     const cell_same = state.FragmentZoneCellSnapshot{ .x = 4, .z = 7, .has_non_empty = true, .stack_depth = 2, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 149 };
     const cell_changed = state.FragmentZoneCellSnapshot{ .x = 4, .z = 7, .has_non_empty = true, .stack_depth = 2, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 667 };
     const cell_missing = state.FragmentZoneCellSnapshot{ .x = 1, .z = 1, .has_non_empty = true, .stack_depth = 1, .top_floor_type = 1, .top_shape = 1, .top_shape_class = .solid, .top_brick_index = 667 };
-    const snapshot = state.RenderSnapshot{
+    const snapshot = projection.RenderSnapshot{
         .grid_width = 8,
         .grid_depth = 8,
         .world_bounds = .{ .min_x = 0, .max_x = 1, .min_z = 0, .max_z = 1 },
@@ -167,7 +168,7 @@ test "viewer fragment comparison catalog prioritizes any delta ahead of exact ma
             .cells = cells[0..],
         },
     };
-    const snapshot = state.RenderSnapshot{
+    const snapshot = projection.RenderSnapshot{
         .grid_width = 8,
         .grid_depth = 8,
         .world_bounds = .{ .min_x = 0, .max_x = 1, .min_z = 0, .max_z = 1 },
@@ -236,7 +237,7 @@ test "viewer fragment comparison selection can step ranked entries and fragment 
             .cells = cells[0..],
         },
     };
-    const snapshot = state.RenderSnapshot{
+    const snapshot = projection.RenderSnapshot{
         .grid_width = 8,
         .grid_depth = 8,
         .world_bounds = .{ .min_x = 0, .max_x = 1, .min_z = 0, .max_z = 1 },
@@ -275,7 +276,7 @@ test "viewer fragment comparison panel pins the selected cell ahead of the ranke
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1110();
 
-    const render = state.buildRenderSnapshot(room);
+    const render = projection.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, render);
     defer catalog.deinit(allocator);
 
@@ -312,7 +313,7 @@ test "viewer fragment comparison panel keeps the checked-in fragment pair inspec
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1110();
 
-    const render = state.buildRenderSnapshot(room);
+    const render = projection.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, render);
     defer catalog.deinit(allocator);
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);

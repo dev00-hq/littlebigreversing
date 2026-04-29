@@ -1,5 +1,6 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
+const projection = @import("../../runtime/room_projection.zig");
 const state = @import("../../runtime/room_state.zig");
 const world_geometry = @import("../../runtime/world_geometry.zig");
 
@@ -120,11 +121,11 @@ fn fitSchematicRect(available: sdl.Rect, grid_width: usize, grid_depth: usize) s
     };
 }
 
-pub fn projectWorldPoint(snapshot: state.RenderSnapshot, schematic: sdl.Rect, world_x: i32, world_z: i32) ScreenPoint {
+pub fn projectWorldPoint(snapshot: projection.RenderSnapshot, schematic: sdl.Rect, world_x: i32, world_z: i32) ScreenPoint {
     return projectWorldPointInBounds(schematic, snapshot.world_bounds, world_x, world_z);
 }
 
-pub fn computeGridViewport(snapshot: state.RenderSnapshot, zoom_level: ZoomLevel) GridViewport {
+pub fn computeGridViewport(snapshot: projection.RenderSnapshot, zoom_level: ZoomLevel) GridViewport {
     if (zoom_level == .fit) return fullGridViewport(snapshot.grid_width, snapshot.grid_depth);
     const occupied = snapshot.composition.occupied_bounds orelse return fullGridViewport(snapshot.grid_width, snapshot.grid_depth);
     const margin: usize = switch (zoom_level) {
@@ -263,7 +264,7 @@ fn projectWorldPointInBounds(schematic: sdl.Rect, bounds: world_geometry.WorldBo
     };
 }
 
-pub fn projectZoneBounds(snapshot: state.RenderSnapshot, schematic: sdl.Rect, zone: state.ZoneBoundsSnapshot) sdl.Rect {
+pub fn projectZoneBounds(snapshot: projection.RenderSnapshot, schematic: sdl.Rect, zone: state.ZoneBoundsSnapshot) sdl.Rect {
     const first = projectWorldPoint(snapshot, schematic, zone.x_min, zone.z_min);
     const second = projectWorldPoint(snapshot, schematic, zone.x_max, zone.z_max);
     return rectFromPoints(first, second);

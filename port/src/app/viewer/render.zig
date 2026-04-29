@@ -1,5 +1,6 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
+const projection = @import("../../runtime/room_projection.zig");
 const state = @import("../../runtime/room_state.zig");
 const runtime_session = @import("../../runtime/session.zig");
 const runtime_query = @import("../../runtime/world_query.zig");
@@ -83,7 +84,7 @@ pub const ViewMode = enum {
 
 pub fn renderDebugView(
     canvas: *sdl.Canvas,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     catalog: fragment_compare.FragmentComparisonCatalog,
     selection: fragment_compare.FragmentComparisonSelection,
     locomotion_status: LocomotionStatusDisplay,
@@ -213,14 +214,14 @@ fn drawGrid(canvas: *sdl.Canvas, rect: sdl.Rect, viewport: layout.GridViewport) 
     }
 }
 
-fn drawComposition(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: state.RenderSnapshot, viewport: layout.GridViewport) !void {
+fn drawComposition(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: projection.RenderSnapshot, viewport: layout.GridViewport) !void {
     for (snapshot.composition.tiles) |tile| {
         const tile_rect = layout.projectGridCellRectInViewport(rect, viewport, tile.x, tile.z) orelse continue;
         try drawCompositionTile(canvas, snapshot, tile_rect, tile);
     }
 }
 
-fn drawFragmentZones(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: state.RenderSnapshot, viewport: layout.GridViewport) !void {
+fn drawFragmentZones(canvas: *sdl.Canvas, rect: sdl.Rect, snapshot: projection.RenderSnapshot, viewport: layout.GridViewport) !void {
     for (snapshot.fragments.zones) |zone| {
         const zone_bounds = layout.projectGridAreaRectInViewport(
             rect,
@@ -299,7 +300,7 @@ pub fn locomotionAttemptRejectedColor() sdl.Color {
 fn drawFocusedFragmentZoneOverlay(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     viewport: layout.GridViewport,
     focus: fragment_compare.FragmentComparisonEntry,
 ) !void {
@@ -442,7 +443,7 @@ fn shortDirectionLabel(direction: CardinalDirection) []const u8 {
 }
 
 fn findFocusedFragmentZone(
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     focus: fragment_compare.FragmentComparisonEntry,
 ) state.FragmentZoneSnapshot {
     for (snapshot.fragments.zones) |zone| {
@@ -459,7 +460,7 @@ fn findFocusedFragmentZone(
 
 fn drawCompositionTile(
     canvas: *sdl.Canvas,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     tile_rect: sdl.Rect,
     tile: state.CompositionTileSnapshot,
 ) !void {
@@ -506,7 +507,7 @@ const IsoProjection = struct {
 fn drawIsometricView(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     viewport: layout.GridViewport,
     reward_collectibles: []const runtime_session.RewardCollectible,
 ) !void {
@@ -594,7 +595,7 @@ pub fn rewardCollectibleMotionPathColorForTesting(kind: runtime_session.RuntimeB
     return rewardCollectibleMotionPathColor(kind);
 }
 
-fn computeIsoProjection(rect: sdl.Rect, snapshot: state.RenderSnapshot, viewport: layout.GridViewport) IsoProjection {
+fn computeIsoProjection(rect: sdl.Rect, snapshot: projection.RenderSnapshot, viewport: layout.GridViewport) IsoProjection {
     const diagonal_span = @max(1, viewport.width + viewport.depth);
     const max_height = @max(1, @as(i32, @intCast(snapshot.composition.max_total_height)));
     const width_limit = @max(3, @divTrunc(rect.w, @as(i32, @intCast(diagonal_span + 3))));
@@ -626,7 +627,7 @@ fn drawIsoBackdrop(canvas: *sdl.Canvas, iso: IsoProjection) !void {
 fn drawIsoTile(
     canvas: *sdl.Canvas,
     iso: IsoProjection,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     tile: state.CompositionTileSnapshot,
 ) !void {
     const height_px = @as(i32, tile.total_height) * iso.height_scale;
@@ -743,7 +744,7 @@ fn interpolatePoint(start: layout.ScreenPoint, finish: layout.ScreenPoint, step:
 fn drawHud(
     canvas: *sdl.Canvas,
     debug_layout: layout.DebugLayout,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     catalog: fragment_compare.FragmentComparisonCatalog,
     selection: fragment_compare.FragmentComparisonSelection,
     locomotion_status: LocomotionStatusDisplay,

@@ -2038,18 +2038,29 @@ class ProcessExistsPidTest(unittest.TestCase):
 
 
 class LaunchPreflightTest(unittest.TestCase):
-    def test_preflight_kills_existing_owned_launch_processes(self) -> None:
+    def test_preflight_kills_existing_owned_launch_processes_only_with_takeover(self) -> None:
         completed = subprocess.CompletedProcess(["taskkill"], 0, stdout="SUCCESS", stderr="")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             writer = trace_life.JsonlWriter(Path(temp_dir))
             try:
-                with mock.patch.object(
-                    trace_life.runtime.subprocess,
-                    "run",
-                    side_effect=[completed, completed],
-                ) as mocked_run:
-                    trace_life.runtime.preflight_owned_launch_processes(writer, "LBA2.EXE")
+                with (
+                    mock.patch.object(
+                        trace_life.runtime,
+                        "list_running_image_pids",
+                        side_effect=lambda image: [111] if image in {"LBA2.EXE", "cdb.exe"} else [],
+                    ),
+                    mock.patch.object(
+                        trace_life.runtime.subprocess,
+                        "run",
+                        side_effect=[completed, completed],
+                    ) as mocked_run,
+                ):
+                    trace_life.runtime.preflight_owned_launch_processes(
+                        writer,
+                        "LBA2.EXE",
+                        takeover_existing_processes=True,
+                    )
             finally:
                 writer.close()
 
@@ -2078,22 +2089,35 @@ class LaunchPreflightTest(unittest.TestCase):
                 messages,
             )
 
-    def test_preflight_ignores_not_found_taskkill_results(self) -> None:
-        not_found = subprocess.CompletedProcess(["taskkill"], 128, stdout="", stderr='ERROR: no se encontró el proceso "LBA2.EXE".')
-        no_cdb = subprocess.CompletedProcess(["taskkill"], 128, stdout="", stderr='ERROR: no se encontró el proceso "cdb.exe".')
-
+    def test_preflight_refuses_existing_owned_processes_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             writer = trace_life.JsonlWriter(Path(temp_dir))
             try:
                 with mock.patch.object(
-                    trace_life.runtime.subprocess,
-                    "run",
-                    side_effect=[not_found, no_cdb],
+                    trace_life.runtime,
+                    "list_running_image_pids",
+                    side_effect=lambda image: [111] if image == "LBA2.EXE" else [],
+                ):
+                    with self.assertRaisesRegex(RuntimeError, "--takeover-existing-processes"):
+                        trace_life.runtime.preflight_owned_launch_processes(writer, "LBA2.EXE")
+            finally:
+                writer.close()
+
+            self.assertEqual([], read_jsonl_lines(writer.enriched_output_path))
+
+    def test_preflight_skips_taskkill_when_no_existing_processes_are_running(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            writer = trace_life.JsonlWriter(Path(temp_dir))
+            try:
+                with (
+                    mock.patch.object(trace_life.runtime, "list_running_image_pids", return_value=[]),
+                    mock.patch.object(trace_life.runtime.subprocess, "run") as mocked_run,
                 ):
                     trace_life.runtime.preflight_owned_launch_processes(writer, "LBA2.EXE")
             finally:
                 writer.close()
 
+            mocked_run.assert_not_called()
             self.assertEqual([], read_jsonl_lines(writer.enriched_output_path))
 
 

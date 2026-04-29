@@ -130,6 +130,25 @@ test "background metadata json keeps linkage and table summaries stable" {
     try std.testing.expect(std.mem.indexOf(u8, json, "\"preview_count\":") != null);
 }
 
+test "background topology metadata loads composition without brick previews" {
+    const allocator = std.testing.allocator;
+    const target = try support.fixtureTargetById("interior-room-twinsens-house-background");
+    const archive_path = try support.resolveBackgroundArchivePathForTests(allocator, target.asset_path);
+    defer allocator.free(archive_path);
+
+    const topology = try background.loadBackgroundTopologyMetadata(allocator, archive_path, target.entry_index);
+    defer topology.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 2), topology.entry_index);
+    try std.testing.expectEqual(@as(usize, 2), topology.remapped_cube_index);
+    try std.testing.expectEqual(@as(usize, 3), topology.gri_entry_index);
+    try std.testing.expectEqual(@as(usize, 149), topology.grm_entry_index);
+    try std.testing.expectEqual(@as(usize, 180), topology.bll_entry_index);
+    try std.testing.expectEqual(@as(usize, 2252), topology.composition.grid.referenced_cell_count);
+    try std.testing.expectEqual(@as(usize, 219), topology.composition.library.layouts.len);
+    try std.testing.expectEqual(@as(usize, 0), topology.composition.fragments.fragments.len);
+}
+
 test "real background 10 metadata keeps fragment ownership stable" {
     const allocator = std.testing.allocator;
     const target = try support.fixtureTargetById("interior-room-twinsens-house-background");

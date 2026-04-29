@@ -2,6 +2,7 @@ const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
 const scene_data = @import("../../game_data/scene.zig");
+const projection = @import("../../runtime/room_projection.zig");
 const state = @import("../../runtime/room_state.zig");
 const layout = @import("layout.zig");
 
@@ -206,7 +207,7 @@ pub fn contourThickness(height_delta: u8) i32 {
     return std.math.clamp(1 + @divTrunc(@as(i32, height_delta) - 1, 4), 1, 3);
 }
 
-pub fn compositionHeightAt(snapshot: state.RenderSnapshot, x: usize, z: usize) u8 {
+pub fn compositionHeightAt(snapshot: projection.RenderSnapshot, x: usize, z: usize) u8 {
     if (x >= snapshot.grid_width or z >= snapshot.grid_depth) return 0;
     return snapshot.composition.height_grid[(z * snapshot.grid_width) + x];
 }

@@ -32,9 +32,13 @@ pub const BrickPreview = model.BrickPreview;
 pub const BrickPreviewLibrarySummary = model.BrickPreviewLibrarySummary;
 pub const BrickPreviewLibrary = model.BrickPreviewLibrary;
 pub const BackgroundCompositionSummary = model.BackgroundCompositionSummary;
+pub const BackgroundTopologyCompositionSummary = model.BackgroundTopologyCompositionSummary;
+pub const BackgroundTopologyComposition = model.BackgroundTopologyComposition;
 pub const BackgroundComposition = model.BackgroundComposition;
+pub const BackgroundTopologyMetadata = model.BackgroundTopologyMetadata;
 pub const BackgroundMetadata = model.BackgroundMetadata;
 
+pub const loadBackgroundTopologyMetadata = parser.loadBackgroundTopologyMetadata;
 pub const loadBackgroundMetadata = parser.loadBackgroundMetadata;
 pub const loadBackgroundEntryCount = parser.loadBackgroundEntryCount;
 
@@ -70,7 +74,10 @@ test "background facade reexports the stable public API" {
         if (BrickPreviewLibrarySummary != model.BrickPreviewLibrarySummary) @compileError("BrickPreviewLibrarySummary facade drifted");
         if (BrickPreviewLibrary != model.BrickPreviewLibrary) @compileError("BrickPreviewLibrary facade drifted");
         if (BackgroundCompositionSummary != model.BackgroundCompositionSummary) @compileError("BackgroundCompositionSummary facade drifted");
+        if (BackgroundTopologyCompositionSummary != model.BackgroundTopologyCompositionSummary) @compileError("BackgroundTopologyCompositionSummary facade drifted");
+        if (BackgroundTopologyComposition != model.BackgroundTopologyComposition) @compileError("BackgroundTopologyComposition facade drifted");
         if (BackgroundComposition != model.BackgroundComposition) @compileError("BackgroundComposition facade drifted");
+        if (BackgroundTopologyMetadata != model.BackgroundTopologyMetadata) @compileError("BackgroundTopologyMetadata facade drifted");
         if (BackgroundMetadata != model.BackgroundMetadata) @compileError("BackgroundMetadata facade drifted");
     }
 }

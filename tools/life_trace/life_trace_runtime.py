@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import ctypes
 import json
 import msgspec
@@ -228,11 +229,36 @@ def process_exists_pid(pid: int) -> bool:
         kernel32.CloseHandle(handle)
 
 
+def parse_tasklist_csv_pids(stdout: str) -> list[int]:
+    pids: list[int] = []
+    for row in csv.reader(line for line in stdout.splitlines() if line.strip()):
+        if len(row) < 2:
+            continue
+        try:
+            pids.append(int(row[1]))
+        except ValueError:
+            continue
+    return pids
+
+
+def list_running_image_pids(image_name: str) -> list[int]:
+    completed = subprocess.run(
+        ["tasklist", "/FI", f"IMAGENAME eq {image_name}", "/FO", "CSV", "/NH"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return []
+    return parse_tasklist_csv_pids(completed.stdout)
+
+
 def preflight_owned_launch_processes(
     writer: JsonlWriter,
     process_name: str,
     *,
     extra_process_names: tuple[str, ...] = OWNED_LAUNCH_PREKILL_PROCESS_NAMES,
+    takeover_existing_processes: bool = False,
 ) -> None:
     targets: list[str] = []
     for candidate in (process_name, *extra_process_names):
@@ -243,7 +269,19 @@ def preflight_owned_launch_processes(
             continue
         targets.append(normalized)
 
+    running = {target: pids for target in targets if (pids := list_running_image_pids(target))}
+    if not running:
+        return
+    if running and not takeover_existing_processes:
+        details = ", ".join(f"{target}={pids}" for target, pids in running.items())
+        raise RuntimeError(
+            f"existing proof process(es) detected: {details}; "
+            "rerun with --takeover-existing-processes to kill them explicitly"
+        )
+
     for target in targets:
+        if running and target not in running:
+            continue
         completed = subprocess.run(
             ["taskkill", "/IM", target, "/F"],
             capture_output=True,
@@ -642,7 +680,11 @@ def run_direct_frida_trace(
 
     try:
         if args.launch:
-            preflight_owned_launch_processes(writer, args.process)
+            preflight_owned_launch_processes(
+                writer,
+                args.process,
+                takeover_existing_processes=args.takeover_existing_processes,
+            )
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
@@ -819,7 +861,11 @@ def run_structured_trace_via_frida(
             raise RuntimeError(f"--mode {args.mode} does not define a Frida controller")
 
         if args.launch and scene_spec.launch_strategy == "native_launch_then_attach":
-            preflight_owned_launch_processes(writer, args.process)
+            preflight_owned_launch_processes(
+                writer,
+                args.process,
+                takeover_existing_processes=args.takeover_existing_processes,
+            )
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
@@ -839,7 +885,11 @@ def run_structured_trace_via_frida(
             if scene_spec.prepare_launch is not None:
                 scene_spec.prepare_launch(args, writer, launch_path, pid)
         elif args.launch:
-            preflight_owned_launch_processes(writer, args.process)
+            preflight_owned_launch_processes(
+                writer,
+                args.process,
+                takeover_existing_processes=args.takeover_existing_processes,
+            )
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
@@ -1083,7 +1133,11 @@ def run_structured_trace_via_fra(
             raise RuntimeError(f"--mode {args.mode} does not define an FRA controller")
 
         if args.launch and scene_spec.launch_strategy == "native_launch_then_attach":
-            preflight_owned_launch_processes(writer, args.process)
+            preflight_owned_launch_processes(
+                writer,
+                args.process,
+                takeover_existing_processes=args.takeover_existing_processes,
+            )
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
@@ -1111,7 +1165,11 @@ def run_structured_trace_via_fra(
                 str(pid),
             )
         elif args.launch:
-            preflight_owned_launch_processes(writer, args.process)
+            preflight_owned_launch_processes(
+                writer,
+                args.process,
+                takeover_existing_processes=args.takeover_existing_processes,
+            )
             launch_path = Path(args.launch)
             if not launch_path.exists():
                 raise RuntimeError(f"launch path does not exist: {launch_path}")
@@ -1392,7 +1450,11 @@ def run_structured_debugger_snapshot(
     last_error: str | None = None
 
     try:
-        preflight_owned_launch_processes(writer, args.process)
+        preflight_owned_launch_processes(
+            writer,
+            args.process,
+            takeover_existing_processes=args.takeover_existing_processes,
+        )
         launched_process = subprocess.Popen(
             build_owned_launch_argv(launch_path, args.launch_save),
             cwd=str(launch_path.parent),

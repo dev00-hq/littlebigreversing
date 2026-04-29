@@ -54,6 +54,56 @@ pub fn loadBackgroundMetadata(
     absolute_path: []const u8,
     entry_index: usize,
 ) !model.BackgroundMetadata {
+    var topology = try loadBackgroundTopologyMetadata(allocator, absolute_path, entry_index);
+    errdefer topology.deinit(allocator);
+
+    const archive_session = try hqr.ClassicArchiveSession.init(allocator, absolute_path);
+    defer archive_session.deinit();
+
+    var bricks = try loadBrickPreviewLibrary(
+        allocator,
+        absolute_path,
+        archive_session,
+        topology.bkg_header,
+        topology.composition.grid,
+        topology.composition.library,
+        topology.composition.fragments,
+    );
+    errdefer bricks.deinit(allocator);
+
+    return .{
+        .entry_index = topology.entry_index,
+        .header_entry_index = topology.header_entry_index,
+        .header_compressed_header = topology.header_compressed_header,
+        .bkg_header = topology.bkg_header,
+        .tab_all_cube_entry_index = topology.tab_all_cube_entry_index,
+        .tab_all_cube_compressed_header = topology.tab_all_cube_compressed_header,
+        .tab_all_cube_entry_count = topology.tab_all_cube_entry_count,
+        .tab_all_cube = topology.tab_all_cube,
+        .remapped_cube_index = topology.remapped_cube_index,
+        .gri_entry_index = topology.gri_entry_index,
+        .gri_compressed_header = topology.gri_compressed_header,
+        .gri_header = topology.gri_header,
+        .used_blocks = topology.used_blocks,
+        .column_table = topology.column_table,
+        .grm_entry_index = topology.grm_entry_index,
+        .bll_entry_index = topology.bll_entry_index,
+        .bll_compressed_header = topology.bll_compressed_header,
+        .bll = topology.bll,
+        .composition = .{
+            .grid = topology.composition.grid,
+            .library = topology.composition.library,
+            .fragments = topology.composition.fragments,
+            .bricks = bricks,
+        },
+    };
+}
+
+pub fn loadBackgroundTopologyMetadata(
+    allocator: std.mem.Allocator,
+    absolute_path: []const u8,
+    entry_index: usize,
+) !model.BackgroundTopologyMetadata {
     const archive_session = try hqr.ClassicArchiveSession.init(allocator, absolute_path);
     defer archive_session.deinit();
 
@@ -96,8 +146,6 @@ pub fn loadBackgroundMetadata(
     const fragment_range = try detectFragmentRange(allocator, archive_session, bkg_header, remapped_cube_index, gri.header.my_grm);
     var fragments = try loadFragmentLibrary(allocator, archive_session, bll.library, fragment_range);
     errdefer fragments.deinit(allocator);
-    var bricks = try loadBrickPreviewLibrary(allocator, absolute_path, archive_session, bkg_header, gri.grid, bll.library, fragments);
-    errdefer bricks.deinit(allocator);
 
     return .{
         .entry_index = entry_index,
@@ -122,7 +170,6 @@ pub fn loadBackgroundMetadata(
             .grid = gri.grid,
             .library = bll.library,
             .fragments = fragments,
-            .bricks = bricks,
         },
     };
 }

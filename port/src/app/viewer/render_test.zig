@@ -3,6 +3,7 @@ const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
 const runtime_locomotion = @import("../../runtime/locomotion.zig");
 const runtime_object_behavior = @import("../../runtime/object_behavior.zig");
+const projection = @import("../../runtime/room_projection.zig");
 const runtime_session_mod = @import("../../runtime/session.zig");
 const runtime_update = @import("../../runtime/update.zig");
 const state = @import("../../runtime/room_state.zig");
@@ -350,7 +351,7 @@ fn expectTraceHasLocomotionAttemptCue(
 }
 
 fn findFocusedFragmentZone(
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     focus: fragment_compare.FragmentComparisonEntry,
 ) state.FragmentZoneSnapshot {
     for (snapshot.fragments.zones) |zone| {
@@ -365,7 +366,7 @@ fn findFocusedFragmentZone(
     unreachable;
 }
 
-fn findReferencedBrickIndex(snapshot: state.RenderSnapshot) u16 {
+fn findReferencedBrickIndex(snapshot: projection.RenderSnapshot) u16 {
     for (snapshot.composition.tiles) |tile| {
         if (tile.top_brick_index != 0) return tile.top_brick_index;
     }
@@ -434,7 +435,7 @@ test "viewer render path draws the guarded 11/10 sidebar and focus highlight" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1110();
 
-    const snapshot = state.buildRenderSnapshot(room);
+    const snapshot = projection.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
@@ -592,7 +593,7 @@ test "viewer render path exposes a deterministic owning-zone rect for the focuse
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1110();
 
-    const snapshot = state.buildRenderSnapshot(room);
+    const snapshot = projection.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
@@ -629,7 +630,7 @@ test "viewer render path surfaces the selected comparison cell in the sidebar" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1110();
 
-    const snapshot = state.buildRenderSnapshot(room);
+    const snapshot = projection.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
     const selection = steppedPinnedSelection(catalog);
@@ -753,7 +754,7 @@ test "viewer render path keeps the zero-fragment room on the sidebar path" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1919();
 
-    const snapshot = state.buildRenderSnapshot(room);
+    const snapshot = projection.buildRenderSnapshot(room);
     const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
     defer catalog.deinit(allocator);
     const selection = fragment_compare.initialFragmentComparisonSelection(catalog);
@@ -1000,7 +1001,7 @@ test "viewer render path fails fast when a required brick preview is missing" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded1110();
 
-    const snapshot = state.buildRenderSnapshot(room);
+    const snapshot = projection.buildRenderSnapshot(room);
     const missing_brick_index = findReferencedBrickIndex(snapshot);
     const trimmed_previews = try withoutBrickPreview(allocator, snapshot.brick_previews, missing_brick_index);
     defer allocator.free(trimmed_previews);

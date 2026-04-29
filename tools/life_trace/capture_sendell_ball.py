@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 
 from life_trace_debugger import CdbMemoryReader, DebuggerReadError, resolve_cdb_path
+from life_trace_runtime import preflight_owned_launch_processes
 from life_trace_shared import (
     DEFAULT_GAME_EXE,
     DEFAULT_RUN_ROOT,
@@ -51,12 +52,6 @@ DEFAULT_DIALOG2_DELAY_SEC = 0.6
 DEFAULT_POST_DIALOG_DELAY_SEC = 1.0
 DEFAULT_MENU_OPEN_DELAY_SEC = 0.5
 DEFAULT_TERMINATE_GRACE_SEC = 3.0
-TASKKILL_NOT_FOUND_MARKERS = (
-    "not found",
-    "no se encontr",
-    "no tasks are running",
-    "no hay tareas en ejec",
-)
 BASE_FLOW_CHECKPOINTS = (
     "loaded_pre_cast",
     "after_f_cast",
@@ -104,6 +99,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--run-root", default=str(DEFAULT_RUN_ROOT), help="Run bundle root directory.")
     parser.add_argument("--run-id", help="Optional explicit run id.")
+    parser.add_argument(
+        "--takeover-existing-processes",
+        action="store_true",
+        help="Kill existing LBA2.EXE/cdb.exe processes before launch. Default is fail-fast to protect manual proof sessions.",
+    )
     parser.add_argument("--cdb-path", help="Optional explicit path to cdb.exe.")
     parser.add_argument(
         "--cdb-timeout-sec",
@@ -482,34 +482,6 @@ def write_sendell_run_summary(
     )
     writer.register_artifact("sendell_summary", output_path.name)
     return output_path
-
-
-def preflight_owned_launch_processes(writer: JsonlWriter, process_names: tuple[str, ...]) -> None:
-    seen: set[str] = set()
-    for process_name in process_names:
-        normalized = process_name.strip()
-        if not normalized:
-            continue
-        key = normalized.lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        completed = subprocess.run(
-            ["taskkill", "/IM", normalized, "/F"],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if completed.returncode == 0:
-            write_status(writer, f"preflight killed existing {normalized}")
-            continue
-        detail = f"{completed.stdout or ''}\n{completed.stderr or ''}".strip().lower()
-        if any(marker in detail for marker in TASKKILL_NOT_FOUND_MARKERS):
-            continue
-        raise RuntimeError(
-            f"preflight taskkill failed for {normalized} ({completed.returncode}): "
-            f"{(completed.stderr or completed.stdout).strip() or '<no output>'}"
-        )
 
 
 def capture_checkpoint_screenshot(
@@ -904,7 +876,11 @@ def main() -> int:
             lane_name="sendell-ball-room",
             default_source=default_source_save_path(DEFAULT_SAVE_NAME),
         )
-        preflight_owned_launch_processes(writer, ("LBA2.EXE", "cdb.exe"))
+        preflight_owned_launch_processes(
+            writer,
+            "LBA2.EXE",
+            takeover_existing_processes=args.takeover_existing_processes,
+        )
         launched_process = subprocess.Popen(
             direct_launch_argv(launch_path, launch_save_path),
             cwd=str(launch_path.parent),

@@ -1,5 +1,6 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
+const projection = @import("../../runtime/room_projection.zig");
 const state = @import("../../runtime/room_state.zig");
 const room_fixtures = @import("../../testing/room_fixtures.zig");
 const layout = @import("layout.zig");
@@ -15,7 +16,7 @@ test "viewer fragment debug layout reserves a deterministic sidebar rail" {
 test "viewer projection keeps the canonical schematic fit stable" {
     const room = try room_fixtures.guarded1919();
 
-    const render = state.buildRenderSnapshot(room);
+    const render = projection.buildRenderSnapshot(room);
     const schematic_layout = layout.computeSchematicLayout(960, 540, render.grid_width, render.grid_depth);
     try std.testing.expectEqual(sdl.Rect{ .x = 24, .y = 24, .w = 912, .h = 492 }, schematic_layout.frame);
     try std.testing.expectEqual(sdl.Rect{ .x = 252, .y = 42, .w = 456, .h = 456 }, schematic_layout.schematic);
@@ -36,12 +37,12 @@ test "viewer projection keeps the canonical schematic fit stable" {
 test "viewer projection moves the hero marker down the schematic after southward seeded locomotion" {
     const room = try room_fixtures.guarded1919();
 
-    const seeded_render = state.buildRenderSnapshotWithHeroPosition(room, .{
+    const seeded_render = projection.buildRenderSnapshotWithHeroPosition(room, .{
         .x = 20224,
         .y = 6400,
         .z = 3328,
     });
-    const moved_render = state.buildRenderSnapshotWithHeroPosition(room, .{
+    const moved_render = projection.buildRenderSnapshotWithHeroPosition(room, .{
         .x = 20224,
         .y = 6400,
         .z = 4864,
@@ -67,7 +68,7 @@ test "viewer projection moves the hero marker down the schematic after southward
 
 test "viewer zoom viewport crops into occupied room cells" {
     const room = try room_fixtures.guarded1919();
-    const render = state.buildRenderSnapshot(room);
+    const render = projection.buildRenderSnapshot(room);
 
     const fit_view = layout.computeGridViewport(render, .fit);
     const room_view = layout.computeGridViewport(render, .room);

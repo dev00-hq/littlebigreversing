@@ -17,6 +17,7 @@ from debug_compass import (
     shortest_beta_delta,
 )
 from heading_inject import HeadingInjector
+from life_trace_runtime import preflight_owned_launch_processes
 from life_trace_shared import JsonlWriter
 from life_trace_windows import WindowCapture, WindowInput
 from scenes.load_game import (
@@ -79,6 +80,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--collision-observer-initial-pose-delta", type=int, default=24)
     parser.add_argument("--collision-observer-escape-planar-l1-threshold", type=int, default=96)
     parser.add_argument("--collision-observer-minimum-detection-hero-ticks", type=int, default=96)
+    parser.add_argument(
+        "--takeover-existing-processes",
+        action="store_true",
+        help="Kill existing LBA2.EXE before launch. Default is fail-fast to protect manual proof sessions.",
+    )
     return parser.parse_args()
 
 
@@ -86,8 +92,8 @@ def write_status(**payload: object) -> None:
     STATUS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def kill_lba2() -> None:
-    subprocess.run(["taskkill", "/IM", "LBA2.EXE", "/F"], capture_output=True, text=True)
+def force_kill_process_tree(pid: int) -> None:
+    subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, text=True)
 
 
 def append_record(handle, **payload: object) -> None:
@@ -233,7 +239,6 @@ def main() -> int:
     for path in (LOG_PATH, SUMMARY_PATH, STATUS_PATH, PRE_SHOT_PATH, POST_HEADING_SHOT_PATH, POST_BURST_SHOT_PATH):
         path.unlink(missing_ok=True)
 
-    kill_lba2()
     capture = WindowCapture()
     window_input = WindowInput()
     run_root = REPO_ROOT / "work" / "tmp_probe_run"
@@ -243,6 +248,12 @@ def main() -> int:
         shutil.rmtree(bundle_root)
     writer = JsonlWriter(run_root, run_id=run_id)
     writer.manifest_path.unlink(missing_ok=True)
+    preflight_owned_launch_processes(
+        writer,
+        "LBA2.EXE",
+        extra_process_names=(),
+        takeover_existing_processes=args.takeover_existing_processes,
+    )
 
     proc = None
     try:
@@ -397,7 +408,11 @@ def main() -> int:
     finally:
         writer.close()
         if proc is not None:
-            kill_lba2()
+            try:
+                proc.terminate()
+                proc.wait(timeout=3)
+            except Exception:
+                force_kill_process_tree(proc.pid)
 
     return 0
 

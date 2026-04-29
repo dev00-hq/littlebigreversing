@@ -1,6 +1,7 @@
 const std = @import("std");
 const sdl = @import("../../platform/sdl.zig");
 const background_data = @import("../../game_data/background.zig");
+const projection = @import("../../runtime/room_projection.zig");
 const state = @import("../../runtime/room_state.zig");
 const layout = @import("layout.zig");
 const draw = @import("draw.zig");
@@ -98,7 +99,7 @@ pub const FragmentComparisonPanel = struct {
 
 pub fn buildFragmentComparisonCatalog(
     allocator: std.mem.Allocator,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
 ) !FragmentComparisonCatalog {
     var ranked: std.ArrayList(FragmentComparisonEntry) = .empty;
     errdefer ranked.deinit(allocator);
@@ -196,7 +197,7 @@ pub fn buildFragmentComparisonPanel(
 }
 
 fn makeFragmentComparisonEntry(
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     zone: state.FragmentZoneSnapshot,
     cell: state.FragmentZoneCellSnapshot,
 ) FragmentComparisonEntry {
@@ -305,12 +306,12 @@ pub fn fragmentComparisonDeltaColor(delta: FragmentComparisonDelta) sdl.Color {
     };
 }
 
-pub fn fragmentBrickDelta(snapshot: state.RenderSnapshot, cell: state.FragmentZoneCellSnapshot) FragmentBrickDelta {
+pub fn fragmentBrickDelta(snapshot: projection.RenderSnapshot, cell: state.FragmentZoneCellSnapshot) FragmentBrickDelta {
     const base_brick_index = compositionBrickIndexAt(snapshot, cell.x, cell.z) orelse return .no_base;
     return if (base_brick_index == cell.top_brick_index) .same else .changed;
 }
 
-fn compositionBrickIndexAt(snapshot: state.RenderSnapshot, x: usize, z: usize) ?u16 {
+fn compositionBrickIndexAt(snapshot: projection.RenderSnapshot, x: usize, z: usize) ?u16 {
     const tile = findCompositionTile(snapshot.composition.tiles, x, z) orelse return null;
     return tile.top_brick_index;
 }
@@ -318,7 +319,7 @@ fn compositionBrickIndexAt(snapshot: state.RenderSnapshot, x: usize, z: usize) ?
 pub fn drawFragmentFocusHighlight(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     focus: FragmentComparisonEntry,
 ) !void {
     const cell_rect = layout.projectGridCellRect(rect, snapshot.grid_width, snapshot.grid_depth, focus.x, focus.z);
@@ -340,7 +341,7 @@ pub fn drawFragmentFocusHighlight(
 pub fn drawFragmentComparisonPanel(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     panel: FragmentComparisonPanel,
 ) !void {
     if (panel.focus == null) return;
@@ -433,7 +434,7 @@ fn drawFragmentComparisonSummary(canvas: *sdl.Canvas, rect: sdl.Rect, panel: Fra
 fn drawFragmentComparisonFocus(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     focus: FragmentComparisonEntry,
 ) !void {
     const accent = fragmentComparisonDeltaColor(focus.delta);
@@ -485,7 +486,7 @@ fn drawFragmentComparisonFocus(
 fn drawFragmentComparisonEntryRow(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     entry: FragmentComparisonEntry,
     is_first: bool,
     focus: FragmentComparisonEntry,
@@ -587,7 +588,7 @@ fn drawFragmentComparisonCard(
 fn drawFragmentComparisonLocator(
     canvas: *sdl.Canvas,
     rect: sdl.Rect,
-    snapshot: state.RenderSnapshot,
+    snapshot: projection.RenderSnapshot,
     entry: FragmentComparisonEntry,
     accent: sdl.Color,
 ) !void {
