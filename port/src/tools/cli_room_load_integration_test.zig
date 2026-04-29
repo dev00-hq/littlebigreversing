@@ -1004,6 +1004,32 @@ test "inspect-room-intelligence subprocess supports --out without changing the J
     try expectJsonBool(try requireJsonField(try requireJsonField(root, "validation"), "viewer_loadable"), true);
 }
 
+test "inspect-room-intelligence treats --out stdout as stdout streaming" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-room-intelligence",
+        "--scene-entry",
+        "2",
+        "--background-entry",
+        "2",
+        "--out",
+        "stdout",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    try expectExited(result.term, 0);
+    try std.testing.expect(result.stdout.len > 0);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+    const root = parsed.value;
+    try expectJsonString(try requireJsonField(root, "command"), "inspect-room-intelligence");
+    try expectJsonBool(try requireJsonField(try requireJsonField(root, "validation"), "viewer_loadable"), true);
+}
+
 test "inspect-room-intelligence subprocess includes runtime composition and fragment-zone layout for 11/10" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);

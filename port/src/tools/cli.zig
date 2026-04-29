@@ -647,7 +647,7 @@ fn inspectRoomIntelligenceParseContextFromArgs(args: []const []const u8) ?Inspec
             continue;
         }
         if (std.mem.eql(u8, arg, "--out")) {
-            if (index + 1 < args.len and context.output_path == null) context.output_path = args[index + 1];
+            if (index + 1 < args.len and context.output_path == null and !isStdoutOutputPath(args[index + 1])) context.output_path = args[index + 1];
             index += if (index + 1 < args.len) 2 else 1;
             continue;
         }
@@ -861,7 +861,7 @@ fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParsedArgs
             } else if (std.mem.eql(u8, arg, "--out")) {
                 if (output_path != null) return error.DuplicateOutputPath;
                 if (index + 1 >= args.len) return error.MissingOutputPath;
-                output_path = args[index + 1];
+                if (!isStdoutOutputPath(args[index + 1])) output_path = args[index + 1];
                 index += 2;
             } else {
                 return error.UnknownOption;
@@ -4037,6 +4037,10 @@ test "argument parsing supports inspect-room-transitions json output" {
     try std.testing.expect(parsed.output_json);
 }
 
+fn isStdoutOutputPath(path: []const u8) bool {
+    return std.mem.eql(u8, path, "stdout");
+}
+
 test "argument parsing supports inspect-room-intelligence entry selectors" {
     const parsed = try parseArgs(std.testing.allocator, &.{ "inspect-room-intelligence", "--scene-entry", "2", "--background-entry", "2" });
     defer parsed.deinit(std.testing.allocator);
@@ -4085,6 +4089,25 @@ test "argument parsing supports inspect-room-intelligence output files" {
 
     try std.testing.expectEqual(Command.inspect_room_intelligence, parsed.command);
     try std.testing.expectEqualStrings("room.json", parsed.output_path.?);
+}
+
+test "argument parsing treats inspect-room-intelligence --out stdout as stdout" {
+    const parsed = try parseArgs(
+        std.testing.allocator,
+        &.{
+            "inspect-room-intelligence",
+            "--scene-entry",
+            "2",
+            "--background-entry",
+            "2",
+            "--out",
+            "stdout",
+        },
+    );
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(Command.inspect_room_intelligence, parsed.command);
+    try std.testing.expect(parsed.output_path == null);
 }
 
 test "argument parsing rejects inspect-room-intelligence conflicting selectors" {
