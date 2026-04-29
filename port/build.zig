@@ -101,6 +101,17 @@ pub fn build(b: *std.Build) void {
     );
     test_reference_metadata_generator_step.dependOn(&test_reference_metadata_generator_cmd.step);
 
+    const test_promotion_packets_cmd = b.addSystemCommand(&.{
+        "py",
+        "-3",
+        b.pathFromRoot("../tools/validate_promotion_packets.py"),
+    });
+    const test_promotion_packets_step = b.step(
+        "test-promotion-packets",
+        "Validate canonical runtime/gameplay promotion packets",
+    );
+    test_promotion_packets_step.dependOn(&test_promotion_packets_cmd.step);
+
     const fast_tests = b.addTest(.{
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/test_fast.zig"),
@@ -142,6 +153,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run the full parser and runtime regression suite");
     test_step.dependOn(verify_reference_metadata_step);
     test_step.dependOn(test_reference_metadata_generator_step);
+    test_step.dependOn(test_promotion_packets_step);
     test_step.dependOn(test_fast_step);
     test_step.dependOn(test_cli_integration_step);
     test_step.dependOn(test_life_audit_all_step);

@@ -24,6 +24,7 @@ Current landed baseline:
 - guarded success for `19/19`, `2/2`, and `11/10`, plus expected guarded `ViewerSceneMustBeInterior` rejection for `44/2`
 - offline life decoding now structurally supports `LM_DEFAULT` and `LM_END_SWITCH` as one-byte markers, and the all-scenes audit currently reports zero unsupported life blobs
 - explicit runtime session seeding from world-position input, with `runtime/room_state.zig` remaining the `RoomSnapshot` adaptation boundary
+- runtime/gameplay seam widening gated by `docs/promotion_packets/` and `zig build test-promotion-packets`; decoded seams can remain candidates, but canonical runtime behavior requires a `live_positive` or `approved_exception` packet
 
 Roadmap phases, gates, and acceptance checks live in `docs/LBA2_ZIG_PORT_PLAN.md`. Active repo state and current blockers live in `docs/codex_memory/current_focus.md`. The canonical room-intelligence contract lives in `docs/codex_memory/subsystems/intelligence.md`. Canonical memory pickup excludes `sidequest/` and `LM_TASKS/` unless those streams are explicitly promoted.
 

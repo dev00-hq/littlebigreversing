@@ -15,12 +15,12 @@ Own life-program decoding and original-runtime evidence lanes.
 - `life_audit.zig` / `audit-life-programs` is canonical.
 - Guarded `19/19` object `2` has live-backed `Divers=5` multi-bonus semantics; do not generalize this to all `LM_GIVE_BONUS`.
 - `0013` key source is W/default action: `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0`, `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
-- `0013` is closed: `tools/fixtures/phase5_0013_runtime_proof.json` and `docs/PHASE5_0013_RUNTIME_PROOF.md` prove generated-save load, W key spawn, pickup, key-consume door, cellar transition, and Down-return.
+- `0013` is closed: proof doc, fixture, and promotion packet prove generated-save load, W key spawn/pickup, key-consume door, cellar transition, and Down-return.
 - `inspect-room-transitions` is runtime-aware for `0013`: `2/1` reports no-key/key paths; `2/0` includes synthetic free return.
 - Named saves set `PlayerName`, `GamePathname`, `NumVersion=0xA4`, hero pose, `SceneStart`, `StartCube`, then call `SaveGame(TRUE)`.
 - Named loads use `LBA2.EXE SAVE\<name>.LBA` with autosave hidden/restored.
 - Room `36` keeps dialog id `3` across both visible Sendell pages and clears after the second ack.
-- Guarded `3/3` zones `1`/`8` are Tralu handoffs: cube `19 -> 21/19`, cube `20 -> 22/20`.
+- Guarded `3/3` zones `1`/`8` are cellar-source destination handoffs: cube `19 -> 21/19`, cube `20 -> 22/20`.
 
 ## Known Traps
 
@@ -28,10 +28,12 @@ Own life-program decoding and original-runtime evidence lanes.
 - Tavern proves live behavior; Scene11 proves ownership snapshots.
 - Do not revive staged `Load Game`; direct save launch is canonical and must reject the EA logo.
 - Normal original-runtime CD startup uses the mixed-mode CUE mounted on Alcohol `E:`; Frida must not select canonical save loads.
-- The WinMM proxy is an opt-in instrumentation path, not the default launch path. With `LBA2_RUNTIME_WATCH=1`, it writes `life_loss_detected` rows when `ListVarGame[FLAG_CLOVER]` at `0x0049A08E` decreases.
+- The WinMM proxy is opt-in instrumentation; `LBA2_RUNTIME_WATCH=1` records `life_loss_detected` rows from `ListVarGame[FLAG_CLOVER]`.
 - Use `life_loss_cdb_watch.py` only when the exact write stack matters; it watches the same counter and captures the CDB stack.
 - `CurrentSaveGame()` is only `current.lba` and forces `0x24`/`SaveGame(FALSE)`.
-- `0013-weapon.LBA` is the right cellar start; `3/3` zones `1` and `8` are Tralu handoffs, not cellar paths.
+- `0013-weapon.LBA` is the right cellar-side source save; `3/3` zones `1` and `8` decode to destination cubes `19` and `20`, but the save itself is not Tralu.
+- Corrected `3/3` zone `1` live probe remains negative: zone membership, but no `NewCube=19`/`active_cube=19`; edge crossing also fails.
+- The `3/3` zone `1` promotion packet is `live_negative` and `canonical_runtime: false`; do not widen gameplay behavior from the decoded candidate.
 - `0013` door source is scene-2 zone `0`; keyed `2/1 -> 2/0`, free return `2/0 -> 2/1`.
 - In `inspect-room-transitions`, use runtime fields for `0013`; decoded rows alone are insufficient.
 - Use `secret_room_door_watch.py`; it reads `NbLittleKeys` as a byte.
@@ -59,6 +61,7 @@ Own life-program decoding and original-runtime evidence lanes.
 
 - `py -3 -m unittest tools.test_secret_room_key_frida_probe`
 - `py -3 -m unittest tools.test_runtime_shim_life_watch`
+- `py -3 tools/validate_promotion_packets.py`
 
 ## Open Unknowns
 

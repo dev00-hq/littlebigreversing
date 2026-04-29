@@ -1,0 +1,26 @@
+{
+  "schema": "promotion-packets-v1",
+  "packets": [
+    {
+      "id": "phase5_0013_key_door_cellar",
+      "status": "live_positive",
+      "evidence_class": "zone_transition",
+      "packet": "docs/promotion_packets/phase5/phase5_0013_key_door_cellar.md",
+      "fixture": "tools/fixtures/phase5_0013_runtime_proof.json",
+      "runtime_contracts": [
+        "secret_room_key_gate_to_cellar",
+        "secret_room_cellar_return_free"
+      ],
+      "canonical_runtime": true
+    },
+    {
+      "id": "phase5_003_003_zone1_cellar_to_cube19",
+      "status": "live_negative",
+      "evidence_class": "zone_transition",
+      "packet": "docs/promotion_packets/phase5/phase5_003_003_zone1_cellar_to_cube19.md",
+      "fixture": null,
+      "runtime_contracts": [],
+      "canonical_runtime": false
+    }
+  ]
+}
