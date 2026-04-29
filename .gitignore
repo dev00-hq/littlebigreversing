@@ -24,6 +24,12 @@ work/toolchains/
 work/life_trace/
 work/mbn_workbench/
 work/codex_phone_share/
+work/backups/
+work/forensics/
+work/live_manual/
+work/live_proofs/
+work/share/
+work/zig16_testfast_*.log
 work/ghidra_projects/lba2_lm.rep/idata/00/~00000000.db/db.*.gbf
 work/ghidra_projects/tmp_*.log
 work/phase0/
@@ -52,3 +58,6 @@ port/.zig-cache/
 port/zig-out/
 .old_memory/
 tmp_ocr/
+work/runtime_media/lba2_mixed_mode/LBA2.iso
+work/runtime_media/lba2_mixed_mode/LBA2.wav
+work/saves/*.LBA
