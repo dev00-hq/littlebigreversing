@@ -37,48 +37,46 @@ registerScene("scene11-live-pair", function createScene11LivePairScene() {
                 },
             });
 
-            Interceptor.attach(absolute(offsets.doLifeLoop), {
-                onEnter(args) {
-                    const stack = liveStateByThread[this.threadId];
-                    if (stack === undefined || stack.length === 0) {
-                        return;
-                    }
-                    const state = stack[stack.length - 1];
-                    if (state.objectIndex !== config.targetObject || state.ptrLifePtr.isNull()) {
-                        return;
-                    }
+            Interceptor.attach(absolute(offsets.doLifeLoop), function () {
+                const stack = liveStateByThread[this.threadId];
+                if (stack === undefined || stack.length === 0) {
+                    return;
+                }
+                const state = stack[stack.length - 1];
+                if (state.objectIndex !== config.targetObject || state.ptrLifePtr.isNull()) {
+                    return;
+                }
 
-                    const ptrPrg = readPointerSafe(absolute(offsets.ptrPrg));
-                    if (ptrPrg.isNull()) {
-                        return;
-                    }
+                const ptrPrg = readPointerSafe(absolute(offsets.ptrPrg));
+                if (ptrPrg.isNull()) {
+                    return;
+                }
 
-                    const ptrPrgOffset = pointerDelta(ptrPrg, state.ptrLifePtr);
-                    const opcode = readU8Safe(ptrPrg);
-                    const isEndSwitch =
-                        ptrPrgOffset === config.targetOffset && opcode === config.targetOpcode;
-                    const isDefault =
-                        ptrPrgOffset === config.comparisonOffset && opcode === config.comparisonOpcode;
-                    if (!isEndSwitch && !isDefault) {
-                        return;
-                    }
+                const ptrPrgOffset = pointerDelta(ptrPrg, state.ptrLifePtr);
+                const opcode = readU8Safe(ptrPrg);
+                const isEndSwitch =
+                    ptrPrgOffset === config.targetOffset && opcode === config.targetOpcode;
+                const isDefault =
+                    ptrPrgOffset === config.comparisonOffset && opcode === config.comparisonOpcode;
+                if (!isEndSwitch && !isDefault) {
+                    return;
+                }
 
-                    sendEvent("window_trace", {
-                        thread_id: this.threadId,
-                        object_index: state.objectIndex,
-                        owner_kind: "object",
-                        current_object: state.currentObject,
-                        ptr_life: state.ptrLife,
-                        offset_life: state.offsetLife,
-                        matches_target: isEndSwitch,
-                        ptr_prg: pointerString(ptrPrg),
-                        ptr_prg_offset: ptrPrgOffset,
-                        opcode,
-                        opcode_hex: opcode === null ? null : `0x${opcode.toString(16).padStart(2, "0")}`,
-                        byte_at_ptr_prg: opcode,
-                        byte_at_ptr_prg_hex: opcode === null ? null : `0x${opcode.toString(16).padStart(2, "0")}`,
-                    });
-                },
+                sendEvent("window_trace", {
+                    thread_id: this.threadId,
+                    object_index: state.objectIndex,
+                    owner_kind: "object",
+                    current_object: state.currentObject,
+                    ptr_life: state.ptrLife,
+                    offset_life: state.offsetLife,
+                    matches_target: isEndSwitch,
+                    ptr_prg: pointerString(ptrPrg),
+                    ptr_prg_offset: ptrPrgOffset,
+                    opcode,
+                    opcode_hex: opcode === null ? null : `0x${opcode.toString(16).padStart(2, "0")}`,
+                    byte_at_ptr_prg: opcode,
+                    byte_at_ptr_prg_hex: opcode === null ? null : `0x${opcode.toString(16).padStart(2, "0")}`,
+                });
             });
 
             sendEvent("status", {

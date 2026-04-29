@@ -81,93 +81,91 @@ registerScene("tavern-trace", function createTavernScene() {
         usesDoLifeEntryState: false,
 
         installHooks() {
-            Interceptor.attach(absolute(offsets.doLifeLoop), {
-                onEnter(args) {
-                    const ptrPrg = readPointerSafe(absolute(offsets.ptrPrg));
-                    if (ptrPrg.isNull()) {
+            Interceptor.attach(absolute(offsets.doLifeLoop), function () {
+                const ptrPrg = readPointerSafe(absolute(offsets.ptrPrg));
+                if (ptrPrg.isNull()) {
+                    return;
+                }
+
+                if (!tavernRun.matchedFingerprint) {
+                    const state = snapshotObjectState(config.targetObject);
+                    if (state.ptrLifePtr.isNull()) {
                         return;
                     }
+                    maybeEmitTargetValidation(this.threadId, state);
+                }
+                if (!tavernRun.matchedFingerprint) {
+                    return;
+                }
+                if (tavernRun.ptrLifePtr.isNull()) {
+                    return;
+                }
 
-                    if (!tavernRun.matchedFingerprint) {
-                        const state = snapshotObjectState(config.targetObject);
-                        if (state.ptrLifePtr.isNull()) {
-                            return;
-                        }
-                        maybeEmitTargetValidation(this.threadId, state);
-                    }
-                    if (!tavernRun.matchedFingerprint) {
-                        return;
-                    }
-                    if (tavernRun.ptrLifePtr.isNull()) {
-                        return;
-                    }
+                if (tavernRun.threadId === null && isFocusOffset(pointerDelta(ptrPrg, tavernRun.ptrLifePtr))) {
+                    tavernRun.threadId = this.threadId;
+                }
 
-                    if (tavernRun.threadId === null && isFocusOffset(pointerDelta(ptrPrg, tavernRun.ptrLifePtr))) {
-                        tavernRun.threadId = this.threadId;
-                    }
-
-                    if (!isTrackedThread(this.threadId)) {
-                        if (config.logAll) {
-                            const ptrPrgOffset = pointerDelta(ptrPrg, tavernRun.ptrLifePtr);
-                            const opcode = readU8Safe(ptrPrg);
-                            const trace = buildTrackedTavernTrace(ptrPrg, ptrPrgOffset, opcode, this.threadId);
-                            trace.matches_target = matchesTarget(trace);
-                            sendEvent("trace", trace);
-                        }
-                        return;
-                    }
-
-                    const ptrPrgOffset = pointerDelta(ptrPrg, tavernRun.ptrLifePtr);
-                    const post076ExpectedOffset =
-                        config.targetOffset === null ? null : (config.targetOffset | 0) + 1;
-
-                    if (!tavernRun.saw076 && !config.logAll && ptrPrgOffset !== config.targetOffset) {
-                        return;
-                    }
-
-                    if (
-                        tavernRun.saw076 &&
-                        !config.logAll &&
-                        tavernRun.post076ThreadId === this.threadId &&
-                        !tavernRun.post076OutcomeCaptured &&
-                        ptrPrgOffset !== post076ExpectedOffset
-                    ) {
-                        return;
-                    }
-
-                    const opcode = readU8Safe(ptrPrg);
-                    const trace = buildTrackedTavernTrace(ptrPrg, ptrPrgOffset, opcode, this.threadId);
-                    trace.matches_target = matchesTarget(trace);
-
-                    const is076Trace =
-                        trace.ptr_prg_offset === config.targetOffset && trace.opcode === config.targetOpcode;
-                    const wantsLoopReentryProof =
-                        tavernRun.saw076 &&
-                        tavernRun.post076ThreadId === this.threadId &&
-                        !tavernRun.post076OutcomeCaptured &&
-                        trace.ptr_prg_offset === post076ExpectedOffset;
-
-                    if (is076Trace && !tavernRun.saw076) {
-                        tavernRun.saw076 = true;
-                        tavernRun.post076ThreadId = this.threadId;
-                    }
-
-                    if (wantsLoopReentryProof) {
-                        tavernRun.post076OutcomeCaptured = true;
-                        trace.post_076_outcome = "loop_reentry";
-                        sendEvent("window_trace", trace);
-                        return;
-                    }
-
-                    if (is076Trace || wantsLoopReentryProof) {
-                        sendEvent("window_trace", trace);
-                        return;
-                    }
-
+                if (!isTrackedThread(this.threadId)) {
                     if (config.logAll) {
+                        const ptrPrgOffset = pointerDelta(ptrPrg, tavernRun.ptrLifePtr);
+                        const opcode = readU8Safe(ptrPrg);
+                        const trace = buildTrackedTavernTrace(ptrPrg, ptrPrgOffset, opcode, this.threadId);
+                        trace.matches_target = matchesTarget(trace);
                         sendEvent("trace", trace);
                     }
-                },
+                    return;
+                }
+
+                const ptrPrgOffset = pointerDelta(ptrPrg, tavernRun.ptrLifePtr);
+                const post076ExpectedOffset =
+                    config.targetOffset === null ? null : (config.targetOffset | 0) + 1;
+
+                if (!tavernRun.saw076 && !config.logAll && ptrPrgOffset !== config.targetOffset) {
+                    return;
+                }
+
+                if (
+                    tavernRun.saw076 &&
+                    !config.logAll &&
+                    tavernRun.post076ThreadId === this.threadId &&
+                    !tavernRun.post076OutcomeCaptured &&
+                    ptrPrgOffset !== post076ExpectedOffset
+                ) {
+                    return;
+                }
+
+                const opcode = readU8Safe(ptrPrg);
+                const trace = buildTrackedTavernTrace(ptrPrg, ptrPrgOffset, opcode, this.threadId);
+                trace.matches_target = matchesTarget(trace);
+
+                const is076Trace =
+                    trace.ptr_prg_offset === config.targetOffset && trace.opcode === config.targetOpcode;
+                const wantsLoopReentryProof =
+                    tavernRun.saw076 &&
+                    tavernRun.post076ThreadId === this.threadId &&
+                    !tavernRun.post076OutcomeCaptured &&
+                    trace.ptr_prg_offset === post076ExpectedOffset;
+
+                if (is076Trace && !tavernRun.saw076) {
+                    tavernRun.saw076 = true;
+                    tavernRun.post076ThreadId = this.threadId;
+                }
+
+                if (wantsLoopReentryProof) {
+                    tavernRun.post076OutcomeCaptured = true;
+                    trace.post_076_outcome = "loop_reentry";
+                    sendEvent("window_trace", trace);
+                    return;
+                }
+
+                if (is076Trace || wantsLoopReentryProof) {
+                    sendEvent("window_trace", trace);
+                    return;
+                }
+
+                if (config.logAll) {
+                    sendEvent("trace", trace);
+                }
             });
         },
     };

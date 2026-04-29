@@ -4,6 +4,7 @@ import argparse
 import contextlib
 import io
 import json
+import re
 import signal
 import subprocess
 import sys
@@ -262,6 +263,31 @@ class LifeTraceSchemaTest(unittest.TestCase):
         }
         with self.assertRaises(msgspec.ValidationError):
             trace_life.convert_agent_event(payload)
+
+
+class LifeTraceFridaHookShapeTest(unittest.TestCase):
+    def test_internal_dolife_loop_hooks_use_function_probe_form(self) -> None:
+        repo_root = Path(__file__).resolve().parents[1]
+        search_roots = [repo_root / "tools" / "life_trace"]
+        banned_patterns = [
+            re.compile(r"Interceptor\.attach\(\s*absolute\(offsets\.doLifeLoop\)\s*,\s*\{", re.MULTILINE),
+            re.compile(r"Interceptor\.attach\(\s*ADDR\.doLifeLoop\s*,\s*\{", re.MULTILINE),
+        ]
+        violations: list[str] = []
+
+        for search_root in search_roots:
+            for path in search_root.rglob("*"):
+                if path.suffix not in {".js", ".py"}:
+                    continue
+                text = path.read_text(encoding="utf-8")
+                if any(pattern.search(text) for pattern in banned_patterns):
+                    violations.append(str(path.relative_to(repo_root)))
+
+        self.assertEqual(
+            [],
+            violations,
+            "internal DoLifeLoop instruction hooks must use Interceptor.attach(addr, function () { ... })",
+        )
 
 
 class LifeTraceRuntimeLaunchTest(unittest.TestCase):

@@ -257,13 +257,11 @@ function installDoLifeEntryHooks(scene) {
 }
 
 function installDoLifeLoopHook(scene) {
-    Interceptor.attach(absolute(offsets.doLifeLoop), {
-        onEnter(args) {
-            const ptrPrg = readPointerSafe(absolute(offsets.ptrPrg));
-            if (ptrPrg.isNull()) {
-                return;
-            }
-            scene.onDoLifeLoop(this.threadId, ptrPrg);
-        },
+    Interceptor.attach(absolute(offsets.doLifeLoop), function () {
+        const ptrPrg = readPointerSafe(absolute(offsets.ptrPrg));
+        if (ptrPrg.isNull()) {
+            return;
+        }
+        scene.onDoLifeLoop(this.threadId, ptrPrg);
     });
 }
