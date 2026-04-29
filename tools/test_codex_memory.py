@@ -334,6 +334,99 @@ Do not rename required `current_focus.md` headings without updating validation.
         output = codex_memory.render_context(paths)
         self.assertNotIn("# Generated Task Briefing", output)
 
+    def test_briefing_selects_lessons_by_tag_path_and_explicit_id(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        self.write(
+            paths.lessons_path,
+            """# Lessons
+
+### trap.current-focus-heading-is-schema
+
+Status: active
+Confidence: high
+Last verified: 2026-04-29
+Tags: codex-memory, validation
+Related files: tools/codex_memory.py
+
+Do not rename required `current_focus.md` headings without updating validation.
+
+### decision.task-briefing-is-derived
+
+Status: active
+Confidence: high
+Last verified: 2026-04-29
+Tags: generated, canonical
+Related files: docs/codex_memory/README.md
+
+Task briefings are derived, not canonical.
+""",
+        )
+        lessons, errors = codex_memory.validate_lessons(paths)
+        self.assertEqual(errors, [])
+        output = codex_memory.render_briefing(
+            paths,
+            lessons,
+            "memory",
+            5,
+            repo_paths=["tools/codex_memory.py"],
+            tags=["validation"],
+            lesson_ids=["decision.task-briefing-is-derived"],
+        )
+        self.assertIn("### trap.current-focus-heading-is-schema", output)
+        self.assertIn("### decision.task-briefing-is-derived", output)
+        self.assertIn("Selected because:", output)
+        self.assertIn("exact path match `tools/codex_memory.py`", output)
+        self.assertIn("explicit lesson `decision.task-briefing-is-derived`", output)
+
+    def test_briefing_validates_generated_file_with_query_args(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        self.write(
+            paths.lessons_path,
+            """# Lessons
+
+### trap.current-focus-heading-is-schema
+
+Status: active
+Confidence: high
+Last verified: 2026-04-29
+Tags: codex-memory, validation, spaced tag
+Related files: tools/codex_memory.py
+
+Do not rename required headings.
+""",
+        )
+        lessons, errors = codex_memory.validate_lessons(paths)
+        self.assertEqual(errors, [])
+        self.write(
+            paths.generated_dir / "task_briefing.md",
+            codex_memory.render_briefing(
+                paths,
+                lessons,
+                "memory validation",
+                3,
+                repo_paths=["tools/codex_memory.py"],
+                tags=["validation", "spaced tag"],
+                max_bytes=9000,
+            ),
+        )
+        self.assertEqual(codex_memory.validate_all(paths), [])
+
+    def test_briefing_rejects_unknown_explicit_lesson(self) -> None:
+        paths = self.make_paths()
+        self.scaffold(paths)
+        lessons, errors = codex_memory.validate_lessons(paths)
+        self.assertEqual(errors, [])
+        with self.assertRaises(ValueError):
+            codex_memory.render_briefing(
+                paths,
+                lessons,
+                "memory validation",
+                5,
+                lesson_ids=["trap.missing"],
+            )
+
     def test_validate_accepts_append_only_history_growth_relative_to_head(self) -> None:
         paths = self.make_paths()
         self.scaffold(paths)

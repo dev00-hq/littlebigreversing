@@ -28,7 +28,9 @@ Related files: tools/codex_memory.py, docs/codex_memory/README.md
 `docs/codex_memory/generated/task_briefing.md` is a reproducible task lens, not
 canonical truth. The canonical startup path remains `project_brief.md`,
 `current_focus.md`, selected subsystem packs, and typed history through
-`tools/codex_memory.py context`.
+`tools/codex_memory.py context`. Use explicit `--path`, `--subsystem`, `--tag`,
+or `--lesson` briefing inputs when the task scope is known, because task prose
+alone is only a retrieval hint.
 
 ### trap.lessons-are-not-logs
 

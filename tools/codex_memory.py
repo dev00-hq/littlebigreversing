@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import re
+import shlex
 import subprocess
 import sys
 from collections import defaultdict
@@ -156,6 +157,9 @@ LESSON_OPTIONAL_METADATA = (
 GENERATED_MARKER = "GENERATED FILE. DO NOT EDIT."
 DEFAULT_STALE_DAYS = 30
 DEFAULT_BRIEFING_EVENTS = 5
+DEFAULT_BRIEFING_MAX_BYTES = 12000
+DEFAULT_BRIEFING_MAX_LESSONS = 8
+DEFAULT_BRIEFING_MAX_ISSUES = 12
 ARCHITECTURE_DOC_CHURN_PATHS = frozenset(
     {
         "docs/PROMPT.md",
@@ -310,6 +314,10 @@ def stable_hash(payload) -> str:
 
 def source_hash(payload) -> str:
     return "sha256:" + stable_hash(payload)
+
+
+def shell_join(argv: list[str]) -> str:
+    return " ".join(shlex.quote(item) for item in argv)
 
 
 def make_id(kind: str, timestamp_utc: str, stable_fields: dict[str, str]) -> str:
@@ -911,7 +919,16 @@ def task_events_tail(paths: MemoryPaths, count: int) -> list[dict]:
     return [record for _, record in rows[-count:]]
 
 
-def briefing_source_payload(paths: MemoryPaths, task: str, event_count: int) -> dict:
+def briefing_source_payload(
+    paths: MemoryPaths,
+    task: str,
+    event_count: int,
+    repo_paths: list[str],
+    subsystem_names: list[str],
+    tags: list[str],
+    lesson_ids: list[str],
+    max_bytes: int,
+) -> dict:
     source_files = [
         "docs/codex_memory/project_brief.md",
         "docs/codex_memory/current_focus.md",
@@ -922,6 +939,11 @@ def briefing_source_payload(paths: MemoryPaths, task: str, event_count: int) -> 
     return {
         "task": task,
         "event_count": event_count,
+        "repo_paths": repo_paths,
+        "subsystems": subsystem_names,
+        "tags": tags,
+        "lesson_ids": lesson_ids,
+        "max_bytes": max_bytes,
         "sources": {
             name: read_optional_text(paths.repo_root / name) or ""
             for name in source_files
@@ -933,61 +955,278 @@ def task_keywords(task: str) -> frozenset[str]:
     return frozenset(token for token in TOKEN_PATTERN.findall(task.lower()) if len(token) > 2)
 
 
-def matching_lessons(lessons: list[Lesson], task: str) -> list[Lesson]:
+def normalize_query_values(values: list[str], field_name: str) -> list[str]:
+    result = []
+    for value in values:
+        normalized = normalize_text(value, field_name, 240)
+        if normalized not in result:
+            result.append(normalized)
+    return result
+
+
+def selected_subsystems_for_briefing(
+    snapshot: MemorySnapshot, subsystem_names: list[str], repo_paths: list[str]
+) -> list[str]:
+    if not subsystem_names and not repo_paths:
+        return []
+    return select_subsystems(snapshot, subsystem_names, repo_paths)
+
+
+def lesson_relevance(
+    lesson: Lesson,
+    task_tokens: frozenset[str],
+    repo_paths: list[str],
+    subsystem_names: list[str],
+    tags: list[str],
+    lesson_ids: list[str],
+) -> tuple[int, list[str]]:
+    score = 0
+    reasons: list[str] = []
+    if lesson.id in lesson_ids:
+        score += 100
+        reasons.append(f"explicit lesson `{lesson.id}`")
+    tag_matches = sorted(set(tags) & set(lesson.tags))
+    if tag_matches:
+        score += 80 + 5 * len(tag_matches)
+        reasons.append("tag match " + ", ".join(f"`{tag}`" for tag in tag_matches))
+    for repo_path in repo_paths:
+        related = (*lesson.related_files, *lesson.related_tests, *lesson.evidence_refs)
+        if repo_path in related:
+            score += 70
+            reasons.append(f"exact path match `{repo_path}`")
+            break
+        if any(repo_path.startswith(path.rstrip("/")) or path.rstrip("/").startswith(repo_path) for path in related):
+            score += 45
+            reasons.append(f"path overlap `{repo_path}`")
+            break
+    subsystem_matches = sorted(set(subsystem_names) & set(lesson.tags))
+    if subsystem_matches:
+        score += 35
+        reasons.append(
+            "subsystem/tag match " + ", ".join(f"`{name}`" for name in subsystem_matches)
+        )
+    id_tokens = tokenize(lesson.id)
+    tag_tokens = tokenize(" ".join(lesson.tags))
+    body_tokens = tokenize(lesson.body)
+    id_overlap = task_tokens & id_tokens
+    tag_overlap = task_tokens & tag_tokens
+    body_overlap = task_tokens & body_tokens
+    if id_overlap:
+        score += 40 + 3 * len(id_overlap)
+        reasons.append("id token match " + ", ".join(f"`{token}`" for token in sorted(id_overlap)))
+    if tag_overlap:
+        score += 35 + 3 * len(tag_overlap)
+        reasons.append("tag token match " + ", ".join(f"`{token}`" for token in sorted(tag_overlap)))
+    if body_overlap:
+        score += min(30, 8 + 2 * len(body_overlap))
+        reasons.append("body token match " + ", ".join(f"`{token}`" for token in sorted(body_overlap)[:5]))
+    canonical_tokens = {"global", "canonical", "hard", "cut"}
+    if lesson.type in {"decision", "policy"} and canonical_tokens & (id_tokens | tag_tokens | body_tokens):
+        score += 20
+        reasons.append("global/canonical decision")
+    return score, reasons
+
+
+def matching_lessons(
+    lessons: list[Lesson],
+    task: str,
+    repo_paths: list[str],
+    subsystem_names: list[str],
+    tags: list[str],
+    lesson_ids: list[str],
+    max_lessons: int = DEFAULT_BRIEFING_MAX_LESSONS,
+) -> list[tuple[Lesson, list[str]]]:
     keywords = task_keywords(task)
-    if not keywords:
-        return [
-            lesson
-            for lesson in sorted(lessons, key=lambda item: item.id)
-            if lesson.status == "active" and lesson.confidence == "high"
-        ][:8]
-    selected = []
+    explicit = bool(keywords or repo_paths or subsystem_names or tags or lesson_ids)
+    selected: list[tuple[int, Lesson, list[str]]] = []
     for lesson in sorted(lessons, key=lambda item: item.id):
         if lesson.status != "active":
             continue
-        haystack = " ".join(
-            [
-                lesson.id,
-                lesson.heading,
-                lesson.body,
-                " ".join(lesson.tags),
-            ]
+        score, reasons = lesson_relevance(
+            lesson, keywords, repo_paths, subsystem_names, tags, lesson_ids
         )
-        tokens = tokenize(haystack)
-        global_decision = lesson.type in {"decision", "policy"} and bool(
-            {"global", "canonical", "hard", "cut", "hard-cut"} & tokens
-        )
-        if global_decision or keywords & tokens:
-            selected.append(lesson)
-    return selected[:8]
+        if score > 0:
+            selected.append((score, lesson, reasons))
+        elif not explicit and lesson.confidence == "high":
+            selected.append((1, lesson, ["default high-confidence active lesson"]))
+    selected.sort(key=lambda item: (-item[0], item[1].id))
+    return [(lesson, reasons) for _, lesson, reasons in selected[:max_lessons]]
 
 
-def matching_issue_lines(issues_text: str, task: str) -> list[str]:
+def matching_issue_lines(
+    issues_text: str,
+    task: str,
+    repo_paths: list[str],
+    subsystem_names: list[str],
+    tags: list[str],
+) -> list[tuple[str, list[str]]]:
     keywords = task_keywords(task)
-    if not keywords:
+    query_tokens = set(keywords)
+    for value in [*repo_paths, *subsystem_names, *tags]:
+        query_tokens.update(task_keywords(value))
+    if not query_tokens:
         return []
-    result = []
+    result: list[tuple[int, str, list[str]]] = []
     for line in issues_text.splitlines():
         stripped = line.strip()
-        if stripped.startswith("- ") and keywords & tokenize(stripped):
-            result.append(stripped)
-    return result[:12]
+        if not stripped.startswith("- "):
+            continue
+        overlap = query_tokens & set(tokenize(stripped))
+        if overlap:
+            result.append(
+                (
+                    len(overlap),
+                    stripped,
+                    ["token match " + ", ".join(f"`{token}`" for token in sorted(overlap)[:5])],
+                )
+            )
+    result.sort(key=lambda item: (-item[0], item[1]))
+    return [(line, reasons) for _, line, reasons in result[:DEFAULT_BRIEFING_MAX_ISSUES]]
 
 
-def render_briefing(paths: MemoryPaths, lessons: list[Lesson], task: str, event_count: int) -> str:
-    payload = briefing_source_payload(paths, task, event_count)
+def history_record_tokens(record: dict) -> frozenset[str]:
+    return tokenize(json.dumps(record, ensure_ascii=True, sort_keys=True))
+
+
+def matching_task_events(
+    paths: MemoryPaths,
+    snapshot: MemorySnapshot,
+    task: str,
+    event_count: int,
+    repo_paths: list[str],
+    subsystem_names: list[str],
+) -> list[tuple[dict, list[str]]]:
+    rows = load_jsonl(paths.history_path("task_events.jsonl"))
+    if not (task or repo_paths or subsystem_names):
+        return [(record, ["recent task event"]) for _, record in rows[-event_count:]]
+    selected_subsystems = set(subsystem_names)
+    query_tokens = set(task_keywords(task))
+    scored: list[tuple[int, int, dict, list[str]]] = []
+    for ordinal, (_, record) in enumerate(rows):
+        score = 0
+        reasons: list[str] = []
+        affected = tuple(normalize_path(path) for path in record.get("affected_paths", []))
+        evidence = tuple(normalize_path(path) for path in record.get("evidence_refs", []))
+        for repo_path in repo_paths:
+            if repo_path in affected:
+                score += 80
+                reasons.append(f"affected path `{repo_path}`")
+            if repo_path in evidence:
+                score += 70
+                reasons.append(f"evidence path `{repo_path}`")
+            if any(repo_path.startswith(path.rstrip("/")) or path.rstrip("/").startswith(repo_path) for path in (*affected, *evidence)):
+                score += 35
+                reasons.append(f"path overlap `{repo_path}`")
+        mapped = set()
+        for path in (*affected, *evidence):
+            mapped.update(resolve_subsystems(path, snapshot.rules))
+        subsystem_overlap = selected_subsystems & mapped
+        if subsystem_overlap:
+            score += 30 + 5 * len(subsystem_overlap)
+            reasons.append(
+                "subsystem match " + ", ".join(f"`{name}`" for name in sorted(subsystem_overlap))
+            )
+        token_overlap = query_tokens & set(history_record_tokens(record))
+        if token_overlap:
+            score += min(25, 5 + 2 * len(token_overlap))
+            reasons.append(
+                "task token match " + ", ".join(f"`{token}`" for token in sorted(token_overlap)[:5])
+            )
+        if score:
+            scored.append((score, ordinal, record, reasons))
+    scored.sort(key=lambda item: (-item[0], -item[1]))
+    return [(record, reasons) for _, _, record, reasons in scored[:event_count]]
+
+
+def retrieval_warnings(
+    task: str,
+    selected_lessons: list[tuple[Lesson, list[str]]],
+    issue_lines: list[tuple[str, list[str]]],
+    recent_events: list[tuple[dict, list[str]]],
+) -> list[str]:
+    matched_tokens: set[str] = set()
+    for lesson, _ in selected_lessons:
+        matched_tokens.update(tokenize(lesson.id))
+        matched_tokens.update(tokenize(" ".join(lesson.tags)))
+        matched_tokens.update(tokenize(lesson.body))
+    for line, _ in issue_lines:
+        matched_tokens.update(tokenize(line))
+    for record, _ in recent_events:
+        matched_tokens.update(history_record_tokens(record))
+    warnings = []
+    for token in sorted(task_keywords(task) - matched_tokens):
+        warnings.append(f"- No selected lesson, issue, or event matched `{token}`.")
+    return warnings
+
+
+def enforce_briefing_budget(text: str, max_bytes: int) -> str:
+    encoded = text.encode("utf-8")
+    if len(encoded) <= max_bytes:
+        return text
+    marker = "\n\n[briefing trimmed to byte budget]\n"
+    allowance = max_bytes - len(marker.encode("utf-8"))
+    if allowance <= 0:
+        raise ValueError("--max-bytes is too small for the generated briefing marker")
+    trimmed = encoded[:allowance].decode("utf-8", errors="ignore").rstrip()
+    return trimmed + marker
+
+
+def render_briefing(
+    paths: MemoryPaths,
+    lessons: list[Lesson],
+    task: str,
+    event_count: int,
+    repo_paths: list[str] | None = None,
+    subsystem_names: list[str] | None = None,
+    tags: list[str] | None = None,
+    lesson_ids: list[str] | None = None,
+    max_bytes: int = DEFAULT_BRIEFING_MAX_BYTES,
+) -> str:
+    repo_paths = [normalize_path(path) for path in (repo_paths or [])]
+    subsystem_names = normalize_query_values(subsystem_names or [], "subsystem")
+    tags = normalize_query_values(tags or [], "tag")
+    lesson_ids = normalize_query_values(lesson_ids or [], "lesson")
+    snapshot = build_snapshot(paths, validate_generated=False)
+    selected_subsystems = selected_subsystems_for_briefing(
+        snapshot, subsystem_names, repo_paths
+    )
+    payload = briefing_source_payload(
+        paths, task, event_count, repo_paths, selected_subsystems, tags, lesson_ids, max_bytes
+    )
     project_brief = payload["sources"]["docs/codex_memory/project_brief.md"]
     current_focus = payload["sources"]["docs/codex_memory/current_focus.md"]
     issues = payload["sources"]["ISSUES.md"]
     source_hash_value = source_hash(payload)
-    selected_lessons = matching_lessons(lessons, task)
-    issue_lines = matching_issue_lines(issues, task)
-    recent_events = task_events_tail(paths, event_count)
+    known_lessons = {lesson.id for lesson in lessons}
+    unknown_lessons = [lesson_id for lesson_id in lesson_ids if lesson_id not in known_lessons]
+    if unknown_lessons:
+        raise ValueError(f"unknown lesson id(s): {', '.join(unknown_lessons)}")
+    selected_lessons = matching_lessons(
+        lessons, task, repo_paths, selected_subsystems, tags, lesson_ids
+    )
+    issue_lines = matching_issue_lines(issues, task, repo_paths, selected_subsystems, tags)
+    recent_events = matching_task_events(
+        paths, snapshot, task, event_count, repo_paths, selected_subsystems
+    )
+    warnings = retrieval_warnings(task, selected_lessons, issue_lines, recent_events)
+    command_parts = ["python", "tools/codex_memory.py", "briefing", "--task", task]
+    for repo_path in repo_paths:
+        command_parts.extend(["--path", repo_path])
+    for subsystem in subsystem_names:
+        command_parts.extend(["--subsystem", subsystem])
+    for tag in tags:
+        command_parts.extend(["--tag", tag])
+    for lesson_id in lesson_ids:
+        command_parts.extend(["--lesson", lesson_id])
+    if event_count != DEFAULT_BRIEFING_EVENTS:
+        command_parts.extend(["--events", str(event_count)])
+    if max_bytes != DEFAULT_BRIEFING_MAX_BYTES:
+        command_parts.extend(["--max-bytes", str(max_bytes)])
     parts = [
         "# Generated Task Briefing",
         "",
         generated_header(
-            f'python tools/codex_memory.py briefing --task "{task}"',
+            shell_join(command_parts),
             source_hash_value,
         ),
         "",
@@ -1003,11 +1242,18 @@ def render_briefing(paths: MemoryPaths, lessons: list[Lesson], task: str, event_
         "",
         compact_excerpt(current_focus, 1800),
         "",
+        "## Query",
+        "",
+        "- Paths: " + (", ".join(f"`{path}`" for path in repo_paths) if repo_paths else "none"),
+        "- Subsystems: " + (", ".join(f"`{name}`" for name in selected_subsystems) if selected_subsystems else "none"),
+        "- Tags: " + (", ".join(f"`{tag}`" for tag in tags) if tags else "none"),
+        "- Lessons: " + (", ".join(f"`{lesson}`" for lesson in lesson_ids) if lesson_ids else "none"),
+        "",
         "## Relevant Lessons",
         "",
     ]
     if selected_lessons:
-        for lesson in selected_lessons:
+        for lesson, reasons in selected_lessons:
             parts.extend(
                 [
                     f"### {lesson.id}",
@@ -1015,6 +1261,7 @@ def render_briefing(paths: MemoryPaths, lessons: list[Lesson], task: str, event_
                     f"Status: {lesson.status}",
                     f"Confidence: {lesson.confidence}",
                     f"Last verified: {lesson.last_verified}",
+                    "Selected because: " + "; ".join(reasons),
                     "",
                     compact_excerpt(lesson.body, 700),
                     "",
@@ -1024,15 +1271,23 @@ def render_briefing(paths: MemoryPaths, lessons: list[Lesson], task: str, event_
         parts.append("- None selected.")
     parts.extend(["", "## Relevant Open Issues", ""])
     if issue_lines:
-        parts.extend(issue_lines)
+        for line, reasons in issue_lines:
+            parts.append(line)
+            parts.append("  Selected because: " + "; ".join(reasons))
     else:
         parts.append("- None selected.")
     parts.extend(["", "## Recent Events", ""])
     if recent_events:
-        for record in recent_events:
+        for record, reasons in recent_events:
             parts.append(
                 f"- {record.get('timestamp_utc', '')}: {record.get('stream', '')} - {record.get('summary', '')}"
             )
+            parts.append("  Selected because: " + "; ".join(reasons))
+    else:
+        parts.append("- None.")
+    parts.extend(["", "## Retrieval Warnings", ""])
+    if warnings:
+        parts.extend(warnings)
     else:
         parts.append("- None.")
     parts.extend(
@@ -1046,7 +1301,7 @@ def render_briefing(paths: MemoryPaths, lessons: list[Lesson], task: str, event_
             "- Do not treat generated task briefing as canonical truth.",
         ]
     )
-    return "\n".join(parts).rstrip() + "\n"
+    return enforce_briefing_budget("\n".join(parts).rstrip() + "\n", max_bytes)
 
 
 def parse_generated_command(content: str) -> str | None:
@@ -1056,6 +1311,16 @@ def parse_generated_command(content: str) -> str | None:
 
 def parse_generated_task(content: str) -> str:
     return first_section_body(content, "Task").strip()
+
+
+def parse_briefing_generated_args(command: str) -> argparse.Namespace:
+    prefix = "python tools/codex_memory.py "
+    if not command.startswith(prefix):
+        raise ValueError("briefing generated command has unsupported prefix")
+    args = parse_args(shlex.split(command[len(prefix) :]))
+    if args.command != "briefing":
+        raise ValueError("briefing generated command must use briefing")
+    return args
 
 
 def validate_generated_files(paths: MemoryPaths, lessons: list[Lesson]) -> list[str]:
@@ -1087,8 +1352,22 @@ def validate_generated_files(paths: MemoryPaths, lessons: list[Lesson]) -> list[
             as_of = match.group(2)
             expected = render_stale_report(paths, lessons, days, as_of)
         else:
-            task = parse_generated_task(content)
-            expected = render_briefing(paths, lessons, task, DEFAULT_BRIEFING_EVENTS)
+            try:
+                args = parse_briefing_generated_args(parse_generated_command(content) or "")
+                expected = render_briefing(
+                    paths,
+                    lessons,
+                    args.task,
+                    args.events,
+                    args.path,
+                    args.subsystem,
+                    args.tag,
+                    args.lesson,
+                    args.max_bytes,
+                )
+            except ValueError as exc:
+                errors.append(f"{path}: {exc}")
+                continue
         if content != expected:
             errors.append(
                 f"{path}: generated file is stale; regenerate it with the command in its generated header"
@@ -1096,7 +1375,7 @@ def validate_generated_files(paths: MemoryPaths, lessons: list[Lesson]) -> list[
     return errors
 
 
-def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
+def load_validated_data(paths: MemoryPaths, *, validate_generated: bool = True) -> ValidatedMemoryData:
     errors = []
     for rel in OBSOLETE_PATHS:
         if (paths.repo_root / rel).exists():
@@ -1223,7 +1502,7 @@ def load_validated_data(paths: MemoryPaths) -> ValidatedMemoryData:
             )
         errors.extend(validate_append_only_history_file(paths, f"{kind}.jsonl"))
 
-    if not lesson_errors:
+    if validate_generated and not lesson_errors:
         errors.extend(validate_generated_files(paths, lessons))
 
     if errors:
@@ -1326,8 +1605,8 @@ def build_history_entry(
     )
 
 
-def build_snapshot(paths: MemoryPaths) -> MemorySnapshot:
-    validated = load_validated_data(paths)
+def build_snapshot(paths: MemoryPaths, *, validate_generated: bool = True) -> MemorySnapshot:
+    validated = load_validated_data(paths, validate_generated=validate_generated)
     superseded_ids = set()
     for rows in validated.history_rows.values():
         for _, record in rows:
@@ -1769,6 +2048,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     stale.add_argument("--as-of", default=date.today().isoformat())
     briefing = sub.add_parser("briefing", help="Generate docs/codex_memory/generated/task_briefing.md")
     briefing.add_argument("--task", required=True)
+    briefing.add_argument("--path", action="append", default=[])
+    briefing.add_argument("--subsystem", action="append", default=[])
+    briefing.add_argument("--tag", action="append", default=[])
+    briefing.add_argument("--lesson", action="append", default=[])
+    briefing.add_argument("--events", type=int, default=DEFAULT_BRIEFING_EVENTS)
+    briefing.add_argument("--max-bytes", type=int, default=DEFAULT_BRIEFING_MAX_BYTES)
     context = sub.add_parser(
         "context", help="Render project/current focus plus selected subsystem packs"
     )
@@ -1910,12 +2195,26 @@ def main(argv: list[str] | None = None) -> int:
             print(paths.generated_dir / "stale_report.md")
             return 0
         if args.command == "briefing":
+            if args.events < 0:
+                raise ValueError("--events must be non-negative")
+            if args.max_bytes < 2048:
+                raise ValueError("--max-bytes must be at least 2048")
             lessons, errors = validate_lessons(paths)
             if errors:
                 raise ValueError("\n".join(errors))
             paths.generated_dir.mkdir(parents=True, exist_ok=True)
             (paths.generated_dir / "task_briefing.md").write_text(
-                render_briefing(paths, lessons, args.task, DEFAULT_BRIEFING_EVENTS),
+                render_briefing(
+                    paths,
+                    lessons,
+                    args.task,
+                    args.events,
+                    args.path,
+                    args.subsystem,
+                    args.tag,
+                    args.lesson,
+                    args.max_bytes,
+                ),
                 encoding="utf-8",
             )
             print(paths.generated_dir / "task_briefing.md")

@@ -16,6 +16,7 @@ python3 tools/codex_memory.py validate
 python3 tools/codex_memory.py index
 python3 tools/codex_memory.py stale-scan
 python3 tools/codex_memory.py briefing --task "inspect 3/3 transition parity"
+python3 tools/codex_memory.py briefing --task "inspect 3/3 transition parity" --path port/src/runtime/transition.zig --tag room-transition --lesson trap.lessons-are-not-logs
 python3 tools/codex_memory.py context
 python3 tools/codex_memory.py context --path port/src/game_data/background/parser.zig --include-history 3
 python3 tools/codex_memory.py context --path port/src/game_data/background/parser.zig --include-history 3 --history-mode relevant
@@ -36,6 +37,7 @@ python3 tools/codex_memory.py add-task-event --stream viewer-prep --status block
 - `ISSUES.md` owns unresolved work. Move only durable lessons from issues into `lessons.md`.
 - Generated files live under `docs/codex_memory/generated/`; they are reproducible derived context, not canonical truth.
 - `context` remains the canonical pickup command. `briefing --task ...` is a task-specific lens and must not replace canonical startup context.
+- `briefing` supports explicit `--path`, `--subsystem`, `--tag`, and `--lesson` inputs. Prefer these over relying on task prose alone when the relevant scope is known.
 - When a JSONL history file already exists in `HEAD`, validation treats it as append-only. Restore old rows and append new ones; do not rewrite timestamped history in place.
 - Default canonical memory pickup excludes `sidequest/` and `LM_TASKS/` until those streams are explicitly promoted into the checked-in path.
 - `--include-history` keeps chronological `## Recent History` by default; `--history-mode relevant` is the opt-in ranked alternative for path/subsystem queries.
