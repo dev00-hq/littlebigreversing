@@ -549,6 +549,89 @@ test "inspect-room-intelligence keeps the guarded 2/2 public door as the only en
     try expectJsonInteger(try requireJsonField(matching_zone, "z1"), 1535);
 }
 
+test "inspect-room-transitions keeps guarded 3/3 scoped to cellar-source destination handoffs" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const result = try runToolCommandAlloc(allocator, resolved.repo_root, &.{
+        "inspect-room-transitions",
+        "3",
+        "3",
+        "--json",
+    });
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    try expectExited(result.term, 0);
+    const parsed = try std.json.parseFromSlice(std.json.Value, allocator, result.stdout, .{});
+    defer parsed.deinit();
+
+    const root = parsed.value;
+    try expectJsonString(try requireJsonField(root, "command"), "inspect-room-transitions");
+    try expectJsonInteger(try requireJsonField(root, "source_scene_entry_index"), 3);
+    try expectJsonInteger(try requireJsonField(root, "source_background_entry_index"), 3);
+    try expectJsonInteger(try requireJsonField(root, "transition_count"), 3);
+
+    const transitions = try requireJsonField(root, "transitions");
+    var found_zone_1 = false;
+    var found_zone_8 = false;
+    var found_zone_15 = false;
+
+    switch (transitions) {
+        .array => |array| {
+            for (array.items) |transition| {
+                try expectJsonString(try requireJsonField(transition, "source_kind"), "decoded_change_cube");
+                try expectJsonString(try requireJsonField(transition, "canonical_result_source"), "decoded_transition");
+                try expectJsonNull(try requireJsonField(transition, "canonical_runtime_contract"));
+
+                const source_zone_index = try jsonInteger(try requireJsonField(transition, "source_zone_index"));
+                if (source_zone_index == 1) {
+                    found_zone_1 = true;
+                    try expectJsonInteger(try requireJsonField(transition, "source_zone_num"), 19);
+                    try expectJsonInteger(try requireJsonField(transition, "destination_cube"), 19);
+                    try expectJsonString(try requireJsonField(transition, "result"), "committed");
+                    try expectJsonNull(try requireJsonField(transition, "rejection_reason"));
+                    try expectJsonInteger(try requireJsonField(transition, "destination_scene_entry_index"), 21);
+                    try expectJsonInteger(try requireJsonField(transition, "destination_background_entry_index"), 19);
+                    try expectJsonNull(try requireJsonField(transition, "runtime_no_key_effect"));
+                    try expectJsonNull(try requireJsonField(transition, "runtime_with_key_effect"));
+                    try expectJsonNull(try requireJsonField(transition, "runtime_unlocked_effect"));
+                } else if (source_zone_index == 8) {
+                    found_zone_8 = true;
+                    try expectJsonInteger(try requireJsonField(transition, "source_zone_num"), 20);
+                    try expectJsonInteger(try requireJsonField(transition, "destination_cube"), 20);
+                    try expectJsonString(try requireJsonField(transition, "result"), "committed");
+                    try expectJsonNull(try requireJsonField(transition, "rejection_reason"));
+                    try expectJsonInteger(try requireJsonField(transition, "destination_scene_entry_index"), 22);
+                    try expectJsonInteger(try requireJsonField(transition, "destination_background_entry_index"), 20);
+                    try expectJsonNull(try requireJsonField(transition, "runtime_no_key_effect"));
+                    try expectJsonNull(try requireJsonField(transition, "runtime_with_key_effect"));
+                    try expectJsonNull(try requireJsonField(transition, "runtime_unlocked_effect"));
+                } else if (source_zone_index == 15) {
+                    found_zone_15 = true;
+                    try expectJsonInteger(try requireJsonField(transition, "source_zone_num"), 45);
+                    try expectJsonInteger(try requireJsonField(transition, "destination_cube"), 45);
+                    try expectJsonString(try requireJsonField(transition, "result"), "rejected");
+                    try expectJsonString(try requireJsonField(transition, "rejection_reason"), "unsupported_destination_cube");
+                    try expectJsonNull(try requireJsonField(transition, "destination_scene_entry_index"));
+                    try expectJsonNull(try requireJsonField(transition, "destination_background_entry_index"));
+                    try expectJsonNull(try requireJsonField(transition, "runtime_no_key_effect"));
+                    try expectJsonNull(try requireJsonField(transition, "runtime_with_key_effect"));
+                    try expectJsonNull(try requireJsonField(transition, "runtime_unlocked_effect"));
+                } else {
+                    return error.UnexpectedGuarded33TransitionZone;
+                }
+            }
+        },
+        else => return error.ExpectedJsonArray,
+    }
+
+    try std.testing.expect(found_zone_1);
+    try std.testing.expect(found_zone_8);
+    try std.testing.expect(found_zone_15);
+}
+
 test "inspect-room-transitions identifies the 0013 runtime contract as canonical" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
