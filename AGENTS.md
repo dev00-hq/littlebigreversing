@@ -50,6 +50,12 @@
 # Issues logging
 - The role of the `ISSUES.md` file is to describe common mistakes and confusion points that the agents might encounter as they work in this project. If you ever counter something in the project that surprises you, please alert the developer working with you and indicate that this is the case in the ISSUES.md file to help future agents from having the same issue.
 
+- ISSUES.md entry exists only until:
+  - a test exists, or
+  - a lint exists, or
+  - the behavior is encoded in a CLI diagnostic, or
+  - the ambiguity is captured in a typed evidence/contract record.
+
 # Shell specific tools
 - Use the provided environment context to determine whether the current shell is PowerShell or Linux Bash; do not rely on a Bash-evaluated PowerShell redirection snippet.
 
