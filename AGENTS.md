@@ -36,11 +36,16 @@
 5. If you discover a new repo trap or recurring confusion point, update `ISSUES.md` and keep the architecture pack aligned with that trap surface.
 6. Never reintroduce v1 files or schema labels.
 
-## Reporting
+## Runtime/gameplay promotion packets
 
-- Always send completion, blocker, and unattended-work reports to the LBR Slack channel (`#lbr`, `C0AVAUZ4077`).
-- `#lbr` is the default channel to send Slack messages to the user.
-- If the game is opened, publish phone-viewable screenshots or reports first, then include the phone-share URL in the LBR Slack update.
+- Runtime/gameplay seam widening is gated by `docs/promotion_packets/`.
+- Decoded or inferred seams may remain tooling candidates, but canonical runtime behavior requires a promotion packet with `live_positive` or `approved_exception`.
+- Run `py -3 tools/validate_promotion_packets.py` after changing packet docs, packet fixtures, or emitted runtime contract ids.
+- Do not promote `decode_only` or `live_negative` seams into runtime commits.
+
+## Reporting when the user is working on his phone
+- When the user specifies that he's on his phone send completion, blocker, and unattended-work reports to the LBR Slack channel (`#lbr`, `C0AVAUZ4077`).
+- If the game is opened, publish phone-viewable screenshots or reports first, then include the phone-share URL in #lbr.
 
 # Issues logging
 - The role of the `ISSUES.md` file is to describe common mistakes and confusion points that the agents might encounter as they work in this project. If you ever counter something in the project that surprises you, please alert the developer working with you and indicate that this is the case in the ISSUES.md file to help future agents from having the same issue.
