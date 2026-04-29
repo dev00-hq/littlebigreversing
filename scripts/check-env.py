@@ -103,7 +103,6 @@ def build_results() -> list[CheckResult]:
         ("Historic source tree", REPO_ROOT / "reference" / "lba2-classic"),
         ("MBN tools", REPO_ROOT / "reference" / "littlebigreversing" / "mbn_tools"),
         ("Extracted CD data", REPO_ROOT / "work" / "_innoextract_full" / "Speedrun" / "Windows" / "LBA2_cdrom" / "LBA2"),
-        ("Porting report", REPO_ROOT / "docs" / "PORTING_REPORT.md"),
         ("Ghidra", Path(r"D:\repos\reverse\ghidra")),
         ("Detect It Easy", Path(r"D:\repos\reverse\Detect-It-Easy")),
         ("PE-bear", Path(r"D:\repos\reverse\PE-bear_0.7.1_qt6.8_x64_win_vs22\PE-bear.exe")),

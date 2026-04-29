@@ -11,7 +11,7 @@ Use the classic source tree, extracted original CD assets, and preserved MBN too
 - `docs/LBA2_ZIG_PORT_PLAN.md` owns active roadmap phases, replan gates, and acceptance checks on the current execution path.
 - `docs/codex_memory/current_focus.md` owns active repo state, current blockers, and the operating focus for the checked-in tree.
 - Relevant subsystem packs under `docs/codex_memory/subsystems/` own durable current-state facts for their subsystem.
-- `docs/PORTING_REPORT.md`, the evidence memos, and other research notes remain supporting context, not execution owners.
+- Evidence memos and research notes remain supporting context, not execution owners.
 - Canonical current-state pickup does not depend on `sidequest/` or `LM_TASKS/`; treat those as independent workstreams unless they are explicitly promoted.
 - `inspect-room-intelligence`, `cdb-agent`, and the local `ghb` repo at `D:\repos\ghb` are the canonical investigative layers for locating, ranking, and falsifying runtime hypotheses; `inspect-room-intelligence` is the canonical repo-local machine-facing per-room/per-scene inspection surface, but those layers still generate evidence and do not define supported runtime behavior on their own.
 - `docs/promotion_packets/` owns the runtime/gameplay seam promotion gate. A decoded or inferred seam may stay in tooling as a candidate, but runtime widening requires a packet with `live_positive` or `approved_exception` status.
