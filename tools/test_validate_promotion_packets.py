@@ -68,6 +68,36 @@ class PromotionPacketValidationTests(unittest.TestCase):
         self.assertEqual(1024, observations["final_y"])
         self.assertEqual("decoded_candidate_live_negative_life_loss", proof["verdict"])
 
+    def test_magic_ball_live_positive_fixture_pins_inventory_signal(self) -> None:
+        fixture_path = (
+            validate_promotion_packets.REPO_ROOT
+            / "tools"
+            / "fixtures"
+            / "promotion_packets"
+            / "phase5_magic_ball_pickup_live_positive.json"
+        )
+        proof = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+        self.assertEqual("promotion-packet-evidence-v1", proof["schema"])
+        self.assertEqual("phase5_magic_ball_pickup", proof["packet_id"])
+        self.assertEqual("live_positive", proof["status"])
+        self.assertEqual("inventory_state", proof["evidence_class"])
+        self.assertEqual(1, proof["classic_symbols"]["FLAG_BALLE_MAGIQUE"])
+        self.assertEqual(0, proof["initial"]["magic_ball_flag"])
+        self.assertEqual(1, proof["observed_transition"]["magic_ball_flag_after"])
+        self.assertEqual(1, proof["final"]["magic_ball_flag"])
+        self.assertEqual("SAVE\\new-game-cellar.LBA", proof["repeatable_launch"]["launched_save"])
+        self.assertTrue(proof["repeatable_launch"]["autosave_hidden"])
+        self.assertEqual(0, proof["repeatable_launch"]["initial"]["magic_ball_flag"])
+        self.assertEqual(1, proof["repeatable_launch"]["observed_transition"]["magic_ball_flag_after"])
+        self.assertEqual(1, proof["repeatable_launch"]["final"]["magic_ball_flag"])
+        self.assertTrue(proof["observations"]["magic_ball_flag_0_to_1_observed"])
+        self.assertTrue(proof["observations"]["repeatable_launch_magic_ball_flag_0_to_1_observed"])
+        self.assertFalse(proof["observations"]["magic_level_changed"])
+        self.assertFalse(proof["observations"]["magic_point_changed"])
+        self.assertFalse(proof["observations"]["inventory_model_id_changed"])
+        self.assertEqual("inventory_state_live_positive", proof["verdict"])
+
     def test_canonical_runtime_requires_promotable_status(self) -> None:
         packet = {
             "id": "bad_decode_runtime",

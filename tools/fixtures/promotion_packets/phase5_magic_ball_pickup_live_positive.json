@@ -1,0 +1,125 @@
+{
+  "schema": "promotion-packet-evidence-v1",
+  "packet_id": "phase5_magic_ball_pickup",
+  "status": "live_positive",
+  "evidence_class": "inventory_state",
+  "source": {
+    "scene": 2,
+    "background": 0,
+    "active_cube": 1,
+    "save_lane": "new-game-cellar"
+  },
+  "classic_symbols": {
+    "FLAG_BALLE_MAGIQUE": 1,
+    "list_var_game_global": "0x00499e98",
+    "watched_address": "0x00499e9a"
+  },
+  "initial": {
+    "active_cube": 1,
+    "hero_x": 9726,
+    "hero_y": 1024,
+    "hero_z": 1101,
+    "hero_beta": 3019,
+    "magic_level": 0,
+    "magic_point": 0,
+    "magic_ball_flag": 0,
+    "magic_ball_inv_flags": 0,
+    "magic_ball_inv_model_id": 0
+  },
+  "observed_transition": {
+    "time_sec": 25.105,
+    "magic_ball_flag_before": 0,
+    "magic_ball_flag_after": 1,
+    "active_cube": 1,
+    "hero_x": 5378,
+    "hero_y": 1024,
+    "hero_z": 1786,
+    "hero_beta": 2306,
+    "magic_level": 0,
+    "magic_point": 0,
+    "magic_ball_inv_flags": 0,
+    "magic_ball_inv_model_id": 0
+  },
+  "final": {
+    "active_cube": 1,
+    "hero_x": 5378,
+    "hero_y": 1024,
+    "hero_z": 1786,
+    "hero_beta": 2306,
+    "magic_level": 0,
+    "magic_point": 0,
+    "magic_ball_flag": 1,
+    "magic_ball_inv_flags": 0,
+    "magic_ball_inv_model_id": 0
+  },
+  "artifacts": {
+    "run_dir": "work/live_proofs/phase5_magic_ball_manual_20260429",
+    "events_jsonl": "work/live_proofs/phase5_magic_ball_manual_20260429/events.jsonl",
+    "summary_json": "work/live_proofs/phase5_magic_ball_manual_20260429/summary.json",
+    "screenshots": [
+      "work/live_proofs/phase5_magic_ball_manual_20260429/01_initial.png",
+      "work/live_proofs/phase5_magic_ball_manual_20260429/02_magic_ball_flag_change.png",
+      "work/live_proofs/phase5_magic_ball_manual_20260429/03_final.png"
+    ]
+  },
+  "repeatable_launch": {
+    "run_dir": "work/live_proofs/phase5_magic_ball_launch_20260429_r2",
+    "events_jsonl": "work/live_proofs/phase5_magic_ball_launch_20260429_r2/events.jsonl",
+    "summary_json": "work/live_proofs/phase5_magic_ball_launch_20260429_r2/summary.json",
+    "launched_save": "SAVE\\new-game-cellar.LBA",
+    "autosave_hidden": true,
+    "initial": {
+      "active_cube": 1,
+      "hero_x": 9726,
+      "hero_y": 1024,
+      "hero_z": 1101,
+      "hero_beta": 3019,
+      "magic_level": 0,
+      "magic_point": 0,
+      "magic_ball_flag": 0,
+      "magic_ball_inv_flags": 0,
+      "magic_ball_inv_model_id": 0
+    },
+    "observed_transition": {
+      "time_sec": 17.219,
+      "magic_ball_flag_before": 0,
+      "magic_ball_flag_after": 1,
+      "active_cube": 1,
+      "hero_x": 5293,
+      "hero_y": 1024,
+      "hero_z": 1786,
+      "hero_beta": 2446,
+      "magic_level": 0,
+      "magic_point": 0,
+      "magic_ball_inv_flags": 0,
+      "magic_ball_inv_model_id": 0
+    },
+    "final": {
+      "active_cube": 1,
+      "hero_x": 5293,
+      "hero_y": 1024,
+      "hero_z": 1786,
+      "hero_beta": 2446,
+      "magic_level": 0,
+      "magic_point": 0,
+      "magic_ball_flag": 1,
+      "magic_ball_inv_flags": 0,
+      "magic_ball_inv_model_id": 0
+    },
+    "screenshots": [
+      "work/live_proofs/phase5_magic_ball_launch_20260429_r2/01_initial.png",
+      "work/live_proofs/phase5_magic_ball_launch_20260429_r2/02_magic_ball_flag_change.png",
+      "work/live_proofs/phase5_magic_ball_launch_20260429_r2/03_final.png"
+    ]
+  },
+  "observations": {
+    "magic_ball_flag_0_to_1_observed": true,
+    "repeatable_launch_magic_ball_flag_0_to_1_observed": true,
+    "magic_level_changed": false,
+    "magic_point_changed": false,
+    "inventory_model_id_changed": false,
+    "operator_acknowledged_dialog": true,
+    "final_screenshot_focus_contaminated": true
+  },
+  "verdict": "inventory_state_live_positive"
+}

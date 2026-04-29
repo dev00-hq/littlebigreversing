@@ -15,12 +15,12 @@ Own life-program decoding and original-runtime evidence lanes.
 - `life_audit.zig` / `audit-life-programs` is canonical.
 - Guarded `19/19` object `2` has live-backed `Divers=5` multi-bonus semantics; do not generalize this to all `LM_GIVE_BONUS`.
 - `0013` key source is W/default action: `LF_ACTION`, zone `0`, beta bounds, `gameVar(0)==0`, `KILL_OBJ 7`, `FOUND_OBJECT 0`, `SET_VAR_GAME 0 1`.
-- `0013` is closed: proof doc, fixture, and packet prove save load, key pickup, key-consume door, cellar entry, and return.
+- `0013` is closed: packet proves save load, key pickup, key door, cellar entry, and return.
 - `inspect-room-transitions` is runtime-aware for `0013`: `2/1` reports no-key/key paths; `2/0` includes synthetic free return.
 - Named saves set name/path/version, hero pose, `SceneStart`, `StartCube`, then `SaveGame(TRUE)`.
 - Named loads use `LBA2.EXE SAVE\<name>.LBA` with autosave hidden.
 - Room `36` keeps dialog id `3` across both visible Sendell pages and clears after the second ack.
-- Guarded `3/3` zones `1`/`8` are cellar-source destination handoffs: cube `19 -> 21/19`, cube `20 -> 22/20`.
+- Guarded `3/3` zones `1`/`8`: cube `19 -> 21/19`, cube `20 -> 22/20`.
 
 ## Known Traps
 
@@ -34,6 +34,7 @@ Own life-program decoding and original-runtime evidence lanes.
 - `0013-weapon.LBA` is the cellar-side source save, not Tralu.
 - `3/3` zones `1`/`8` are live-negative: zone membership appeared, but no destination cube or nonzero `NewPos`; zone `8` ended in clover loss/reset.
 - The `3/3` zone `1`/`8` packets are `live_negative`; do not widen gameplay from decoded candidates.
+- `phase5_magic_ball_pickup` is live-positive and repeatable: `SAVE\new-game-cellar.LBA`, autosave hidden, `FLAG_BALLE_MAGIQUE 0 -> 1`; magic level/point/model id stayed `0`.
 - `0013` door source is scene-2 zone `0`; keyed `2/1 -> 2/0`, free return `2/0 -> 2/1`.
 - In `inspect-room-transitions`, use runtime fields for `0013`; decoded rows alone are insufficient.
 - Use `secret_room_door_watch.py`; it reads `NbLittleKeys` as a byte.
@@ -61,6 +62,8 @@ Own life-program decoding and original-runtime evidence lanes.
 - `py -3 -m unittest tools.test_secret_room_key_frida_probe`
 - `py -3 -m unittest tools.test_runtime_shim_life_watch`
 - `py -3 tools/validate_promotion_packets.py`
+- `py -3 tools/life_trace/phase5_magic_ball_probe.py --attach-pid <pid> --duration-sec 45`
+- `py -3 tools/life_trace/phase5_magic_ball_probe.py --launch-save <runtime>/SAVE/new-game-cellar.LBA --duration-sec 60`
 
 ## Open Unknowns
 

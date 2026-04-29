@@ -30,6 +30,15 @@
       "fixture": "tools/fixtures/promotion_packets/phase5_003_003_zone8_cellar_to_cube20_live_negative.json",
       "runtime_contracts": [],
       "canonical_runtime": false
+    },
+    {
+      "id": "phase5_magic_ball_pickup",
+      "status": "live_positive",
+      "evidence_class": "inventory_state",
+      "packet": "docs/promotion_packets/phase5/phase5_magic_ball_pickup.md",
+      "fixture": "tools/fixtures/promotion_packets/phase5_magic_ball_pickup_live_positive.json",
+      "runtime_contracts": [],
+      "canonical_runtime": false
     }
   ]
 }
