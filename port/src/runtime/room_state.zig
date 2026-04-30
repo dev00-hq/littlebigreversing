@@ -32,11 +32,13 @@ pub const ObjectPositionSnapshot = struct {
     x: i32,
     y: i32,
     z: i32,
+    life_points: u8,
 };
 
 pub const ObjectBehaviorSeedSnapshot = struct {
     index: usize,
     sprite: i16,
+    gen_anim: i16,
     option_flags: i16 = 0,
     bonus_quantity: u8 = 0,
     track_bytes: []u8,
@@ -685,6 +687,7 @@ fn copyObjectSnapshots(
             .x = object.x,
             .y = object.y,
             .z = object.z,
+            .life_points = object.life_points,
         };
     }
     return copied;
@@ -726,6 +729,7 @@ fn appendObjectBehaviorSeed(
     try seeds.append(allocator, .{
         .index = object.index,
         .sprite = object.sprite,
+        .gen_anim = object.gen_anim,
         .option_flags = object.option_flags,
         .bonus_quantity = std.math.cast(u8, object.bonus_count) orelse return error.UnsupportedObjectBehaviorBonusQuantityRange,
         .track_bytes = track_bytes,

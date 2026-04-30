@@ -1,3 +1,4 @@
+const magic_ball_impacts = @import("magic_ball_impacts.zig");
 const runtime_session = @import("session.zig");
 
 pub fn advanceMagicBallProjectiles(current_session: *runtime_session.Session) !void {
@@ -8,6 +9,13 @@ pub fn advanceMagicBallProjectiles(current_session: *runtime_session.Session) !v
         .none => unreachable,
         .level1_wall_normal => try advanceLevel1WallNormal(current_session, projectile),
         .fire_wall_normal => try advanceFireWallNormal(current_session, projectile),
+        .tralu_level1_damage,
+        .emerald_moon_switch_object3,
+        .emerald_moon_switch_object4,
+        .radar_room_lever_primary,
+        .wizard_tent_lever_primary,
+        .warehouse_blocked_lever,
+        => try applyPromotedImpact(current_session, projectile),
     }
 }
 
@@ -100,4 +108,12 @@ fn applyCleared(
         .vz = projectile.vz,
     });
     current_session.clearMagicBallProjectiles();
+}
+
+fn applyPromotedImpact(
+    current_session: *runtime_session.Session,
+    projectile: *runtime_session.MagicBallProjectile,
+) !void {
+    try magic_ball_impacts.applyPromotedMagicBallImpact(current_session, projectile.*);
+    try applyCleared(current_session, projectile.*);
 }

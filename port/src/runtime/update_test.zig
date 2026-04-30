@@ -3,6 +3,7 @@ const paths = @import("../foundation/paths.zig");
 const reference_metadata = @import("../generated/reference_metadata.zig");
 const room_fixtures = @import("../testing/room_fixtures.zig");
 const life_program = @import("../game_data/scene/life_program.zig");
+const track_program = @import("../game_data/scene/track_program.zig");
 const object_behavior = @import("object_behavior.zig");
 const locomotion = @import("locomotion.zig");
 const room_state = @import("room_state.zig");
@@ -43,6 +44,39 @@ fn initSession(room: *const room_state.RoomSnapshot) !runtime_session.Session {
         room.scene.objects,
         room.scene.object_behavior_seeds,
     );
+}
+
+fn emptyBehaviorSeed(
+    object_index: usize,
+    sprite: i16,
+    gen_anim: i16,
+) runtime_session.ObjectBehaviorSeedState {
+    return .{
+        .index = object_index,
+        .sprite = sprite,
+        .gen_anim = gen_anim,
+        .track_bytes = &.{},
+        .track_instructions = &[_]track_program.TrackInstruction{},
+        .life_bytes = &.{},
+        .life_instructions = &[_]life_program.LifeInstruction{},
+    };
+}
+
+fn magicBallProjectileWithScript(script: runtime_session.MagicBallProjectileScript) runtime_session.MagicBallProjectile {
+    return .{
+        .launch_frame_index = 0,
+        .mode = .normal,
+        .script = script,
+        .world_position = .{ .x = 100, .y = 200, .z = 300 },
+        .origin_world_position = .{ .x = 90, .y = 190, .z = 290 },
+        .sprite_index = 8,
+        .vx = -55,
+        .vy = 18,
+        .vz = 81,
+        .flags = 33038,
+        .timeout = 0,
+        .divers = 0,
+    };
 }
 
 fn seedSessionToFixture(
@@ -1040,4 +1074,107 @@ test "runtime update tick advances the live-backed fire wall Magic Ball bounce s
     const clear_event = current_session.magicBallProjectileEvents()[4];
     try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.cleared, clear_event.kind);
     try std.testing.expectEqual(@as(usize, 0), current_session.magicBallProjectiles().len);
+}
+
+test "runtime update tick applies the promoted Tralu level-1 Magic Ball damage script" {
+    const room = try room_fixtures.guarded22();
+    var objects = [_]runtime_session.ObjectState{
+        .{ .index = 3, .x = 0, .y = 0, .z = 0, .life_points = 72 },
+    };
+    var current_session = try runtime_session.Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(room),
+        objects[0..],
+        &.{},
+    );
+    defer current_session.deinit(std.testing.allocator);
+
+    try current_session.appendMagicBallProjectile(magicBallProjectileWithScript(.tralu_level1_damage));
+    _ = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expectEqual(@as(u8, 63), current_session.objectSnapshotByIndex(3).?.life_points);
+    try std.testing.expectEqual(@as(usize, 0), current_session.magicBallProjectiles().len);
+    const damage_event = current_session.magicBallProjectileEvents()[0];
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.damage_applied, damage_event.kind);
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileScript.tralu_level1_damage, damage_event.script);
+    try std.testing.expectEqual(@as(?usize, 3), damage_event.target_object_index);
+    try std.testing.expectEqual(@as(?i16, 72), damage_event.value_before);
+    try std.testing.expectEqual(@as(?i16, 63), damage_event.value_after);
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.cleared, current_session.magicBallProjectileEvents()[1].kind);
+}
+
+test "runtime update tick applies promoted Emerald Moon Magic Ball switch scripts only for objects 3 and 4" {
+    const room = try room_fixtures.guarded22();
+    const switch3_seed = emptyBehaviorSeed(3, 0, 0);
+    const switch4_seed = emptyBehaviorSeed(4, 0, 0);
+    var seeds = [_]runtime_session.ObjectBehaviorSeedState{ switch3_seed, switch4_seed };
+    var current_session = try runtime_session.Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(room),
+        &.{},
+        seeds[0..],
+    );
+    defer current_session.deinit(std.testing.allocator);
+    current_session.objectBehaviorStateByIndexPtr(3).?.current_track_label = 4;
+    current_session.objectBehaviorStateByIndexPtr(4).?.current_track_label = 2;
+
+    try current_session.appendMagicBallProjectile(magicBallProjectileWithScript(.emerald_moon_switch_object3));
+    _ = try runtime_update.tick(room, &current_session);
+    try std.testing.expectEqual(@as(?u8, 2), current_session.objectBehaviorStateByIndex(3).?.current_track_label);
+    const switch3_event = current_session.magicBallProjectileEvents()[0];
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.switch_activated, switch3_event.kind);
+    try std.testing.expectEqual(@as(?usize, 3), switch3_event.target_object_index);
+    try std.testing.expectEqual(@as(?i16, 4), switch3_event.value_before);
+    try std.testing.expectEqual(@as(?i16, 2), switch3_event.value_after);
+
+    try current_session.appendMagicBallProjectile(magicBallProjectileWithScript(.emerald_moon_switch_object4));
+    _ = try runtime_update.tick(room, &current_session);
+    try std.testing.expectEqual(@as(?u8, 4), current_session.objectBehaviorStateByIndex(4).?.current_track_label);
+    const switch4_event = current_session.magicBallProjectileEvents()[2];
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.switch_activated, switch4_event.kind);
+    try std.testing.expectEqual(@as(?usize, 4), switch4_event.target_object_index);
+    try std.testing.expectEqual(@as(?i16, 2), switch4_event.value_before);
+    try std.testing.expectEqual(@as(?i16, 4), switch4_event.value_after);
+}
+
+test "runtime update tick applies promoted Magic Ball lever activation scripts through object behavior state" {
+    const room = try room_fixtures.guarded22();
+    var objects = [_]runtime_session.ObjectState{
+        .{ .index = 3, .x = 10, .y = 20, .z = 30, .life_points = 0 },
+    };
+    const radar_target = emptyBehaviorSeed(19, 0, 242);
+    const radar_linked = emptyBehaviorSeed(21, 0, 0);
+    const wizard_target = emptyBehaviorSeed(2, 0, 155);
+    var seeds = [_]runtime_session.ObjectBehaviorSeedState{ radar_target, radar_linked, wizard_target };
+    var current_session = try runtime_session.Session.initWithObjects(
+        std.testing.allocator,
+        room_state.heroStartWorldPoint(room),
+        objects[0..],
+        seeds[0..],
+    );
+    defer current_session.deinit(std.testing.allocator);
+    current_session.objectBehaviorStateByIndexPtr(21).?.current_track_label = 3;
+    current_session.objectBehaviorStateByIndexPtr(2).?.current_track_label = 6;
+
+    try current_session.appendMagicBallProjectile(magicBallProjectileWithScript(.radar_room_lever_primary));
+    _ = try runtime_update.tick(room, &current_session);
+    const radar_state = current_session.objectBehaviorStateByIndex(19).?;
+    try std.testing.expectEqual(@as(i16, 244), radar_state.current_gen_anim);
+    try std.testing.expectEqual(@as(i16, 244), radar_state.next_gen_anim);
+    try std.testing.expectEqual(@as(?u8, 0), current_session.objectBehaviorStateByIndex(21).?.current_track_label);
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.lever_activated, current_session.magicBallProjectileEvents()[0].kind);
+
+    try current_session.appendMagicBallProjectile(magicBallProjectileWithScript(.wizard_tent_lever_primary));
+    _ = try runtime_update.tick(room, &current_session);
+    const wizard_state = current_session.objectBehaviorStateByIndex(2).?;
+    try std.testing.expectEqual(@as(?u8, 9), wizard_state.current_track_label);
+    try std.testing.expectEqual(@as(i16, 0), wizard_state.current_gen_anim);
+    try std.testing.expectEqual(@as(i32, 10), current_session.objectSnapshotByIndex(3).?.x);
+    try std.testing.expectEqual(@as(i32, 20), current_session.objectSnapshotByIndex(3).?.y);
+    try std.testing.expectEqual(@as(i32, 5632), current_session.objectSnapshotByIndex(3).?.z);
+    const wizard_event = current_session.magicBallProjectileEvents()[2];
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.lever_activated, wizard_event.kind);
+    try std.testing.expectEqual(@as(?usize, 2), wizard_event.target_object_index);
+    try std.testing.expectEqual(@as(?i16, 6), wizard_event.value_before);
+    try std.testing.expectEqual(@as(?i16, 9), wizard_event.value_after);
 }

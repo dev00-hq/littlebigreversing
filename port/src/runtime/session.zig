@@ -92,14 +92,24 @@ pub const MagicBallProjectileEventKind = enum {
     bounce,
     return_started,
     cleared,
+    damage_applied,
+    switch_activated,
+    lever_activated,
+    blocked_impact,
 };
 
-// Evidence-scripted current-state seam for phase5_magic_ball_bounce_return_wall_repeat.
-// Delete when Magic Ball collision/bounce can be derived from runtime world geometry.
+// Evidence-scripted current-state seam for promoted Phase 5 Magic Ball packets.
+// Delete when Magic Ball collision/damage/activation can be derived from runtime world geometry and object scripts.
 pub const MagicBallProjectileScript = enum {
     none,
     level1_wall_normal,
     fire_wall_normal,
+    tralu_level1_damage,
+    emerald_moon_switch_object3,
+    emerald_moon_switch_object4,
+    radar_room_lever_primary,
+    wizard_tent_lever_primary,
+    warehouse_blocked_lever,
 };
 
 pub const MagicBallProjectile = struct {
@@ -124,6 +134,9 @@ pub const MagicBallProjectileEvent = struct {
     kind: MagicBallProjectileEventKind,
     script: MagicBallProjectileScript,
     sign_flip_axis: ?MagicBallAxis = null,
+    target_object_index: ?usize = null,
+    value_before: ?i16 = null,
+    value_after: ?i16 = null,
     sprite_index: i16,
     world_position: world_geometry.WorldPointSnapshot,
     vx: i16,
@@ -169,6 +182,8 @@ pub const ObjectBehaviorState = struct {
     current_track_resume_offset: ?i16,
     current_track_label: ?u8,
     current_sprite: i16,
+    current_gen_anim: i16,
+    next_gen_anim: i16,
     wait_ticks_remaining: u8,
     last_hit_by: i8,
     sendell_ball_phase: SendellBallPhase,
@@ -510,6 +525,29 @@ pub const Session = struct {
         return error.UnknownSessionObjectIndex;
     }
 
+    pub fn setObjectLifePoints(self: *Session, object_index: usize, life_points: u8) !void {
+        for (self.objects) |*object| {
+            if (object.index != object_index) continue;
+            object.life_points = life_points;
+            return;
+        }
+        return error.UnknownSessionObjectIndex;
+    }
+
+    pub fn applyObjectLifeDamageSaturating(
+        self: *Session,
+        object_index: usize,
+        damage: u8,
+    ) !struct { before: u8, after: u8 } {
+        for (self.objects) |*object| {
+            if (object.index != object_index) continue;
+            const before = object.life_points;
+            object.life_points = if (before > damage) before - damage else 0;
+            return .{ .before = before, .after = object.life_points };
+        }
+        return error.UnknownSessionObjectIndex;
+    }
+
     pub fn submitHeroIntent(self: *Session, intent: HeroIntent) !void {
         if (self.pending_hero_intent != null) return error.PendingHeroIntentAlreadySet;
         self.pending_hero_intent = intent;
@@ -617,6 +655,8 @@ fn copyObjectBehaviorStates(
             .current_track_resume_offset = null,
             .current_track_label = null,
             .current_sprite = seed.sprite,
+            .current_gen_anim = seed.gen_anim,
+            .next_gen_anim = seed.gen_anim,
             .wait_ticks_remaining = 0,
             .last_hit_by = 0,
             .sendell_ball_phase = .idle,

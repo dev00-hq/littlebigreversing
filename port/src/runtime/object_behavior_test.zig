@@ -417,6 +417,7 @@ test "runtime object behavior supports LM_OR_IF control flow on guarded 19/19 ob
         .{
             .index = 2,
             .sprite = room.scene.object_behavior_seeds[0].sprite,
+            .gen_anim = room.scene.object_behavior_seeds[0].gen_anim,
             .track_bytes = track_bytes[0..],
             .track_instructions = track_instructions[0..],
             .life_bytes = life_bytes[0..],
@@ -514,6 +515,7 @@ test "runtime object behavior treats TM_SAMPLE_STOP as a non-blocking guarded 19
         .{
             .index = 2,
             .sprite = room.scene.object_behavior_seeds[0].sprite,
+            .gen_anim = room.scene.object_behavior_seeds[0].gen_anim,
             .track_bytes = track_bytes[0..],
             .track_instructions = track_instructions[0..],
             .life_bytes = life_bytes[0..],
