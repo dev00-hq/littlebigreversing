@@ -20,7 +20,7 @@ Own repo direction, memory workflow, and the port/original-runtime boundary.
 - `cdb-agent` is the approved debugger/live-trace layer, and `ghb` is the approved Ghidra layer.
 - Viewer input stops at intent submission; runtime owns mutable gameplay state and pending transition consumption.
 - Original-runtime split: Tavern uses FRA, Scene11 uses debugger snapshots, transitions escalate to Frida plus `cdb` only as needed.
-- Runtime/gameplay seam widening is gated by `docs/promotion_packets/`: decoded seams can stay as candidates, but canonical runtime behavior requires `live_positive` or `approved_exception`.
+- Runtime seam widening is gated by `docs/promotion_packets/`: canonical behavior requires `live_positive` or `approved_exception`.
 - Phase 5 starts from normal player affordances in known quest/world state; decoded room edges are only evidence.
 
 ## Known Traps
@@ -28,9 +28,10 @@ Own repo direction, memory workflow, and the port/original-runtime boundary.
 - Dump rankings and temporary seed-admission probes are evidence only, not runtime behavior.
 - Original-runtime helpers are not default port pickup; use `life_scripts.md` and `ISSUES.md`.
 - `context --path` needs `INDEX.md`; unmapped paths fail.
-- For room-transition proof, do not generalize from a door, save lane, or watcher until the exact seam is pinned in tests and live evidence.
+- For room-transition proof, do not generalize from a door/save/watcher until the exact seam is tested live.
 - Do not let decoded candidates become runtime commits; promotion packets keep statuses distinct, and `canonical_runtime: true` requires `live_positive` or `approved_exception`.
 - Do not model LBA2 as a linear room graph. It is quest-state over world, inventory, dialogue, access, actors, and flags; decoded transitions need state proof before they imply gameplay.
+- `reference/twinsuniverse` is mixed LBA1/LBA2 reference only; runtime claims still need repo-owned proof.
 - Do not treat `collision_observer.py` as a blocked/moved oracle. Step outcome is authoritative.
 - Room `36/36`: visible page turns are renderer pagination; keep fresh entry and loaded reconstruction separate.
 - Viewer default: isometric room first; old top-down grid only behind `V`.
@@ -38,7 +39,7 @@ Own repo direction, memory workflow, and the port/original-runtime boundary.
 ## Reverse / Porting Slice Checklist
 
 - Name proof surface before coding: player affordance, quest/world state, room pair, zone, trigger path, mode, and manual steps.
-- Keep decode semantics, runtime semantics, and final gameplay semantics separate until the classic execution path proves they collapse.
+- Keep decode, runtime, and gameplay semantics separate until classic execution proves they collapse.
 - Do not rename raw fields to `final_*` or treat decoded payloads as resolved runtime state without seam-level evidence.
 - Start with asset/decode inspection, pin the port seam with tests, then probe that exact seam live.
 - Scope claims/code to the proved seam; do not generalize one door, zone, or save lane to a room/cube rule.

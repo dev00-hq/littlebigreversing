@@ -26,6 +26,9 @@ const secret_room_key_quantity: u8 = 1;
 const secret_room_magic_ball_object_index: usize = 3;
 const magic_ball_flag_index: u8 = 1;
 const magic_ball_pickup_distance: i32 = 1024;
+const magic_ball_projectile_sprite_index: i16 = 8;
+const magic_ball_projectile_flags: u32 = 33038;
+const magic_ball_projectile_origin_y_offset: i32 = 1200;
 const sendell_scene_entry_index: usize = 36;
 const sendell_background_entry_index: usize = 36;
 const sendell_object_index: usize = 2;
@@ -135,6 +138,7 @@ pub fn applyHeroIntent(
         .cast_lightning => try applyScene3636CastLightning(room, current_session),
         .default_action => try applySecretRoomDefaultAction(room, current_session),
         .advance_story => try applyAdvanceStory(room, current_session),
+        .throw_magic_ball => |mode| try applyScene2CellarMagicBallThrow(room, current_session, mode),
         .move_cardinal => return error.UnsupportedObjectBehaviorHeroIntent,
     }
 }
@@ -300,6 +304,85 @@ fn applyScene2CellarMagicBallPickup(
 
     current_session.setGameVar(magic_ball_flag_index, 1);
     return true;
+}
+
+fn applyScene2CellarMagicBallThrow(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+    mode: runtime_session.MagicBallThrowMode,
+) !void {
+    if (room.scene.entry_index != secret_room_scene_entry_index or
+        room.background.entry_index != secret_room_cellar_background_entry_index)
+    {
+        return error.UnsupportedObjectBehaviorHeroIntent;
+    }
+    if (current_session.gameVar(magic_ball_flag_index) <= 0) return error.MagicBallUnavailable;
+
+    const hero_position = current_session.heroWorldPosition();
+    const launch = magicBallLaunchForMode(mode, hero_position);
+    if (current_session.magicPoint() > 0) current_session.setMagicPoint(current_session.magicPoint() - 1);
+    try current_session.appendMagicBallProjectile(.{
+        .launch_frame_index = current_session.frame_index,
+        .mode = mode,
+        .world_position = launch.world_position,
+        .origin_world_position = launch.origin_world_position,
+        .sprite_index = magic_ball_projectile_sprite_index,
+        .vx = launch.vx,
+        .vy = launch.vy,
+        .vz = launch.vz,
+        .flags = magic_ball_projectile_flags,
+        .timeout = 0,
+        .divers = 0,
+    });
+}
+
+const MagicBallLaunchSnapshot = struct {
+    world_position: world_geometry.WorldPointSnapshot,
+    origin_world_position: world_geometry.WorldPointSnapshot,
+    vx: i16,
+    vy: i16,
+    vz: i16,
+};
+
+fn magicBallLaunchForMode(
+    mode: runtime_session.MagicBallThrowMode,
+    hero_position: world_geometry.WorldPointSnapshot,
+) MagicBallLaunchSnapshot {
+    const origin = world_geometry.WorldPointSnapshot{
+        .x = hero_position.x,
+        .y = hero_position.y + magic_ball_projectile_origin_y_offset,
+        .z = hero_position.z,
+    };
+    return switch (mode) {
+        .normal => .{
+            .origin_world_position = origin,
+            .world_position = .{ .x = origin.x - 55, .y = origin.y + 17, .z = origin.z + 81 },
+            .vx = -55,
+            .vy = 18,
+            .vz = 81,
+        },
+        .sporty => .{
+            .origin_world_position = origin,
+            .world_position = .{ .x = origin.x - 58, .y = origin.y + 13, .z = origin.z + 86 },
+            .vx = -58,
+            .vy = 13,
+            .vz = 86,
+        },
+        .aggressive => .{
+            .origin_world_position = origin,
+            .world_position = origin,
+            .vx = -62,
+            .vy = 7,
+            .vz = 91,
+        },
+        .discreet => .{
+            .origin_world_position = origin,
+            .world_position = .{ .x = origin.x - 36, .y = origin.y + 75, .z = origin.z + 53 },
+            .vx = -36,
+            .vy = 77,
+            .vz = 53,
+        },
+    };
 }
 
 fn applyScene2CellarMessageAction(

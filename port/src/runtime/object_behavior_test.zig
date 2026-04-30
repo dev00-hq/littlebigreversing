@@ -206,6 +206,80 @@ test "runtime object behavior applies the live-backed scene-2 cellar magic-ball 
     try std.testing.expectEqual(@as(i16, 1), current_session.gameVar(magic_ball_flag_index));
 }
 
+test "runtime object behavior applies the live-backed scene-2 cellar magic-ball throw launch by mode" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    const Case = struct {
+        mode: runtime_session.MagicBallThrowMode,
+        pos_x: i32,
+        pos_y: i32,
+        pos_z: i32,
+        vx: i16,
+        vy: i16,
+        vz: i16,
+    };
+    const cases = [_]Case{
+        .{ .mode = .normal, .pos_x = 5016, .pos_y = 2241, .pos_z = 1901, .vx = -55, .vy = 18, .vz = 81 },
+        .{ .mode = .sporty, .pos_x = 5013, .pos_y = 2237, .pos_z = 1906, .vx = -58, .vy = 13, .vz = 86 },
+        .{ .mode = .aggressive, .pos_x = 5071, .pos_y = 2224, .pos_z = 1820, .vx = -62, .vy = 7, .vz = 91 },
+        .{ .mode = .discreet, .pos_x = 5035, .pos_y = 2299, .pos_z = 1873, .vx = -36, .vy = 77, .vz = 53 },
+    };
+
+    for (cases) |case| {
+        var current_session = try initSession(&room);
+        defer current_session.deinit(std.testing.allocator);
+        current_session.setHeroWorldPosition(.{ .x = 5071, .y = 1024, .z = 1820 });
+        current_session.setGameVar(magic_ball_flag_index, 1);
+        current_session.setMagicPoint(18);
+
+        try object_behavior.applyHeroIntent(&room, &current_session, .{ .throw_magic_ball = case.mode });
+
+        try std.testing.expectEqual(@as(u8, 17), current_session.magicPoint());
+        try std.testing.expectEqual(@as(usize, 1), current_session.magicBallProjectiles().len);
+        const projectile = current_session.magicBallProjectiles()[0];
+        try std.testing.expectEqual(case.mode, projectile.mode);
+        try std.testing.expectEqual(@as(usize, 0), projectile.launch_frame_index);
+        try std.testing.expectEqual(@as(i32, case.pos_x), projectile.world_position.x);
+        try std.testing.expectEqual(@as(i32, case.pos_y), projectile.world_position.y);
+        try std.testing.expectEqual(@as(i32, case.pos_z), projectile.world_position.z);
+        try std.testing.expectEqual(@as(i32, 5071), projectile.origin_world_position.x);
+        try std.testing.expectEqual(@as(i32, 2224), projectile.origin_world_position.y);
+        try std.testing.expectEqual(@as(i32, 1820), projectile.origin_world_position.z);
+        try std.testing.expectEqual(@as(i16, 8), projectile.sprite_index);
+        try std.testing.expectEqual(case.vx, projectile.vx);
+        try std.testing.expectEqual(case.vy, projectile.vy);
+        try std.testing.expectEqual(case.vz, projectile.vz);
+        try std.testing.expectEqual(@as(u32, 33038), projectile.flags);
+        try std.testing.expectEqual(@as(i16, 0), projectile.timeout);
+        try std.testing.expectEqual(@as(i16, 0), projectile.divers);
+    }
+}
+
+test "runtime object behavior rejects scene-2 cellar magic-ball throw without the pickup flag" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{ .x = 5071, .y = 1024, .z = 1820 });
+    current_session.setGameVar(magic_ball_flag_index, 0);
+
+    try std.testing.expectError(
+        error.MagicBallUnavailable,
+        object_behavior.applyHeroIntent(&room, &current_session, .{ .throw_magic_ball = .normal }),
+    );
+    try std.testing.expectEqual(@as(usize, 0), current_session.magicBallProjectiles().len);
+}
+
 test "runtime object behavior ignores scene-2 cellar default action outside message zones" {
     const allocator = std.testing.allocator;
     const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);

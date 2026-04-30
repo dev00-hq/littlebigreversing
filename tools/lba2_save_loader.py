@@ -7,6 +7,7 @@ import ctypes.wintypes
 import hashlib
 import json
 import os
+import queue
 import re
 import subprocess
 import struct
@@ -1071,8 +1072,13 @@ class SaveLoaderApp(tk.Tk):
         self.entries: list[SaveEntry] = []
         self.filtered_entries: list[SaveEntry] = []
         self.selected: SaveEntry | None = None
-        self.tk_images: list[Any] = []
         self.preview_image: Any | None = None
+        self.thumbnail_images: dict[str, Any] = {}
+        self.image_cache: dict[tuple[str, str, tuple[int, int]], Any] = {}
+        self.entry_by_iid: dict[str, SaveEntry] = {}
+        self.sort_column = "name"
+        self.sort_descending = False
+        self.ui_queue: queue.Queue[tuple[callable, tuple[Any, ...]]] = queue.Queue()
 
         self.search_var = tk.StringVar()
         self.semantic_var = tk.BooleanVar(value=False)
@@ -1086,8 +1092,11 @@ class SaveLoaderApp(tk.Tk):
         self.style.configure("TLabel", background="#f4f1ea", foreground="#202124")
         self.style.configure("Accent.TButton", font=("Segoe UI", 10, "bold"), padding=(14, 8))
         self.style.configure("Tool.TButton", padding=(8, 5))
+        self.style.configure("Save.Treeview", rowheight=44, font=("Segoe UI", 8))
+        self.style.configure("Save.Treeview.Heading", font=("Segoe UI", 8, "bold"))
         self.build_ui()
         self.refresh_saves()
+        self.after(50, self.process_ui_queue)
 
     def build_ui(self) -> None:
         top = ttk.Frame(self, padding=(14, 12, 14, 8))
@@ -1119,15 +1128,24 @@ class SaveLoaderApp(tk.Tk):
         left = ttk.Frame(body)
         left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 12))
 
-        self.canvas = tk.Canvas(left, bg="#f4f1ea", highlightthickness=0)
-        self.scrollbar = ttk.Scrollbar(left, orient=tk.VERTICAL, command=self.canvas.yview)
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.save_tree = ttk.Treeview(
+            left,
+            columns=("location", "state"),
+            show="tree headings",
+            selectmode="browse",
+            style="Save.Treeview",
+        )
+        self.save_tree.heading("#0", text="Save", command=lambda: self.sort_by_column("name"))
+        self.save_tree.heading("location", text="Location", command=lambda: self.sort_by_column("location"))
+        self.save_tree.heading("state", text="State", command=lambda: self.sort_by_column("state"))
+        self.save_tree.column("#0", width=230, minwidth=160, stretch=True)
+        self.save_tree.column("location", width=330, minwidth=180, stretch=True)
+        self.save_tree.column("state", width=145, minwidth=120, stretch=False)
+        self.scrollbar = ttk.Scrollbar(left, orient=tk.VERTICAL, command=self.save_tree.yview)
+        self.save_tree.configure(yscrollcommand=self.scrollbar.set)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.grid_frame = ttk.Frame(self.canvas)
-        self.canvas_window = self.canvas.create_window((0, 0), window=self.grid_frame, anchor="nw")
-        self.grid_frame.bind("<Configure>", self.on_grid_configure)
-        self.canvas.bind("<Configure>", self.on_canvas_configure)
+        self.save_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.save_tree.bind("<<TreeviewSelect>>", self.on_tree_select)
 
         self.inspector = ttk.Frame(body, width=420)
         self.inspector.pack(side=tk.RIGHT, fill=tk.BOTH)
@@ -1163,12 +1181,6 @@ class SaveLoaderApp(tk.Tk):
         bottom.pack(fill=tk.X)
         ttk.Label(bottom, textvariable=self.status_var, foreground="#52605d").pack(side=tk.LEFT)
 
-    def on_grid_configure(self, _event: tk.Event) -> None:
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-
-    def on_canvas_configure(self, event: tk.Event) -> None:
-        self.canvas.itemconfigure(self.canvas_window, width=event.width)
-
     def choose_folder(self) -> None:
         folder = filedialog.askdirectory(initialdir=str(self.save_dir), title="Choose LBA2 SAVE folder")
         if not folder:
@@ -1176,6 +1188,18 @@ class SaveLoaderApp(tk.Tk):
         self.save_dir = Path(folder)
         self.folder_var.set(str(self.save_dir))
         self.refresh_saves()
+
+    def enqueue_ui(self, func: callable, *args: Any) -> None:
+        self.ui_queue.put((func, args))
+
+    def process_ui_queue(self) -> None:
+        while True:
+            try:
+                func, args = self.ui_queue.get_nowait()
+            except queue.Empty:
+                break
+            func(*args)
+        self.after(50, self.process_ui_queue)
 
     def refresh_saves(self) -> None:
         try:
@@ -1192,66 +1216,90 @@ class SaveLoaderApp(tk.Tk):
         scored = [(score_entry(entry, query, semantic), entry) for entry in self.entries]
         if query.strip():
             scored = [(score, entry) for score, entry in scored if score > 0]
-        scored.sort(key=lambda pair: (-pair[0], pair[1].file_name.lower()))
+        if query.strip() and self.sort_column == "relevance":
+            scored.sort(key=lambda pair: (-pair[0], pair[1].file_name.lower()))
+        else:
+            scored.sort(key=lambda pair: self.sort_key(pair[1]))
+            if self.sort_descending:
+                scored.reverse()
         self.filtered_entries = [entry for _score, entry in scored]
         self.render_grid()
 
+    def sort_by_column(self, column: str) -> None:
+        if self.sort_column == column:
+            self.sort_descending = not self.sort_descending
+        else:
+            self.sort_column = column
+            self.sort_descending = False
+        self.apply_filter()
+
+    def sort_key(self, entry: SaveEntry) -> tuple[Any, ...]:
+        if self.sort_column == "location":
+            return (self.compact_location(entry).lower(), entry.title.lower(), entry.file_name.lower())
+        if self.sort_column == "state":
+            chapter = entry.context.chapter if entry.context.chapter is not None else -1
+            shot = 1 if entry.screenshot_path else 0
+            return (chapter, shot, entry.title.lower(), entry.file_name.lower())
+        return (entry.title.lower(), entry.file_name.lower())
+
     def render_grid(self) -> None:
-        for child in self.grid_frame.winfo_children():
-            child.destroy()
-        self.tk_images.clear()
+        self.save_tree.delete(*self.save_tree.get_children())
+        self.thumbnail_images.clear()
+        self.entry_by_iid.clear()
 
         if not self.filtered_entries:
-            ttk.Label(self.grid_frame, text="No matching saves", font=("Segoe UI", 12)).grid(row=0, column=0, sticky="w", padx=12, pady=12)
+            self.status_var.set("No matching saves")
             return
 
-        columns = 2
         for index, entry in enumerate(self.filtered_entries):
-            row = index // columns
-            col = index % columns
-            tile = tk.Frame(
-                self.grid_frame,
-                bg="#fffdf8" if entry != self.selected else "#fff4df",
-                bd=1,
-                relief=tk.SOLID,
-                padx=8,
-                pady=8,
-                width=330,
-                height=96,
+            iid = f"save-{index}"
+            image = self.make_tk_image(entry, (48, 36))
+            self.thumbnail_images[iid] = image
+            self.entry_by_iid[iid] = entry
+            self.save_tree.insert(
+                "",
+                tk.END,
+                iid=iid,
+                text=self.compact_title(entry),
+                image=image,
+                values=(self.compact_location(entry), self.tile_meta(entry)),
             )
-            tile.grid(row=row, column=col, sticky="nsew", padx=6, pady=6)
-            tile.grid_propagate(False)
-            tile.bind("<Button-1>", lambda _event, current=entry: self.select_entry(current))
+            if entry == self.selected:
+                self.save_tree.selection_set(iid)
+                self.save_tree.see(iid)
+        self.status_var.set(f"Showing {len(self.filtered_entries)} of {len(self.entries)} save(s)")
 
-            image = self.make_tk_image(entry, (96, 72))
-            image_label = tk.Label(tile, image=image, bg=tile["bg"], width=96, height=72)
-            image_label.pack(side=tk.LEFT, padx=(0, 8))
-            image_label.bind("<Button-1>", lambda _event, current=entry: self.select_entry(current))
-            self.tk_images.append(image)
+    def compact_title(self, entry: SaveEntry) -> str:
+        if entry.title == entry.file_name or entry.file_name.lower().startswith(entry.title.lower()):
+            return entry.title
+        return f"{entry.title}  ({entry.file_name})"
 
-            text = tk.Frame(tile, bg=tile["bg"])
-            text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            for widget_text, font, color in (
-                (entry.title, ("Segoe UI", 10, "bold"), "#202124"),
-                (entry.location_label, ("Segoe UI", 8), "#52605d"),
-                (self.tile_meta(entry), ("Segoe UI", 8), "#6a737d"),
-            ):
-                label = tk.Label(text, text=widget_text, bg=tile["bg"], fg=color, font=font, anchor="w", justify=tk.LEFT, wraplength=190)
-                label.pack(fill=tk.X)
-                label.bind("<Button-1>", lambda _event, current=entry: self.select_entry(current))
-
-        for col in range(columns):
-            self.grid_frame.columnconfigure(col, weight=1)
+    def compact_location(self, entry: SaveEntry) -> str:
+        if entry.scene is None:
+            return f"cube {entry.num_cube} / raw {entry.raw_scene_entry_index}"
+        parts = [entry.scene.scene_name]
+        if entry.scene.section and entry.scene.section != entry.scene.scene_name:
+            parts.append(entry.scene.section)
+        if entry.scene.planet:
+            parts.append(entry.scene.planet)
+        return " - ".join(parts)
 
     def tile_meta(self, entry: SaveEntry) -> str:
-        screenshot = "linked screenshot" if entry.screenshot_path else "embedded preview"
+        screenshot = "shot" if entry.screenshot_path else "no shot"
         chapter = f"chapter {entry.context.chapter}" if entry.context.chapter is not None else "chapter ?"
-        return f"{entry.file_name} - {chapter} - {screenshot}"
+        return f"{chapter} - {screenshot}"
 
     def select_entry(self, entry: SaveEntry) -> None:
         self.selected = entry
-        self.render_grid()
         self.render_details(entry)
+
+    def on_tree_select(self, _event: tk.Event) -> None:
+        selection = self.save_tree.selection()
+        if not selection:
+            return
+        entry = self.entry_by_iid.get(selection[0])
+        if entry is not None and entry != self.selected:
+            self.select_entry(entry)
 
     def render_details(self, entry: SaveEntry) -> None:
         image = self.make_tk_image(entry, (400, 300))
@@ -1318,6 +1366,10 @@ class SaveLoaderApp(tk.Tk):
     def make_tk_image(self, entry: SaveEntry, size: tuple[int, int]) -> Any:
         if Image is None or ImageTk is None:
             return tk.PhotoImage(width=size[0], height=size[1])
+        cache_key = (entry.digest, str(entry.screenshot_path or ""), size)
+        cached = self.image_cache.get(cache_key)
+        if cached is not None:
+            return cached
 
         image = None
         if entry.screenshot_path and entry.screenshot_path.exists():
@@ -1332,7 +1384,9 @@ class SaveLoaderApp(tk.Tk):
         x = (size[0] - image.width) // 2
         y = (size[1] - image.height) // 2
         canvas.paste(image, (x, y))
-        return ImageTk.PhotoImage(canvas)
+        photo = ImageTk.PhotoImage(canvas)
+        self.image_cache[cache_key] = photo
+        return photo
 
     def load_selected(self) -> None:
         if self.selected is None:
@@ -1348,17 +1402,18 @@ class SaveLoaderApp(tk.Tk):
                     self.game_dir,
                     self.save_dir,
                     entry,
-                    lambda text: self.after(0, self.status_var.set, text),
-                    lambda updated_entry, path: self.after(0, self.record_screenshot, updated_entry, path),
+                    lambda text: self.enqueue_ui(self.status_var.set, text),
+                    lambda updated_entry, path: self.enqueue_ui(self.record_screenshot, updated_entry, path),
                 )
             except Exception as error:
-                self.after(0, self.status_var.set, str(error))
-                self.after(0, messagebox.showerror, "Launch failed", str(error))
+                self.enqueue_ui(self.status_var.set, str(error))
+                self.enqueue_ui(messagebox.showerror, "Launch failed", str(error))
 
         threading.Thread(target=worker, daemon=True).start()
 
     def record_screenshot(self, entry: SaveEntry, screenshot_path: Path) -> None:
         entry.screenshot_path = screenshot_path
+        self.image_cache.clear()
         self.state.setdefault("screenshots", {})[entry.digest] = str(screenshot_path)
         save_state(self.state)
         if self.selected == entry:

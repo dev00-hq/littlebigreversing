@@ -16,6 +16,7 @@ pub const HeroIntent = union(enum) {
     default_action,
     cast_lightning,
     advance_story,
+    throw_magic_ball: MagicBallThrowMode,
 };
 
 pub const FrameUpdate = struct {
@@ -69,6 +70,67 @@ pub const RewardPickupEvent = struct {
     world_position: world_geometry.WorldPointSnapshot,
 };
 
+pub const MagicBallThrowMode = enum {
+    normal,
+    sporty,
+    aggressive,
+    discreet,
+};
+
+pub const MagicBallAxis = enum {
+    x,
+    y,
+    z,
+};
+
+pub const MagicBallProjectilePhase = enum {
+    outbound,
+    returning,
+};
+
+pub const MagicBallProjectileEventKind = enum {
+    bounce,
+    return_started,
+    cleared,
+};
+
+// Evidence-scripted current-state seam for phase5_magic_ball_bounce_return_wall_repeat.
+// Delete when Magic Ball collision/bounce can be derived from runtime world geometry.
+pub const MagicBallProjectileScript = enum {
+    none,
+    level1_wall_normal,
+    fire_wall_normal,
+};
+
+pub const MagicBallProjectile = struct {
+    launch_frame_index: usize,
+    mode: MagicBallThrowMode,
+    script: MagicBallProjectileScript = .none,
+    phase: MagicBallProjectilePhase = .outbound,
+    step_index: u8 = 0,
+    world_position: world_geometry.WorldPointSnapshot,
+    origin_world_position: world_geometry.WorldPointSnapshot,
+    sprite_index: i16,
+    vx: i16,
+    vy: i16,
+    vz: i16,
+    flags: u32,
+    timeout: i16,
+    divers: i16,
+};
+
+pub const MagicBallProjectileEvent = struct {
+    frame_index: usize,
+    kind: MagicBallProjectileEventKind,
+    script: MagicBallProjectileScript,
+    sign_flip_axis: ?MagicBallAxis = null,
+    sprite_index: i16,
+    world_position: world_geometry.WorldPointSnapshot,
+    vx: i16,
+    vy: i16,
+    vz: i16,
+};
+
 pub const PendingRoomTransitionDestinationPositionKind = enum {
     provisional_zone_relative,
     final_landing,
@@ -89,6 +151,8 @@ pub const PendingRoomTransition = struct {
 const max_bonus_spawn_events = 16;
 const max_reward_collectibles = 16;
 const max_reward_pickup_events = 16;
+const max_magic_ball_projectiles = 1;
+const max_magic_ball_projectile_events = 8;
 const max_game_vars = 256;
 
 pub const SendellBallPhase = enum(u8) {
@@ -132,6 +196,10 @@ pub const Session = struct {
     reward_collectibles: [max_reward_collectibles]RewardCollectible,
     reward_pickup_event_count: usize,
     reward_pickup_events: [max_reward_pickup_events]RewardPickupEvent,
+    magic_ball_projectile_count: usize,
+    magic_ball_projectiles: [max_magic_ball_projectiles]MagicBallProjectile,
+    magic_ball_projectile_event_count: usize,
+    magic_ball_projectile_events: [max_magic_ball_projectile_events]MagicBallProjectileEvent,
     pending_room_transition: ?PendingRoomTransition,
     owns_objects: bool,
     owns_object_behaviors: bool,
@@ -158,6 +226,10 @@ pub const Session = struct {
             .reward_collectibles = undefined,
             .reward_pickup_event_count = 0,
             .reward_pickup_events = undefined,
+            .magic_ball_projectile_count = 0,
+            .magic_ball_projectiles = undefined,
+            .magic_ball_projectile_event_count = 0,
+            .magic_ball_projectile_events = undefined,
             .pending_room_transition = null,
             .owns_objects = false,
             .owns_object_behaviors = false,
@@ -196,6 +268,10 @@ pub const Session = struct {
             .reward_collectibles = undefined,
             .reward_pickup_event_count = 0,
             .reward_pickup_events = undefined,
+            .magic_ball_projectile_count = 0,
+            .magic_ball_projectiles = undefined,
+            .magic_ball_projectile_event_count = 0,
+            .magic_ball_projectile_events = undefined,
             .pending_room_transition = null,
             .owns_objects = true,
             .owns_object_behaviors = true,
@@ -213,6 +289,8 @@ pub const Session = struct {
         self.bonus_spawn_event_count = 0;
         self.reward_collectible_count = 0;
         self.reward_pickup_event_count = 0;
+        self.magic_ball_projectile_count = 0;
+        self.magic_ball_projectile_event_count = 0;
         self.current_dialog_id = null;
         self.pending_room_transition = null;
         self.owns_objects = false;
@@ -248,6 +326,8 @@ pub const Session = struct {
         self.bonus_spawn_event_count = 0;
         self.reward_collectible_count = 0;
         self.reward_pickup_event_count = 0;
+        self.magic_ball_projectile_count = 0;
+        self.magic_ball_projectile_event_count = 0;
         self.pending_room_transition = null;
         self.owns_objects = true;
         self.owns_object_behaviors = true;
@@ -381,6 +461,19 @@ pub const Session = struct {
         return self.reward_pickup_events[0..self.reward_pickup_event_count];
     }
 
+    pub fn magicBallProjectiles(self: Session) []const MagicBallProjectile {
+        return self.magic_ball_projectiles[0..self.magic_ball_projectile_count];
+    }
+
+    pub fn magicBallProjectilePtrAt(self: *Session, projectile_index: usize) ?*MagicBallProjectile {
+        if (projectile_index >= self.magic_ball_projectile_count) return null;
+        return &self.magic_ball_projectiles[projectile_index];
+    }
+
+    pub fn magicBallProjectileEvents(self: Session) []const MagicBallProjectileEvent {
+        return self.magic_ball_projectile_events[0..self.magic_ball_projectile_event_count];
+    }
+
     pub fn pendingRoomTransition(self: Session) ?PendingRoomTransition {
         return self.pending_room_transition;
     }
@@ -450,6 +543,26 @@ pub const Session = struct {
         }
         self.reward_pickup_events[self.reward_pickup_event_count] = event;
         self.reward_pickup_event_count += 1;
+    }
+
+    pub fn appendMagicBallProjectile(self: *Session, projectile: MagicBallProjectile) !void {
+        if (self.magic_ball_projectile_count >= self.magic_ball_projectiles.len) {
+            return error.MagicBallProjectileAlreadyActive;
+        }
+        self.magic_ball_projectiles[self.magic_ball_projectile_count] = projectile;
+        self.magic_ball_projectile_count += 1;
+    }
+
+    pub fn appendMagicBallProjectileEvent(self: *Session, event: MagicBallProjectileEvent) !void {
+        if (self.magic_ball_projectile_event_count >= self.magic_ball_projectile_events.len) {
+            return error.MagicBallProjectileEventCapacityExceeded;
+        }
+        self.magic_ball_projectile_events[self.magic_ball_projectile_event_count] = event;
+        self.magic_ball_projectile_event_count += 1;
+    }
+
+    pub fn clearMagicBallProjectiles(self: *Session) void {
+        self.magic_ball_projectile_count = 0;
     }
 
     pub fn removeRewardCollectibleAt(self: *Session, collectible_index: usize) !void {
@@ -535,6 +648,8 @@ test "runtime session initializes mutable hero state from an explicit world-posi
     try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
     try std.testing.expectEqual(@as(usize, 0), runtime_session.objectSnapshots().len);
     try std.testing.expectEqual(@as(usize, 0), runtime_session.objectBehaviorStates().len);
+    try std.testing.expectEqual(@as(usize, 0), runtime_session.magicBallProjectiles().len);
+    try std.testing.expectEqual(@as(usize, 0), runtime_session.magicBallProjectileEvents().len);
     try std.testing.expectEqual(@as(?PendingRoomTransition, null), runtime_session.pendingRoomTransition());
 }
 
@@ -694,6 +809,32 @@ test "runtime session keeps pending room transitions explicit and single-slot" {
 
     runtime_session.clearPendingRoomTransition();
     try std.testing.expectEqual(@as(?PendingRoomTransition, null), runtime_session.pendingRoomTransition());
+}
+
+test "runtime session keeps one active magic-ball projectile snapshot" {
+    var runtime_session = Session.init(.{
+        .x = 5071,
+        .y = 1024,
+        .z = 1820,
+    });
+    const projectile = MagicBallProjectile{
+        .launch_frame_index = 0,
+        .mode = .normal,
+        .world_position = .{ .x = 5016, .y = 2241, .z = 1901 },
+        .origin_world_position = .{ .x = 5071, .y = 2224, .z = 1820 },
+        .sprite_index = 8,
+        .vx = -55,
+        .vy = 18,
+        .vz = 81,
+        .flags = 33038,
+        .timeout = 0,
+        .divers = 0,
+    };
+
+    try runtime_session.appendMagicBallProjectile(projectile);
+    try std.testing.expectEqual(@as(usize, 1), runtime_session.magicBallProjectiles().len);
+    try std.testing.expectEqual(projectile, runtime_session.magicBallProjectiles()[0]);
+    try std.testing.expectError(error.MagicBallProjectileAlreadyActive, runtime_session.appendMagicBallProjectile(projectile));
 }
 
 test "runtime session can advance frame ownership without mutating hero position" {

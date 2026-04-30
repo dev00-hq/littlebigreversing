@@ -1,0 +1,138 @@
+{
+  "schema": "promotion-packet-evidence-v1",
+  "packet_id": "phase5_magic_ball_throw_projectile_launch",
+  "status": "live_positive",
+  "evidence_class": "collision_locomotion",
+  "source": {
+    "scene": 2,
+    "background": 0,
+    "active_cube": 1,
+    "save_lane": "throw-ball"
+  },
+  "classic_symbols": {
+    "FLAG_BALLE_MAGIQUE": 1,
+    "ListExtra": "0x004a7428",
+    "extra_stride": 68,
+    "I_THROW_default_source_key": "K_ALT",
+    "runtime_profile_weapon_key": "."
+  },
+  "launch_input": {
+    "key": "period",
+    "source_semantics": "hold_then_release",
+    "conservative_hold_sec": 0.75,
+    "normal_min_hold_sec": 0.63,
+    "sporty_min_hold_sec": 0.63,
+    "aggressive_min_hold_sec": 0.62,
+    "discreet_min_hold_sec": 0.63
+  },
+  "initial": {
+    "active_cube": 1,
+    "hero_x": 5071,
+    "hero_y": 1024,
+    "hero_z": 1820,
+    "hero_beta": 3709,
+    "magic_level": 0,
+    "magic_point": 0,
+    "magic_ball_flag": 1,
+    "magic_ball_flags": 61
+  },
+  "observed_projectiles": {
+    "normal": {
+      "hold_sec": 0.63,
+      "first_projectile_t": 0.023,
+      "index": 0,
+      "pos_x": 5016,
+      "pos_y": 2241,
+      "pos_z": 1901,
+      "org_x": 5071,
+      "org_y": 2224,
+      "org_z": 1820,
+      "sprite": 8,
+      "vx": -55,
+      "vy": 18,
+      "vz": 81,
+      "flags": 33038,
+      "timeout": 0,
+      "divers": 0
+    },
+    "sporty": {
+      "hold_sec": 0.63,
+      "first_projectile_t": 0.023,
+      "index": 0,
+      "pos_x": 5013,
+      "pos_y": 2237,
+      "pos_z": 1906,
+      "org_x": 5071,
+      "org_y": 2224,
+      "org_z": 1820,
+      "sprite": 8,
+      "vx": -58,
+      "vy": 13,
+      "vz": 86,
+      "flags": 33038,
+      "timeout": 0,
+      "divers": 0
+    },
+    "aggressive": {
+      "hold_sec": 0.62,
+      "first_projectile_t": 0.022,
+      "index": 0,
+      "pos_x": 5071,
+      "pos_y": 2224,
+      "pos_z": 1820,
+      "org_x": 5071,
+      "org_y": 2224,
+      "org_z": 1820,
+      "sprite": 8,
+      "vx": -62,
+      "vy": 7,
+      "vz": 91,
+      "flags": 33038,
+      "timeout": 0,
+      "divers": 0
+    },
+    "discreet": {
+      "hold_sec": 0.63,
+      "first_projectile_t": 0.022,
+      "index": 0,
+      "pos_x": 5035,
+      "pos_y": 2299,
+      "pos_z": 1873,
+      "org_x": 5071,
+      "org_y": 2224,
+      "org_z": 1820,
+      "sprite": 8,
+      "vx": -36,
+      "vy": 77,
+      "vz": 53,
+      "flags": 33038,
+      "timeout": 0,
+      "divers": 0
+    }
+  },
+  "negative_thresholds": {
+    "normal_0_62_sec_launched": false,
+    "sporty_0_62_sec_launched": false,
+    "aggressive_0_61_sec_launched": false,
+    "discreet_0_62_sec_launched": false
+  },
+  "artifacts": {
+    "normal_summary": "work/live_proofs/phase5_magic_ball_drive_probe_refine2/summary.json",
+    "sporty_summary": "work/live_proofs/phase5_magic_ball_drive_probe_sporty_threshold/summary.json",
+    "aggressive_summary": "work/live_proofs/phase5_magic_ball_drive_probe_aggressive_threshold/summary.json",
+    "discreet_summary": "work/live_proofs/phase5_magic_ball_drive_probe_discreet_threshold/summary.json"
+  },
+  "observations": {
+    "hold_then_release_required": true,
+    "period_key_launch_observed": true,
+    "mode_dependent_velocity_observed": true,
+    "magic_level_changed": false,
+    "magic_point_changed": false,
+    "damage_observed": false,
+    "bounce_observed": false,
+    "return_observed": false,
+    "remote_pickup_observed": false,
+    "switch_activation_observed": false
+  },
+  "verdict": "projectile_launch_live_positive"
+}

@@ -388,6 +388,11 @@ const RoomTransitionProbeSummary = struct {
 
 // Promotion-packet validation scans CLI-owned contract literals, including non-transition runtime seams.
 const magic_ball_pickup_canonical_runtime_contract = "magic_ball_pickup";
+const magic_ball_throw_projectile_launch_canonical_runtime_contract = "magic_ball_throw_projectile_launch";
+const magic_ball_bounce_return_wall_repeat_canonical_runtime_contract = "magic_ball_bounce_return_wall_repeat";
+const magic_ball_enemy_damage_tralu_level1_canonical_runtime_contract = "magic_ball_enemy_damage_tralu_level1";
+const magic_ball_switch_activation_emerald_moon_canonical_runtime_contract = "magic_ball_switch_activation_emerald_moon";
+const magic_ball_lever_activation_multi_family_canonical_runtime_contract = "magic_ball_lever_activation_multi_family";
 
 const RoomTransitionInspectionPayload = struct {
     command: []const u8,

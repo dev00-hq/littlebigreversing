@@ -1,0 +1,84 @@
+{
+  "schema": "promotion-packet-evidence-v1",
+  "packet_id": "phase5_magic_ball_switch_activation_emerald_moon",
+  "status": "live_positive",
+  "evidence_class": "collision_locomotion",
+  "source": {
+    "save": "moon-switches-room.LBA",
+    "scene": 31,
+    "active_cube": 31,
+    "switch_object_indices": [2, 3, 4],
+    "promoted_switch_object_indices": [3, 4],
+    "hero_object_index": 0
+  },
+  "launch_input": {
+    "key": "period",
+    "source_semantics": "hold_then_release",
+    "hold_sec": 0.75,
+    "mode": "normal",
+    "select_magic_ball_key": "1"
+  },
+  "initial": {
+    "hero_x": 4866,
+    "hero_y": 512,
+    "hero_z": 8324,
+    "hero_beta": 2995,
+    "magic_level": 3,
+    "magic_point": 57,
+    "magic_ball_flag": 1
+  },
+  "switch_objects": {
+    "2": {"x": 2304, "y": 1536, "z": 9984, "promoted": false},
+    "3": {"x": 2304, "y": 1536, "z": 8448, "promoted": true},
+    "4": {"x": 2304, "y": 1536, "z": 6912, "promoted": true}
+  },
+  "observed_runs": [
+    {
+      "artifact": "work/live_proofs/phase5_magic_ball_switch_probe_middle_wide_20260429/summary.json",
+      "timeline": "work/live_proofs/phase5_magic_ball_switch_probe_middle_wide_20260429/timeline.jsonl",
+      "initial_screenshot": "work/live_proofs/phase5_magic_ball_switch_probe_middle_wide_20260429/01_initial.png",
+      "final_screenshot": "work/live_proofs/phase5_magic_ball_switch_probe_middle_wide_20260429/02_final.png",
+      "target_object_index": 3,
+      "hero_beta": 2995,
+      "forced_beta": null,
+      "target_label_track_events": [
+        {"t": 2.762, "before": 4, "after": 1},
+        {"t": 2.961, "before": 1, "after": 2}
+      ],
+      "visual_review": "clean_middle_switch_hit"
+    },
+    {
+      "artifact": "work/live_proofs/phase5_magic_ball_switch_probe_obj4_corrected_20260429/summary.json",
+      "timeline": "work/live_proofs/phase5_magic_ball_switch_probe_obj4_corrected_20260429/timeline.jsonl",
+      "initial_screenshot": "work/live_proofs/phase5_magic_ball_switch_probe_obj4_corrected_20260429/01_initial.png",
+      "final_screenshot": "work/live_proofs/phase5_magic_ball_switch_probe_obj4_corrected_20260429/02_final.png",
+      "target_object_index": 4,
+      "hero_beta": 2760,
+      "forced_beta": 2760,
+      "target_label_track_events": [
+        {"t": 2.807, "before": 2, "after": 3},
+        {"t": 3.012, "before": 3, "after": 4}
+      ],
+      "visual_review": "corrected_lower_right_switch_hit"
+    }
+  ],
+  "excluded_runs": [
+    {
+      "artifact": "work/live_proofs/phase5_magic_ball_switch_probe_three_20260429",
+      "reason": "beta_2542_missed_third_switch_despite_object_table_noise"
+    }
+  ],
+  "observations": {
+    "switch_activation_observed": true,
+    "target_label_track_transition_observed": true,
+    "object_3_middle_switch_promoted": true,
+    "object_4_corrected_switch_promoted": true,
+    "object_2_promoted": false,
+    "object_field_churn_alone_is_hit_proof": false,
+    "generic_switch_family_observed": false,
+    "radar_room_lever_observed": false,
+    "damage_observed": false,
+    "remote_pickup_observed": false
+  },
+  "verdict": "emerald_moon_switch_activation_live_positive"
+}

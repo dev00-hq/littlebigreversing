@@ -934,3 +934,110 @@ test "runtime update tick advances the bounded Sendell room-36 story-state seque
     try std.testing.expectEqual(@as(?object_behavior.SendellDialogSlice, null), object_behavior.currentSendellDialogSlice(current_session));
     try std.testing.expectEqual(runtime_session.SendellBallPhase.completed, current_session.objectBehaviorStateByIndex(2).?.sendell_ball_phase);
 }
+
+test "runtime update tick consumes a scene-2 cellar magic-ball throw intent" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{ .x = 5071, .y = 1024, .z = 1820 });
+    current_session.setGameVar(1, 1);
+
+    try current_session.submitHeroIntent(.{ .throw_magic_ball = .normal });
+    const throw_tick = try runtime_update.tick(&room, &current_session);
+
+    try std.testing.expect(throw_tick.consumed_hero_intent);
+    try std.testing.expect(!throw_tick.triggered_room_transition);
+    try std.testing.expectEqual(@as(usize, 1), current_session.frame_index);
+    try std.testing.expectEqual(@as(?runtime_session.HeroIntent, null), current_session.pendingHeroIntent());
+    try std.testing.expectEqual(@as(usize, 1), current_session.magicBallProjectiles().len);
+    const projectile = current_session.magicBallProjectiles()[0];
+    try std.testing.expectEqual(runtime_session.MagicBallThrowMode.normal, projectile.mode);
+    try std.testing.expectEqual(@as(i16, -55), projectile.vx);
+    try std.testing.expectEqual(@as(i16, 18), projectile.vy);
+    try std.testing.expectEqual(@as(i16, 81), projectile.vz);
+}
+
+test "runtime update tick advances the live-backed level-1 wall Magic Ball bounce and return sequence" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    try current_session.appendMagicBallProjectile(.{
+        .launch_frame_index = 0,
+        .mode = .normal,
+        .script = .level1_wall_normal,
+        .world_position = .{ .x = 2831, .y = 2301, .z = 6912 },
+        .origin_world_position = .{ .x = 3510, .y = 2224, .z = 7003 },
+        .sprite_index = 8,
+        .vx = -97,
+        .vy = 18,
+        .vz = -13,
+        .flags = 33038,
+        .timeout = 0,
+        .divers = 0,
+    });
+
+    const expected_axes = [_]runtime_session.MagicBallAxis{ .x, .y, .y, .x };
+    for (expected_axes, 0..) |axis, event_index| {
+        _ = try runtime_update.tick(room, &current_session);
+        const event = current_session.magicBallProjectileEvents()[event_index];
+        try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.bounce, event.kind);
+        try std.testing.expectEqual(runtime_session.MagicBallProjectileScript.level1_wall_normal, event.script);
+        try std.testing.expectEqual(@as(?runtime_session.MagicBallAxis, axis), event.sign_flip_axis);
+        try std.testing.expectEqual(@as(i16, 8), event.sprite_index);
+        try std.testing.expectEqual(@as(usize, 1), current_session.magicBallProjectiles().len);
+    }
+
+    _ = try runtime_update.tick(room, &current_session);
+    const return_event = current_session.magicBallProjectileEvents()[4];
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.return_started, return_event.kind);
+    try std.testing.expectEqual(@as(i16, 12), return_event.sprite_index);
+    try std.testing.expectEqual(runtime_session.MagicBallProjectilePhase.returning, current_session.magicBallProjectiles()[0].phase);
+
+    _ = try runtime_update.tick(room, &current_session);
+    const clear_event = current_session.magicBallProjectileEvents()[5];
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.cleared, clear_event.kind);
+    try std.testing.expectEqual(@as(usize, 0), current_session.magicBallProjectiles().len);
+}
+
+test "runtime update tick advances the live-backed fire wall Magic Ball bounce sequence" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    try current_session.appendMagicBallProjectile(.{
+        .launch_frame_index = 0,
+        .mode = .normal,
+        .script = .fire_wall_normal,
+        .world_position = .{ .x = 4001, .y = 1533, .z = 4575 },
+        .origin_world_position = .{ .x = 4393, .y = 1456, .z = 5135 },
+        .sprite_index = 11,
+        .vx = -56,
+        .vy = 18,
+        .vz = -80,
+        .flags = 8421646,
+        .timeout = 100,
+        .divers = 0,
+    });
+
+    const expected_axes = [_]runtime_session.MagicBallAxis{ .y, .y, .z, .x };
+    for (expected_axes, 0..) |axis, event_index| {
+        _ = try runtime_update.tick(room, &current_session);
+        const event = current_session.magicBallProjectileEvents()[event_index];
+        try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.bounce, event.kind);
+        try std.testing.expectEqual(runtime_session.MagicBallProjectileScript.fire_wall_normal, event.script);
+        try std.testing.expectEqual(@as(?runtime_session.MagicBallAxis, axis), event.sign_flip_axis);
+        try std.testing.expectEqual(@as(i16, 11), event.sprite_index);
+    }
+
+    _ = try runtime_update.tick(room, &current_session);
+    const clear_event = current_session.magicBallProjectileEvents()[4];
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.cleared, clear_event.kind);
+    try std.testing.expectEqual(@as(usize, 0), current_session.magicBallProjectiles().len);
+}

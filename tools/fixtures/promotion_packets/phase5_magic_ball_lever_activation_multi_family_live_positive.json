@@ -1,0 +1,177 @@
+{
+  "schema": "promotion-packet-evidence-v1",
+  "packet_id": "phase5_magic_ball_lever_activation_multi_family",
+  "status": "live_positive",
+  "evidence_class": "collision_locomotion",
+  "source": {
+    "primary_saves": [
+      "lever-magic-ball.LBA",
+      "lever-wizard-tent.LBA"
+    ],
+    "supporting_saves": [
+      "lever-magicball-2.LBA",
+      "tralu-lever-1.LBA"
+    ],
+    "negative_control_save": "01-warehouse.LBA",
+    "hero_object_index": 0
+  },
+  "launch_input": {
+    "key": "period",
+    "source_semantics": "hold_then_release",
+    "hold_sec": 0.75,
+    "mode": "normal",
+    "select_magic_ball_key": "1"
+  },
+  "primary_live_positive_runs": [
+    {
+      "name": "radar_room_lever",
+      "save": "lever-magic-ball.LBA",
+      "scene": 23,
+      "artifacts": [
+        "work/live_proofs/phase5_magic_ball_radar_lever_run1_20260430/summary.json",
+        "work/live_proofs/phase5_magic_ball_radar_lever_run2_20260430/summary.json"
+      ],
+      "timeline": "work/live_proofs/phase5_magic_ball_radar_lever_run1_20260430/timeline.jsonl",
+      "target_object_index": 19,
+      "linked_object_indices": [9, 21],
+      "saved_context": {
+        "object_count": 22,
+        "target_gen_anim": 242,
+        "target_next_gen_anim": 242,
+        "target_position": {"x": 27617, "y": 512, "z": 12245, "beta": 2800},
+        "target_index_file3d": 57,
+        "linked_label_object_index": 21,
+        "linked_label_before": 3,
+        "linked_label_after": 0
+      },
+      "observed_transition": {
+        "target_gen_anim_before": 242,
+        "target_gen_anim_after": 244,
+        "target_next_gen_anim_before": 242,
+        "target_next_gen_anim_after": 244,
+        "linked_label_track_before": 3,
+        "linked_label_track_after": 0,
+        "door_or_platform_movement_observed": true
+      },
+      "cdb_watch": {
+        "artifact": "work/live_proofs/phase5_magic_ball_radar_lever_cdb_watch_20260430_r7/summary.json",
+        "watched_field": "ListObjet[19].GenAnim",
+        "watched_address": "0x0049C9A1",
+        "watched_size": 1,
+        "writer": "0x004386ec",
+        "instruction": "mov dword ptr [ebp+206h], ebx",
+        "slot_base_register": "ebp=0049c99d",
+        "source_cross_check": {
+          "function": "FUN_004385ec",
+          "classic_source": "reference/lba2-classic/SOURCES/OBJECT.CPP",
+          "classic_symbol": "InitAnim",
+          "semantic_role": "generic_object_animation_initialization",
+          "not_magic_ball_specific": true
+        }
+      }
+    },
+    {
+      "name": "wizard_tent_lever",
+      "save": "lever-wizard-tent.LBA",
+      "artifacts": [
+        "work/live_proofs/phase5_magic_ball_wizard_tent_lever_run1_20260430/summary.json"
+      ],
+      "timeline": "work/live_proofs/phase5_magic_ball_wizard_tent_lever_run1_20260430/timeline.jsonl",
+      "target_object_index": 2,
+      "linked_object_indices": [3, 7],
+      "saved_context": {
+        "target_gen_anim": 155,
+        "target_next_gen_anim": 155,
+        "target_index_file3d": 67,
+        "target_label_track": 6,
+        "target_exe_switch_func": 31
+      },
+      "observed_transition": {
+        "target_label_track_sequence": [6, 8, 9],
+        "target_gen_anim_before": 155,
+        "target_gen_anim_after": 0,
+        "linked_object_3_z_after": 5632,
+        "door_or_platform_movement_observed": true
+      },
+      "cdb_watch": {
+        "artifact": "work/live_proofs/phase5_magic_ball_wizard_tent_lever_cdb_label_run1_20260430/summary.json",
+        "watched_field": "ListObjet[2].label_track",
+        "watched_address": "0x0049A7CE",
+        "watched_size": 2,
+        "arm_status": "valid",
+        "hits_observed": 1,
+        "writer": "0x0042468c",
+        "instruction": "mov word ptr [ebp+1EAh], di",
+        "memory_snapshot": "0049a7ce  0009",
+        "source_cross_check": {
+          "function": "FUN_004237e0",
+          "classic_source": "reference/lba2-classic/SOURCES/GERETRAK.CPP",
+          "classic_symbol": "DoTrack/TM_LABEL",
+          "semantic_role": "generic_track_label_update",
+          "not_magic_ball_specific": true
+        }
+      }
+    }
+  ],
+  "supporting_live_positive_runs": [
+    {
+      "name": "radar_room_second_lever_toggle",
+      "save": "lever-magicball-2.LBA",
+      "artifacts": [
+        "work/live_proofs/phase5_magic_ball_radar_lever2_toggle_run1_20260430/summary.json",
+        "work/live_proofs/phase5_magic_ball_radar_lever2_toggle_run2_20260430/summary.json",
+        "work/live_proofs/phase5_magic_ball_radar_lever2_toggle_run3_20260430/summary.json"
+      ],
+      "observed_transition": {
+        "target_object_index": 19,
+        "target_gen_anim_toggle_observed": true,
+        "door_object_index": 7,
+        "door_z_close_then_open_observed": true,
+        "linked_label_object_index": 3
+      }
+    },
+    {
+      "name": "tralu_dungeon_lever",
+      "save": "tralu-lever-1.LBA",
+      "artifacts": [
+        "work/live_proofs/phase5_magic_ball_tralu_lever1_run1_20260430/summary.json",
+        "work/live_proofs/phase5_magic_ball_tralu_lever1_run2_20260430/summary.json"
+      ],
+      "observed_transition": {
+        "noisy_scene": true,
+        "moving_object_index": 2,
+        "moving_object_label_track_terminal": 100,
+        "lever_or_effect_object_index": 7,
+        "lever_or_effect_gen_anim_sequence_observed": [0, 123, 0]
+      }
+    }
+  ],
+  "negative_control": {
+    "name": "warehouse_blocked_lever",
+    "save": "01-warehouse.LBA",
+    "artifact": "work/live_proofs/phase5_magic_ball_warehouse_blocked_lever_run1_20260430/summary.json",
+    "timeline": "work/live_proofs/phase5_magic_ball_warehouse_blocked_lever_run1_20260430/timeline.jsonl",
+    "magic_ball_projectile_sprite_observed": 8,
+    "magic_ball_return_sprite_observed": 12,
+    "object_25_label_track_after": -1,
+    "activation_observed": false,
+    "blocked_by_progression_or_script_state": true
+  },
+  "observations": {
+    "magic_ball_impact_can_activate_lever_script_or_animation": true,
+    "door_or_platform_result_observed": true,
+    "cdb_writer_observed_for_radar_animation_path": true,
+    "cdb_writer_observed_for_wizard_label_track_path": true,
+    "multiple_write_paths_observed": true,
+    "all_levers_use_gen_anim_242_244": false,
+    "all_levers_use_label_track": false,
+    "impact_alone_is_sufficient_for_activation": false,
+    "warehouse_blocked_control_promoted_as_activation": false,
+    "generic_lever_family_fully_observed": false,
+    "source_cross_check_completed": true,
+    "source_cross_check_conclusion": "watched writers are generic object animation and track-script paths; broad implementation must route projectile impact into object hit/script handling rather than writing observed fields directly",
+    "damage_observed": false,
+    "remote_pickup_observed": false
+  },
+  "verdict": "lever_activation_multi_family_live_positive"
+}

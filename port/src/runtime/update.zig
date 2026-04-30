@@ -1,4 +1,5 @@
 const locomotion = @import("locomotion.zig");
+const magic_ball_projectiles = @import("magic_ball_projectiles.zig");
 const object_behavior = @import("object_behavior.zig");
 const reward_collectibles = @import("reward_collectibles.zig");
 const room_state = @import("room_state.zig");
@@ -28,6 +29,7 @@ pub fn tick(
         .cast_lightning,
         .default_action,
         .advance_story,
+        .throw_magic_ball,
         => blk: {
             _ = current_session.consumeHeroIntent() orelse return error.MissingPendingHeroIntent;
             try object_behavior.applyHeroIntent(room, current_session, intent);
@@ -47,6 +49,7 @@ pub fn tick(
 
     try reward_collectibles.resolveHeroRewardPickups(room, current_session);
     const behavior_summary = try object_behavior.stepSupportedObjects(room, current_session);
+    try magic_ball_projectiles.advanceMagicBallProjectiles(current_session);
     current_session.advanceFrameIndex();
 
     return .{

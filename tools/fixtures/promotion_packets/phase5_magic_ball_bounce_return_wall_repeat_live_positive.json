@@ -1,0 +1,79 @@
+{
+  "schema": "promotion-packet-evidence-v1",
+  "packet_id": "phase5_magic_ball_bounce_return_wall_repeat",
+  "status": "live_positive",
+  "evidence_class": "collision_locomotion",
+  "launch_input": {
+    "key": "period",
+    "source_semantics": "hold_then_release",
+    "hold_sec": 0.75,
+    "mode": "normal"
+  },
+  "observed_runs": [
+    {
+      "save": "throw-ball-fire-1-wall.LBA",
+      "magic_level": 1,
+      "magic_point_before": 18,
+      "magic_point_after": 17,
+      "first_active_t": 0.02,
+      "first_clear_t": 1.906,
+      "bounce_count": 4,
+      "bounce_flips": [["vx"], ["vy"], ["vy"], ["vx"]],
+      "return_count": 1,
+      "return_ts": [1.775],
+      "cleared": true
+    },
+    {
+      "save": "throw-ball-fire-1-wall.LBA",
+      "magic_level": 1,
+      "magic_point_before": 18,
+      "magic_point_after": 17,
+      "first_active_t": 0.02,
+      "first_clear_t": 1.893,
+      "bounce_count": 4,
+      "bounce_flips": [["vx"], ["vy"], ["vy"], ["vx"]],
+      "return_count": 1,
+      "return_ts": [1.788],
+      "cleared": true
+    },
+    {
+      "save": "throw-ball-fire-wall.LBA",
+      "magic_level": 4,
+      "magic_point_before": 76,
+      "magic_point_after": 75,
+      "first_active_t": 0.02,
+      "first_clear_t": 1.614,
+      "bounce_count": 4,
+      "bounce_flips": [["vy"], ["vy"], ["vz"], ["vx"]],
+      "return_count": 0,
+      "return_ts": [],
+      "cleared": true
+    },
+    {
+      "save": "throw-ball-fire-wall.LBA",
+      "magic_level": 4,
+      "magic_point_before": 76,
+      "magic_point_after": 75,
+      "first_active_t": 0.02,
+      "first_clear_t": 1.615,
+      "bounce_count": 4,
+      "bounce_flips": [["vy"], ["vy"], ["vz"], ["vx"]],
+      "return_count": 0,
+      "return_ts": [],
+      "cleared": true
+    }
+  ],
+  "observations": {
+    "repeated_twice_per_save": true,
+    "bounce_observed": true,
+    "list_extra_velocity_sign_flip_observed": true,
+    "list_extra_origin_timer_reset_observed": true,
+    "magic_point_consumed": true,
+    "level1_return_sprite_observed": true,
+    "fire_return_sprite_sampled": false,
+    "damage_observed": false,
+    "switch_activation_observed": false,
+    "remote_pickup_observed": false
+  },
+  "verdict": "wall_bounce_return_live_positive"
+}

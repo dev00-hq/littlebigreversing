@@ -31,6 +31,64 @@
     },
     {
       "confidence": "high",
+      "heading": "fact.emerald-moon-switches-room-lever-objects",
+      "id": "fact.emerald-moon-switches-room-lever-objects",
+      "last_verified": "2026-04-29",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "magic-ball",
+        "switches",
+        "scene31"
+      ],
+      "type": "fact"
+    },
+    {
+      "confidence": "high",
+      "heading": "fact.magic-ball-lever-activation-has-multiple-script-paths",
+      "id": "fact.magic-ball-lever-activation-has-multiple-script-paths",
+      "last_verified": "2026-04-30",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "magic-ball",
+        "levers",
+        "cdb"
+      ],
+      "type": "fact"
+    },
+    {
+      "confidence": "high",
+      "heading": "fact.original-runtime-throw-input-is-hold-release",
+      "id": "fact.original-runtime-throw-input-is-hold-release",
+      "last_verified": "2026-04-29",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "magic-ball",
+        "input"
+      ],
+      "type": "fact"
+    },
+    {
+      "confidence": "high",
+      "heading": "fact.tralu-magic-ball-damage-probe-ready-sequence",
+      "id": "fact.tralu-magic-ball-damage-probe-ready-sequence",
+      "last_verified": "2026-04-29",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "magic-ball",
+        "tralu"
+      ],
+      "type": "fact"
+    },
+    {
+      "confidence": "high",
       "heading": "trap.current-focus-heading-is-schema",
       "id": "trap.current-focus-heading-is-schema",
       "last_verified": "2026-04-29",
@@ -53,7 +111,35 @@
         "hard-cut"
       ],
       "type": "trap"
+    },
+    {
+      "confidence": "high",
+      "heading": "trap.magic-ball-switch-object-noise-is-not-hit-proof",
+      "id": "trap.magic-ball-switch-object-noise-is-not-hit-proof",
+      "last_verified": "2026-04-29",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "magic-ball",
+        "switches"
+      ],
+      "type": "trap"
+    },
+    {
+      "confidence": "high",
+      "heading": "trap.original-runtime-autosave-overrides-named-save",
+      "id": "trap.original-runtime-autosave-overrides-named-save",
+      "last_verified": "2026-04-29",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "autosave",
+        "named-save"
+      ],
+      "type": "trap"
     }
   ],
-  "source_hash": "sha256:eadc29c7bdeb97cbb2afd19c77b4b0e400fa53353a35328f6e598ba68c318a53"
+  "source_hash": "sha256:27a16be2ff190b0cc4b8370a26b28b3fc44a19f7fc790e5058c49858146c6702"
 }

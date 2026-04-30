@@ -1,0 +1,97 @@
+{
+  "schema": "promotion-packet-evidence-v1",
+  "packet_id": "phase5_magic_ball_enemy_damage_tralu_level1",
+  "status": "live_positive",
+  "evidence_class": "collision_locomotion",
+  "source": {
+    "save": "tralu-attack.LBA",
+    "scene": 2,
+    "active_cube": 2,
+    "enemy_object_index": 3,
+    "hero_object_index": 0
+  },
+  "launch_input": {
+    "key": "period",
+    "source_semantics": "hold_then_release",
+    "hold_sec": 0.75,
+    "mode": "normal",
+    "ready_delay_sec": 1.0,
+    "select_magic_ball_key": "1",
+    "second_throw_after_first_tralu_hit_sec": 0.7
+  },
+  "initial": {
+    "magic_level": 1,
+    "magic_point": 13,
+    "magic_ball_flag": 1,
+    "tralu_life": 72,
+    "twinsen_life": 194
+  },
+  "observed_runs": [
+    {
+      "artifact": "work/live_proofs/phase5_magic_ball_tralu_sequence_after_hit_ready1_delay07_run1_20260429/summary.json",
+      "tralu_object_index": 3,
+      "twinsen_object_index": 0,
+      "tralu_life_events": [
+        {
+          "t": 1.656,
+          "before": 72,
+          "after": 63,
+          "damage": 9
+        },
+        {
+          "t": 3.655,
+          "before": 63,
+          "after": 54,
+          "damage": 9
+        }
+      ],
+      "twinsen_life_events": [
+        {
+          "t": 6.934,
+          "before": 194,
+          "after": 164
+        }
+      ]
+    },
+    {
+      "artifact": "work/live_proofs/phase5_magic_ball_tralu_sequence_after_hit_ready1_delay07_run2_20260429/summary.json",
+      "tralu_object_index": 3,
+      "twinsen_object_index": 0,
+      "tralu_life_events": [
+        {
+          "t": 1.625,
+          "before": 72,
+          "after": 63,
+          "damage": 9
+        },
+        {
+          "t": 3.654,
+          "before": 63,
+          "after": 54,
+          "damage": 9
+        }
+      ],
+      "twinsen_life_events": [
+        {
+          "t": 7.04,
+          "before": 194,
+          "after": 164
+        }
+      ]
+    }
+  ],
+  "observations": {
+    "repeated_runs": 2,
+    "tralu_damage_observed": true,
+    "tralu_damage_per_hit": 9,
+    "tralu_hits_per_run": 2,
+    "twinsen_damage_observed_later": true,
+    "tralu_damage_discriminated_from_twinsen_damage": true,
+    "magic_level_1_only": true,
+    "damage_scaling_observed": false,
+    "enemy_vulnerability_table_observed": false,
+    "switch_activation_observed": false,
+    "remote_pickup_observed": false
+  },
+  "verdict": "enemy_damage_tralu_level1_live_positive"
+}

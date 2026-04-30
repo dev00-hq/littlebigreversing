@@ -41,6 +41,61 @@
         "magic_ball_pickup"
       ],
       "canonical_runtime": true
+    },
+    {
+      "id": "phase5_magic_ball_throw_projectile_launch",
+      "status": "live_positive",
+      "evidence_class": "collision_locomotion",
+      "packet": "docs/promotion_packets/phase5/phase5_magic_ball_throw_projectile_launch.md",
+      "fixture": "tools/fixtures/promotion_packets/phase5_magic_ball_throw_projectile_launch_live_positive.json",
+      "runtime_contracts": [
+        "magic_ball_throw_projectile_launch"
+      ],
+      "canonical_runtime": true
+    },
+    {
+      "id": "phase5_magic_ball_bounce_return_wall_repeat",
+      "status": "live_positive",
+      "evidence_class": "collision_locomotion",
+      "packet": "docs/promotion_packets/phase5/phase5_magic_ball_bounce_return_wall_repeat.md",
+      "fixture": "tools/fixtures/promotion_packets/phase5_magic_ball_bounce_return_wall_repeat_live_positive.json",
+      "runtime_contracts": [
+        "magic_ball_bounce_return_wall_repeat"
+      ],
+      "canonical_runtime": true
+    },
+    {
+      "id": "phase5_magic_ball_enemy_damage_tralu_level1",
+      "status": "live_positive",
+      "evidence_class": "collision_locomotion",
+      "packet": "docs/promotion_packets/phase5/phase5_magic_ball_enemy_damage_tralu_level1.md",
+      "fixture": "tools/fixtures/promotion_packets/phase5_magic_ball_enemy_damage_tralu_level1_live_positive.json",
+      "runtime_contracts": [
+        "magic_ball_enemy_damage_tralu_level1"
+      ],
+      "canonical_runtime": true
+    },
+    {
+      "id": "phase5_magic_ball_switch_activation_emerald_moon",
+      "status": "live_positive",
+      "evidence_class": "collision_locomotion",
+      "packet": "docs/promotion_packets/phase5/phase5_magic_ball_switch_activation_emerald_moon.md",
+      "fixture": "tools/fixtures/promotion_packets/phase5_magic_ball_switch_activation_emerald_moon_live_positive.json",
+      "runtime_contracts": [
+        "magic_ball_switch_activation_emerald_moon"
+      ],
+      "canonical_runtime": true
+    },
+    {
+      "id": "phase5_magic_ball_lever_activation_multi_family",
+      "status": "live_positive",
+      "evidence_class": "collision_locomotion",
+      "packet": "docs/promotion_packets/phase5/phase5_magic_ball_lever_activation_multi_family.md",
+      "fixture": "tools/fixtures/promotion_packets/phase5_magic_ball_lever_activation_multi_family_live_positive.json",
+      "runtime_contracts": [
+        "magic_ball_lever_activation_multi_family"
+      ],
+      "canonical_runtime": true
     }
   ]
 }

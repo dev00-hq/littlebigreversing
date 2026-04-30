@@ -260,6 +260,7 @@ pub fn applyPendingHeroIntent(
         .cast_lightning,
         .default_action,
         .advance_story,
+        .throw_magic_ball,
         => error.UnsupportedHeroIntentForLocomotion,
     };
 }
