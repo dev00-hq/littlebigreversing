@@ -37,5 +37,7 @@ EXPORTS
     waveOutWrite=proxy_waveOutWrite
     timeBeginPeriod=proxy_timeBeginPeriod
     timeEndPeriod=proxy_timeEndPeriod
+    timeGetDevCaps=proxy_timeGetDevCaps
     timeKillEvent=proxy_timeKillEvent
     timeSetEvent=proxy_timeSetEvent
+    waveOutGetNumDevs=proxy_waveOutGetNumDevs

@@ -74,6 +74,51 @@ static void log_mci_call(const char *api, UINT msg, DWORD_PTR params, MCIERROR b
     }
 }
 
+static char forced_cd_drive(void) {
+    char value[8];
+    DWORD len = GetEnvironmentVariableA("LBA2_FORCE_CD_DRIVE", value, sizeof(value));
+    char drive = (len > 0 && len < sizeof(value)) ? value[0] : 'E';
+    if (drive >= 'a' && drive <= 'z') {
+        drive = (char)(drive - ('a' - 'A'));
+    }
+    if (drive < 'A' || drive > 'Z') {
+        drive = 'E';
+    }
+    return drive;
+}
+
+static BOOL is_forced_cd_open_a(DWORD_PTR params) {
+    if (params == 0) {
+        return FALSE;
+    }
+    MCI_OPEN_PARMSA *open = (MCI_OPEN_PARMSA *)params;
+    const char *element = open->lpstrElementName;
+    if (element == NULL || element[0] == 0) {
+        return FALSE;
+    }
+    char drive = element[0];
+    if (drive >= 'a' && drive <= 'z') {
+        drive = (char)(drive - ('a' - 'A'));
+    }
+    return drive == forced_cd_drive() && element[1] == ':';
+}
+
+static BOOL is_forced_cd_open_w(DWORD_PTR params) {
+    if (params == 0) {
+        return FALSE;
+    }
+    MCI_OPEN_PARMSW *open = (MCI_OPEN_PARMSW *)params;
+    const wchar_t *element = open->lpstrElementName;
+    if (element == NULL || element[0] == 0) {
+        return FALSE;
+    }
+    wchar_t drive = element[0];
+    if (drive >= L'a' && drive <= L'z') {
+        drive = (wchar_t)(drive - (L'a' - L'A'));
+    }
+    return drive == (wchar_t)forced_cd_drive() && element[1] == L':';
+}
+
 static BOOL env_truthy(const char *name) {
     char value[16];
     DWORD len = GetEnvironmentVariableA(name, value, sizeof(value));
@@ -278,10 +323,10 @@ MCIERROR WINAPI proxy_mciSendCommandA(MCIDEVICEID id, UINT msg, DWORD_PTR flags,
     Fn fn = (Fn)real_proc("mciSendCommandA");
     MCIERROR result = fn ? fn(id, msg, flags, params) : MMSYSERR_ERROR;
     MCIERROR before = result;
-    if (msg == MCI_OPEN && params != 0) {
+    if (msg == MCI_OPEN && result != 0 && is_forced_cd_open_a(params)) {
         ((MCI_OPEN_PARMSA *)params)->wDeviceID = LBA2_FAKE_MCI_DEVICE;
         result = 0;
-    } else if (msg == MCI_STATUS) {
+    } else if (msg == MCI_STATUS && (id == LBA2_FAKE_MCI_DEVICE || result != 0)) {
         force_mci_ready(params, &result);
     } else if (id == LBA2_FAKE_MCI_DEVICE && (msg == MCI_CLOSE || msg == MCI_SET || msg == MCI_STOP || msg == MCI_PLAY)) {
         result = 0;
@@ -295,10 +340,10 @@ MCIERROR WINAPI proxy_mciSendCommandW(MCIDEVICEID id, UINT msg, DWORD_PTR flags,
     Fn fn = (Fn)real_proc("mciSendCommandW");
     MCIERROR result = fn ? fn(id, msg, flags, params) : MMSYSERR_ERROR;
     MCIERROR before = result;
-    if (msg == MCI_OPEN && params != 0) {
+    if (msg == MCI_OPEN && result != 0 && is_forced_cd_open_w(params)) {
         ((MCI_OPEN_PARMSW *)params)->wDeviceID = LBA2_FAKE_MCI_DEVICE;
         result = 0;
-    } else if (msg == MCI_STATUS) {
+    } else if (msg == MCI_STATUS && (id == LBA2_FAKE_MCI_DEVICE || result != 0)) {
         force_mci_ready(params, &result);
     } else if (id == LBA2_FAKE_MCI_DEVICE && (msg == MCI_CLOSE || msg == MCI_SET || msg == MCI_STOP || msg == MCI_PLAY)) {
         result = 0;
@@ -323,6 +368,20 @@ DWORD WINAPI proxy_timeGetTime(void) {
     typedef DWORD(WINAPI *Fn)(void);
     Fn fn = (Fn)real_proc("timeGetTime");
     return fn ? fn() : GetTickCount();
+}
+
+MMRESULT WINAPI proxy_timeGetDevCaps(LPTIMECAPS caps, UINT size) {
+    typedef MMRESULT(WINAPI *Fn)(LPTIMECAPS, UINT);
+    Fn fn = (Fn)real_proc("timeGetDevCaps");
+    if (fn) {
+        return fn(caps, size);
+    }
+    if (caps != NULL && size >= sizeof(TIMECAPS)) {
+        caps->wPeriodMin = 1;
+        caps->wPeriodMax = 1000;
+        return MMSYSERR_NOERROR;
+    }
+    return MMSYSERR_INVALPARAM;
 }
 
 UINT WINAPI proxy_joyGetNumDevs(void) {
@@ -467,6 +526,12 @@ MMRESULT WINAPI proxy_waveOutGetDevCapsA(UINT_PTR id, LPWAVEOUTCAPSA caps, UINT 
     typedef MMRESULT(WINAPI *Fn)(UINT_PTR, LPWAVEOUTCAPSA, UINT);
     Fn fn = (Fn)real_proc("waveOutGetDevCapsA");
     return fn ? fn(id, caps, size) : MMSYSERR_NODRIVER;
+}
+
+UINT WINAPI proxy_waveOutGetNumDevs(void) {
+    typedef UINT(WINAPI *Fn)(void);
+    Fn fn = (Fn)real_proc("waveOutGetNumDevs");
+    return fn ? fn() : 0;
 }
 
 MMRESULT WINAPI proxy_waveOutGetID(HWAVEOUT out, LPUINT id) {
