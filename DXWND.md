@@ -4,9 +4,10 @@ Date: 2026-04-28
 
 Status: operationally solved, not causally proven.
 
-The current working DxWnd profile is the `no_aeroboost` variant derived from
+The current working DxWnd profile is the `no_aeroboost` variant tracked in
 `tools/life_trace/profiles/lba2_built_in_flag_core_candidate.dxw`. It differs
-from the previous candidate only by clearing bit `0x80` from `flagj0`:
+from the historical failing candidate only by clearing bit `0x80` from
+`flagj0`:
 
 ```ini
 flagj0=4096
@@ -223,8 +224,9 @@ Get-Content 'D:\repos\reverse\littlebigreversing\work\_innoextract_full\Speedrun
 ## Current recommendation
 
 Use `flagj0=4096` as the canonical local DxWnd setting for LBA2 testing unless
-new evidence disproves it. Do not revert to the candidate `flagj0=4224` profile
-for normal gameplay testing; keep it only as a known failing comparison case.
+new evidence disproves it. Do not revert to the historical `flagj0=4224`
+profile for normal gameplay testing; keep it only as a known failing comparison
+case.
 
 Keep `winver0=0`. The built-in template path with `winver0=1` is separately
 associated with a privileged-instruction crash at `0x0045BFAE`.
