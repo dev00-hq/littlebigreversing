@@ -1137,6 +1137,37 @@ test "runtime update tick applies promoted Emerald Moon Magic Ball switch script
     try std.testing.expectEqual(@as(?i16, 4), switch4_event.value_after);
 }
 
+test "runtime update tick applies promoted Emerald Moon switch impacts using real room 31 behavior seeds" {
+    const room = try room_fixtures.guarded3131();
+    try std.testing.expectEqual(@as(usize, 2), room.scene.object_behavior_seeds.len);
+    try std.testing.expect(room.scene.object_behavior_seeds[0].index == 3 or room.scene.object_behavior_seeds[1].index == 3);
+    try std.testing.expect(room.scene.object_behavior_seeds[0].index == 4 or room.scene.object_behavior_seeds[1].index == 4);
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(?runtime_session.ObjectBehaviorState, null), current_session.objectBehaviorStateByIndex(2));
+    try std.testing.expect(current_session.objectBehaviorStateByIndex(3) != null);
+    try std.testing.expect(current_session.objectBehaviorStateByIndex(4) != null);
+
+    try current_session.appendMagicBallProjectile(magicBallProjectileWithScript(.emerald_moon_switch_object3));
+    const switch3_tick = try runtime_update.tick(room, &current_session);
+    try std.testing.expectEqual(@as(usize, 2), switch3_tick.updated_object_count);
+    try std.testing.expectEqual(@as(?u8, 2), current_session.objectBehaviorStateByIndex(3).?.current_track_label);
+    const switch3_event = current_session.magicBallProjectileEvents()[0];
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.switch_activated, switch3_event.kind);
+    try std.testing.expectEqual(@as(?usize, 3), switch3_event.target_object_index);
+    try std.testing.expectEqual(@as(?i16, 2), switch3_event.value_after);
+
+    try current_session.appendMagicBallProjectile(magicBallProjectileWithScript(.emerald_moon_switch_object4));
+    const switch4_tick = try runtime_update.tick(room, &current_session);
+    try std.testing.expectEqual(@as(usize, 2), switch4_tick.updated_object_count);
+    try std.testing.expectEqual(@as(?u8, 4), current_session.objectBehaviorStateByIndex(4).?.current_track_label);
+    const switch4_event = current_session.magicBallProjectileEvents()[2];
+    try std.testing.expectEqual(runtime_session.MagicBallProjectileEventKind.switch_activated, switch4_event.kind);
+    try std.testing.expectEqual(@as(?usize, 4), switch4_event.target_object_index);
+    try std.testing.expectEqual(@as(?i16, 4), switch4_event.value_after);
+}
+
 test "runtime update tick applies promoted Magic Ball lever activation scripts through object behavior state" {
     const room = try room_fixtures.guarded22();
     var objects = [_]runtime_session.ObjectState{

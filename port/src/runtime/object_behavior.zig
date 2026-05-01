@@ -106,27 +106,39 @@ pub fn stepSupportedObjects(
     var updated_object_count: usize = 0;
 
     for (room.scene.object_behavior_seeds) |seed| {
-        if (room.scene.entry_index == supported_scene_entry_index and
-            room.background.entry_index == supported_background_entry_index and
-            seed.index == supported_object_index)
-        {
-            try stepScene1919Object2(room, seed, current_session);
-            updated_object_count += 1;
-            continue;
-        }
-        if (room.scene.entry_index == sendell_scene_entry_index and
-            room.background.entry_index == sendell_background_entry_index and
-            seed.index == sendell_object_index)
-        {
-            try stepScene3636Object2(seed, current_session);
-            updated_object_count += 1;
-            continue;
-        }
-
-        return error.UnsupportedObjectBehaviorSeed;
+        try stepSupportedObjectSeed(room, seed, current_session);
+        updated_object_count += 1;
     }
 
     return .{ .updated_object_count = updated_object_count };
+}
+
+fn stepSupportedObjectSeed(
+    room: *const room_state.RoomSnapshot,
+    seed: room_state.ObjectBehaviorSeedSnapshot,
+    current_session: *runtime_session.Session,
+) !void {
+    if (room.scene.entry_index == supported_scene_entry_index and
+        room.background.entry_index == supported_background_entry_index and
+        seed.index == supported_object_index)
+    {
+        try stepScene1919Object2(room, seed, current_session);
+        return;
+    }
+    if (room.scene.entry_index == sendell_scene_entry_index and
+        room.background.entry_index == sendell_background_entry_index and
+        seed.index == sendell_object_index)
+    {
+        try stepScene3636Object2(seed, current_session);
+        return;
+    }
+    if (room.scene.entry_index == 31 and room.background.entry_index == 31 and
+        (seed.index == 3 or seed.index == 4))
+    {
+        return;
+    }
+
+    return error.UnsupportedObjectBehaviorSeed;
 }
 
 pub fn applyHeroIntent(

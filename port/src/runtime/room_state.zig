@@ -706,6 +706,10 @@ fn copySupportedObjectBehaviorSeeds(
     if (scene.entry_index == 19 or scene.entry_index == 36) {
         try appendObjectBehaviorSeed(allocator, &seeds, scene, 2);
     }
+    if (scene.entry_index == 31) {
+        try appendObjectBehaviorSeed(allocator, &seeds, scene, 3);
+        try appendObjectBehaviorSeed(allocator, &seeds, scene, 4);
+    }
 
     return seeds.toOwnedSlice(allocator);
 }

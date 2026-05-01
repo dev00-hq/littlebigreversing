@@ -28,6 +28,11 @@ var guarded_3636_initialized = false;
 var guarded_3636_room: ?*const room_state.RoomSnapshot = null;
 var guarded_3636_error: ?anyerror = null;
 
+var guarded_3131_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+var guarded_3131_initialized = false;
+var guarded_3131_room: ?*const room_state.RoomSnapshot = null;
+var guarded_3131_error: ?anyerror = null;
+
 pub fn guarded1919() !*const room_state.RoomSnapshot {
     if (!guarded_1919_initialized) {
         initGuarded1919();
@@ -73,6 +78,15 @@ pub fn guarded3636() !*const room_state.RoomSnapshot {
     return guarded_3636_room orelse return error.MissingGuarded3636Fixture;
 }
 
+pub fn guarded3131() !*const room_state.RoomSnapshot {
+    if (!guarded_3131_initialized) {
+        initGuarded3131();
+        guarded_3131_initialized = true;
+    }
+    if (guarded_3131_error) |err| return err;
+    return guarded_3131_room orelse return error.MissingGuarded3131Fixture;
+}
+
 fn initGuarded1919() void {
     guarded_1919_room = loadRoomFixture(&guarded_1919_arena, 19, 19, .guarded) catch |err| {
         guarded_1919_error = err;
@@ -104,6 +118,13 @@ fn initGuarded187187() void {
 fn initGuarded3636() void {
     guarded_3636_room = loadRoomFixture(&guarded_3636_arena, 36, 36, .guarded) catch |err| {
         guarded_3636_error = err;
+        return;
+    };
+}
+
+fn initGuarded3131() void {
+    guarded_3131_room = loadRoomFixture(&guarded_3131_arena, 31, 31, .guarded) catch |err| {
+        guarded_3131_error = err;
         return;
     };
 }
@@ -140,17 +161,22 @@ test "memoized room fixtures return stable borrowed snapshots" {
     const second_guarded_187187 = try guarded187187();
     const first_guarded_3636 = try guarded3636();
     const second_guarded_3636 = try guarded3636();
+    const first_guarded_3131 = try guarded3131();
+    const second_guarded_3131 = try guarded3131();
 
     try std.testing.expect(first_guarded == second_guarded);
     try std.testing.expect(first_guarded_1110 == second_guarded_1110);
     try std.testing.expect(first_guarded_22 == second_guarded_22);
     try std.testing.expect(first_guarded_187187 == second_guarded_187187);
     try std.testing.expect(first_guarded_3636 == second_guarded_3636);
+    try std.testing.expect(first_guarded_3131 == second_guarded_3131);
     try std.testing.expectEqual(@as(usize, 19), first_guarded.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 11), first_guarded_1110.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 2), first_guarded_22.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 187), first_guarded_187187.scene.entry_index);
     try std.testing.expectEqual(@as(usize, 36), first_guarded_3636.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 31), first_guarded_3131.scene.entry_index);
+    try std.testing.expectEqual(@as(usize, 2), first_guarded_3131.scene.object_behavior_seeds.len);
 }
 
 test "memoized room fixtures stay immutable across session mutations" {
