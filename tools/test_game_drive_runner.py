@@ -8,6 +8,7 @@ from tools import game_drive_runner
 class GameDriveRunnerTests(unittest.TestCase):
     def test_known_action_specs_parse_to_key_and_hold(self) -> None:
         self.assertEqual((0xBE, 0.75), game_drive_runner.action_to_key_hold("hold_period_0_75_sec_release"))
+        self.assertEqual((0x6E, 0.75), game_drive_runner.action_to_key_hold("hold_numpad_decimal_0_75_sec_release"))
         self.assertEqual((0x57, 0.18), game_drive_runner.action_to_key_hold("press_w_0_18_sec"))
 
     def test_unknown_action_fails_fast(self) -> None:

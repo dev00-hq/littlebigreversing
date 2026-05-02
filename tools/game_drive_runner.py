@@ -28,7 +28,7 @@ from heading_inject import HeadingInjector  # noqa: E402
 from life_trace_shared import DEFAULT_GAME_EXE  # noqa: E402
 from life_trace_windows import WindowCapture, WindowInput  # noqa: E402
 from phase5_magic_ball_switch_probe import stage_save  # noqa: E402
-from phase5_magic_ball_throw_probe import snapshot_globals  # noqa: E402
+from phase5_magic_ball_throw_probe import active_extras, snapshot_globals  # noqa: E402
 from phase5_magic_ball_tralu_sequence import kill_existing_lba2  # noqa: E402
 from scenes.load_game import direct_launch_argv  # noqa: E402
 from secret_room_door_watch import ProcessReader  # noqa: E402
@@ -39,6 +39,7 @@ DEFAULT_OUT_ROOT = REPO_ROOT / "work" / "game_drive_runs"
 DEFAULT_SAVE_DIR = DEFAULT_GAME_EXE.parent / "SAVE"
 KEYS = {
     "period": 0xBE,
+    "numpad_decimal": 0x6E,
     "w": 0x57,
     "enter": 0x0D,
     "up": 0x26,
@@ -113,6 +114,8 @@ def resolve_save(save_name: str, save_root: Path) -> Path:
 def action_to_key_hold(action: str) -> tuple[int, float]:
     if action == "hold_period_0_75_sec_release":
         return KEYS["period"], 0.75
+    if action == "hold_numpad_decimal_0_75_sec_release":
+        return KEYS["numpad_decimal"], 0.75
     if action == "press_w_0_18_sec":
         return KEYS["w"], 0.18
     if action == "press_enter_0_08_sec":
@@ -166,6 +169,7 @@ def hold_key_with_runtime_poll(
                 input_tool.key_up(virtual_key)
                 released = True
             sample = safe_snapshot(reader)
+            sample["extras"] = extras_summary(reader)
             sample["_t_ms"] = int((now - started) * 1000)
             samples.append(sample)
             time.sleep(poll_sec)
@@ -187,6 +191,35 @@ def safe_snapshot(reader: ProcessReader) -> dict[str, Any]:
         return snapshot_globals(reader)
     except Exception as error:
         return {"error": str(error)}
+
+
+def extras_summary(reader: ProcessReader) -> dict[str, Any]:
+    try:
+        rows = active_extras(reader)
+    except Exception as error:
+        return {"error": str(error)}
+    sprite_counts: dict[str, int] = {}
+    compact_rows = []
+    for row in rows:
+        sprite_key = str(row["sprite"])
+        sprite_counts[sprite_key] = sprite_counts.get(sprite_key, 0) + 1
+        compact_rows.append(
+            {
+                "index": row["index"],
+                "sprite": row["sprite"],
+                "body": row["body"],
+                "pos_x": row["pos_x"],
+                "pos_y": row["pos_y"],
+                "pos_z": row["pos_z"],
+                "owner": row["owner"],
+                "hit_force": row["hit_force"],
+            }
+        )
+    return {
+        "active_extra_count": len(rows),
+        "sprite_counts": sprite_counts,
+        "active_extras": compact_rows[:20],
+    }
 
 
 def known_runtime_expectations_match(snapshot: dict[str, Any], runtime_expect: dict[str, Any]) -> bool:
