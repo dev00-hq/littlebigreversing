@@ -23,12 +23,20 @@ class CapabilityLadderError(Exception):
 
 
 @dataclass(frozen=True)
+class ActionSequenceExpectation:
+    action: str
+    field: str
+    values: tuple[Any, ...]
+
+
+@dataclass(frozen=True)
 class CapabilityCase:
     id: str
     base_checkpoint: str
     actions: tuple[str, ...]
     required_signals: tuple[str, ...]
     description: str
+    expected_sequences: tuple[ActionSequenceExpectation, ...] = ()
 
 
 CAPABILITIES = (
@@ -72,7 +80,14 @@ CAPABILITIES = (
         base_checkpoint="pose_ready_magic_ball_middle_switch.json",
         actions=("ctrl_right_behavior_cycle",),
         required_signals=("comportement",),
-        description="Ctrl+Right behavior-cycle input changes the live Comportement field.",
+        description="Ctrl+Right behavior-cycle input changes the live Comportement field from Sporty to Aggressive.",
+        expected_sequences=(
+            ActionSequenceExpectation(
+                action="ctrl_right_behavior_cycle",
+                field="comportement",
+                values=(1, 2),
+            ),
+        ),
     ),
     CapabilityCase(
         id="direct_pose_visual_gate",
@@ -145,6 +160,64 @@ def action_has_signal(action: dict[str, Any], signal: str) -> bool:
     return False
 
 
+def compact_values(values: list[Any]) -> list[Any]:
+    compacted: list[Any] = []
+    for value in values:
+        if not compacted or compacted[-1] != value:
+            compacted.append(value)
+    return compacted
+
+
+def read_nested(value: dict[str, Any], field: str) -> Any:
+    current: Any = value
+    for part in field.split("."):
+        if not isinstance(current, dict) or part not in current:
+            return None
+        current = current[part]
+    return current
+
+
+def observed_action_sequence(action: dict[str, Any], field: str) -> list[Any]:
+    values: list[Any] = []
+    before = read_nested(action.get("before", {}), field)
+    if before is not None:
+        values.append(before)
+    for sample in action.get("poll", {}).get("samples", []):
+        if isinstance(sample, dict):
+            value = read_nested(sample, field)
+            if value is not None:
+                values.append(value)
+    after = read_nested(action.get("after", {}), field)
+    if after is not None:
+        values.append(after)
+    return compact_values(values)
+
+
+def action_by_name(result: dict[str, Any], action_name: str) -> dict[str, Any] | None:
+    for action in result.get("actions", []):
+        if isinstance(action, dict) and action.get("action") == action_name:
+            return action
+    return None
+
+
+def evaluate_sequences(case: CapabilityCase, result: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    observed = []
+    mismatches = []
+    for expected in case.expected_sequences:
+        action = action_by_name(result, expected.action)
+        sequence = observed_action_sequence(action or {}, expected.field)
+        report = {
+            "action": expected.action,
+            "field": expected.field,
+            "expected": list(expected.values),
+            "observed": sequence,
+        }
+        observed.append(report)
+        if sequence != list(expected.values):
+            mismatches.append(report)
+    return observed, mismatches
+
+
 def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any]:
     if result.get("verdict") != "passed":
         return {
@@ -157,9 +230,10 @@ def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any
     action = result.get("actions", [{}])[0] if case.actions else {}
     changed = action.get("poll", {}).get("changed_fields", {}) if action else {}
     missing = [signal for signal in case.required_signals if not action_has_signal(action, signal)]
+    observed_sequences, sequence_mismatches = evaluate_sequences(case, result)
     return {
         "id": case.id,
-        "verdict": "passed" if not missing else "blocked",
+        "verdict": "passed" if not missing and not sequence_mismatches else "blocked",
         "description": case.description,
         "checkpoint_id": result.get("checkpoint_id"),
         "run_dir": result.get("run_dir"),
@@ -167,6 +241,8 @@ def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any
         "required_signals": list(case.required_signals),
         "changed_fields": sorted(changed.keys()),
         "missing_signals": missing,
+        "observed_sequences": observed_sequences,
+        "sequence_mismatches": sequence_mismatches,
     }
 
 
