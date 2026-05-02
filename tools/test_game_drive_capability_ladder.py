@@ -38,6 +38,18 @@ class GameDriveCapabilityLadderTests(unittest.TestCase):
 
         self.assertEqual(ladder.observed_action_sequence(action, "comportement"), [1, 2])
 
+    def test_observed_action_sequence_reads_nested_samples(self) -> None:
+        action = {
+            "poll": {
+                "samples": [
+                    {"dialog": {"current_dial": 504}},
+                    {"dialog": {"current_dial": 504}},
+                ],
+            },
+        }
+
+        self.assertEqual(ladder.observed_action_sequence(action, "dialog.current_dial"), [504])
+
     def test_expected_sequence_blocks_wrong_behavior_transition(self) -> None:
         case = ladder.CapabilityCase(
             id="behavior_test",

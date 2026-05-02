@@ -73,7 +73,19 @@ CAPABILITIES = (
         base_checkpoint="pose_ready_voisin_dialogue.json",
         actions=("press_w_0_18_sec",),
         required_signals=("dialog",),
-        description="Talk action opens a runtime dialog record through CurrentDial/PtText/PtDial.",
+        description="Talk action opens the expected Voisin dialog record through CurrentDial/PtText/PtDial.",
+        expected_sequences=(
+            ActionSequenceExpectation(
+                action="press_w_0_18_sec",
+                field="dialog.current_dial",
+                values=(504,),
+            ),
+            ActionSequenceExpectation(
+                action="press_w_0_18_sec",
+                field="dialog.cursor_offset",
+                values=(15,),
+            ),
+        ),
     ),
     CapabilityCase(
         id="behavior_cycle",
