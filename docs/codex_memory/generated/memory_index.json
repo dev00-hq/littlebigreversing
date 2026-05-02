@@ -218,6 +218,21 @@
     },
     {
       "confidence": "high",
+      "heading": "trap.movement-rungs-need-live-window-checkpoints",
+      "id": "trap.movement-rungs-need-live-window-checkpoints",
+      "last_verified": "2026-05-02",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "movement",
+        "visual-proof",
+        "input-focus"
+      ],
+      "type": "trap"
+    },
+    {
+      "confidence": "high",
       "heading": "trap.original-runtime-autosave-overrides-named-save",
       "id": "trap.original-runtime-autosave-overrides-named-save",
       "last_verified": "2026-04-29",
@@ -231,5 +246,5 @@
       "type": "trap"
     }
   ],
-  "source_hash": "sha256:1415b75f7b4b13ed20e13c02bc3422d881dc7992591f03878f1079730e1fa5e8"
+  "source_hash": "sha256:b968b0e5770974fe6aeee2879f025f6ca856578ca8f9008af643bee3411d50a0"
 }

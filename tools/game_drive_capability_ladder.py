@@ -30,6 +30,15 @@ class ActionSequenceExpectation:
 
 
 @dataclass(frozen=True)
+class ActionDeltaExpectation:
+    action: str
+    field: str
+    min_delta: int
+    max_delta: int
+    mode: str = "signed"
+
+
+@dataclass(frozen=True)
 class CapabilityCase:
     id: str
     base_checkpoint: str
@@ -37,6 +46,7 @@ class CapabilityCase:
     required_signals: tuple[str, ...]
     description: str
     expected_sequences: tuple[ActionSequenceExpectation, ...] = ()
+    expected_deltas: tuple[ActionDeltaExpectation, ...] = ()
 
 
 CAPABILITIES = (
@@ -52,14 +62,37 @@ CAPABILITIES = (
         base_checkpoint="pose_ready_magic_ball_middle_switch.json",
         actions=("hold_left_0_50_sec_release",),
         required_signals=("hero_beta",),
-        description="Keyboard rotation changes the live Twinsen beta field.",
+        description="Keyboard left rotation increases Twinsen beta by the expected range from the known start pose.",
+        expected_deltas=(
+            ActionDeltaExpectation(
+                action="hold_left_0_50_sec_release",
+                field="hero_beta",
+                min_delta=500,
+                max_delta=1300,
+                mode="beta4096",
+            ),
+        ),
     ),
     CapabilityCase(
         id="translation_forward",
         base_checkpoint="pose_ready_magic_ball_middle_switch.json",
         actions=("hold_up_0_50_sec_release",),
         required_signals=("hero_x|hero_z",),
-        description="Keyboard forward movement changes Twinsen world position.",
+        description="Keyboard forward movement advances Twinsen along the expected axis from the known heading.",
+        expected_deltas=(
+            ActionDeltaExpectation(
+                action="hold_up_0_50_sec_release",
+                field="hero_x",
+                min_delta=-1200,
+                max_delta=-300,
+            ),
+            ActionDeltaExpectation(
+                action="hold_up_0_50_sec_release",
+                field="hero_z",
+                min_delta=-100,
+                max_delta=100,
+            ),
+        ),
     ),
     CapabilityCase(
         id="magic_ball_throw",
@@ -128,7 +161,7 @@ def materialize_checkpoint(case: CapabilityCase, checkpoint_dir: Path) -> Path:
     checkpoint = copy.deepcopy(load_json(base_path))
     checkpoint["id"] = f"capability_{case.id}"
     checkpoint["actions_after_checkpoint"] = list(case.actions)
-    if case.id == "direct_pose_visual_gate":
+    if case.id in {"direct_pose_visual_gate", "rotation_left", "translation_forward"}:
         checkpoint["setup"]["pose"]["method"] = "direct_pose"
         checkpoint["visual_expect"]["source"] = "live_window_capture"
     path = checkpoint_dir / f"{checkpoint['id']}.json"
@@ -230,6 +263,40 @@ def evaluate_sequences(case: CapabilityCase, result: dict[str, Any]) -> tuple[li
     return observed, mismatches
 
 
+def delta_value(before: Any, after: Any, mode: str) -> int | None:
+    if not isinstance(before, int) or not isinstance(after, int):
+        return None
+    if mode == "signed":
+        return after - before
+    if mode == "beta4096":
+        return (after - before) % 4096
+    raise CapabilityLadderError(f"unsupported delta expectation mode: {mode}")
+
+
+def evaluate_deltas(case: CapabilityCase, result: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    observed = []
+    mismatches = []
+    for expected in case.expected_deltas:
+        action = action_by_name(result, expected.action)
+        before = read_nested((action or {}).get("before", {}), expected.field)
+        after = read_nested((action or {}).get("after", {}), expected.field)
+        delta = delta_value(before, after, expected.mode)
+        report = {
+            "action": expected.action,
+            "field": expected.field,
+            "mode": expected.mode,
+            "expected_min_delta": expected.min_delta,
+            "expected_max_delta": expected.max_delta,
+            "before": before,
+            "after": after,
+            "observed_delta": delta,
+        }
+        observed.append(report)
+        if delta is None or delta < expected.min_delta or delta > expected.max_delta:
+            mismatches.append(report)
+    return observed, mismatches
+
+
 def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any]:
     if result.get("verdict") != "passed":
         return {
@@ -243,9 +310,10 @@ def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any
     changed = action.get("poll", {}).get("changed_fields", {}) if action else {}
     missing = [signal for signal in case.required_signals if not action_has_signal(action, signal)]
     observed_sequences, sequence_mismatches = evaluate_sequences(case, result)
+    observed_deltas, delta_mismatches = evaluate_deltas(case, result)
     return {
         "id": case.id,
-        "verdict": "passed" if not missing and not sequence_mismatches else "blocked",
+        "verdict": "passed" if not missing and not sequence_mismatches and not delta_mismatches else "blocked",
         "description": case.description,
         "checkpoint_id": result.get("checkpoint_id"),
         "run_dir": result.get("run_dir"),
@@ -255,6 +323,8 @@ def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any
         "missing_signals": missing,
         "observed_sequences": observed_sequences,
         "sequence_mismatches": sequence_mismatches,
+        "observed_deltas": observed_deltas,
+        "delta_mismatches": delta_mismatches,
     }
 
 

@@ -85,6 +85,42 @@ class GameDriveCapabilityLadderTests(unittest.TestCase):
         self.assertEqual(report["verdict"], "blocked")
         self.assertEqual(report["sequence_mismatches"][0]["observed"], [1, 3])
 
+    def test_delta_expectation_passes_signed_range(self) -> None:
+        case = ladder.CapabilityCase(
+            id="translation_test",
+            base_checkpoint="checkpoint.json",
+            actions=("hold_up_0_50_sec_release",),
+            required_signals=("hero_x",),
+            description="test",
+            expected_deltas=(
+                ladder.ActionDeltaExpectation(
+                    action="hold_up_0_50_sec_release",
+                    field="hero_x",
+                    min_delta=-1200,
+                    max_delta=-300,
+                ),
+            ),
+        )
+        result = {
+            "verdict": "passed",
+            "actions": [
+                {
+                    "action": "hold_up_0_50_sec_release",
+                    "before": {"hero_x": 4866},
+                    "poll": {"changed_fields": {"hero_x": [4866, 4174]}, "samples": []},
+                    "after": {"hero_x": 4174},
+                },
+            ],
+        }
+
+        report = ladder.evaluate_case(case, result)
+
+        self.assertEqual(report["verdict"], "passed")
+        self.assertEqual(report["observed_deltas"][0]["observed_delta"], -692)
+
+    def test_delta_expectation_uses_beta4096_wrap(self) -> None:
+        self.assertEqual(ladder.delta_value(3900, 100, "beta4096"), 296)
+
 
 if __name__ == "__main__":
     unittest.main()

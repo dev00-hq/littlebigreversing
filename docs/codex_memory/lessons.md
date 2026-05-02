@@ -288,3 +288,21 @@ proof. Game-drive checkpoints must declare their visual source explicitly. A
 prepared named-save checkpoint may use `save_embedded_preview` paired with live
 runtime globals, but teleport/direct-pose checkpoints must use
 `live_window_capture` and remain blocked if live screenshots are unavailable.
+
+### trap.movement-rungs-need-live-window-checkpoints
+
+Status: active
+Confidence: high
+Last verified: 2026-05-02
+Tags: original-runtime, gameplay-automation, movement, visual-proof, input-focus
+Related tests: tools/test_game_drive_capability_ladder.py
+Related files: tools/game_drive_capability_ladder.py, tools/game_drive_runner.py
+
+Save-embedded previews are sufficient for proving a named save's stored
+preview and expected runtime globals, but they are not sufficient for movement
+or rotation action rungs. In live ladder runs, plain arrow-key actions could
+load the correct runtime pose yet produce zero movement until the rung used a
+live-window checkpoint/direct-pose setup immediately before the action. Movement
+capability claims should therefore use live-window visual checkpoints and exact
+runtime postconditions such as beta or position deltas, not save-preview-only
+visual gates.
