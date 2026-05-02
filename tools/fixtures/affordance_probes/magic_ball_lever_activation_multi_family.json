@@ -1,0 +1,36 @@
+{
+  "schema": "affordance-probe-manifest-v1",
+  "id": "magic_ball_lever_activation_multi_family",
+  "runner": "existing_artifact_validation",
+  "source": {
+    "promotion_packet_id": "phase5_magic_ball_lever_activation_multi_family",
+    "promotion_fixture": "tools/fixtures/promotion_packets/phase5_magic_ball_lever_activation_multi_family_live_positive.json"
+  },
+  "launch": {
+    "saves": [
+      "lever-magic-ball.LBA",
+      "lever-wizard-tent.LBA"
+    ],
+    "autosave_guard": "hide_active_autosave_preserve_generated"
+  },
+  "input": {
+    "key": "period",
+    "source_semantics": "hold_then_release",
+    "hold_sec": 0.75
+  },
+  "observers": [
+    "promotion_fixture",
+    "summary_changed_object_indices",
+    "timeline_artifact",
+    "initial_screenshot",
+    "final_screenshot"
+  ],
+  "expected": {
+    "run_collection": "primary_live_positive_runs",
+    "promotion_verdict": "lever_activation_multi_family_live_positive",
+    "target_object_indices": [
+      19,
+      2
+    ]
+  }
+}

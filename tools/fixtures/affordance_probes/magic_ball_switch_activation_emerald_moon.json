@@ -1,0 +1,35 @@
+{
+  "schema": "affordance-probe-manifest-v1",
+  "id": "magic_ball_switch_activation_emerald_moon",
+  "runner": "existing_artifact_validation",
+  "source": {
+    "promotion_packet_id": "phase5_magic_ball_switch_activation_emerald_moon",
+    "promotion_fixture": "tools/fixtures/promotion_packets/phase5_magic_ball_switch_activation_emerald_moon_live_positive.json"
+  },
+  "launch": {
+    "saves": [
+      "moon-switches-room.LBA"
+    ],
+    "autosave_guard": "hide_active_autosave_preserve_generated"
+  },
+  "input": {
+    "key": "period",
+    "source_semantics": "hold_then_release",
+    "hold_sec": 0.75
+  },
+  "observers": [
+    "promotion_fixture",
+    "summary_changed_object_indices",
+    "timeline_artifact",
+    "initial_screenshot",
+    "final_screenshot"
+  ],
+  "expected": {
+    "run_collection": "observed_runs",
+    "promotion_verdict": "emerald_moon_switch_activation_live_positive",
+    "target_object_indices": [
+      3,
+      4
+    ]
+  }
+}
