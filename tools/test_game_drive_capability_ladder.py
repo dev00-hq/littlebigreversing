@@ -121,6 +121,113 @@ class GameDriveCapabilityLadderTests(unittest.TestCase):
     def test_delta_expectation_uses_beta4096_wrap(self) -> None:
         self.assertEqual(ladder.delta_value(3900, 100, "beta4096"), 296)
 
+    def test_extras_expectation_requires_lifecycle_and_identity_rows(self) -> None:
+        case = ladder.CapabilityCase(
+            id="magic_ball_test",
+            base_checkpoint="checkpoint.json",
+            actions=("hold_period_0_75_sec_release",),
+            required_signals=("extras",),
+            description="test",
+            expected_extras=(
+                ladder.ActionExtrasExpectation(
+                    action="hold_period_0_75_sec_release",
+                    active_count_sequence=(0, 1, 0),
+                    required_rows=(
+                        ladder.ExtraRowExpectation(sprite=10, owner=0, body=-1, hit_force=30, min_count=2),
+                        ladder.ExtraRowExpectation(sprite=14, owner=255, body=-1, hit_force=0),
+                    ),
+                ),
+            ),
+        )
+        result = {
+            "verdict": "passed",
+            "actions": [
+                {
+                    "action": "hold_period_0_75_sec_release",
+                    "poll": {
+                        "changed_fields": {"extras": [{"active_extra_count": 1}]},
+                        "samples": [
+                            {"extras": {"active_extra_count": 0, "active_extras": []}},
+                            {
+                                "extras": {
+                                    "active_extra_count": 1,
+                                    "active_extras": [
+                                        {"sprite": 10, "owner": 0, "body": -1, "hit_force": 30},
+                                    ],
+                                },
+                            },
+                            {
+                                "extras": {
+                                    "active_extra_count": 1,
+                                    "active_extras": [
+                                        {"sprite": 10, "owner": 0, "body": -1, "hit_force": 30},
+                                    ],
+                                },
+                            },
+                            {
+                                "extras": {
+                                    "active_extra_count": 1,
+                                    "active_extras": [
+                                        {"sprite": 14, "owner": 255, "body": -1, "hit_force": 0},
+                                    ],
+                                },
+                            },
+                            {"extras": {"active_extra_count": 0, "active_extras": []}},
+                        ],
+                    },
+                },
+            ],
+        }
+
+        report = ladder.evaluate_case(case, result)
+
+        self.assertEqual(report["verdict"], "passed")
+        self.assertEqual(report["observed_extras"][0]["observed_active_count_sequence"], [0, 1, 0])
+
+    def test_extras_expectation_blocks_missing_magic_ball_return_row(self) -> None:
+        case = ladder.CapabilityCase(
+            id="magic_ball_test",
+            base_checkpoint="checkpoint.json",
+            actions=("hold_period_0_75_sec_release",),
+            required_signals=("extras",),
+            description="test",
+            expected_extras=(
+                ladder.ActionExtrasExpectation(
+                    action="hold_period_0_75_sec_release",
+                    active_count_sequence=(0, 1, 0),
+                    required_rows=(ladder.ExtraRowExpectation(sprite=14, owner=255, body=-1, hit_force=0),),
+                ),
+            ),
+        )
+        result = {
+            "verdict": "passed",
+            "actions": [
+                {
+                    "action": "hold_period_0_75_sec_release",
+                    "poll": {
+                        "changed_fields": {"extras": [{"active_extra_count": 1}]},
+                        "samples": [
+                            {"extras": {"active_extra_count": 0, "active_extras": []}},
+                            {
+                                "extras": {
+                                    "active_extra_count": 1,
+                                    "active_extras": [
+                                        {"sprite": 10, "owner": 0, "body": -1, "hit_force": 30},
+                                    ],
+                                },
+                            },
+                            {"extras": {"active_extra_count": 0, "active_extras": []}},
+                        ],
+                    },
+                },
+            ],
+        }
+
+        report = ladder.evaluate_case(case, result)
+
+        self.assertEqual(report["verdict"], "blocked")
+        self.assertEqual(report["extras_mismatches"][0]["missing_rows"][0]["sprite"], 14)
+
 
 if __name__ == "__main__":
     unittest.main()

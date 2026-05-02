@@ -39,6 +39,22 @@ class ActionDeltaExpectation:
 
 
 @dataclass(frozen=True)
+class ExtraRowExpectation:
+    sprite: int
+    owner: int
+    body: int
+    hit_force: int
+    min_count: int = 1
+
+
+@dataclass(frozen=True)
+class ActionExtrasExpectation:
+    action: str
+    active_count_sequence: tuple[int, ...]
+    required_rows: tuple[ExtraRowExpectation, ...]
+
+
+@dataclass(frozen=True)
 class CapabilityCase:
     id: str
     base_checkpoint: str
@@ -47,6 +63,7 @@ class CapabilityCase:
     description: str
     expected_sequences: tuple[ActionSequenceExpectation, ...] = ()
     expected_deltas: tuple[ActionDeltaExpectation, ...] = ()
+    expected_extras: tuple[ActionExtrasExpectation, ...] = ()
 
 
 CAPABILITIES = (
@@ -99,7 +116,25 @@ CAPABILITIES = (
         base_checkpoint="pose_ready_magic_ball_middle_switch.json",
         actions=("hold_period_0_75_sec_release",),
         required_signals=("extras",),
-        description="Action key launches a Magic Ball projectile visible in runtime extras.",
+        description="Action key launches and resolves the expected Magic Ball projectile extras.",
+        expected_deltas=(
+            ActionDeltaExpectation(
+                action="hold_period_0_75_sec_release",
+                field="magic_point",
+                min_delta=-1,
+                max_delta=-1,
+            ),
+        ),
+        expected_extras=(
+            ActionExtrasExpectation(
+                action="hold_period_0_75_sec_release",
+                active_count_sequence=(0, 1, 0),
+                required_rows=(
+                    ExtraRowExpectation(sprite=10, owner=0, body=-1, hit_force=30, min_count=2),
+                    ExtraRowExpectation(sprite=14, owner=255, body=-1, hit_force=0, min_count=1),
+                ),
+            ),
+        ),
     ),
     CapabilityCase(
         id="dialogue_open",
@@ -297,6 +332,75 @@ def evaluate_deltas(case: CapabilityCase, result: dict[str, Any]) -> tuple[list[
     return observed, mismatches
 
 
+def extra_rows(action: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = []
+    for sample in action.get("poll", {}).get("samples", []):
+        extras = sample.get("extras") if isinstance(sample, dict) else None
+        if not isinstance(extras, dict):
+            continue
+        active_extras = extras.get("active_extras", [])
+        if not isinstance(active_extras, list):
+            continue
+        for row in active_extras:
+            if isinstance(row, dict):
+                rows.append(row)
+    return rows
+
+
+def extra_row_matches(row: dict[str, Any], expected: ExtraRowExpectation) -> bool:
+    return (
+        row.get("sprite") == expected.sprite
+        and row.get("owner") == expected.owner
+        and row.get("body") == expected.body
+        and row.get("hit_force") == expected.hit_force
+    )
+
+
+def observed_active_extra_count_sequence(action: dict[str, Any]) -> list[int]:
+    values = []
+    for sample in action.get("poll", {}).get("samples", []):
+        extras = sample.get("extras") if isinstance(sample, dict) else None
+        if isinstance(extras, dict) and isinstance(extras.get("active_extra_count"), int):
+            values.append(extras["active_extra_count"])
+    return compact_values(values)
+
+
+def evaluate_extras(case: CapabilityCase, result: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    observed = []
+    mismatches = []
+    for expected in case.expected_extras:
+        action = action_by_name(result, expected.action)
+        action = action or {}
+        rows = extra_rows(action)
+        active_sequence = observed_active_extra_count_sequence(action)
+        required_reports = []
+        missing_rows = []
+        for row_expectation in expected.required_rows:
+            count = sum(1 for row in rows if extra_row_matches(row, row_expectation))
+            row_report = {
+                "sprite": row_expectation.sprite,
+                "owner": row_expectation.owner,
+                "body": row_expectation.body,
+                "hit_force": row_expectation.hit_force,
+                "expected_min_count": row_expectation.min_count,
+                "observed_count": count,
+            }
+            required_reports.append(row_report)
+            if count < row_expectation.min_count:
+                missing_rows.append(row_report)
+        report = {
+            "action": expected.action,
+            "expected_active_count_sequence": list(expected.active_count_sequence),
+            "observed_active_count_sequence": active_sequence,
+            "required_rows": required_reports,
+            "missing_rows": missing_rows,
+        }
+        observed.append(report)
+        if active_sequence != list(expected.active_count_sequence) or missing_rows:
+            mismatches.append(report)
+    return observed, mismatches
+
+
 def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any]:
     if result.get("verdict") != "passed":
         return {
@@ -311,9 +415,12 @@ def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any
     missing = [signal for signal in case.required_signals if not action_has_signal(action, signal)]
     observed_sequences, sequence_mismatches = evaluate_sequences(case, result)
     observed_deltas, delta_mismatches = evaluate_deltas(case, result)
+    observed_extras, extras_mismatches = evaluate_extras(case, result)
     return {
         "id": case.id,
-        "verdict": "passed" if not missing and not sequence_mismatches and not delta_mismatches else "blocked",
+        "verdict": "passed"
+        if not missing and not sequence_mismatches and not delta_mismatches and not extras_mismatches
+        else "blocked",
         "description": case.description,
         "checkpoint_id": result.get("checkpoint_id"),
         "run_dir": result.get("run_dir"),
@@ -325,6 +432,8 @@ def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any
         "sequence_mismatches": sequence_mismatches,
         "observed_deltas": observed_deltas,
         "delta_mismatches": delta_mismatches,
+        "observed_extras": observed_extras,
+        "extras_mismatches": extras_mismatches,
     }
 
 
@@ -332,6 +441,8 @@ def run_ladder(
     cases: tuple[CapabilityCase, ...],
     out_root: Path,
     *,
+    save_root: Path = game_drive_runner.DEFAULT_SAVE_DIR,
+    exe: Path = game_drive_runner.DEFAULT_GAME_EXE,
     archive: bool = False,
     archive_on_failure: bool = False,
     archive_root: Path = game_drive_runner.DEFAULT_ARCHIVE_ROOT,
@@ -346,8 +457,8 @@ def run_ladder(
             result = game_drive_runner.run_checkpoint(
                 checkpoint_path,
                 out_root=run_root,
-                save_root=game_drive_runner.DEFAULT_SAVE_DIR,
-                exe=game_drive_runner.DEFAULT_GAME_EXE,
+                save_root=save_root,
+                exe=exe,
                 archive=archive,
                 archive_on_failure=archive_on_failure,
                 archive_root=archive_root,
@@ -389,6 +500,8 @@ def selected_cases(names: list[str] | None) -> tuple[CapabilityCase, ...]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run the original-runtime game-drive capability ladder.")
     parser.add_argument("--out-root", type=Path, default=DEFAULT_OUT_ROOT)
+    parser.add_argument("--save-root", type=Path, default=game_drive_runner.DEFAULT_SAVE_DIR)
+    parser.add_argument("--exe", type=Path, default=game_drive_runner.DEFAULT_GAME_EXE)
     parser.add_argument("--case", action="append", choices=[case.id for case in CAPABILITIES])
     parser.add_argument("--archive", action="store_true", help="archive compressed evidence for selected runs")
     parser.add_argument("--archive-on-failure", action="store_true", help="archive compressed evidence only for failed selected runs")
@@ -401,6 +514,8 @@ def main(argv: list[str] | None = None) -> int:
         payload = run_ladder(
             selected_cases(args.case),
             args.out_root,
+            save_root=args.save_root,
+            exe=args.exe,
             archive=args.archive,
             archive_on_failure=args.archive_on_failure,
             archive_root=args.archive_root,
