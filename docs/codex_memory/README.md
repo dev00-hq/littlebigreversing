@@ -21,6 +21,7 @@ python3 tools/codex_memory.py context
 python3 tools/codex_memory.py context --path port/src/game_data/background/parser.zig --include-history 3
 python3 tools/codex_memory.py context --path port/src/game_data/background/parser.zig --include-history 3 --history-mode relevant
 python3 tools/codex_memory.py context --subsystem architecture --include-history 10 --include-excluded-history
+python3 tools/cleanup_agent_audit.py --json
 python3 tools/codex_memory.py add-policy --topic memory-workflow --status accepted --statement "Use only the v2 memory tree." --rationale "The repo cut over in place." --evidence-ref docs/codex_memory/README.md --affected-path docs/codex_memory/README.md
 python3 tools/codex_memory.py add-fact --subsystem life_scripts --status current --fact "Only LM_DEFAULT and LM_END_SWITCH block current real-asset life decoding." --rationale "The full-archive audit found no other unsupported life ids in the current asset tree." --evidence-ref docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md --affected-path docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md
 python3 tools/codex_memory.py add-investigation --subsystem life_scripts --status blocked --question "How should LM_DEFAULT and LM_END_SWITCH be handled?" --current-best-answer "Keep them outside the supported decoder until stronger checked-in evidence appears or the product boundary rejects them." --confidence high --next-probe "Revisit only if source evidence or canonical assets change." --evidence-ref docs/PHASE2_LIFE_PROGRAM_EVIDENCE.md --affected-path port/src/game_data/scene/life_program.zig
@@ -45,6 +46,7 @@ python3 tools/codex_memory.py add-task-event --stream viewer-prep --status block
 - `ISSUES.md` is a companion trap log, not a replacement for packs or typed history; keep it linked through the architecture subsystem.
 - All paths in JSONL records must be repo-relative and schema-valid.
 - Do not restore `handoff.md`, `decision_log.jsonl`, `task_log.jsonl`, or `work/codex_memory/`.
+- `tools/cleanup_agent_audit.py` is read-only. Treat findings as review prompts, not authority to delete evidence, edit promotion packets, or widen runtime behavior.
 
 ## Budgets
 
