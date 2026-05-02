@@ -3,18 +3,14 @@ from __future__ import annotations
 import argparse
 import csv
 import ctypes
-import ctypes.wintypes
 import hashlib
 import json
-import os
 import queue
 import re
 import subprocess
-import struct
 import sys
 import threading
 import time
-import zlib
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -24,10 +20,9 @@ from tkinter import ttk
 from typing import Any, Iterable
 
 try:
-    from PIL import Image, ImageGrab, ImageTk
+    from PIL import Image, ImageTk
 except ModuleNotFoundError:
     Image = None
-    ImageGrab = None
     ImageTk = None
 
 
@@ -37,17 +32,16 @@ DEFAULT_GAME_DIR = (
 )
 DEFAULT_EXE = DEFAULT_GAME_DIR / "LBA2.EXE"
 DEFAULT_SAVE_DIR = DEFAULT_GAME_DIR / "SAVE"
+DEFAULT_RESS = DEFAULT_GAME_DIR / "RESS.HQR"
 DEFAULT_SCENE_ROOT = Path(r"D:\repos\idajs\Ida\srcjs\lba2editor")
 DEFAULT_PROFILE_MANIFESTS = (
     DEFAULT_SAVE_DIR / "save_profiles.json",
     REPO_ROOT / "work" / "saves" / "save_profiles.json",
 )
-APP_STATE_ROOT = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "LBA2SaveLoader"
-STATE_PATH = APP_STATE_ROOT / "state.json"
-SCREENSHOT_DIR = APP_STATE_ROOT / "screenshots"
-
 SAVE_COMPRESS = 0x80
 SAVE_IMAGE_SIZE = 160 * 120
+PALETTE_COLOR_COUNT = 256
+PALETTE_PAYLOAD_SIZE = PALETTE_COLOR_COUNT * 3
 MAX_VARS_GAME = 256
 MAX_VARS_CUBE = 80
 MAX_OBJECTIF = 50
@@ -136,22 +130,8 @@ WEAPON_NAMES = {
 }
 
 READY_WINDOW_TIMEOUT_SEC = 20.0
-READY_GAME_STATE_TIMEOUT_SEC = 30.0
 READY_POLL_SEC = 0.15
-POST_READY_SCREENSHOT_DELAY_SEC = 0.5
-STABLE_FRAME_COUNT = 2
-POST_SPLASH_STABLE_FRAME_COUNT = 3
-MIN_LIT_SAMPLES = 64
-MIN_MEAN_LUMA = 24.0
-PROCESS_VM_READ = 0x0010
-PROCESS_QUERY_INFORMATION = 0x0400
-ACTIVE_CUBE_GLOBAL = 0x00497F04
-HERO_X_GLOBAL = 0x0049A1DA
-HERO_Y_GLOBAL = 0x0049A1DE
-HERO_Z_GLOBAL = 0x0049A1E2
-SCENE_START_X_GLOBAL = 0x0049A0A8
-SCENE_START_Y_GLOBAL = 0x0049A0AC
-SCENE_START_Z_GLOBAL = 0x0049A0B0
+RESOURCE_HEADER_SIZE = 10
 
 
 @dataclass(frozen=True)
@@ -164,24 +144,6 @@ class SceneRecord:
     scene_name: str
     parent_scene_name: str | None
     source_file: str
-
-
-@dataclass(frozen=True)
-class FrameSignature:
-    checksum: int
-    lit_samples: int
-    mean_luma: float
-
-
-@dataclass(frozen=True)
-class RuntimeSnapshot:
-    active_cube: int
-    hero_x: int
-    hero_y: int
-    hero_z: int
-    scene_start_x: int
-    scene_start_y: int
-    scene_start_z: int
 
 
 @dataclass(frozen=True)
@@ -259,7 +221,6 @@ class SaveEntry:
     scene: SceneRecord | None = None
     profile: dict[str, Any] | None = None
     digest: str = ""
-    screenshot_path: Path | None = None
 
     @property
     def title(self) -> str:
@@ -346,6 +307,72 @@ class BinaryReader:
     def skip(self, size: int) -> None:
         self.need(size)
         self.offset += size
+
+
+def parse_hqr_classic_entry(data: bytes, classic_index: int) -> bytes:
+    if len(data) < 8:
+        raise ValueError("HQR archive is too small")
+    table_end = int.from_bytes(data[:4], "little", signed=False)
+    if table_end < 8 or table_end % 4 or table_end > len(data):
+        raise ValueError("invalid HQR table header")
+    entry_table_offset = classic_index * 4
+    if entry_table_offset >= table_end:
+        raise ValueError(f"HQR entry index out of range: {classic_index}")
+    offset = int.from_bytes(data[entry_table_offset : entry_table_offset + 4], "little", signed=False)
+    if offset == 0:
+        raise ValueError(f"empty HQR entry: {classic_index}")
+    if offset < table_end or offset > len(data):
+        raise ValueError(f"invalid HQR entry offset: {offset}")
+    next_offset = len(data)
+    for cursor in range(entry_table_offset + 4, table_end, 4):
+        candidate = int.from_bytes(data[cursor : cursor + 4], "little", signed=False)
+        if candidate == 0 or candidate <= offset:
+            continue
+        if candidate > len(data):
+            raise ValueError(f"invalid HQR next-entry offset: {candidate}")
+        next_offset = min(next_offset, candidate)
+    return data[offset:next_offset]
+
+
+def decode_uncompressed_resource_entry(raw_entry: bytes) -> bytes:
+    if len(raw_entry) < RESOURCE_HEADER_SIZE:
+        raise ValueError("truncated resource header")
+    size_file = int.from_bytes(raw_entry[:4], "little", signed=False)
+    compressed_size_file = int.from_bytes(raw_entry[4:8], "little", signed=False)
+    compress_method = int.from_bytes(raw_entry[8:10], "little", signed=False)
+    if compress_method != 0:
+        raise ValueError(f"unsupported compressed resource entry: method {compress_method}")
+    if compressed_size_file != size_file:
+        raise ValueError("uncompressed resource header has mismatched sizes")
+    payload = raw_entry[RESOURCE_HEADER_SIZE:]
+    if len(payload) < size_file:
+        raise ValueError("truncated resource payload")
+    return payload[:size_file]
+
+
+def load_lba2_palette(ress_path: Path = DEFAULT_RESS) -> list[int] | None:
+    try:
+        raw_entry = parse_hqr_classic_entry(ress_path.read_bytes(), 0)
+        palette_payload = decode_uncompressed_resource_entry(raw_entry)
+    except (OSError, ValueError):
+        return None
+    if len(palette_payload) != PALETTE_PAYLOAD_SIZE:
+        return None
+    return list(palette_payload)
+
+
+LBA2_PALETTE = load_lba2_palette()
+
+
+def scale_to_fit(image: Any, size: tuple[int, int], resample: Any) -> Any:
+    source_width, source_height = image.size
+    target_width, target_height = size
+    scale = min(target_width / source_width, target_height / source_height)
+    scaled_size = (
+        max(1, round(source_width * scale)),
+        max(1, round(source_height * scale)),
+    )
+    return image.resize(scaled_size, resample)
 
 
 def unquote_scene_value(value: str) -> str:
@@ -514,7 +541,7 @@ def parse_save_payload(data: bytes, offset: int, compressed: bool) -> bytes:
 def parse_context(payload: bytes) -> SaveContext:
     context = SaveContext()
     if len(payload) < SAVE_IMAGE_SIZE:
-        context.error = "payload is smaller than the embedded 160x120 screenshot"
+        context.error = "payload is smaller than the embedded 160x120 preview"
         return context
 
     reader = BinaryReader(payload, SAVE_IMAGE_SIZE)
@@ -601,11 +628,7 @@ def apply_known_npc_evidence(file_name: str, context: SaveContext) -> None:
     context.npc_evidence_note = evidence.note
 
 
-def screenshot_state_key(path: Path) -> str:
-    return path.name.lower()
-
-
-def parse_save(path: Path, scene_lookup: dict[int, SceneRecord], profile_lookup: dict[str, dict[str, Any]], state: dict[str, Any]) -> SaveEntry:
+def parse_save(path: Path, scene_lookup: dict[int, SceneRecord], profile_lookup: dict[str, dict[str, Any]]) -> SaveEntry:
     data = path.read_bytes()
     if len(data) < 6:
         raise ValueError(f"save file too short: {path}")
@@ -626,8 +649,6 @@ def parse_save(path: Path, scene_lookup: dict[int, SceneRecord], profile_lookup:
         context.error = str(error)
 
     digest = hashlib.sha1(data).hexdigest()
-    shot_text = state.get("screenshots", {}).get(screenshot_state_key(path))
-    screenshot_path = Path(shot_text) if isinstance(shot_text, str) and Path(shot_text).exists() else None
 
     return SaveEntry(
         path=path,
@@ -644,7 +665,6 @@ def parse_save(path: Path, scene_lookup: dict[int, SceneRecord], profile_lookup:
         scene=scene_lookup.get(num_cube),
         profile=profile_lookup.get(path.name.lower()),
         digest=digest,
-        screenshot_path=screenshot_path,
     )
 
 
@@ -671,25 +691,7 @@ def load_profile_lookup(paths: Iterable[Path]) -> dict[str, dict[str, Any]]:
     return lookup
 
 
-def load_state() -> dict[str, Any]:
-    if not STATE_PATH.exists():
-        return {"screenshots": {}}
-    try:
-        payload = json.loads(STATE_PATH.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return {"screenshots": {}}
-    if not isinstance(payload, dict):
-        return {"screenshots": {}}
-    payload.setdefault("screenshots", {})
-    return payload
-
-
-def save_state(state: dict[str, Any]) -> None:
-    APP_STATE_ROOT.mkdir(parents=True, exist_ok=True)
-    STATE_PATH.write_text(json.dumps(state, ensure_ascii=True, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-
-
-def discover_saves(save_dir: Path, scene_lookup: dict[int, SceneRecord], profile_lookup: dict[str, dict[str, Any]], state: dict[str, Any]) -> list[SaveEntry]:
+def discover_saves(save_dir: Path, scene_lookup: dict[int, SceneRecord], profile_lookup: dict[str, dict[str, Any]]) -> list[SaveEntry]:
     if not save_dir.exists():
         raise FileNotFoundError(f"save folder does not exist: {save_dir}")
     paths = sorted(
@@ -707,7 +709,7 @@ def discover_saves(save_dir: Path, scene_lookup: dict[int, SceneRecord], profile
             continue
         seen.add(resolved)
         try:
-            entries.append(parse_save(path, scene_lookup, profile_lookup, state))
+            entries.append(parse_save(path, scene_lookup, profile_lookup))
         except Exception as error:
             data = path.read_bytes() if path.exists() else b""
             digest = hashlib.sha1(data).hexdigest() if data else ""
@@ -748,110 +750,6 @@ def tasklist_pids(image_name: str) -> list[int]:
         except ValueError:
             continue
     return pids
-
-
-class ProcessReader:
-    def __init__(self, pid: int) -> None:
-        self.pid = pid
-        self.kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-        self.handle = self.kernel32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
-        if not self.handle:
-            raise ctypes.WinError(ctypes.get_last_error())
-
-    def close(self) -> None:
-        if self.handle:
-            self.kernel32.CloseHandle(self.handle)
-            self.handle = 0
-
-    def read_int(self, address: int, size: int = 4) -> int:
-        if size not in {1, 2, 4}:
-            raise ValueError(f"unsupported read size: {size}")
-        buffer = ctypes.create_string_buffer(size)
-        read = ctypes.c_size_t()
-        ok = self.kernel32.ReadProcessMemory(
-            self.handle,
-            ctypes.c_void_p(address),
-            buffer,
-            size,
-            ctypes.byref(read),
-        )
-        if not ok or read.value != size:
-            raise ctypes.WinError(ctypes.get_last_error())
-        if size == 1:
-            return buffer.raw[0]
-        if size == 2:
-            return struct.unpack("<h", buffer.raw)[0]
-        return struct.unpack("<i", buffer.raw)[0]
-
-    def snapshot(self) -> RuntimeSnapshot:
-        return RuntimeSnapshot(
-            active_cube=self.read_int(ACTIVE_CUBE_GLOBAL),
-            hero_x=self.read_int(HERO_X_GLOBAL),
-            hero_y=self.read_int(HERO_Y_GLOBAL),
-            hero_z=self.read_int(HERO_Z_GLOBAL),
-            scene_start_x=self.read_int(SCENE_START_X_GLOBAL),
-            scene_start_y=self.read_int(SCENE_START_Y_GLOBAL),
-            scene_start_z=self.read_int(SCENE_START_Z_GLOBAL),
-        )
-
-    def __enter__(self) -> "ProcessReader":
-        return self
-
-    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
-        self.close()
-
-
-def runtime_snapshot_matches_entry(snapshot: RuntimeSnapshot, entry: SaveEntry) -> bool:
-    if snapshot.active_cube != entry.num_cube:
-        return False
-    if entry.context.scene_start is None:
-        return any(value != 0 for value in (snapshot.hero_x, snapshot.hero_y, snapshot.hero_z))
-    return (
-        snapshot.scene_start_x,
-        snapshot.scene_start_y,
-        snapshot.scene_start_z,
-    ) == entry.context.scene_start
-
-
-def wait_for_loaded_game_state(
-    pid: int,
-    entry: SaveEntry,
-    status: callable,
-    *,
-    retry_enter: bool = False,
-) -> RuntimeSnapshot:
-    deadline = time.monotonic() + READY_GAME_STATE_TIMEOUT_SEC
-    last_snapshot: RuntimeSnapshot | None = None
-    last_enter = 0.0
-    with ProcessReader(pid) as reader:
-        while time.monotonic() < deadline:
-            try:
-                snapshot = reader.snapshot()
-            except OSError:
-                time.sleep(READY_POLL_SEC)
-                continue
-            last_snapshot = snapshot
-            if runtime_snapshot_matches_entry(snapshot, entry):
-                status(
-                    "runtime reports loaded save "
-                    f"cube={snapshot.active_cube} scene_start=({snapshot.scene_start_x},"
-                    f"{snapshot.scene_start_y},{snapshot.scene_start_z})"
-                )
-                return snapshot
-            now = time.monotonic()
-            if retry_enter and now - last_enter >= 1.5:
-                send_enter_to_pid(pid)
-                status("resent Enter while waiting for loaded save state")
-                last_enter = now
-            time.sleep(READY_POLL_SEC)
-    detail = "no runtime snapshot"
-    if last_snapshot is not None:
-        detail = (
-            f"last cube={last_snapshot.active_cube}, "
-            f"scene_start=({last_snapshot.scene_start_x},{last_snapshot.scene_start_y},{last_snapshot.scene_start_z}), "
-            f"hero=({last_snapshot.hero_x},{last_snapshot.hero_y},{last_snapshot.hero_z})"
-        )
-    raise RuntimeError(f"LBA2 did not report the selected save as loaded before screenshot capture: {detail}")
 
 
 def kill_lba2() -> list[int]:
@@ -934,30 +832,6 @@ def wait_for_window(pid: int, timeout_sec: float = READY_WINDOW_TIMEOUT_SEC) -> 
     raise RuntimeError(f"no visible LBA2 window found for pid {pid}")
 
 
-def window_rect(hwnd: int) -> tuple[int, int, int, int]:
-    rect = ctypes.wintypes.RECT()
-    ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
-    if rect.right <= rect.left or rect.bottom <= rect.top:
-        raise RuntimeError("LBA2 window has an invalid rectangle")
-    return rect.left, rect.top, rect.right, rect.bottom
-
-
-def window_client_rect(hwnd: int) -> tuple[int, int, int, int]:
-    user32 = ctypes.windll.user32
-    rect = ctypes.wintypes.RECT()
-    if not user32.GetClientRect(hwnd, ctypes.byref(rect)):
-        return window_rect(hwnd)
-    top_left = ctypes.wintypes.POINT(rect.left, rect.top)
-    bottom_right = ctypes.wintypes.POINT(rect.right, rect.bottom)
-    if not user32.ClientToScreen(hwnd, ctypes.byref(top_left)):
-        return window_rect(hwnd)
-    if not user32.ClientToScreen(hwnd, ctypes.byref(bottom_right)):
-        return window_rect(hwnd)
-    if bottom_right.x <= top_left.x or bottom_right.y <= top_left.y:
-        return window_rect(hwnd)
-    return top_left.x, top_left.y, bottom_right.x, bottom_right.y
-
-
 def activate_window(hwnd: int) -> None:
     user32 = ctypes.windll.user32
     sw_restore = 9
@@ -976,56 +850,6 @@ def activate_window(hwnd: int) -> None:
     time.sleep(0.25)
 
 
-def grab_window_image(pid: int):
-    if ImageGrab is None:
-        raise RuntimeError("Pillow is required for screenshot capture")
-    hwnd = wait_for_window(pid)
-    activate_window(hwnd)
-    return ImageGrab.grab(bbox=window_client_rect(hwnd))
-
-
-def frame_signature(image: Any) -> FrameSignature:
-    gray = image.convert("L").resize((64, 48))
-    pixels = list(gray.getdata())
-    lit_samples = sum(1 for value in pixels if value >= 32)
-    mean_luma = sum(pixels) / len(pixels)
-    checksum = zlib.crc32(bytes(pixels))
-    return FrameSignature(checksum=checksum, lit_samples=lit_samples, mean_luma=mean_luma)
-
-
-def wait_for_stable_rendered_frame(pid: int, status: callable) -> FrameSignature:
-    deadline = time.monotonic() + READY_WINDOW_TIMEOUT_SEC
-    last_checksum: int | None = None
-    stable_frames = 0
-    while time.monotonic() < deadline:
-        signature = frame_signature(grab_window_image(pid))
-        rendered = signature.lit_samples >= MIN_LIT_SAMPLES and signature.mean_luma >= MIN_MEAN_LUMA
-        if rendered and signature.checksum == last_checksum:
-            stable_frames += 1
-        elif rendered:
-            stable_frames = 1
-            last_checksum = signature.checksum
-        else:
-            stable_frames = 0
-            last_checksum = None
-        if stable_frames >= STABLE_FRAME_COUNT:
-            return signature
-        time.sleep(READY_POLL_SEC)
-    raise RuntimeError("LBA2 never reached a stable rendered splash frame")
-
-
-def wait_for_non_splash_image(pid: int, splash_checksum: int):
-    deadline = time.monotonic() + READY_WINDOW_TIMEOUT_SEC
-    while time.monotonic() < deadline:
-        image = grab_window_image(pid)
-        signature = frame_signature(image)
-        rendered = signature.lit_samples >= MIN_LIT_SAMPLES and signature.mean_luma >= MIN_MEAN_LUMA
-        if rendered and signature.checksum != splash_checksum:
-            return image
-        time.sleep(READY_POLL_SEC)
-    raise RuntimeError("LBA2 did not render a non-splash frame before screenshot capture")
-
-
 def send_enter_to_pid(pid: int) -> None:
     hwnd = wait_for_window(pid)
     activate_window(hwnd)
@@ -1038,24 +862,12 @@ def send_enter_to_pid(pid: int) -> None:
     user32.keybd_event(vk_return, scan_code, keyeventf_keyup, 0)
 
 
-def capture_window_png(pid: int, output_path: Path) -> None:
-    image = grab_window_image(pid)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    image.save(output_path)
-
-
-def save_window_image(image: Any, output_path: Path) -> None:
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    image.save(output_path)
-
-
 def launch_save(
     exe_path: Path,
     game_dir: Path,
     save_dir: Path,
     entry: SaveEntry,
     status: callable,
-    on_screenshot: callable,
 ) -> None:
     if not exe_path.exists():
         raise RuntimeError(f"LBA2.EXE not found: {exe_path}")
@@ -1079,25 +891,10 @@ def launch_save(
 
         def finish_startup() -> None:
             try:
-                status("waiting for stable Adeline splash frame")
-                splash = wait_for_stable_rendered_frame(process.pid, status)
                 send_enter_to_pid(process.pid)
                 status("sent Enter through the Adeline splash")
-                status("waiting for runtime save-load state")
-                wait_for_loaded_game_state(process.pid, entry, status, retry_enter=True)
-                if entry.screenshot_path is not None and entry.screenshot_path.exists():
-                    status(f"linked screenshot already exists; skipped capture: {entry.screenshot_path}")
-                    return
-                status("waiting for first non-splash rendered frame")
-                wait_for_non_splash_image(process.pid, splash.checksum)
-                time.sleep(POST_READY_SCREENSHOT_DELAY_SEC)
-                gameplay_image = grab_window_image(process.pid)
-                output_path = SCREENSHOT_DIR / f"{entry.digest}.png"
-                save_window_image(gameplay_image, output_path)
-                on_screenshot(entry, output_path)
-                status(f"captured linked screenshot: {output_path}")
             except Exception as error:
-                status(f"screenshot capture skipped: {error}")
+                status(f"automatic splash advance skipped: {error}")
             finally:
                 try:
                     restore_message = restore_autosave(save_dir, hidden_autosave)
@@ -1213,7 +1010,6 @@ class SaveLoaderApp(tk.Tk):
         self.game_dir = exe_path.parent
         self.save_dir = save_dir
         self.scene_root = scene_root
-        self.state = load_state()
         self.scene_lookup = parse_scene_table(scene_root)
         self.profile_lookup = load_profile_lookup(DEFAULT_PROFILE_MANIFESTS)
         self.entries: list[SaveEntry] = []
@@ -1221,7 +1017,7 @@ class SaveLoaderApp(tk.Tk):
         self.selected: SaveEntry | None = None
         self.preview_image: Any | None = None
         self.thumbnail_images: dict[str, Any] = {}
-        self.image_cache: dict[tuple[str, str, tuple[int, int]], Any] = {}
+        self.image_cache: dict[tuple[str, tuple[int, int]], Any] = {}
         self.entry_by_iid: dict[str, SaveEntry] = {}
         self.sort_column = "name"
         self.sort_descending = False
@@ -1354,7 +1150,7 @@ class SaveLoaderApp(tk.Tk):
 
     def refresh_saves(self) -> None:
         try:
-            self.entries = discover_saves(self.save_dir, self.scene_lookup, self.profile_lookup, self.state)
+            self.entries = discover_saves(self.save_dir, self.scene_lookup, self.profile_lookup)
             self.status_var.set(f"Loaded {len(self.entries)} save(s)")
             self.apply_filter()
         except Exception as error:
@@ -1389,9 +1185,8 @@ class SaveLoaderApp(tk.Tk):
             return (self.compact_location(entry).lower(), entry.title.lower(), entry.file_name.lower())
         if self.sort_column == "state":
             chapter = entry.context.chapter if entry.context.chapter is not None else -1
-            shot = 1 if entry.screenshot_path else 0
             npc_count = entry.context.npc_count if entry.context.npc_count is not None else -1
-            return (chapter, npc_count, shot, entry.title.lower(), entry.file_name.lower())
+            return (chapter, npc_count, entry.title.lower(), entry.file_name.lower())
         if self.sort_column == "npcs":
             npc_count = entry.context.npc_count if entry.context.npc_count is not None else -1
             deferred = entry.context.deferred_npc_count if entry.context.deferred_npc_count is not None else -1
@@ -1448,9 +1243,9 @@ class SaveLoaderApp(tk.Tk):
         return " - ".join(parts)
 
     def tile_meta(self, entry: SaveEntry) -> str:
-        screenshot = "shot" if entry.screenshot_path else "no shot"
+        preview = "preview" if entry.embedded_image else "no preview"
         chapter = f"chapter {entry.context.chapter}" if entry.context.chapter is not None else "chapter ?"
-        return f"{chapter} - {screenshot}"
+        return f"{chapter} - {preview}"
 
     def npc_meta(self, entry: SaveEntry) -> str:
         if entry.context.npc_count is None:
@@ -1545,26 +1340,30 @@ class SaveLoaderApp(tk.Tk):
             lines.extend(["", f"Context parse error: {ctx.error}"])
         if entry.profile is not None:
             lines.extend(["", "Matched Save Profile", str(entry.profile.get("profile_id", "-")), str(entry.profile.get("proof_goal", "-"))])
-        lines.extend(["", f"Screenshot link: {entry.screenshot_path or 'none; captured after first successful load'}"])
+        lines.extend(["", f"Embedded preview: {'available' if entry.embedded_image else 'missing'}"])
         return lines
 
     def make_tk_image(self, entry: SaveEntry, size: tuple[int, int]) -> Any:
         if Image is None or ImageTk is None:
             return tk.PhotoImage(width=size[0], height=size[1])
-        cache_key = (entry.digest, str(entry.screenshot_path or ""), size)
+        cache_key = (entry.digest, size)
         cached = self.image_cache.get(cache_key)
         if cached is not None:
             return cached
 
         image = None
-        if entry.screenshot_path and entry.screenshot_path.exists():
-            image = Image.open(entry.screenshot_path).convert("RGB")
-        elif entry.embedded_image:
-            image = Image.frombytes("L", (160, 120), entry.embedded_image).convert("RGB")
+        if entry.embedded_image:
+            image = Image.frombytes("P", (160, 120), entry.embedded_image)
+            if LBA2_PALETTE is not None:
+                image.putpalette(LBA2_PALETTE)
+                image = image.convert("RGB")
+            else:
+                image = image.convert("L").convert("RGB")
         else:
             image = Image.new("RGB", size, "#d7d2c8")
 
-        image.thumbnail(size)
+        resample = Image.Resampling.NEAREST if size[0] <= 96 or size[1] <= 72 else Image.Resampling.LANCZOS
+        image = scale_to_fit(image, size, resample)
         canvas = Image.new("RGB", size, "#eee9df")
         x = (size[0] - image.width) // 2
         y = (size[1] - image.height) // 2
@@ -1588,7 +1387,6 @@ class SaveLoaderApp(tk.Tk):
                     self.save_dir,
                     entry,
                     lambda text: self.enqueue_ui(self.status_var.set, text),
-                    lambda updated_entry, path: self.enqueue_ui(self.record_screenshot, updated_entry, path),
                 )
             except Exception as error:
                 self.enqueue_ui(self.status_var.set, str(error))
@@ -1596,21 +1394,11 @@ class SaveLoaderApp(tk.Tk):
 
         threading.Thread(target=worker, daemon=True).start()
 
-    def record_screenshot(self, entry: SaveEntry, screenshot_path: Path) -> None:
-        entry.screenshot_path = screenshot_path
-        self.image_cache.clear()
-        self.state.setdefault("screenshots", {})[screenshot_state_key(entry.path)] = str(screenshot_path)
-        save_state(self.state)
-        if self.selected == entry:
-            self.render_details(entry)
-        self.render_grid()
-
 
 def dump_json(save_dir: Path, scene_root: Path) -> None:
-    state = load_state()
     scene_lookup = parse_scene_table(scene_root)
     profiles = load_profile_lookup(DEFAULT_PROFILE_MANIFESTS)
-    entries = discover_saves(save_dir, scene_lookup, profiles, state)
+    entries = discover_saves(save_dir, scene_lookup, profiles)
     payload = []
     for entry in entries:
         payload.append(
@@ -1648,7 +1436,7 @@ def dump_json(save_dir: Path, scene_root: Path) -> None:
                     "notable_flags": entry.context.notable_flags,
                     "error": entry.context.error,
                 },
-                "screenshot_path": None if entry.screenshot_path is None else str(entry.screenshot_path),
+                "embedded_preview": entry.embedded_image is not None,
             }
         )
     print(json.dumps(payload, ensure_ascii=True, indent=2, sort_keys=True))
