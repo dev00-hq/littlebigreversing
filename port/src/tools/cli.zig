@@ -393,6 +393,7 @@ const magic_ball_bounce_return_wall_repeat_canonical_runtime_contract = "magic_b
 const magic_ball_enemy_damage_tralu_level1_canonical_runtime_contract = "magic_ball_enemy_damage_tralu_level1";
 const magic_ball_switch_activation_emerald_moon_canonical_runtime_contract = "magic_ball_switch_activation_emerald_moon";
 const magic_ball_lever_activation_multi_family_canonical_runtime_contract = "magic_ball_lever_activation_multi_family";
+const text_interaction_affordance_families_canonical_runtime_contract = "text_interaction_affordance_families";
 
 const RoomTransitionInspectionPayload = struct {
     command: []const u8,

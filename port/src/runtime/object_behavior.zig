@@ -222,7 +222,7 @@ fn stepScene3636Object2(
     object_behavior.current_sprite = seed.sprite;
     if (object_behavior.sendell_ball_phase == .awaiting_dialog_open) {
         current_session.setMagicLevelAndRefill(sendell_red_ball_magic_level);
-        try setCurrentDialogId(current_session, sendell_first_dialog_id);
+        try setCurrentTextRecord(current_session, .scripted_event_text, sendell_first_dialog_id);
         object_behavior.sendell_ball_phase = .awaiting_first_dialog_ack;
     }
 }
@@ -407,7 +407,7 @@ fn applyScene2CellarMessageAction(
     for (zones.slice()) |zone| switch (zone.semantics) {
         .message => |message| {
             if (!isScene2CellarMessageDialog(message.dialog_id)) continue;
-            try setCurrentDialogId(current_session, message.dialog_id);
+            try setCurrentTextRecord(current_session, .room_message_zone, message.dialog_id);
             return;
         },
         else => {},
@@ -463,7 +463,7 @@ fn applyScene3636AdvanceStory(
     const object_behavior = current_session.objectBehaviorStateByIndexPtr(sendell_object_index) orelse return error.MissingRuntimeObjectBehaviorState;
     switch (object_behavior.sendell_ball_phase) {
         .awaiting_first_dialog_ack => {
-            try setCurrentDialogId(current_session, sendell_first_dialog_id);
+            try setCurrentTextRecord(current_session, .scripted_event_text, sendell_first_dialog_id);
             object_behavior.sendell_ball_phase = .awaiting_second_dialog_ack;
         },
         .awaiting_second_dialog_ack => {
@@ -486,9 +486,13 @@ fn applyAdvanceStory(
     try applyScene3636AdvanceStory(room, current_session);
 }
 
-fn setCurrentDialogId(current_session: *runtime_session.Session, dialog_id: i16) !void {
+fn setCurrentTextRecord(
+    current_session: *runtime_session.Session,
+    owner: runtime_session.text_interactions.TextInteractionOwner,
+    dialog_id: i16,
+) !void {
     current_session.clearCurrentDialogId();
-    try current_session.setCurrentDialogId(dialog_id);
+    try current_session.openTextRecord(owner, dialog_id, null);
 }
 
 fn isScene2CellarMessageDialog(dialog_id: i16) bool {

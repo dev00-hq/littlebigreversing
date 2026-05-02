@@ -3,6 +3,7 @@ const builtin = @import("builtin");
 const room_fixtures = if (builtin.is_test) @import("../testing/room_fixtures.zig") else struct {};
 const room_state = @import("room_state.zig");
 const room_projection = @import("room_projection.zig");
+pub const text_interactions = @import("text_interactions.zig");
 const world_geometry = @import("world_geometry.zig");
 
 pub const HeroWorldDelta = struct {
@@ -202,7 +203,7 @@ pub const Session = struct {
     magic_point: u8,
     little_key_count: u8,
     secret_room_house_door_unlocked: bool,
-    current_dialog_id: ?i16,
+    text_ui_state: text_interactions.TextUiState,
     objects: []ObjectState,
     object_behaviors: []ObjectBehaviorState,
     bonus_spawn_event_count: usize,
@@ -232,7 +233,7 @@ pub const Session = struct {
             .magic_point = 0,
             .little_key_count = 0,
             .secret_room_house_door_unlocked = false,
-            .current_dialog_id = null,
+            .text_ui_state = text_interactions.TextUiState.hidden(),
             .objects = &.{},
             .object_behaviors = &.{},
             .bonus_spawn_event_count = 0,
@@ -274,7 +275,7 @@ pub const Session = struct {
             .magic_point = 0,
             .little_key_count = 0,
             .secret_room_house_door_unlocked = false,
-            .current_dialog_id = null,
+            .text_ui_state = text_interactions.TextUiState.hidden(),
             .objects = owned_objects,
             .object_behaviors = owned_object_behaviors,
             .bonus_spawn_event_count = 0,
@@ -306,7 +307,7 @@ pub const Session = struct {
         self.reward_pickup_event_count = 0;
         self.magic_ball_projectile_count = 0;
         self.magic_ball_projectile_event_count = 0;
-        self.current_dialog_id = null;
+        self.text_ui_state.close();
         self.pending_room_transition = null;
         self.owns_objects = false;
         self.owns_object_behaviors = false;
@@ -335,7 +336,7 @@ pub const Session = struct {
 
         self.hero.world_position = hero_world_position;
         self.pending_hero_intent = null;
-        self.current_dialog_id = null;
+        self.text_ui_state.close();
         self.objects = owned_objects;
         self.object_behaviors = owned_object_behaviors;
         self.bonus_spawn_event_count = 0;
@@ -403,7 +404,7 @@ pub const Session = struct {
     }
 
     pub fn currentDialogId(self: Session) ?i16 {
-        return self.current_dialog_id;
+        return self.text_ui_state.record_id;
     }
 
     pub fn setMagicLevelAndRefill(self: *Session, level: u8) void {
@@ -436,12 +437,32 @@ pub const Session = struct {
     }
 
     pub fn setCurrentDialogId(self: *Session, dialog_id: i16) !void {
-        if (self.current_dialog_id != null) return error.CurrentDialogAlreadySet;
-        self.current_dialog_id = dialog_id;
+        // Existing room-message call path only; new text affordance owners must
+        // use openTextRecord so the trigger family stays explicit.
+        try self.openTextRecord(.room_message_zone, dialog_id, null);
     }
 
     pub fn clearCurrentDialogId(self: *Session) void {
-        self.current_dialog_id = null;
+        self.text_ui_state.close();
+    }
+
+    pub fn textUiState(self: Session) text_interactions.TextUiState {
+        return self.text_ui_state;
+    }
+
+    pub fn openTextRecord(
+        self: *Session,
+        owner: text_interactions.TextInteractionOwner,
+        record_id: i16,
+        cursor_offset: ?usize,
+    ) !void {
+        if (self.text_ui_state.isVisible()) return error.CurrentDialogAlreadySet;
+        self.text_ui_state = text_interactions.TextUiState.open(owner, record_id, cursor_offset);
+    }
+
+    pub fn advanceTextRecordPage(self: *Session, cursor_offset: ?usize) !void {
+        if (!self.text_ui_state.isVisible()) return error.NoCurrentDialog;
+        self.text_ui_state.advancePage(cursor_offset);
     }
 
     pub fn objectSnapshots(self: Session) []const ObjectState {
@@ -686,6 +707,7 @@ test "runtime session initializes mutable hero state from an explicit world-posi
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.littleKeyCount());
     try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
+    try std.testing.expectEqual(text_interactions.TextUiState.hidden(), runtime_session.textUiState());
     try std.testing.expectEqual(@as(usize, 0), runtime_session.objectSnapshots().len);
     try std.testing.expectEqual(@as(usize, 0), runtime_session.objectBehaviorStates().len);
     try std.testing.expectEqual(@as(usize, 0), runtime_session.magicBallProjectiles().len);
@@ -812,12 +834,18 @@ test "runtime session keeps transient current dialog state explicit and single-s
     try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
     try runtime_session.setCurrentDialogId(42);
     try std.testing.expectEqual(@as(?i16, 42), runtime_session.currentDialogId());
+    try std.testing.expectEqual(text_interactions.TextInteractionOwner.room_message_zone, runtime_session.textUiState().owner.?);
     try std.testing.expectError(error.CurrentDialogAlreadySet, runtime_session.setCurrentDialogId(43));
 
     runtime_session.clearCurrentDialogId();
     try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
-    try runtime_session.setCurrentDialogId(44);
+    try runtime_session.openTextRecord(.object_inspection, 44, 34);
     try std.testing.expectEqual(@as(?i16, 44), runtime_session.currentDialogId());
+    try std.testing.expectEqual(text_interactions.TextInteractionOwner.object_inspection, runtime_session.textUiState().owner.?);
+    try std.testing.expectEqual(@as(?usize, 34), runtime_session.textUiState().cursor_offset);
+    try runtime_session.advanceTextRecordPage(71);
+    try std.testing.expectEqual(@as(?usize, 71), runtime_session.textUiState().cursor_offset);
+    try std.testing.expectEqual(@as(u8, 2), runtime_session.textUiState().page_index);
 }
 
 test "runtime session keeps pending room transitions explicit and single-slot" {

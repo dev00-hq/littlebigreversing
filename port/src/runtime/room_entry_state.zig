@@ -63,7 +63,7 @@ pub fn reconstructLoadedRoomState(
     }
 
     if (current_session.magicLevel() >= sendell_red_ball_magic_level and current_session.magicPoint() == sendell_red_ball_magic_point) {
-        current_session.setCurrentDialogId(sendell_dialog_id) catch unreachable;
+        current_session.openTextRecord(.scripted_event_text, sendell_dialog_id, null) catch unreachable;
         object_behavior.sendell_ball_phase = .awaiting_first_dialog_ack;
         return;
     }
@@ -125,5 +125,6 @@ test "room entry reconstructs pending Sendell dialog state from durable magic st
     reconstructLoadedRoomState(room, &current_session);
 
     try std.testing.expectEqual(@as(?i16, sendell_dialog_id), current_session.currentDialogId());
+    try std.testing.expectEqual(runtime_session.text_interactions.TextInteractionOwner.scripted_event_text, current_session.textUiState().owner.?);
     try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_first_dialog_ack, current_session.objectBehaviorStateByIndex(sendell_object_index).?.sendell_ball_phase);
 }

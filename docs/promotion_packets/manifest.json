@@ -96,6 +96,17 @@
         "magic_ball_lever_activation_multi_family"
       ],
       "canonical_runtime": true
+    },
+    {
+      "id": "phase5_text_interaction_affordance_families",
+      "status": "live_positive",
+      "evidence_class": "dialog_text",
+      "packet": "docs/promotion_packets/phase5/phase5_text_interaction_affordance_families.md",
+      "fixture": "tools/fixtures/promotion_packets/phase5_text_interaction_affordance_families_live_positive.json",
+      "runtime_contracts": [
+        "text_interaction_affordance_families"
+      ],
+      "canonical_runtime": true
     }
   ]
 }

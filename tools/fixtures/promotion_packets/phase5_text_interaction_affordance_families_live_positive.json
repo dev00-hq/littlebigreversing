@@ -1,0 +1,167 @@
+{
+  "schema": "promotion-packet-evidence-v1",
+  "packet_id": "phase5_text_interaction_affordance_families",
+  "status": "live_positive",
+  "evidence_class": "dialog_text",
+  "source": {
+    "primary_saves": [
+      "02-voisin.LBA",
+      "02-dome.LBA",
+      "imperial hotel window.LBA",
+      "04-house.LBA"
+    ],
+    "related_prior_save": "ball of sendell.LBA",
+    "hero_object_index": 0,
+    "named_save_autosave_guard_required": true
+  },
+  "decoder_globals": {
+    "BufOrder": "0x004CC4A0",
+    "BufText": "0x004CC494",
+    "PtText": "0x004CC498",
+    "SizeText": "0x004CC49C",
+    "PtDial": "0x004CCDF0",
+    "CurrentDial": "0x004CCF10"
+  },
+  "families": [
+    {
+      "name": "actor_conversation",
+      "save": "02-voisin.LBA",
+      "artifact": "work/live_proofs/phase5_dialogue_voisin_turn_reply_20260501-210353/summary.json",
+      "trigger": {
+        "input": "W",
+        "requires_actor_target": true,
+        "requires_range_or_facing": true
+      },
+      "observed": {
+        "twinsen_line_current_dial": 504,
+        "twinsen_line_text": "Hello neighbor.",
+        "space_closes_visible_box": true,
+        "current_dial_can_remain_after_visible_close": true,
+        "npc_turn_delay_observed_sec": 1.3,
+        "npc_reply_current_dial": 88,
+        "npc_reply_text": "Hello Twinsen!",
+        "long_reply_current_dial": 83,
+        "ptdial_pagination_observed": true
+      }
+    },
+    {
+      "name": "actor_service_menu",
+      "save": "02-dome.LBA",
+      "artifacts": [
+        "work/live_proofs/phase5_dialogue_dome_dinofly_close_target_20260501-213340/summary.json",
+        "work/live_proofs/phase5_dialogue_dome_dinofly_menu_safe_20260501-213937/summary.json"
+      ],
+      "trigger": {
+        "input": "W",
+        "requires_close_position": true,
+        "requires_facing_actor": true,
+        "menu_inputs": ["Space", "Up", "Down", "Enter"]
+      },
+      "observed": {
+        "greeting_current_dial": 101,
+        "greeting_text": "Hi.",
+        "prompt_current_dial": 289,
+        "prompt_text": "Where do you want to go, Twinsen?",
+        "options": [
+          "I'm staying here.",
+          "Desert Island.",
+          "The island across from the hacienda.",
+          "Take me back home."
+        ],
+        "down_changes_selection": true,
+        "up_changes_selection": true,
+        "enter_first_option_closes_menu_without_travel": true,
+        "current_dial_stays_prompt_while_selection_text_changes": true
+      }
+    },
+    {
+      "name": "ambient_bark",
+      "save": "imperial hotel window.LBA",
+      "artifact": "work/live_proofs/phase5_dialogue_hotel_window_bark_facing_20260501-214702/summary.json",
+      "trigger": {
+        "input": "movement",
+        "forced_facing_beta": 3500,
+        "proximity_trigger": true,
+        "requires_w": false
+      },
+      "observed": {
+        "visual_text": "Theeeeee!!!",
+        "decoded_text": "Hheeeeee!!!",
+        "current_dial": 0,
+        "ptdial": "0x00000000",
+        "auto_clears_visually": true,
+        "actor_conversation_proven": false
+      }
+    },
+    {
+      "name": "object_inspection",
+      "save": "04-house.LBA",
+      "artifact": "work/live_proofs/phase5_dialogue_04_house_painting_inspect_repeat_20260501-220141/summary.json",
+      "trigger": {
+        "input": "W",
+        "hold_ms": 180,
+        "requires_facing_prop": true,
+        "prop": "wall painting"
+      },
+      "observed": {
+        "current_dial": 29,
+        "decoded_text": "\"To my future descendants: I have lent to Miss Bloop's private museum, the Medallion and the Ancestral Tunic which rightfully belong to you. Signed: Twinsen.\"",
+        "ptdial_pagination_observed": true,
+        "npc_actor_involved": false,
+        "service_menu_involved": false
+      }
+    },
+    {
+      "name": "scripted_acquisition_event_text",
+      "save": "ball of sendell.LBA",
+      "artifacts": [
+        "docs/ROOM36_DIALOG_DECODE.md",
+        "tools/life_trace/capture_sendell_ball.py"
+      ],
+      "trigger": {
+        "input": "event_sequence",
+        "room_or_life_script_owned": true,
+        "acknowledgement_inputs": ["Enter"]
+      },
+      "observed": {
+        "decoded_text": "You just found Sendell's Ball. Now you have reached a new level of magic: Red Ball. It will also enable Sendell to contact you in case of danger.",
+        "current_dial_stable_across_visible_pages": true,
+        "pttext_stable_across_visible_pages": true,
+        "ptdial_advances_across_visible_pages": true,
+        "durable_story_state_deltas_adjacent": true,
+        "passive_object_inspection": false
+      }
+    }
+  ],
+  "observations": {
+    "shared_text_ui_state": true,
+    "shared_decoder_globals": true,
+    "ptdial_pagination_is_renderer_state": true,
+    "currentdial_is_record_identity_evidence_not_modal_state": true,
+    "trigger_owner_must_be_modeled_separately": true,
+    "actor_conversation_promoted_as_family": true,
+    "actor_service_menu_promoted_as_family": true,
+    "ambient_bark_promoted_as_family": true,
+    "object_inspection_promoted_as_family": true,
+    "scripted_event_text_promoted_as_related_family": true,
+    "generic_dialogue_system_promoted": false,
+    "generic_object_inspection_promoted": false,
+    "dinofly_travel_transition_promoted": false,
+    "hotel_window_w_talk_path_promoted": false,
+    "dialog_ui_save_persistence_promoted": false,
+    "visible_page_turn_means_new_dialog_id": false
+  },
+  "runtime_contract": {
+    "id": "text_interaction_affordance_families",
+    "required_owner_split": [
+      "TextUiState",
+      "ActorInteraction",
+      "ConversationScript",
+      "ChoiceMenuState",
+      "AmbientBark",
+      "ObjectInspection",
+      "ScriptedEventText"
+    ]
+  },
+  "verdict": "text_interaction_affordance_families_live_positive"
+}

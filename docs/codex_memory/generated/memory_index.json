@@ -31,6 +31,22 @@
     },
     {
       "confidence": "high",
+      "heading": "fact.dinofly-dialogue-is-service-menu-affordance",
+      "id": "fact.dinofly-dialogue-is-service-menu-affordance",
+      "last_verified": "2026-05-01",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "dialogue",
+        "actors",
+        "menu",
+        "dinofly"
+      ],
+      "type": "fact"
+    },
+    {
+      "confidence": "high",
       "heading": "fact.emerald-moon-switches-room-lever-objects",
       "id": "fact.emerald-moon-switches-room-lever-objects",
       "last_verified": "2026-04-29",
@@ -75,6 +91,21 @@
     },
     {
       "confidence": "high",
+      "heading": "fact.painting-inspection-is-object-text-affordance",
+      "id": "fact.painting-inspection-is-object-text-affordance",
+      "last_verified": "2026-05-01",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "dialogue",
+        "object-inspection",
+        "text-ui"
+      ],
+      "type": "fact"
+    },
+    {
+      "confidence": "high",
       "heading": "fact.tralu-magic-ball-damage-probe-ready-sequence",
       "id": "fact.tralu-magic-ball-damage-probe-ready-sequence",
       "last_verified": "2026-04-29",
@@ -89,6 +120,21 @@
     },
     {
       "confidence": "high",
+      "heading": "trap.ambient-barks-use-text-renderer-without-dialog-records",
+      "id": "trap.ambient-barks-use-text-renderer-without-dialog-records",
+      "last_verified": "2026-05-01",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "dialogue",
+        "ambient-bark",
+        "text-ui"
+      ],
+      "type": "trap"
+    },
+    {
+      "confidence": "high",
       "heading": "trap.current-focus-heading-is-schema",
       "id": "trap.current-focus-heading-is-schema",
       "last_verified": "2026-04-29",
@@ -96,6 +142,20 @@
       "tags": [
         "codex-memory",
         "validation"
+      ],
+      "type": "trap"
+    },
+    {
+      "confidence": "high",
+      "heading": "trap.dialog-currentdial-is-not-modal-state",
+      "id": "trap.dialog-currentdial-is-not-modal-state",
+      "last_verified": "2026-05-01",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "dialogue",
+        "actors"
       ],
       "type": "trap"
     },
@@ -141,5 +201,5 @@
       "type": "trap"
     }
   ],
-  "source_hash": "sha256:27a16be2ff190b0cc4b8370a26b28b3fc44a19f7fc790e5058c49858146c6702"
+  "source_hash": "sha256:97cc1e755c3d549b2c4e45cd3baed7261bc0b0662d42bafe97c486aa225d2696"
 }

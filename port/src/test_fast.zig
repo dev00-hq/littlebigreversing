@@ -6,6 +6,7 @@ test {
     _ = @import("runtime/room_state.zig");
     _ = @import("runtime/world_geometry.zig");
     _ = @import("runtime/session.zig");
+    _ = @import("runtime/text_interactions.zig");
     _ = @import("runtime/locomotion.zig");
     _ = @import("runtime/locomotion_test.zig");
     _ = @import("runtime/object_behavior.zig");

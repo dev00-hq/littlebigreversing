@@ -172,3 +172,83 @@ path, and source/decompilation maps that writer to `DoTrack/TM_LABEL`. The
 sufficient for activation; script/progression eligibility still matters. Do not
 implement broad lever support by matching one observed field delta or by writing
 lever fields directly from projectile collision code.
+
+### trap.dialog-currentdial-is-not-modal-state
+
+Status: active
+Confidence: high
+Last verified: 2026-05-01
+Tags: original-runtime, gameplay-automation, dialogue, actors
+Related tests: tools/life_trace/dialog_text_dump.py
+Related files: work/live_proofs/phase5_dialogue_voisin_turn_reply_20260501-210353/summary.json
+
+For original-runtime dialogue probes, do not treat `CurrentDial != 0` as proof
+that a dialogue box is currently visible. In `02-voisin.LBA`, Twinsen's `W`
+interaction opened `CurrentDial=504` (`Hello neighbor.`); pressing `Space`
+closed the visible box while `CurrentDial` still retained `504`. After about a
+1.3s no-input actor-turn window, the NPC reply opened automatically and then
+settled to `CurrentDial=88` (`Hello Twinsen!`). The later long response used one
+`CurrentDial=83` record while `PtDial` advanced through visible text chunks.
+Model dialogue probes as actor interaction/conversation scripts with visible
+UI state, speaker turns, delays, and `PtDial` cursor progression; use
+screenshots plus text-buffer state, not `CurrentDial` alone.
+
+### fact.dinofly-dialogue-is-service-menu-affordance
+
+Status: active
+Confidence: high
+Last verified: 2026-05-01
+Tags: original-runtime, gameplay-automation, dialogue, actors, menu, dinofly
+Related tests: tools/life_trace/dialog_text_dump.py
+Related files: work/live_proofs/phase5_dialogue_dome_dinofly_close_target_20260501-213340/summary.json, work/live_proofs/phase5_dialogue_dome_dinofly_menu_safe_20260501-213937/summary.json
+
+Do not classify Dino-Fly interaction as ordinary NPC dialogue. In
+`02-dome.LBA`, `W` only triggered after Twinsen was close enough and facing
+Dino-Fly; the first line was `CurrentDial=101` (`Hi.`), followed by
+`CurrentDial=289` (`Where do you want to go, Twinsen?`). Pressing `Space` from
+that prompt opened a choice menu with destination options. `Up`/`Down` changed
+the highlighted choice, and `Enter` confirmed the first safe option
+(`I'm staying here.`), closing the menu without travel. During menu navigation,
+`CurrentDial` stayed on prompt id `289` while `PtText`/decoded text reflected the
+selected option. Model this as an actor service interaction with range/facing,
+dialogue prompt, menu state, selection, and confirmation dispatch; travel
+transitions remain a separate unproved path.
+
+### trap.ambient-barks-use-text-renderer-without-dialog-records
+
+Status: active
+Confidence: high
+Last verified: 2026-05-01
+Tags: original-runtime, gameplay-automation, dialogue, ambient-bark, text-ui
+Related tests: tools/life_trace/dialog_text_dump.py
+Related files: work/live_proofs/phase5_dialogue_hotel_window_bark_facing_20260501-214702/summary.json
+
+Ambient bark text can use the text renderer without behaving like deliberate
+dialogue. In `imperial hotel window.LBA`, after forcing Twinsen to face beta
+`3500` and moving toward the NPC/window, proximity triggered the large centered
+bark (`Theeeeee!!!` visually, `Hheeeeee!!!` in decoded text). `CurrentDial`
+remained `0` and `PtDial` remained null while `PtText` changed to the bark text
+buffer; the bark auto-cleared visually after a short wait. Do not use text
+appearance alone as evidence of an actor conversation or modal dialogue. For
+proximity barks, prove trigger movement/range, visual text, and buffer change
+separately from `W`-driven dialogue.
+
+### fact.painting-inspection-is-object-text-affordance
+
+Status: active
+Confidence: high
+Last verified: 2026-05-01
+Tags: original-runtime, gameplay-automation, dialogue, object-inspection, text-ui
+Related tests: tools/life_trace/dialog_text_dump.py
+Related files: work/live_proofs/phase5_dialogue_04_house_painting_inspect_repeat_20260501-220141/summary.json
+
+Do not collapse object inspection text into NPC dialogue. In `04-house.LBA`,
+Twinsen starts facing the wall painting; holding `W` for about 180ms opened
+`CurrentDial=29` with the decoded record `"To my future descendants: I have lent
+to Miss Bloop's private museum, the Medallion and the Ancestral Tunic which
+rightfully belong to you. Signed: Twinsen."` The screenshot shows Twinsen
+looking at the painting with the text box open and no NPC actor involved.
+Repeated `W` presses advanced `PtDial` through chunks of the same record
+instead of starting an actor turn or service menu. Model this as deliberate
+object/prop inspection with range/facing and text pagination; it shares
+`TextUiState` with dialogue, but not actor conversation semantics.

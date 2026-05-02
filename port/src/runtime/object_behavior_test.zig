@@ -84,6 +84,7 @@ test "runtime object behavior applies the supported Sendell room-36 story sequen
     try std.testing.expectEqual(@as(u8, 3), current_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 60), current_session.magicPoint());
     try std.testing.expectEqual(@as(?i16, 3), current_session.currentDialogId());
+    try std.testing.expectEqual(runtime_session.text_interactions.TextInteractionOwner.scripted_event_text, current_session.textUiState().owner.?);
     const first_slice = object_behavior.currentSendellDialogSlice(current_session).?;
     try std.testing.expectEqual(@as(u8, 1), first_slice.page_number);
     try std.testing.expectEqualStrings(
@@ -172,6 +173,7 @@ test "runtime object behavior opens and clears scene-2 cellar message zones" {
 
     try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
     try std.testing.expectEqual(@as(?i16, 284), current_session.currentDialogId());
+    try std.testing.expectEqual(runtime_session.text_interactions.TextInteractionOwner.room_message_zone, current_session.textUiState().owner.?);
     try std.testing.expect(object_behavior.cellarMessageAwaitsAdvance(&room, current_session));
 
     try object_behavior.applyHeroIntent(&room, &current_session, .default_action);
