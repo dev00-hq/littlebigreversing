@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "checkpoint_id",
+    "matches",
+    "confidence",
+    "summary",
+    "observed",
+    "mismatches"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "game-drive-visual-classification-v1"
+    },
+    "checkpoint_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "matches": {
+      "type": "boolean"
+    },
+    "confidence": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "twinsen_visible",
+        "target_visible",
+        "ui_state",
+        "unsafe_pose_signs"
+      ],
+      "properties": {
+        "twinsen_visible": {
+          "type": "boolean"
+        },
+        "target_visible": {
+          "type": "boolean"
+        },
+        "ui_state": {
+          "enum": [
+            "gameplay",
+            "dialog",
+            "menu",
+            "unknown"
+          ]
+        },
+        "unsafe_pose_signs": {
+          "type": "boolean"
+        }
+      }
+    },
+    "mismatches": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

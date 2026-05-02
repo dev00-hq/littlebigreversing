@@ -120,6 +120,21 @@
     },
     {
       "confidence": "high",
+      "heading": "policy.teleport-requires-visual-checkpoint",
+      "id": "policy.teleport-requires-visual-checkpoint",
+      "last_verified": "2026-05-02",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "teleport",
+        "visual-proof",
+        "codex-exec"
+      ],
+      "type": "policy"
+    },
+    {
+      "confidence": "high",
       "heading": "trap.ambient-barks-use-text-renderer-without-dialog-records",
       "id": "trap.ambient-barks-use-text-renderer-without-dialog-records",
       "last_verified": "2026-05-01",
@@ -174,6 +189,21 @@
     },
     {
       "confidence": "high",
+      "heading": "trap.live-directdraw-window-capture-can-be-unavailable",
+      "id": "trap.live-directdraw-window-capture-can-be-unavailable",
+      "last_verified": "2026-05-02",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "visual-proof",
+        "save-preview",
+        "directdraw"
+      ],
+      "type": "trap"
+    },
+    {
+      "confidence": "high",
       "heading": "trap.magic-ball-switch-object-noise-is-not-hit-proof",
       "id": "trap.magic-ball-switch-object-noise-is-not-hit-proof",
       "last_verified": "2026-04-29",
@@ -201,5 +231,5 @@
       "type": "trap"
     }
   ],
-  "source_hash": "sha256:97cc1e755c3d549b2c4e45cd3baed7261bc0b0662d42bafe97c486aa225d2696"
+  "source_hash": "sha256:1415b75f7b4b13ed20e13c02bc3422d881dc7992591f03878f1079730e1fa5e8"
 }

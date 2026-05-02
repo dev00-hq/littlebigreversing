@@ -1,0 +1,55 @@
+{
+  "schema": "game-drive-checkpoint-v1",
+  "id": "pose_ready_wizard_tent_lever",
+  "save": "lever-wizard-tent.LBA",
+  "autosave_guard": "hide_active_autosave_preserve_generated",
+  "setup": {
+    "pose": {
+      "method": "existing_pose",
+      "scene": 0,
+      "background": 0,
+      "active_cube": 0,
+      "coordinates": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "beta": 0
+      },
+      "tolerance": {
+        "position": 8192,
+        "beta": 4096
+      },
+      "safe_source": "phase5_magic_ball_lever_activation_multi_family wizard tent save pose"
+    }
+  },
+  "runtime_expect": {
+    "life_not_lost": true,
+    "scene": 0,
+    "background": 0,
+    "magic_ball_flag": 1
+  },
+  "visual_expect": {
+    "checkpoint": "loaded_pose_before_action",
+    "source": "save_embedded_preview",
+    "classifier": "codex_exec",
+    "screenshot_required": true,
+    "summary_required": true,
+    "scene_description": "Wizard tent interior with a lever and the wizard NPC visible or nearby.",
+    "target_description": "The lever in front of Twinsen.",
+    "expected": {
+      "twinsen_visible": true,
+      "target_visible": true,
+      "ui_state": "gameplay",
+      "unsafe_pose_signs": false
+    },
+    "summary_must_mention": [
+      "Twinsen",
+      "lever",
+      "gameplay"
+    ],
+    "negative_controls": []
+  },
+  "actions_after_checkpoint": [
+    "hold_period_0_75_sec_release"
+  ]
+}

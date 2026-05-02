@@ -252,3 +252,39 @@ Repeated `W` presses advanced `PtDial` through chunks of the same record
 instead of starting an actor turn or service menu. Model this as deliberate
 object/prop inspection with range/facing and text pagination; it shares
 `TextUiState` with dialogue, but not actor conversation semantics.
+
+### policy.teleport-requires-visual-checkpoint
+
+Status: active
+Confidence: high
+Last verified: 2026-05-02
+Tags: original-runtime, gameplay-automation, teleport, visual-proof, codex-exec
+Related tests: tools/test_game_drive_checkpoint.py
+Related files: tools/game_drive_checkpoint.py, tools/fixtures/game_drive_checkpoints/pose_ready_magic_ball_middle_switch.json
+
+Every original-runtime teleport or direct pose-set operation must be followed
+by a screenshot checkpoint and `codex exec` visual classification before any
+gameplay action is allowed. Runtime memory alone can say the scene, pose, and
+object fields look correct while the screenshot shows Twinsen facing the wrong
+way, standing in the wrong room, falling, respawning, or blocked by UI. The
+visual classifier response must be structured JSON and include a non-empty
+`summary` field that justifies the boolean observations. Teleport/direct-pose
+checkpoint contracts must also declare negative visual controls so screenshot
+classification is not used only as a confirmation-biased rubber stamp.
+
+### trap.live-directdraw-window-capture-can-be-unavailable
+
+Status: active
+Confidence: high
+Last verified: 2026-05-02
+Tags: original-runtime, gameplay-automation, visual-proof, save-preview, directdraw
+Related tests: tools/test_game_drive_runner.py, tools/test_game_drive_checkpoint.py
+Related files: tools/game_drive_runner.py, tools/game_drive_checkpoint.py
+
+Unattended original-runtime runs can load the correct save and expose valid
+runtime globals while live window screenshot capture returns a black DirectDraw
+surface or cannot access the desktop. Do not silently treat that as visual
+proof. Game-drive checkpoints must declare their visual source explicitly. A
+prepared named-save checkpoint may use `save_embedded_preview` paired with live
+runtime globals, but teleport/direct-pose checkpoints must use
+`live_window_capture` and remain blocked if live screenshots are unavailable.

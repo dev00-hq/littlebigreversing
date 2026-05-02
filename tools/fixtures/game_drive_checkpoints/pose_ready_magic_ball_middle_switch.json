@@ -1,0 +1,67 @@
+{
+  "schema": "game-drive-checkpoint-v1",
+  "id": "pose_ready_magic_ball_middle_switch",
+  "save": "moon-switches-room.LBA",
+  "autosave_guard": "hide_active_autosave_preserve_generated",
+  "setup": {
+    "pose": {
+      "method": "existing_pose",
+      "scene": 31,
+      "background": 31,
+      "active_cube": 31,
+      "coordinates": {
+        "x": 4866,
+        "y": 512,
+        "z": 8324,
+        "beta": 2995
+      },
+      "tolerance": {
+        "position": 64,
+        "beta": 32
+      },
+      "safe_source": "phase5_magic_ball_switch_activation_emerald_moon promoted object 3 initial pose"
+    }
+  },
+  "runtime_expect": {
+    "life_not_lost": true,
+    "scene": 31,
+    "background": 31,
+    "active_cube": 31,
+    "magic_ball_flag": 1
+  },
+  "visual_expect": {
+    "checkpoint": "after_pose_set_before_action",
+    "source": "save_embedded_preview",
+    "classifier": "codex_exec",
+    "screenshot_required": true,
+    "summary_required": true,
+    "scene_description": "Emerald Moon switch room with three wall/pedestal switches visible ahead of Twinsen.",
+    "target_description": "The middle switch among the three switches.",
+    "expected": {
+      "twinsen_visible": true,
+      "target_visible": true,
+      "ui_state": "gameplay",
+      "unsafe_pose_signs": false
+    },
+    "summary_must_mention": [
+      "Twinsen",
+      "switch",
+      "gameplay"
+    ],
+    "negative_controls": [
+      {
+        "id": "wrong_beta_target_not_visible",
+        "description": "Twinsen is in the save room but facing away from the wall switch target.",
+        "expected_matches": false
+      },
+      {
+        "id": "wrong_save_or_autosave_room",
+        "description": "The screenshot shows a different room because autosave or launch state won.",
+        "expected_matches": false
+      }
+    ]
+  },
+  "actions_after_checkpoint": [
+    "hold_period_0_75_sec_release"
+  ]
+}

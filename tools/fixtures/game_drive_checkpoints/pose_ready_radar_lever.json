@@ -1,0 +1,56 @@
+{
+  "schema": "game-drive-checkpoint-v1",
+  "id": "pose_ready_radar_lever",
+  "save": "lever-magic-ball.LBA",
+  "autosave_guard": "hide_active_autosave_preserve_generated",
+  "setup": {
+    "pose": {
+      "method": "existing_pose",
+      "scene": 23,
+      "background": 23,
+      "active_cube": 23,
+      "coordinates": {
+        "x": 27617,
+        "y": 512,
+        "z": 12245,
+        "beta": 2800
+      },
+      "tolerance": {
+        "position": 256,
+        "beta": 384
+      },
+      "safe_source": "phase5_magic_ball_lever_activation_multi_family radar room save pose"
+    }
+  },
+  "runtime_expect": {
+    "life_not_lost": true,
+    "scene": 23,
+    "background": 23,
+    "active_cube": 23,
+    "magic_ball_flag": 1
+  },
+  "visual_expect": {
+    "checkpoint": "loaded_pose_before_action",
+    "source": "save_embedded_preview",
+    "classifier": "codex_exec",
+    "screenshot_required": true,
+    "summary_required": true,
+    "scene_description": "Emerald Moon radar room with a lever and door/platform machinery nearby.",
+    "target_description": "The lever directly in front of Twinsen.",
+    "expected": {
+      "twinsen_visible": true,
+      "target_visible": true,
+      "ui_state": "gameplay",
+      "unsafe_pose_signs": false
+    },
+    "summary_must_mention": [
+      "Twinsen",
+      "lever",
+      "gameplay"
+    ],
+    "negative_controls": []
+  },
+  "actions_after_checkpoint": [
+    "hold_period_0_75_sec_release"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "game-drive-visual-classification-v1",
+  "checkpoint_id": "pose_ready_magic_ball_middle_switch",
+  "matches": true,
+  "confidence": "high",
+  "summary": "Twinsen is visible in gameplay view near the wall switch area, with the switch target visible ahead and no unsafe pose signs such as a menu, dialog, fall, or respawn indicator.",
+  "observed": {
+    "twinsen_visible": true,
+    "target_visible": true,
+    "ui_state": "gameplay",
+    "unsafe_pose_signs": false
+  },
+  "mismatches": []
+}

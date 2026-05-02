@@ -1,0 +1,54 @@
+{
+  "schema": "game-drive-checkpoint-v1",
+  "id": "pose_ready_voisin_dialogue",
+  "save": "02-voisin.LBA",
+  "autosave_guard": "hide_active_autosave_preserve_generated",
+  "setup": {
+    "pose": {
+      "method": "existing_pose",
+      "scene": 0,
+      "background": 0,
+      "active_cube": 0,
+      "coordinates": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "beta": 0
+      },
+      "tolerance": {
+        "position": 8192,
+        "beta": 4096
+      },
+      "safe_source": "phase5_text_interaction_affordance_families voisin dialogue save pose"
+    }
+  },
+  "runtime_expect": {
+    "life_not_lost": true,
+    "scene": 0,
+    "background": 0
+  },
+  "visual_expect": {
+    "checkpoint": "loaded_pose_before_action",
+    "source": "save_embedded_preview",
+    "classifier": "codex_exec",
+    "screenshot_required": true,
+    "summary_required": true,
+    "scene_description": "Neighbor dialogue setup where Twinsen is positioned to talk to an NPC.",
+    "target_description": "The neighbor NPC near Twinsen.",
+    "expected": {
+      "twinsen_visible": true,
+      "target_visible": true,
+      "ui_state": "gameplay",
+      "unsafe_pose_signs": false
+    },
+    "summary_must_mention": [
+      "Twinsen",
+      "NPC",
+      "gameplay"
+    ],
+    "negative_controls": []
+  },
+  "actions_after_checkpoint": [
+    "press_w_0_18_sec"
+  ]
+}
