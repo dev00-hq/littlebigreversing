@@ -127,6 +127,61 @@ def hold_key(input_tool: WindowInput, hwnd: int, virtual_key: int, hold_sec: flo
     time.sleep(0.18)
 
 
+def changed_fields(samples: list[dict[str, Any]]) -> dict[str, list[Any]]:
+    if not samples:
+        return {}
+    names = sorted({name for sample in samples for name in sample if name != "error"})
+    changes: dict[str, list[Any]] = {}
+    for name in names:
+        values = []
+        for sample in samples:
+            value = sample.get(name)
+            if value not in values:
+                values.append(value)
+        if len(values) > 1:
+            changes[name] = values[:8]
+    return changes
+
+
+def hold_key_with_runtime_poll(
+    input_tool: WindowInput,
+    hwnd: int,
+    virtual_key: int,
+    hold_sec: float,
+    reader: ProcessReader,
+    *,
+    post_release_sec: float = 1.2,
+    poll_sec: float = 0.05,
+) -> dict[str, Any]:
+    samples: list[dict[str, Any]] = []
+    started = time.monotonic()
+    release_at = started + max(0.01, hold_sec)
+    end_at = release_at + max(0.0, post_release_sec)
+    input_tool.key_down(hwnd, virtual_key)
+    released = False
+    try:
+        while time.monotonic() < end_at:
+            now = time.monotonic()
+            if not released and now >= release_at:
+                input_tool.key_up(virtual_key)
+                released = True
+            sample = safe_snapshot(reader)
+            sample["_t_ms"] = int((now - started) * 1000)
+            samples.append(sample)
+            time.sleep(poll_sec)
+    finally:
+        if not released:
+            input_tool.key_up(virtual_key)
+    time.sleep(0.18)
+    comparable_samples = [{key: value for key, value in sample.items() if key != "_t_ms"} for sample in samples]
+    return {
+        "sample_count": len(samples),
+        "duration_ms": int((time.monotonic() - started) * 1000),
+        "changed_fields": changed_fields(comparable_samples),
+        "samples": samples[:60],
+    }
+
+
 def safe_snapshot(reader: ProcessReader) -> dict[str, Any]:
     try:
         return snapshot_globals(reader)
@@ -344,10 +399,9 @@ def run_checkpoint(checkpoint_path: Path, *, out_root: Path, save_root: Path, ex
             for action in checkpoint["actions_after_checkpoint"]:
                 key, hold_sec = action_to_key_hold(action)
                 before = safe_snapshot(reader)
-                hold_key(input_tool, window.hwnd, key, hold_sec)
-                time.sleep(0.7)
+                poll = hold_key_with_runtime_poll(input_tool, window.hwnd, key, hold_sec, reader)
                 after = safe_snapshot(reader)
-                action_records.append({"action": action, "before": before, "after": after})
+                action_records.append({"action": action, "before": before, "poll": poll, "after": after})
             summary["actions"] = action_records
             if action_records:
                 if checkpoint["visual_expect"]["source"] == "live_window_capture":

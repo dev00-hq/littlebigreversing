@@ -146,3 +146,11 @@ Issues lifecycle:
 - "Sendell's Ball" is now a multi-room proof family in this repo, not shorthand for raw scene `19`. Keep Tavern (`5`), Sewers (`19`), Treasure room (`20`), and the actual Sendell's Ball room (`36`) as distinct save/profile targets; otherwise it is easy to mistake the guarded sewer reward loop for the story-critical Sendell's Ball room behavior.
 - `COMMON.H` is not sufficient proof for track or life opcode semantics. Let checked-in decoder behavior, asset-backed probes, and recovered source behavior beat header names or comments.
 - Preserved legacy specs such as LBArchitect are useful structure guides, not byte-perfect numeric or indexing oracles. Let current asset-backed probes and tests win for exact values.
+- Game-drive runner action proof is still weak in unattended desktop runs. The
+  runner can load named saves under autosave guard, validate runtime globals,
+  and classify explicit visual sources, but the final `20260502T075720Z` five-save
+  batch showed empty `actions[*].poll.changed_fields` for the declared key
+  presses. Treat those action records as input-dispatch attempts, not gameplay
+  affordance proof, until the runner has an action-sensitive oracle such as live
+  post-action screenshots, text/dialog state changes, projectile extras, or a
+  confirmed focus/input lane.
