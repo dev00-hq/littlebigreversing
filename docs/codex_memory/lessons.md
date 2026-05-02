@@ -306,3 +306,20 @@ live-window checkpoint/direct-pose setup immediately before the action. Movement
 capability claims should therefore use live-window visual checkpoints and exact
 runtime postconditions such as beta or position deltas, not save-preview-only
 visual gates.
+
+### policy.game-drive-evidence-archive-is-explicit
+
+Status: active
+Confidence: high
+Last verified: 2026-05-02
+Tags: original-runtime, gameplay-automation, evidence, screenshots, archive
+Related tests: tools/test_game_drive_runner.py
+Related files: tools/game_drive_runner.py, tools/game_drive_capability_ladder.py
+
+Game-drive runs keep raw screenshots and run summaries under `work/` as
+rebuildable local evidence. Durable screenshot retention must be explicit:
+use `--archive` for canonical proof events or `--archive-on-failure` for
+diagnostic preservation. Archives store compressed WebP screenshot derivatives,
+selected JSON artifacts, hashes, compression settings, run ids, checkpoint ids,
+and the reason the archive exists. Do not auto-archive every passing smoke run;
+most green ladder runs are regression evidence, not canonical proof packets.

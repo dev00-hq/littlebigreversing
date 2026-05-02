@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+import json
+import shutil
 import unittest
+from pathlib import Path
+
+from PIL import Image
 
 from tools import game_drive_runner
 
@@ -46,6 +51,52 @@ class GameDriveRunnerTests(unittest.TestCase):
         self.assertIn("A room.", prompt)
         self.assertIn("A lever.", prompt)
         self.assertIn("summary_must_mention", prompt)
+
+    def test_archive_game_drive_run_compresses_screenshots_and_links_manifest(self) -> None:
+        root = game_drive_runner.REPO_ROOT / "work" / "unit_game_drive_archive_test"
+        shutil.rmtree(root, ignore_errors=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        root.mkdir(parents=True)
+        try:
+            run_dir = root / "run"
+            archive_root = root / "archive"
+            run_dir.mkdir()
+            screenshot = run_dir / "checkpoint.png"
+            Image.new("RGB", (800, 600), color=(12, 34, 56)).save(screenshot)
+            summary = {
+                "schema": "game-drive-run-summary-v1",
+                "checkpoint_id": "sample_checkpoint",
+                "run_dir": game_drive_runner.repo_relative(run_dir),
+                "verdict": "passed",
+                "checkpoint_screenshot": game_drive_runner.repo_relative(screenshot),
+                "evidence_archive": {
+                    "archive_id": "event-1",
+                    "manifest": game_drive_runner.repo_relative(archive_root / "event-1" / "manifest.json"),
+                    "reason": "explicit",
+                },
+            }
+            game_drive_runner.write_json(run_dir / "summary.json", summary)
+            game_drive_runner.write_json(run_dir / "visual_result.json", {"matches": True})
+
+            manifest = game_drive_runner.archive_game_drive_run(
+                summary,
+                run_dir,
+                archive_root,
+                event_id="event-1",
+                reason="explicit",
+            )
+
+            archived_image = archive_root / "event-1" / "checkpoint_screenshot.webp"
+            manifest_path = archive_root / "event-1" / "manifest.json"
+            self.assertTrue(archived_image.is_file())
+            self.assertFalse((archive_root / "event-1" / "checkpoint.png").exists())
+            self.assertEqual("game-drive-evidence-archive-v1", manifest["schema"])
+            loaded_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual("sample_checkpoint", loaded_manifest["checkpoint_id"])
+            self.assertEqual("webp", loaded_manifest["images"][0]["compression"]["format"])
+            self.assertTrue((archive_root / "event-1" / "summary.json").is_file())
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
 
 
 if __name__ == "__main__":

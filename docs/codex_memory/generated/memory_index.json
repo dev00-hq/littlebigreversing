@@ -120,6 +120,21 @@
     },
     {
       "confidence": "high",
+      "heading": "policy.game-drive-evidence-archive-is-explicit",
+      "id": "policy.game-drive-evidence-archive-is-explicit",
+      "last_verified": "2026-05-02",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "evidence",
+        "screenshots",
+        "archive"
+      ],
+      "type": "policy"
+    },
+    {
+      "confidence": "high",
       "heading": "policy.teleport-requires-visual-checkpoint",
       "id": "policy.teleport-requires-visual-checkpoint",
       "last_verified": "2026-05-02",
@@ -246,5 +261,5 @@
       "type": "trap"
     }
   ],
-  "source_hash": "sha256:b968b0e5770974fe6aeee2879f025f6ca856578ca8f9008af643bee3411d50a0"
+  "source_hash": "sha256:b506be39b900f1ca2182bd1ccd2b2f80e0364e3e6e2275d2cf3eff4311b02e08"
 }

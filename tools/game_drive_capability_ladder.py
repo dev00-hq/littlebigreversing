@@ -328,7 +328,15 @@ def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any
     }
 
 
-def run_ladder(cases: tuple[CapabilityCase, ...], out_root: Path) -> dict[str, Any]:
+def run_ladder(
+    cases: tuple[CapabilityCase, ...],
+    out_root: Path,
+    *,
+    archive: bool = False,
+    archive_on_failure: bool = False,
+    archive_root: Path = game_drive_runner.DEFAULT_ARCHIVE_ROOT,
+    archive_event_id: str | None = None,
+) -> dict[str, Any]:
     checkpoint_dir = out_root / "checkpoints"
     run_root = out_root / "runs"
     reports = []
@@ -340,6 +348,10 @@ def run_ladder(cases: tuple[CapabilityCase, ...], out_root: Path) -> dict[str, A
                 out_root=run_root,
                 save_root=game_drive_runner.DEFAULT_SAVE_DIR,
                 exe=game_drive_runner.DEFAULT_GAME_EXE,
+                archive=archive,
+                archive_on_failure=archive_on_failure,
+                archive_root=archive_root,
+                archive_event_id=f"{archive_event_id}-{case.id}" if archive_event_id else None,
             )
             reports.append(evaluate_case(case, result))
         except Exception as error:
@@ -378,11 +390,22 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run the original-runtime game-drive capability ladder.")
     parser.add_argument("--out-root", type=Path, default=DEFAULT_OUT_ROOT)
     parser.add_argument("--case", action="append", choices=[case.id for case in CAPABILITIES])
+    parser.add_argument("--archive", action="store_true", help="archive compressed evidence for selected runs")
+    parser.add_argument("--archive-on-failure", action="store_true", help="archive compressed evidence only for failed selected runs")
+    parser.add_argument("--archive-root", type=Path, default=game_drive_runner.DEFAULT_ARCHIVE_ROOT)
+    parser.add_argument("--archive-event-id", help="stable event/task/promotion id prefix for archived evidence")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
     try:
-        payload = run_ladder(selected_cases(args.case), args.out_root)
+        payload = run_ladder(
+            selected_cases(args.case),
+            args.out_root,
+            archive=args.archive,
+            archive_on_failure=args.archive_on_failure,
+            archive_root=args.archive_root,
+            archive_event_id=args.archive_event_id,
+        )
     except Exception as error:
         if args.json:
             print(json.dumps({"schema": "game-drive-capability-ladder-v1", "verdict": "error", "error": str(error)}, indent=2))

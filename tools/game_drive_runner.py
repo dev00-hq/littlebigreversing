@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import json
 import shutil
 import subprocess
@@ -36,6 +37,7 @@ from tools.lba2_save_loader import LBA2_PALETTE, SAVE_COMPRESS, SAVE_IMAGE_SIZE,
 
 
 DEFAULT_OUT_ROOT = REPO_ROOT / "work" / "game_drive_runs"
+DEFAULT_ARCHIVE_ROOT = REPO_ROOT / "docs" / "evidence_archive" / "game_drive"
 DEFAULT_SAVE_DIR = DEFAULT_GAME_EXE.parent / "SAVE"
 PT_TEXT_GLOBAL = 0x004CC498
 PT_DIAL_GLOBAL = 0x004CCDF0
@@ -74,6 +76,112 @@ def utc_stamp() -> str:
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def safe_event_id(value: str) -> str:
+    cleaned = "".join(char if char.isalnum() or char in {"-", "_", "."} else "_" for char in value)
+    return cleaned.strip("._") or "game-drive-run"
+
+
+def resolve_repo_path(value: str | None) -> Path | None:
+    if not value:
+        return None
+    path = Path(value)
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    return path
+
+
+def archive_image(source: Path, destination: Path) -> dict[str, Any]:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with Image.open(source) as image:
+        image = image.convert("RGB")
+        image.thumbnail((640, 480), Image.Resampling.LANCZOS)
+        image.save(destination, "WEBP", quality=35, method=6)
+    return {
+        "source": repo_relative(source),
+        "archive": repo_relative(destination),
+        "source_sha256": sha256_file(source),
+        "archive_sha256": sha256_file(destination),
+        "source_bytes": source.stat().st_size,
+        "archive_bytes": destination.stat().st_size,
+        "compression": {
+            "format": "webp",
+            "quality": 35,
+            "method": 6,
+            "max_size": [640, 480],
+        },
+    }
+
+
+def archive_game_drive_run(
+    summary: dict[str, Any],
+    run_dir: Path,
+    archive_root: Path,
+    *,
+    event_id: str | None = None,
+    reason: str,
+) -> dict[str, Any]:
+    run_name = run_dir.name
+    archive_id = safe_event_id(event_id or run_name)
+    archive_dir = archive_root / archive_id
+    archive_dir.mkdir(parents=True, exist_ok=False)
+    summary_path = run_dir / "summary.json"
+    manifest: dict[str, Any] = {
+        "schema": "game-drive-evidence-archive-v1",
+        "archive_id": archive_id,
+        "reason": reason,
+        "checkpoint_id": summary.get("checkpoint_id"),
+        "verdict": summary.get("verdict"),
+        "run_dir": repo_relative(run_dir),
+        "created_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "source_summary": repo_relative(summary_path),
+        "images": [],
+        "json": [],
+    }
+    for name in ("visual_result.json", "codex_exec.json"):
+        source = run_dir / name
+        if source.is_file():
+            destination = archive_dir / name
+            shutil.copy2(source, destination)
+            manifest["json"].append(
+                {
+                    "source": repo_relative(source),
+                    "archive": repo_relative(destination),
+                    "source_sha256": sha256_file(source),
+                    "archive_sha256": sha256_file(destination),
+                }
+            )
+    for key in ("checkpoint_screenshot", "after_actions_screenshot"):
+        source = resolve_repo_path(summary.get(key) if isinstance(summary.get(key), str) else None)
+        if source is not None and source.is_file():
+            destination = archive_dir / f"{key}.webp"
+            image_record = archive_image(source, destination)
+            image_record["summary_field"] = key
+            manifest["images"].append(image_record)
+    write_json(summary_path, summary)
+    shutil.copy2(summary_path, archive_dir / "summary.json")
+    manifest["source_summary_sha256"] = sha256_file(summary_path)
+    manifest["json"].insert(
+        0,
+        {
+            "source": repo_relative(summary_path),
+            "archive": repo_relative(archive_dir / "summary.json"),
+            "source_sha256": sha256_file(summary_path),
+            "archive_sha256": sha256_file(archive_dir / "summary.json"),
+        },
+    )
+    write_json(archive_dir / "manifest.json", manifest)
+    manifest["manifest"] = repo_relative(archive_dir / "manifest.json")
+    return manifest
 
 
 def write_save_embedded_preview(save_path: Path, output_path: Path, size: tuple[int, int] = (800, 600)) -> None:
@@ -489,7 +597,17 @@ def capture_visual_checkpoint(
     raise GameDriveRunnerError(f"unsupported visual source: {source}")
 
 
-def run_checkpoint(checkpoint_path: Path, *, out_root: Path, save_root: Path, exe: Path) -> dict[str, Any]:
+def run_checkpoint(
+    checkpoint_path: Path,
+    *,
+    out_root: Path,
+    save_root: Path,
+    exe: Path,
+    archive: bool = False,
+    archive_on_failure: bool = False,
+    archive_root: Path = DEFAULT_ARCHIVE_ROOT,
+    archive_event_id: str | None = None,
+) -> dict[str, Any]:
     checkpoint = validate_checkpoint(checkpoint_path)
     run_dir = out_root / f"{checkpoint['id']}_{utc_stamp()}"
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -566,6 +684,23 @@ def run_checkpoint(checkpoint_path: Path, *, out_root: Path, save_root: Path, ex
             if process is not None and process.poll() is None:
                 subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"], capture_output=True, text=True, check=False)
             write_json(summary_path, summary)
+            should_archive = archive or (archive_on_failure and summary.get("verdict") != "passed")
+            if should_archive:
+                archive_reason = "explicit" if archive else f"failure:{summary.get('verdict')}"
+                archive_id = safe_event_id(archive_event_id or run_dir.name)
+                summary["evidence_archive"] = {
+                    "archive_id": archive_id,
+                    "manifest": repo_relative(archive_root / archive_id / "manifest.json"),
+                    "reason": archive_reason,
+                }
+                archive_game_drive_run(
+                    summary,
+                    run_dir,
+                    archive_root,
+                    event_id=archive_id,
+                    reason=archive_reason,
+                )
+                write_json(summary_path, summary)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -574,6 +709,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out-root", type=Path, default=DEFAULT_OUT_ROOT)
     parser.add_argument("--save-root", type=Path, default=DEFAULT_SAVE_DIR)
     parser.add_argument("--exe", type=Path, default=DEFAULT_GAME_EXE)
+    parser.add_argument("--archive", action="store_true", help="archive compressed evidence for this run")
+    parser.add_argument("--archive-on-failure", action="store_true", help="archive compressed evidence only when a run fails")
+    parser.add_argument("--archive-root", type=Path, default=DEFAULT_ARCHIVE_ROOT)
+    parser.add_argument("--archive-event-id", help="stable event/task/promotion id for the evidence archive")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
@@ -586,6 +725,10 @@ def main(argv: list[str] | None = None) -> int:
                 out_root=args.out_root,
                 save_root=args.save_root,
                 exe=args.exe,
+                archive=args.archive,
+                archive_on_failure=args.archive_on_failure,
+                archive_root=args.archive_root,
+                archive_event_id=args.archive_event_id,
             )
         except Exception as error:
             result = {
