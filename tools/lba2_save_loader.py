@@ -53,6 +53,7 @@ MAX_VARS_CUBE = 80
 MAX_OBJECTIF = 50
 MAX_CUBE = 255
 MAX_INVENTORY = 40
+MAX_DARTS = 3
 
 WINDOW_SIZE = 1 << 12
 BREAK_EVEN = (1 + 12 + 4) // 9
@@ -66,6 +67,12 @@ CALL_RE = re.compile(
     (?:\s*,\s*(?P<second>'(?:\\'|[^'])*'))?
     """,
     re.VERBOSE,
+)
+
+COUNT_FILTER_RE = re.compile(
+    r"\b(?P<field>npcs?|total_?npcs?|all_?npcs?|deferred_?npcs?|objects?|object_?slots?|slots?)"
+    r"\s*(?P<op>>=|<=|>|<|=|:)\s*(?P<count>\d+)\b",
+    re.IGNORECASE,
 )
 
 FLAG_NAMES = {
@@ -177,6 +184,36 @@ class RuntimeSnapshot:
     scene_start_z: int
 
 
+@dataclass(frozen=True)
+class KnownNpcEvidence:
+    visible_count: int
+    deferred_count: int = 0
+    visible_names: tuple[str, ...] = ()
+    deferred_names: tuple[str, ...] = ()
+    note: str = ""
+
+
+KNOWN_NPC_EVIDENCE_BY_SAVE = {
+    "newgame.lba": KnownNpcEvidence(
+        visible_count=1,
+        visible_names=("Zoe",),
+        note="Twinsen's House start-state evidence: the saved non-hero slots include only Zoe as a real NPC.",
+    ),
+    "01-farm-first.lba": KnownNpcEvidence(
+        visible_count=2,
+        deferred_count=1,
+        visible_names=("Pharmacist lady", "Pharmacy customer lady"),
+        deferred_names=("Scripted pharmacy visitor after pharmacist dialog",),
+        note="Pharmacy save-state evidence: two visible NPCs at load, plus one scripted NPC after speaking with the pharmacist.",
+    ),
+    "05-up-elevator.lba": KnownNpcEvidence(
+        visible_count=2,
+        visible_names=("Franco guard", "Franco guard"),
+        note="Upper City elevator save-state evidence: two living Franco NPC slots; other non-hero slots are props, triggers, inactive actors, or removed enemies.",
+    ),
+}
+
+
 @dataclass
 class SaveContext:
     parsed: bool = False
@@ -193,6 +230,13 @@ class SaveContext:
     behavior: int | None = None
     hero_behavior: int | None = None
     hero_body: int | None = None
+    saved_object_count: int | None = None
+    non_hero_saved_object_count: int | None = None
+    npc_count: int | None = None
+    deferred_npc_count: int | None = None
+    npc_names: list[str] = field(default_factory=list)
+    deferred_npc_names: list[str] = field(default_factory=list)
+    npc_evidence_note: str | None = None
     chapter: int | None = None
     clovers: int | None = None
     notable_flags: list[str] = field(default_factory=list)
@@ -252,6 +296,14 @@ class SaveEntry:
             self.location_label,
             f"cube {self.num_cube}",
             f"raw scene {self.raw_scene_entry_index}",
+            f"npcs {self.context.npc_count}" if self.context.npc_count is not None else "",
+            f"deferred npcs {self.context.deferred_npc_count}" if self.context.deferred_npc_count else "",
+            f"objects {self.context.non_hero_saved_object_count}"
+            if self.context.non_hero_saved_object_count is not None
+            else "",
+            f"slots {self.context.saved_object_count}" if self.context.saved_object_count is not None else "",
+            *self.context.npc_names,
+            *self.context.deferred_npc_names,
             *(self.context.notable_flags if self.context else []),
             *profile_bits,
         ]
@@ -497,6 +549,33 @@ def parse_context(payload: bytes) -> SaveContext:
                 inventory_model_ids.append(model_id)
         context.inventory_model_ids = inventory_model_ids[:12]
 
+        reader.skip(
+            4  # Checksum
+            + 4  # LastMyFire
+            + 4  # LastMyJoy
+            + 4  # LastInput
+            + 4  # LastJoyFlag
+            + 1  # Bulle
+            + 1  # ActionNormal
+            + 4  # InventoryAction
+            + 4  # MagicBall
+            + 1  # MagicBallType
+            + 1  # MagicBallCount
+            + 4  # MagicBallFlags
+            + 1  # FlagClimbing
+            + 4  # StartYFalling
+            + 1  # CameraZone
+            + 4  # InvSelect
+            + 4  # ExtraConque
+            + 1  # PingouinActif
+            + 4  # PtrZoneClimb
+            + MAX_DARTS * (7 * 4)
+        )
+        context.saved_object_count = reader.read_s32()
+        if context.saved_object_count < 0 or context.saved_object_count > 100:
+            raise ValueError(f"implausible saved object count: {context.saved_object_count}")
+        context.non_hero_saved_object_count = max(context.saved_object_count - 1, 0)
+
         context.chapter = list_var_game[253]
         context.clovers = list_var_game[251]
         notable_flags: list[str] = []
@@ -509,6 +588,21 @@ def parse_context(payload: bytes) -> SaveContext:
     except ValueError as error:
         context.error = str(error)
         return context
+
+
+def apply_known_npc_evidence(file_name: str, context: SaveContext) -> None:
+    evidence = KNOWN_NPC_EVIDENCE_BY_SAVE.get(file_name.lower())
+    if evidence is None:
+        return
+    context.npc_count = evidence.visible_count
+    context.deferred_npc_count = evidence.deferred_count
+    context.npc_names = list(evidence.visible_names)
+    context.deferred_npc_names = list(evidence.deferred_names)
+    context.npc_evidence_note = evidence.note
+
+
+def screenshot_state_key(path: Path) -> str:
+    return path.name.lower()
 
 
 def parse_save(path: Path, scene_lookup: dict[int, SceneRecord], profile_lookup: dict[str, dict[str, Any]], state: dict[str, Any]) -> SaveEntry:
@@ -527,11 +621,12 @@ def parse_save(path: Path, scene_lookup: dict[int, SceneRecord], profile_lookup:
         payload = parse_save_payload(data, payload_offset, compressed)
         embedded_image = payload[:SAVE_IMAGE_SIZE] if len(payload) >= SAVE_IMAGE_SIZE else None
         context = parse_context(payload)
+        apply_known_npc_evidence(path.name, context)
     except ValueError as error:
         context.error = str(error)
 
     digest = hashlib.sha1(data).hexdigest()
-    shot_text = state.get("screenshots", {}).get(digest)
+    shot_text = state.get("screenshots", {}).get(screenshot_state_key(path))
     screenshot_path = Path(shot_text) if isinstance(shot_text, str) and Path(shot_text).exists() else None
 
     return SaveEntry(
@@ -1019,17 +1114,69 @@ def launch_save(
             raise
 
 
+def extract_count_filters(query: str) -> tuple[list[tuple[str, str, int]], str]:
+    filters: list[tuple[str, str, int]] = []
+
+    def remember(match: re.Match[str]) -> str:
+        op = match.group("op")
+        if op == ":":
+            op = "="
+        filters.append((match.group("field").lower(), op, int(match.group("count"))))
+        return " "
+
+    cleaned = COUNT_FILTER_RE.sub(remember, query)
+    return filters, cleaned
+
+
+def matches_count_filters(entry: SaveEntry, filters: list[tuple[str, str, int]]) -> bool:
+    if not filters:
+        return True
+    for field, op, expected in filters:
+        normalized_field = field.replace("_", "")
+        if normalized_field in {"totalnpc", "totalnpcs", "allnpc", "allnpcs"}:
+            if entry.context.npc_count is None:
+                return False
+            actual = entry.context.npc_count + (entry.context.deferred_npc_count or 0)
+        elif normalized_field in {"deferrednpc", "deferrednpcs"}:
+            actual = entry.context.deferred_npc_count
+        elif normalized_field in {"object", "objects"}:
+            actual = entry.context.non_hero_saved_object_count
+        elif normalized_field in {"objectslots", "slot", "slots"}:
+            actual = entry.context.saved_object_count
+        else:
+            actual = entry.context.npc_count
+        if actual is None:
+            return False
+        if op == "=" and actual != expected:
+            return False
+        if op == ">" and actual <= expected:
+            return False
+        if op == ">=" and actual < expected:
+            return False
+        if op == "<" and actual >= expected:
+            return False
+        if op == "<=" and actual > expected:
+            return False
+    return True
+
+
 def score_entry(entry: SaveEntry, query: str, semantic: bool) -> int:
     normalized = query.strip().lower()
+    count_filters, text_query = extract_count_filters(normalized)
+    if not matches_count_filters(entry, count_filters):
+        return 0
+    text_query = text_query.strip()
+    if not text_query:
+        return 100 if count_filters else 1
     if not normalized:
         return 1
     haystack = entry.search_text
-    words = [word for word in re.split(r"[^a-z0-9']+", normalized) if word]
+    words = [word for word in re.split(r"[^a-z0-9']+", text_query) if word]
     if not words:
-        return 1
+        return 100 if count_filters else 1
 
     if not semantic:
-        return 100 if normalized in haystack or all(word in haystack for word in words) else 0
+        return 100 if text_query in haystack or all(word in haystack for word in words) else 0
 
     expansions = {
         "ball": ["magic ball", "sendell", "sphere"],
@@ -1048,7 +1195,7 @@ def score_entry(entry: SaveEntry, query: str, semantic: bool) -> int:
     for word in expanded:
         if word in haystack:
             score += 20 if word in words else 8
-    if normalized in haystack:
+    if text_query in haystack:
         score += 100
     if entry.profile is not None and score:
         score += 10
@@ -1130,16 +1277,20 @@ class SaveLoaderApp(tk.Tk):
 
         self.save_tree = ttk.Treeview(
             left,
-            columns=("location", "state"),
+            columns=("location", "npcs", "objects", "state"),
             show="tree headings",
             selectmode="browse",
             style="Save.Treeview",
         )
         self.save_tree.heading("#0", text="Save", command=lambda: self.sort_by_column("name"))
         self.save_tree.heading("location", text="Location", command=lambda: self.sort_by_column("location"))
+        self.save_tree.heading("npcs", text="NPCs", command=lambda: self.sort_by_column("npcs"))
+        self.save_tree.heading("objects", text="Objs", command=lambda: self.sort_by_column("objects"))
         self.save_tree.heading("state", text="State", command=lambda: self.sort_by_column("state"))
         self.save_tree.column("#0", width=230, minwidth=160, stretch=True)
-        self.save_tree.column("location", width=330, minwidth=180, stretch=True)
+        self.save_tree.column("location", width=285, minwidth=165, stretch=True)
+        self.save_tree.column("npcs", width=54, minwidth=48, stretch=False, anchor=tk.E)
+        self.save_tree.column("objects", width=54, minwidth=48, stretch=False, anchor=tk.E)
         self.save_tree.column("state", width=145, minwidth=120, stretch=False)
         self.scrollbar = ttk.Scrollbar(left, orient=tk.VERTICAL, command=self.save_tree.yview)
         self.save_tree.configure(yscrollcommand=self.scrollbar.set)
@@ -1239,7 +1390,19 @@ class SaveLoaderApp(tk.Tk):
         if self.sort_column == "state":
             chapter = entry.context.chapter if entry.context.chapter is not None else -1
             shot = 1 if entry.screenshot_path else 0
-            return (chapter, shot, entry.title.lower(), entry.file_name.lower())
+            npc_count = entry.context.npc_count if entry.context.npc_count is not None else -1
+            return (chapter, npc_count, shot, entry.title.lower(), entry.file_name.lower())
+        if self.sort_column == "npcs":
+            npc_count = entry.context.npc_count if entry.context.npc_count is not None else -1
+            deferred = entry.context.deferred_npc_count if entry.context.deferred_npc_count is not None else -1
+            return (npc_count, deferred, entry.title.lower(), entry.file_name.lower())
+        if self.sort_column == "objects":
+            object_count = (
+                entry.context.non_hero_saved_object_count
+                if entry.context.non_hero_saved_object_count is not None
+                else -1
+            )
+            return (object_count, entry.title.lower(), entry.file_name.lower())
         return (entry.title.lower(), entry.file_name.lower())
 
     def render_grid(self) -> None:
@@ -1262,7 +1425,7 @@ class SaveLoaderApp(tk.Tk):
                 iid=iid,
                 text=self.compact_title(entry),
                 image=image,
-                values=(self.compact_location(entry), self.tile_meta(entry)),
+                values=(self.compact_location(entry), self.npc_meta(entry), self.object_meta(entry), self.tile_meta(entry)),
             )
             if entry == self.selected:
                 self.save_tree.selection_set(iid)
@@ -1288,6 +1451,18 @@ class SaveLoaderApp(tk.Tk):
         screenshot = "shot" if entry.screenshot_path else "no shot"
         chapter = f"chapter {entry.context.chapter}" if entry.context.chapter is not None else "chapter ?"
         return f"{chapter} - {screenshot}"
+
+    def npc_meta(self, entry: SaveEntry) -> str:
+        if entry.context.npc_count is None:
+            return "-"
+        if entry.context.deferred_npc_count:
+            return f"{entry.context.npc_count}+{entry.context.deferred_npc_count}"
+        return str(entry.context.npc_count)
+
+    def object_meta(self, entry: SaveEntry) -> str:
+        if entry.context.non_hero_saved_object_count is None:
+            return "-"
+        return str(entry.context.non_hero_saved_object_count)
 
     def select_entry(self, entry: SaveEntry) -> None:
         self.selected = entry
@@ -1345,12 +1520,22 @@ class SaveLoaderApp(tk.Tk):
                     f"Magic: level {ctx.magic_level}, points {ctx.magic_points}",
                     f"Keys / clovers: {ctx.little_keys} little keys, {ctx.clovers}/{ctx.clover_boxes} clovers",
                     f"Money: {ctx.gold_pieces} gold, {ctx.zlitos_pieces} zlitos",
+                    f"Known visible NPCs: {ctx.npc_count if ctx.npc_count is not None else 'unknown'}",
+                    f"Known deferred NPCs: {ctx.deferred_npc_count if ctx.deferred_npc_count is not None else 'unknown'}",
+                    f"Saved object slots: {ctx.saved_object_count} including Twinsen, "
+                    f"{ctx.non_hero_saved_object_count} non-hero",
                     f"Scene start: {ctx.scene_start}",
                     f"Start cube xyz: {ctx.start_cube}",
                     f"Weapon: {weapon}",
                     f"Behavior/body: behavior={ctx.behavior}, hero_behavior={ctx.hero_behavior}, hero_body={ctx.hero_body}",
                 ]
             )
+            if ctx.npc_names:
+                lines.extend(["", "Visible NPC Evidence", *ctx.npc_names])
+            if ctx.deferred_npc_names:
+                lines.extend(["", "Deferred NPC Evidence", *ctx.deferred_npc_names])
+            if ctx.npc_evidence_note:
+                lines.extend(["", f"NPC evidence note: {ctx.npc_evidence_note}"])
             if ctx.notable_flags:
                 lines.extend(["", "Notable Flags", *ctx.notable_flags])
             if ctx.inventory_model_ids:
@@ -1414,7 +1599,7 @@ class SaveLoaderApp(tk.Tk):
     def record_screenshot(self, entry: SaveEntry, screenshot_path: Path) -> None:
         entry.screenshot_path = screenshot_path
         self.image_cache.clear()
-        self.state.setdefault("screenshots", {})[entry.digest] = str(screenshot_path)
+        self.state.setdefault("screenshots", {})[screenshot_state_key(entry.path)] = str(screenshot_path)
         save_state(self.state)
         if self.selected == entry:
             self.render_details(entry)
@@ -1451,6 +1636,13 @@ def dump_json(save_dir: Path, scene_root: Path) -> None:
                     "little_keys": entry.context.little_keys,
                     "clovers": entry.context.clovers,
                     "clover_boxes": entry.context.clover_boxes,
+                    "saved_object_count": entry.context.saved_object_count,
+                    "non_hero_saved_object_count": entry.context.non_hero_saved_object_count,
+                    "npc_count": entry.context.npc_count,
+                    "deferred_npc_count": entry.context.deferred_npc_count,
+                    "npc_names": entry.context.npc_names,
+                    "deferred_npc_names": entry.context.deferred_npc_names,
+                    "npc_evidence_note": entry.context.npc_evidence_note,
                     "scene_start": entry.context.scene_start,
                     "start_cube": entry.context.start_cube,
                     "notable_flags": entry.context.notable_flags,
