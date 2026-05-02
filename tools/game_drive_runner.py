@@ -37,13 +37,25 @@ from tools.lba2_save_loader import LBA2_PALETTE, SAVE_COMPRESS, SAVE_IMAGE_SIZE,
 
 DEFAULT_OUT_ROOT = REPO_ROOT / "work" / "game_drive_runs"
 DEFAULT_SAVE_DIR = DEFAULT_GAME_EXE.parent / "SAVE"
+PT_TEXT_GLOBAL = 0x004CC498
+PT_DIAL_GLOBAL = 0x004CCDF0
+CURRENT_DIAL_GLOBAL = 0x004CCF10
+COMPORTEMENT_GLOBAL = 0x0049A09F
 KEYS = {
     "period": 0xBE,
     "numpad_decimal": 0x6E,
     "w": 0x57,
     "enter": 0x0D,
+    "space": 0x20,
+    "ctrl": 0x11,
+    "left": 0x25,
     "up": 0x26,
+    "right": 0x27,
     "down": 0x28,
+    "f5": 0x74,
+    "f6": 0x75,
+    "f7": 0x76,
+    "f8": 0x77,
 }
 
 
@@ -112,14 +124,26 @@ def resolve_save(save_name: str, save_root: Path) -> Path:
 
 
 def action_to_key_hold(action: str) -> tuple[int, float]:
-    if action == "hold_period_0_75_sec_release":
-        return KEYS["period"], 0.75
-    if action == "hold_numpad_decimal_0_75_sec_release":
-        return KEYS["numpad_decimal"], 0.75
-    if action == "press_w_0_18_sec":
-        return KEYS["w"], 0.18
-    if action == "press_enter_0_08_sec":
-        return KEYS["enter"], 0.08
+    action_specs = {
+        "hold_period_0_75_sec_release": ("period", 0.75),
+        "hold_numpad_decimal_0_75_sec_release": ("numpad_decimal", 0.75),
+        "press_w_0_18_sec": ("w", 0.18),
+        "press_enter_0_08_sec": ("enter", 0.08),
+        "press_space_0_08_sec": ("space", 0.08),
+        "hold_left_0_50_sec_release": ("left", 0.50),
+        "hold_right_0_50_sec_release": ("right", 0.50),
+        "hold_up_0_50_sec_release": ("up", 0.50),
+        "hold_down_0_50_sec_release": ("down", 0.50),
+        "press_f5_0_08_sec": ("f5", 0.08),
+        "press_f6_0_08_sec": ("f6", 0.08),
+        "press_f7_0_08_sec": ("f7", 0.08),
+        "press_f8_0_08_sec": ("f8", 0.08),
+        "hold_f6_0_50_sec_release": ("f6", 0.50),
+    }
+    spec = action_specs.get(action)
+    if spec is not None:
+        key_name, hold_sec = spec
+        return KEYS[key_name], hold_sec
     raise GameDriveRunnerError(f"unsupported action: {action}")
 
 
@@ -170,6 +194,7 @@ def hold_key_with_runtime_poll(
                 released = True
             sample = safe_snapshot(reader)
             sample["extras"] = extras_summary(reader)
+            sample["dialog"] = dialog_summary(reader)
             sample["_t_ms"] = int((now - started) * 1000)
             samples.append(sample)
             time.sleep(poll_sec)
@@ -186,11 +211,96 @@ def hold_key_with_runtime_poll(
     }
 
 
+def ctrl_tap_with_runtime_poll(
+    input_tool: WindowInput,
+    hwnd: int,
+    tap_virtual_key: int,
+    reader: ProcessReader,
+    *,
+    pre_tap_sec: float = 0.35,
+    tap_hold_sec: float = 0.12,
+    post_tap_ctrl_hold_sec: float = 0.35,
+    post_release_sec: float = 1.2,
+    poll_sec: float = 0.05,
+) -> dict[str, Any]:
+    samples: list[dict[str, Any]] = []
+    started = time.monotonic()
+    tap_down_at = started + max(0.0, pre_tap_sec)
+    tap_up_at = tap_down_at + max(0.01, tap_hold_sec)
+    ctrl_up_at = tap_up_at + max(0.0, post_tap_ctrl_hold_sec)
+    end_at = ctrl_up_at + max(0.0, post_release_sec)
+    input_tool.key_down(hwnd, KEYS["ctrl"])
+    pressed_tap = False
+    released_tap = False
+    released_ctrl = False
+    try:
+        while time.monotonic() < end_at:
+            now = time.monotonic()
+            if not pressed_tap and now >= tap_down_at:
+                input_tool.key_down(hwnd, tap_virtual_key)
+                pressed_tap = True
+            if pressed_tap and not released_tap and now >= tap_up_at:
+                input_tool.key_up(tap_virtual_key)
+                released_tap = True
+            if not released_ctrl and now >= ctrl_up_at:
+                input_tool.key_up(KEYS["ctrl"])
+                released_ctrl = True
+            sample = safe_snapshot(reader)
+            sample["extras"] = extras_summary(reader)
+            sample["dialog"] = dialog_summary(reader)
+            sample["_t_ms"] = int((now - started) * 1000)
+            samples.append(sample)
+            time.sleep(poll_sec)
+    finally:
+        if not released_tap:
+            input_tool.key_up(tap_virtual_key)
+        if not released_ctrl:
+            input_tool.key_up(KEYS["ctrl"])
+    time.sleep(0.18)
+    comparable_samples = [{key: value for key, value in sample.items() if key != "_t_ms"} for sample in samples]
+    return {
+        "sample_count": len(samples),
+        "duration_ms": int((time.monotonic() - started) * 1000),
+        "changed_fields": changed_fields(comparable_samples),
+        "samples": samples[:60],
+    }
+
+
+def run_action_with_runtime_poll(
+    action: str,
+    input_tool: WindowInput,
+    hwnd: int,
+    reader: ProcessReader,
+) -> dict[str, Any]:
+    if action == "ctrl_right_behavior_cycle":
+        return ctrl_tap_with_runtime_poll(input_tool, hwnd, KEYS["right"], reader)
+    key, hold_sec = action_to_key_hold(action)
+    return hold_key_with_runtime_poll(input_tool, hwnd, key, hold_sec, reader)
+
+
 def safe_snapshot(reader: ProcessReader) -> dict[str, Any]:
     try:
-        return snapshot_globals(reader)
+        snapshot = snapshot_globals(reader)
+        snapshot["comportement"] = reader.read_int(COMPORTEMENT_GLOBAL, 1)
+        return snapshot
     except Exception as error:
         return {"error": str(error)}
+
+
+def dialog_summary(reader: ProcessReader) -> dict[str, Any]:
+    try:
+        pt_text = reader.read_int(PT_TEXT_GLOBAL, 4)
+        pt_dial = reader.read_int(PT_DIAL_GLOBAL, 4)
+        current_dial = reader.read_int(CURRENT_DIAL_GLOBAL, 2)
+    except Exception as error:
+        return {"error": str(error)}
+    cursor_offset = pt_dial - pt_text if pt_text and pt_dial and pt_dial >= pt_text else None
+    return {
+        "current_dial": current_dial,
+        "pt_text": f"0x{pt_text & 0xFFFFFFFF:08X}",
+        "pt_dial": f"0x{pt_dial & 0xFFFFFFFF:08X}",
+        "cursor_offset": cursor_offset,
+    }
 
 
 def extras_summary(reader: ProcessReader) -> dict[str, Any]:
@@ -430,9 +540,8 @@ def run_checkpoint(checkpoint_path: Path, *, out_root: Path, save_root: Path, ex
 
             action_records = []
             for action in checkpoint["actions_after_checkpoint"]:
-                key, hold_sec = action_to_key_hold(action)
                 before = safe_snapshot(reader)
-                poll = hold_key_with_runtime_poll(input_tool, window.hwnd, key, hold_sec, reader)
+                poll = run_action_with_runtime_poll(action, input_tool, window.hwnd, reader)
                 after = safe_snapshot(reader)
                 action_records.append({"action": action, "before": before, "poll": poll, "after": after})
             summary["actions"] = action_records
