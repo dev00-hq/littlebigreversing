@@ -146,12 +146,8 @@ Issues lifecycle:
 - "Sendell's Ball" is now a multi-room proof family in this repo, not shorthand for raw scene `19`. Keep Tavern (`5`), Sewers (`19`), Treasure room (`20`), and the actual Sendell's Ball room (`36`) as distinct save/profile targets; otherwise it is easy to mistake the guarded sewer reward loop for the story-critical Sendell's Ball room behavior.
 - `COMMON.H` is not sufficient proof for track or life opcode semantics. Let checked-in decoder behavior, asset-backed probes, and recovered source behavior beat header names or comments.
 - Preserved legacy specs such as LBArchitect are useful structure guides, not byte-perfect numeric or indexing oracles. Let current asset-backed probes and tests win for exact values.
-- Game-drive runner behavior-mode and broader teleport proof remain blocked. The
-  capability ladder now proves named-save load, visual gate, rotation,
-  translation, Magic Ball projectile extras, dialog globals, and same-scene
-  direct-pose with live-window visual classification, but
-  `behavior_cycle` does not yet produce a `Comportement` transition and
-  broader teleport remains gated on scene/background-safe placement plus a
-  reliable live-window screenshot. Keep behavior-mode and broader teleport out
-  of automated gameplay claims until their ladder rungs pass instead of
-  inferring success from sent keys.
+- Broader teleport proof remains gated on scene/background-safe placement plus
+  reliable live-window screenshot classification. The capability ladder now
+  proves same-scene direct-pose, but do not generalize that to arbitrary
+  cross-scene teleport until a ladder rung lands Twinsen safely in the intended
+  destination and passes visual classification.
