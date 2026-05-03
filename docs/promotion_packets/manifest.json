@@ -107,6 +107,17 @@
         "text_interaction_affordance_families"
       ],
       "canonical_runtime": true
+    },
+    {
+      "id": "phase5_behavior_movement_speed_startup_otringal",
+      "status": "live_positive",
+      "evidence_class": "collision_locomotion",
+      "packet": "docs/promotion_packets/phase5/phase5_behavior_movement_speed_startup_otringal.md",
+      "fixture": "tools/fixtures/promotion_packets/phase5_behavior_movement_speed_startup_otringal_live_positive.json",
+      "runtime_contracts": [
+        "behavior_movement_speed_startup_otringal"
+      ],
+      "canonical_runtime": true
     }
   ]
 }

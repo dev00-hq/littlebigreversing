@@ -1,0 +1,69 @@
+{
+  "schema": "game-drive-evidence-archive-v1",
+  "archive_id": "behavior-mode-speed-pose2-20260503-behavior_speed_pose2_normal",
+  "reason": "explicit",
+  "checkpoint_id": "capability_behavior_speed_pose2_normal",
+  "verdict": "checkpoint_passed_actions_recorded",
+  "run_dir": "work/game_drive_capability_ladder/runs/capability_behavior_speed_pose2_normal_20260503T212147Z",
+  "created_utc": "2026-05-03T21:22:13.683329Z",
+  "source_summary": "work/game_drive_capability_ladder/runs/capability_behavior_speed_pose2_normal_20260503T212147Z/summary.json",
+  "images": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_speed_pose2_normal_20260503T212147Z/after_pose_set_before_action.png",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-speed-pose2-20260503-behavior_speed_pose2_normal/checkpoint_screenshot.webp",
+      "source_sha256": "f8041b8d5ff6b1946d570a7a81a5042e5a37e243fc5bf257cdb2522ce88d89af",
+      "archive_sha256": "0bd06929fe3b225696cc3ea8bf0f98e32e8ec4eab813ce8667c130415360c59e",
+      "source_bytes": 160215,
+      "archive_bytes": 24602,
+      "compression": {
+        "format": "webp",
+        "quality": 35,
+        "method": 6,
+        "max_size": [
+          640,
+          480
+        ]
+      },
+      "summary_field": "checkpoint_screenshot"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_speed_pose2_normal_20260503T212147Z/after_actions.png",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-speed-pose2-20260503-behavior_speed_pose2_normal/after_actions_screenshot.webp",
+      "source_sha256": "ca3842fd416a472958366c2bd4394e7397296b206c6cff55f6a7f807cb2a4d81",
+      "archive_sha256": "4ff497f975d5ec2f6db4cc15acd82d420e2950a14a3f0519c8a2cb70fe06f292",
+      "source_bytes": 160033,
+      "archive_bytes": 24662,
+      "compression": {
+        "format": "webp",
+        "quality": 35,
+        "method": 6,
+        "max_size": [
+          640,
+          480
+        ]
+      },
+      "summary_field": "after_actions_screenshot"
+    }
+  ],
+  "json": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_speed_pose2_normal_20260503T212147Z/summary.json",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-speed-pose2-20260503-behavior_speed_pose2_normal/summary.json",
+      "source_sha256": "600c3d2154b00345265aa27109a5634e1220c622496e0a00c0afada72e322c98",
+      "archive_sha256": "600c3d2154b00345265aa27109a5634e1220c622496e0a00c0afada72e322c98"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_speed_pose2_normal_20260503T212147Z/visual_result.json",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-speed-pose2-20260503-behavior_speed_pose2_normal/visual_result.json",
+      "source_sha256": "654c19c73ee14b87d9841182aa8ad5307aa79abe5e5451da2f69d63679b8d8b9",
+      "archive_sha256": "654c19c73ee14b87d9841182aa8ad5307aa79abe5e5451da2f69d63679b8d8b9"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_speed_pose2_normal_20260503T212147Z/codex_exec.json",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-speed-pose2-20260503-behavior_speed_pose2_normal/codex_exec.json",
+      "source_sha256": "e1c13fc1a43d092a77b70fe246288cd85cf8e30e2ff7dd8fea061e33c84cd768",
+      "archive_sha256": "e1c13fc1a43d092a77b70fe246288cd85cf8e30e2ff7dd8fea061e33c84cd768"
+    }
+  ],
+  "source_summary_sha256": "600c3d2154b00345265aa27109a5634e1220c622496e0a00c0afada72e322c98"
+}

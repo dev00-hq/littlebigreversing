@@ -33,6 +33,13 @@ class ActionSequenceExpectation:
 
 
 @dataclass(frozen=True)
+class ActionFinalExpectation:
+    action: str
+    field: str
+    value: Any
+
+
+@dataclass(frozen=True)
 class ActionDeltaExpectation:
     action: str
     field: str
@@ -64,7 +71,9 @@ class CapabilityCase:
     actions: tuple[str, ...]
     required_signals: tuple[str, ...]
     description: str
+    pose_coordinates: dict[str, int] | None = None
     expected_sequences: tuple[ActionSequenceExpectation, ...] = ()
+    expected_finals: tuple[ActionFinalExpectation, ...] = ()
     expected_deltas: tuple[ActionDeltaExpectation, ...] = ()
     expected_extras: tuple[ActionExtrasExpectation, ...] = ()
 
@@ -173,6 +182,267 @@ CAPABILITIES = (
         ),
     ),
     CapabilityCase(
+        id="behavior_direct_f5_f8",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f5_0_08_sec", "press_f6_0_08_sec", "press_f7_0_08_sec", "press_f8_0_08_sec"),
+        required_signals=("comportement",),
+        description="Direct F5/F6/F7/F8 behavior keys set live Comportement to Normal, Sporty, Aggressive, and Discreet after a live visual gate.",
+        expected_finals=(
+            ActionFinalExpectation(action="press_f5_0_08_sec", field="comportement", value=0),
+            ActionFinalExpectation(action="press_f6_0_08_sec", field="comportement", value=1),
+            ActionFinalExpectation(action="press_f7_0_08_sec", field="comportement", value=2),
+            ActionFinalExpectation(action="press_f8_0_08_sec", field="comportement", value=3),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_speed_normal",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f5_0_08_sec", "hold_up_0_50_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only movement-speed probe: Normal mode, same safe pose, fixed 0.50s forward hold, records live x/z/beta deltas plus before/after screenshots.",
+        expected_finals=(
+            ActionFinalExpectation(action="press_f5_0_08_sec", field="comportement", value=0),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_speed_sporty",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f6_0_08_sec", "hold_up_0_50_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only movement-speed probe: Sporty mode, same safe pose, fixed 0.50s forward hold, records live x/z/beta deltas plus before/after screenshots.",
+        expected_finals=(
+            ActionFinalExpectation(action="press_f6_0_08_sec", field="comportement", value=1),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_speed_aggressive",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f7_0_08_sec", "hold_up_0_50_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only movement-speed probe: Aggressive mode, same safe pose, fixed 0.50s forward hold, records live x/z/beta deltas plus before/after screenshots.",
+        expected_finals=(
+            ActionFinalExpectation(action="press_f7_0_08_sec", field="comportement", value=2),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_speed_discreet",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f8_0_08_sec", "hold_up_0_50_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only movement-speed probe: Discreet mode, same safe pose, fixed 0.50s forward hold, records live x/z/beta deltas plus before/after screenshots.",
+        expected_finals=(
+            ActionFinalExpectation(action="press_f8_0_08_sec", field="comportement", value=3),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_0_50_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_speed_pose2_normal",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f5_0_08_sec", "hold_up_1_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only movement-speed probe: Normal mode, second safe heading, fixed 1.00s forward hold, records live x/z/beta deltas plus before/after screenshots.",
+        pose_coordinates={"x": 4866, "y": 512, "z": 8324, "beta": 2760},
+        expected_finals=(
+            ActionFinalExpectation(action="press_f5_0_08_sec", field="comportement", value=0),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_speed_pose2_sporty",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f6_0_08_sec", "hold_up_1_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only movement-speed probe: Sporty mode, second safe heading, fixed 1.00s forward hold, records live x/z/beta deltas plus before/after screenshots.",
+        pose_coordinates={"x": 4866, "y": 512, "z": 8324, "beta": 2760},
+        expected_finals=(
+            ActionFinalExpectation(action="press_f6_0_08_sec", field="comportement", value=1),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_speed_pose2_aggressive",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f7_0_08_sec", "hold_up_1_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only movement-speed probe: Aggressive mode, second safe heading, fixed 1.00s forward hold, records live x/z/beta deltas plus before/after screenshots.",
+        pose_coordinates={"x": 4866, "y": 512, "z": 8324, "beta": 2760},
+        expected_finals=(
+            ActionFinalExpectation(action="press_f7_0_08_sec", field="comportement", value=2),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_speed_pose2_discreet",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f8_0_08_sec", "hold_up_1_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only movement-speed probe: Discreet mode, second safe heading, fixed 1.00s forward hold, records live x/z/beta deltas plus before/after screenshots.",
+        pose_coordinates={"x": 4866, "y": 512, "z": 8324, "beta": 2760},
+        expected_finals=(
+            ActionFinalExpectation(action="press_f8_0_08_sec", field="comportement", value=3),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_1_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_accel_normal",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f5_0_08_sec", "hold_up_2_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only acceleration probe: Normal mode, same second safe heading, fixed 2.00s forward hold, records runtime position time series.",
+        pose_coordinates={"x": 4866, "y": 512, "z": 8324, "beta": 2760},
+        expected_finals=(
+            ActionFinalExpectation(action="press_f5_0_08_sec", field="comportement", value=0),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_accel_sporty",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f6_0_08_sec", "hold_up_2_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only acceleration probe: Sporty mode, same second safe heading, fixed 2.00s forward hold, records runtime position time series.",
+        pose_coordinates={"x": 4866, "y": 512, "z": 8324, "beta": 2760},
+        expected_finals=(
+            ActionFinalExpectation(action="press_f6_0_08_sec", field="comportement", value=1),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_accel_aggressive",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f7_0_08_sec", "hold_up_2_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only acceleration probe: Aggressive mode, same second safe heading, fixed 2.00s forward hold, records runtime position time series.",
+        pose_coordinates={"x": 4866, "y": 512, "z": 8324, "beta": 2760},
+        expected_finals=(
+            ActionFinalExpectation(action="press_f7_0_08_sec", field="comportement", value=2),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_accel_discreet",
+        base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+        actions=("press_f8_0_08_sec", "hold_up_2_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only acceleration probe: Discreet mode, same second safe heading, fixed 2.00s forward hold, records runtime position time series.",
+        pose_coordinates={"x": 4866, "y": 512, "z": 8324, "beta": 2760},
+        expected_finals=(
+            ActionFinalExpectation(action="press_f8_0_08_sec", field="comportement", value=3),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_accel_otringal_normal",
+        base_checkpoint="pose_ready_otringal_open.json",
+        actions=("press_f5_0_08_sec", "hold_up_2_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only acceleration probe: Normal mode, operator-prepared open Otringal save, fixed 2.00s forward hold, records runtime position time series.",
+        expected_finals=(
+            ActionFinalExpectation(action="press_f5_0_08_sec", field="comportement", value=0),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_accel_otringal_sporty",
+        base_checkpoint="pose_ready_otringal_open.json",
+        actions=("press_f6_0_08_sec", "hold_up_2_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only acceleration probe: Sporty mode, operator-prepared open Otringal save, fixed 2.00s forward hold, records runtime position time series.",
+        expected_finals=(
+            ActionFinalExpectation(action="press_f6_0_08_sec", field="comportement", value=1),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_accel_otringal_aggressive",
+        base_checkpoint="pose_ready_otringal_open.json",
+        actions=("press_f7_0_08_sec", "hold_up_2_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only acceleration probe: Aggressive mode, operator-prepared open Otringal save, fixed 2.00s forward hold, records runtime position time series.",
+        expected_finals=(
+            ActionFinalExpectation(action="press_f7_0_08_sec", field="comportement", value=2),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
+        id="behavior_accel_otringal_discreet",
+        base_checkpoint="pose_ready_otringal_open.json",
+        actions=("press_f8_0_08_sec", "hold_up_2_00_sec_release"),
+        required_signals=("hero_x|hero_z",),
+        description="Evidence-only acceleration probe: Discreet mode, operator-prepared open Otringal save, fixed 2.00s forward hold, records runtime position time series.",
+        expected_finals=(
+            ActionFinalExpectation(action="press_f8_0_08_sec", field="comportement", value=3),
+        ),
+        expected_deltas=(
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_x", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_z", min_delta=-100000, max_delta=100000),
+            ActionDeltaExpectation(action="hold_up_2_00_sec_release", field="hero_beta", min_delta=0, max_delta=4095, mode="beta4096"),
+        ),
+    ),
+    CapabilityCase(
         id="direct_pose_visual_gate",
         base_checkpoint="pose_ready_magic_ball_middle_switch.json",
         actions=(),
@@ -199,7 +469,27 @@ def materialize_checkpoint(case: CapabilityCase, checkpoint_dir: Path) -> Path:
     checkpoint = copy.deepcopy(load_json(base_path))
     checkpoint["id"] = f"capability_{case.id}"
     checkpoint["actions_after_checkpoint"] = list(case.actions)
-    if case.id in {"direct_pose_visual_gate", "rotation_left", "translation_forward", "magic_ball_throw"}:
+    if case.pose_coordinates is not None:
+        checkpoint["setup"]["pose"]["coordinates"] = dict(case.pose_coordinates)
+    if case.id in {
+        "direct_pose_visual_gate",
+        "rotation_left",
+        "translation_forward",
+        "magic_ball_throw",
+        "behavior_direct_f5_f8",
+        "behavior_speed_normal",
+        "behavior_speed_sporty",
+        "behavior_speed_aggressive",
+        "behavior_speed_discreet",
+        "behavior_speed_pose2_normal",
+        "behavior_speed_pose2_sporty",
+        "behavior_speed_pose2_aggressive",
+        "behavior_speed_pose2_discreet",
+        "behavior_accel_normal",
+        "behavior_accel_sporty",
+        "behavior_accel_aggressive",
+        "behavior_accel_discreet",
+    }:
         checkpoint["setup"]["pose"]["method"] = "direct_pose"
         checkpoint["visual_expect"]["source"] = "live_window_capture"
     path = checkpoint_dir / f"{checkpoint['id']}.json"
@@ -301,6 +591,24 @@ def evaluate_sequences(case: CapabilityCase, result: dict[str, Any]) -> tuple[li
     return observed, mismatches
 
 
+def evaluate_finals(case: CapabilityCase, result: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    observed = []
+    mismatches = []
+    for expected in case.expected_finals:
+        action = action_by_name(result, expected.action)
+        after = read_nested((action or {}).get("after", {}), expected.field)
+        report = {
+            "action": expected.action,
+            "field": expected.field,
+            "expected": expected.value,
+            "observed": after,
+        }
+        observed.append(report)
+        if after != expected.value:
+            mismatches.append(report)
+    return observed, mismatches
+
+
 def delta_value(before: Any, after: Any, mode: str) -> int | None:
     if not isinstance(before, int) or not isinstance(after, int):
         return None
@@ -333,6 +641,87 @@ def evaluate_deltas(case: CapabilityCase, result: dict[str, Any]) -> tuple[list[
         if delta is None or delta < expected.min_delta or delta > expected.max_delta:
             mismatches.append(report)
     return observed, mismatches
+
+
+def movement_time_series(action: dict[str, Any]) -> dict[str, Any]:
+    samples = [
+        sample
+        for sample in action.get("poll", {}).get("samples", [])
+        if isinstance(sample, dict)
+        and isinstance(sample.get("_t_ms"), int)
+        and isinstance(sample.get("hero_x"), int)
+        and isinstance(sample.get("hero_z"), int)
+    ]
+    if not samples:
+        return {"sample_count": 0, "samples": [], "segments": []}
+
+    start = samples[0]
+    previous = start
+    compact_samples = []
+    segments = []
+    for sample in samples:
+        if sample["_t_ms"] < 0:
+            continue
+        row = {
+            "t_ms": sample["_t_ms"],
+            "hero_x": sample["hero_x"],
+            "hero_z": sample["hero_z"],
+            "dx_from_start": sample["hero_x"] - start["hero_x"],
+            "dz_from_start": sample["hero_z"] - start["hero_z"],
+        }
+        animation_candidate = sample.get("hero_animation_candidate")
+        if isinstance(animation_candidate, dict):
+            row["hero_animation_candidate"] = {
+                key: animation_candidate.get(key)
+                for key in (
+                    "hero_obj_gen_body",
+                    "hero_obj_gen_anim",
+                    "hero_obj_next_gen_anim",
+                    "hero_obj_sprite_candidate",
+                    "hero_obj_flag_anim_candidate",
+                )
+            }
+        compact_samples.append(row)
+        delta_t = sample["_t_ms"] - previous["_t_ms"]
+        if delta_t > 0:
+            segments.append(
+                {
+                    "t_ms": sample["_t_ms"],
+                    "dt_ms": delta_t,
+                    "dx": sample["hero_x"] - previous["hero_x"],
+                    "dz": sample["hero_z"] - previous["hero_z"],
+                }
+            )
+        previous = sample
+
+    return {
+        "sample_count": len(samples),
+        "samples": compact_samples[:60],
+        "segments": segments[:60],
+        "final_dx": samples[-1]["hero_x"] - start["hero_x"],
+        "final_dz": samples[-1]["hero_z"] - start["hero_z"],
+    }
+
+
+def evaluate_movement_time_series(case: CapabilityCase, result: dict[str, Any]) -> list[dict[str, Any]]:
+    action_names = []
+    for expected in case.expected_deltas:
+        if expected.action in action_names:
+            continue
+        if expected.field not in {"hero_x", "hero_z", "hero_beta"}:
+            continue
+        action_names.append(expected.action)
+
+    reports = []
+    for action_name in action_names:
+        action = action_by_name(result, action_name)
+        reports.append(
+            {
+                "action": action_name,
+                "movement_time_series": movement_time_series(action or {}),
+            }
+        )
+    return reports
 
 
 def extra_rows(action: dict[str, Any]) -> list[dict[str, Any]]:
@@ -422,12 +811,14 @@ def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any
         if not any(action_has_signal(action, signal) for action in actions)
     ]
     observed_sequences, sequence_mismatches = evaluate_sequences(case, result)
+    observed_finals, final_mismatches = evaluate_finals(case, result)
     observed_deltas, delta_mismatches = evaluate_deltas(case, result)
+    observed_movement_time_series = evaluate_movement_time_series(case, result)
     observed_extras, extras_mismatches = evaluate_extras(case, result)
     return {
         "id": case.id,
         "verdict": "passed"
-        if not missing and not sequence_mismatches and not delta_mismatches and not extras_mismatches
+        if not missing and not sequence_mismatches and not final_mismatches and not delta_mismatches and not extras_mismatches
         else "blocked",
         "description": case.description,
         "checkpoint_id": result.get("checkpoint_id"),
@@ -438,8 +829,11 @@ def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any
         "missing_signals": missing,
         "observed_sequences": observed_sequences,
         "sequence_mismatches": sequence_mismatches,
+        "observed_finals": observed_finals,
+        "final_mismatches": final_mismatches,
         "observed_deltas": observed_deltas,
         "delta_mismatches": delta_mismatches,
+        "observed_movement_time_series": observed_movement_time_series,
         "observed_extras": observed_extras,
         "extras_mismatches": extras_mismatches,
     }

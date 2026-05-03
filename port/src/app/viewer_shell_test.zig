@@ -1495,7 +1495,7 @@ test "viewer key handling routes 0013 default action through queued runtime inte
     var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
     try std.testing.expectEqualStrings("0013 KEY", overlay.title);
-    try std.testing.expectEqualStrings("NAV / KEY", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / KEY NORMAL", overlay.nav_title);
     try std.testing.expectEqualStrings("ROOM 2/1 KEYS 0 VAR0 1", overlay.lines[0]);
     try std.testing.expectEqualStrings("KEY DROP LIVE", overlay.lines[1]);
     try std.testing.expectEqualStrings("POS 1280 2048 5376 ZONES 4", overlay.lines[2]);
@@ -1540,7 +1540,7 @@ test "viewer key handling routes scene-2 cellar message actions through runtime 
     var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
     try std.testing.expectEqualStrings("CELLAR MESSAGE", overlay.title);
-    try std.testing.expectEqualStrings("NAV / MESSAGE", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / MESSAGE NORMAL", overlay.nav_title);
     try std.testing.expectEqualStrings("DIALOG 284", overlay.lines[0]);
     try std.testing.expectEqualStrings("ZONE 6 FACING north", overlay.lines[1]);
     try std.testing.expectEqualStrings("ENTER ACK", overlay.lines[3]);
@@ -1608,14 +1608,14 @@ test "viewer 0013 key overlay exposes source-ready state before default action" 
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
 
     try std.testing.expectEqualStrings("0013 KEY", overlay.title);
-    try std.testing.expectEqualStrings("NAV / KEY", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / KEY NORMAL", overlay.nav_title);
     try std.testing.expectEqualStrings("ROOM 2/1 KEYS 0 VAR0 0", overlay.lines[0]);
     try std.testing.expectEqualStrings("KEY SOURCE READY", overlay.lines[1]);
     try std.testing.expectEqualStrings("POS 9724 1024 782 ZONES NONE", overlay.lines[2]);
     try std.testing.expectEqualStrings("SRC N PICK N DOOR N RET N", overlay.lines[3]);
 }
 
-test "viewer gameplay overlay nav title exposes non-normal behavior mode" {
+test "viewer gameplay overlay nav title exposes current behavior mode" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
     defer resolved.deinit(allocator);
@@ -1752,7 +1752,7 @@ test "viewer zone probe overlay exposes projected zone footprints for manual nav
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
 
     try std.testing.expectEqualStrings("ZONE PROBE", overlay.title);
-    try std.testing.expectEqualStrings("NAV / ZONE", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / ZONE NORMAL", overlay.nav_title);
     try std.testing.expectEqualStrings("POS 1280 6400 5376", overlay.lines[0]);
     try std.testing.expectEqualStrings("ZONES NONE", overlay.lines[1]);
     try std.testing.expectEqualStrings("XZ ZONES 4", overlay.lines[2]);
@@ -1876,7 +1876,7 @@ test "viewer 19/19 reward overlay reflects the bounded object-2 bonus loop" {
     const rewarded_state = runtime_session.objectBehaviorStateByIndex(2) orelse return error.MissingRuntimeObjectBehaviorState;
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
     try std.testing.expectEqualStrings("OBJ2 LOOP", overlay.title);
-    try std.testing.expectEqualStrings("NAV / REWARD", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / REWARD NORMAL", overlay.nav_title);
     try std.testing.expectEqual(@as(usize, 4), overlay.line_count);
     var expected_line_0: [32]u8 = undefined;
     var expected_track: [8]u8 = undefined;

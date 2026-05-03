@@ -296,7 +296,7 @@ Confidence: high
 Last verified: 2026-05-02
 Tags: original-runtime, gameplay-automation, movement, visual-proof, input-focus
 Related tests: tools/test_game_drive_capability_ladder.py
-Related files: tools/game_drive_capability_ladder.py, tools/game_drive_runner.py
+Related files: tools/game_drive_capability_ladder.py, tools/game_drive_runner.py, port/src/runtime/locomotion.zig
 
 Save-embedded previews are not sufficient for game-drive visual gates. In live
 ladder runs, plain arrow-key actions could load the correct runtime pose yet
@@ -342,7 +342,7 @@ runtime signature is `magic_point 60 -> 59`, launch extras with `sprite=10`,
 `owner=255`, `body=-1`, `hit_force=0`. Do not diagnose a failed throw from MP
 or ownership alone until explicit weapon selection has been checked.
 
-### invariant.port-magic-ball-throw-is-gated-by-selected-weapon-state
+### fact.port-magic-ball-throw-is-gated-by-selected-weapon-state
 
 Status: active
 Confidence: high
@@ -358,7 +358,7 @@ with `MagicBallNotSelected` otherwise. Room-local state replacement preserves
 selected weapon state because weapon selection is player/session state, not a
 room-local object behavior.
 
-### invariant.port-behavior-mode-is-durable-player-state
+### fact.port-behavior-mode-is-durable-player-state
 
 Status: active
 Confidence: high
@@ -372,3 +372,94 @@ room-local object state. `F5`-`F8` select Normal, Sporty, Aggressive, and
 Discreet through `select_behavior_mode`; room-local state replacement preserves
 the selected behavior mode. Magic Ball throw mode is derived from current
 behavior mode, so viewer `.` must not hardcode Normal.
+
+### fact.original-runtime-behavior-mode-keys-and-speed-are-live-probed
+
+Status: active
+Confidence: medium
+Last verified: 2026-05-03
+Tags: original-runtime, gameplay-automation, behavior-mode, movement, visual-proof
+Related tests: tools/test_game_drive_capability_ladder.py
+Related files: tools/game_drive_capability_ladder.py, tools/game_drive_runner.py
+Evidence refs: docs/evidence_archive/game_drive/behavior-mode-evidence-20260503-behavior_direct_f5_f8/summary.json, docs/evidence_archive/game_drive/behavior-mode-evidence-20260503-behavior_speed_normal/summary.json, docs/evidence_archive/game_drive/behavior-mode-evidence-20260503-behavior_speed_sporty/summary.json, docs/evidence_archive/game_drive/behavior-mode-evidence-20260503-behavior_speed_aggressive/summary.json, docs/evidence_archive/game_drive/behavior-mode-evidence-20260503-behavior_speed_discreet/summary.json, docs/evidence_archive/game_drive/behavior-mode-speed-pose2-20260503-behavior_speed_pose2_normal/summary.json, docs/evidence_archive/game_drive/behavior-mode-speed-pose2-20260503-behavior_speed_pose2_sporty/summary.json, docs/evidence_archive/game_drive/behavior-mode-speed-pose2-20260503-behavior_speed_pose2_aggressive/summary.json, docs/evidence_archive/game_drive/behavior-mode-speed-pose2-20260503-behavior_speed_pose2_discreet/summary.json
+
+The game-drive capability ladder has direct live proof that `F5`, `F6`, `F7`,
+and `F8` set `Comportement` to `0`, `1`, `2`, and `3` after a live-window visual
+gate. The same ladder also has evidence-only movement probes from the same
+Emerald Moon safe pose with a fixed `0.50s` Up hold: Normal moved `hero_x -215`,
+Sporty `hero_x -702`, Aggressive `hero_x -665`, and Discreet `hero_x -55`
+while beta stayed `2995`. A second pose/duration pass at
+`(4866,512,8324,beta=2760)` with a fixed `1.00s` Up hold measured Normal
+`hero_x -791 / hero_z -145`, Sporty `-2042 / -768`, Aggressive `-1306 / -373`,
+and Discreet `-371 / -3`, with beta unchanged. Treat this as proof that
+behavior mode affects movement speed in the original runtime, but not yet as a
+port locomotion contract: the current port movement path is grid-step based, so
+speed parity needs a separate time-based movement model or a narrower promoted
+seam before changing `runtime/locomotion.zig`.
+
+### fact.original-runtime-behavior-movement-has-startup-delay
+
+Status: active
+Confidence: medium
+Last verified: 2026-05-03
+Tags: original-runtime, gameplay-automation, behavior-mode, movement, acceleration
+Related tests: tools/test_game_drive_capability_ladder.py
+Related files: tools/game_drive_capability_ladder.py, tools/game_drive_runner.py
+Evidence refs: docs/evidence_archive/game_drive/behavior-mode-accel-20260503-behavior_accel_normal/summary.json, docs/evidence_archive/game_drive/behavior-mode-accel-20260503-behavior_accel_sporty/summary.json, docs/evidence_archive/game_drive/behavior-mode-accel-20260503-behavior_accel_aggressive/summary.json, docs/evidence_archive/game_drive/behavior-mode-accel-20260503-behavior_accel_discreet/summary.json, docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_normal/summary.json, docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_sporty/summary.json, docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_aggressive/summary.json, docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_discreet/summary.json
+
+Behavior-mode movement is not adequately described as an immediate constant
+speed. In the second-pose acceleration probe `(4866,512,8324,beta=2760)` with
+a `2.00s` Up hold and roughly `50ms` runtime samples, first movement appeared
+at different times: Aggressive around `105ms`, Sporty around `213ms`, Normal
+around `371ms`, and Discreet around `480ms`. After startup, Normal settled into
+roughly `60-67` x-units per sample, Discreet started around `36-38` then later
+around `17-19`, while Sporty and Aggressive had larger and less axis-stable
+segments. Treat this as evidence for startup/acceleration and movement-state
+differences, not as final speed constants.
+
+The cleaner operator-prepared `otringal-open.LBA` probe reduces the earlier
+room-geometry concern. With existing save pose, live-window visual gate accepted
+an open outdoor Otringal gameplay area for all four modes. A fixed `2.00s` Up
+hold measured mostly z-axis movement: Normal first moved around `371ms` and
+ended at `hero_z +2008`; Sporty first moved around `211ms` and ended at
+`hero_z +5066`; Aggressive first moved around `105ms` and ended at
+`hero_z +2974`; Discreet first moved around `478ms` and ended at `hero_z +772`.
+This strengthens the original-runtime facts that behavior mode changes both
+startup latency and movement speed. The promoted port surface is the narrow
+`behavior_movement_speed_startup_otringal` profile in `runtime/locomotion.zig`,
+which pins startup thresholds and `2.00s` forward distances without changing the
+older discrete `applyStep` grid-step path.
+
+### fact.original-runtime-behavior-movement-animation-correlation-is-unproven
+
+Status: active
+Confidence: medium
+Last verified: 2026-05-03
+Tags: original-runtime, gameplay-automation, behavior-mode, movement, animation
+Related tests: tools/test_game_drive_capability_ladder.py, tools/test_behavior_animation_root_motion_compare.py
+Related files: tools/game_drive_runner.py, tools/game_drive_capability_ladder.py, tools/behavior_animation_root_motion_compare.py, docs/promotion_packets/phase5/phase5_behavior_movement_speed_startup_otringal.md
+Evidence refs: docs/evidence_archive/game_drive/behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_normal/summary.json, docs/evidence_archive/game_drive/behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_sporty/summary.json, docs/evidence_archive/game_drive/behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_aggressive/summary.json, docs/evidence_archive/game_drive/behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_discreet/summary.json, docs/evidence_archive/animation_root_motion/behavior_movement_root_motion_compare_20260503.json
+
+Do not claim that behavior-mode movement startup is caused by animation state.
+The first correlation probe sampled the live hero object candidate at
+`0x0049A198` during the Otringal `2.00s` Up runs. The candidate position fields
+tracked the hero pose, but candidate animation fields stayed constant across
+movement: `gen_body=18`, `gen_anim=0`, `next_gen_anim=1`,
+`sprite_candidate=195`, `flag_anim_candidate=0` for all four behavior modes.
+This weakens the simple "position only changes when these animation ids change"
+hypothesis, but it does not disprove animation-coupled movement because the
+sampled fields may be high-level animation ids rather than frame/phase counters.
+Keep the port contract phrased as a movement onset/displacement profile, not as
+an acceleration or animation-ownership proof.
+
+The adjacent `D:\repos\reverse\lba2-lm2-viewer` project gives a stronger
+asset-side discriminator. Its File3D metadata maps Twinsen behavior walk
+families to `ANIM.HQR:1`/object `0` for Normal, `ANIM.HQR:67`/object `1` for
+Sporty, `ANIM.HQR:83`/object `2` for Aggressive, and `ANIM.HQR:94`/object `3`
+for Discreet. `tools/behavior_animation_root_motion_compare.py` compares those
+decoded root-motion timelines against the live Otringal `2.00s` movement
+fixture and finds final-distance error under about `1.64%` for all four modes.
+This supports an animation-root-motion implementation hypothesis, but still
+does not prove the original runtime's exact ownership path. Do not ignore this
+correlation when implementing feel, and do not overstate it as a live writer or
+frame-counter proof.

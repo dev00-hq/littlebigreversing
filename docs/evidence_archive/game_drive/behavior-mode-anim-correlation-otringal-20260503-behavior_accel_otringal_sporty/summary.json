@@ -1,0 +1,3680 @@
+{
+  "schema": "game-drive-run-summary-v1",
+  "checkpoint_id": "capability_behavior_accel_otringal_sporty",
+  "checkpoint": "work/game_drive_capability_ladder/checkpoints/capability_behavior_accel_otringal_sporty.json",
+  "save": "otringal-open.LBA",
+  "run_dir": "work/game_drive_capability_ladder/runs/capability_behavior_accel_otringal_sporty_20260503T224702Z",
+  "verdict": "checkpoint_passed_actions_recorded",
+  "pid": 40256,
+  "autosave": {
+    "hidden": false
+  },
+  "runtime_before_pose": {
+    "active_cube": 89,
+    "hero_count": 18,
+    "hero_x": 13693,
+    "hero_y": 7600,
+    "hero_z": 20622,
+    "hero_beta": 4017,
+    "magic_level": 3,
+    "magic_point": 55,
+    "magic_ball_flag": 1,
+    "action_normal": 0,
+    "magic_ball_index": 0,
+    "magic_ball_type": 0,
+    "magic_ball_count": 0,
+    "magic_ball_flags": 61,
+    "comportement": 1,
+    "hero_animation_candidate": {
+      "hero_obj_gen_body": 18,
+      "hero_obj_gen_anim": 0,
+      "hero_obj_next_gen_anim": 1,
+      "hero_obj_sprite_candidate": 195,
+      "hero_obj_flag_anim_candidate": 0,
+      "hero_obj_x_candidate": 13693,
+      "hero_obj_y_candidate": 7600,
+      "hero_obj_z_candidate": 20622,
+      "hero_obj_beta_candidate": 4017
+    }
+  },
+  "startup": {
+    "enter_count": 3
+  },
+  "runtime_before_visual": {
+    "active_cube": 89,
+    "hero_count": 18,
+    "hero_x": 13693,
+    "hero_y": 7600,
+    "hero_z": 20622,
+    "hero_beta": 4017,
+    "magic_level": 3,
+    "magic_point": 55,
+    "magic_ball_flag": 1,
+    "action_normal": 0,
+    "magic_ball_index": 0,
+    "magic_ball_type": 0,
+    "magic_ball_count": 0,
+    "magic_ball_flags": 61,
+    "comportement": 1,
+    "hero_animation_candidate": {
+      "hero_obj_gen_body": 18,
+      "hero_obj_gen_anim": 0,
+      "hero_obj_next_gen_anim": 1,
+      "hero_obj_sprite_candidate": 195,
+      "hero_obj_flag_anim_candidate": 0,
+      "hero_obj_x_candidate": 13693,
+      "hero_obj_y_candidate": 7600,
+      "hero_obj_z_candidate": 20622,
+      "hero_obj_beta_candidate": 4017
+    }
+  },
+  "checkpoint_screenshot": "work/game_drive_capability_ladder/runs/capability_behavior_accel_otringal_sporty_20260503T224702Z/after_pose_set_before_action.png",
+  "visual_source": "live_window_capture",
+  "visual_result": {
+    "checkpoint_id": "capability_behavior_accel_otringal_sporty",
+    "matches": true,
+    "confidence": "high",
+    "summary": "Twinsen is visible near the lower center of the live gameplay view, facing an open outdoor Otringal plaza/walking area. The target open space ahead is visible with no immediate wall, dialog, or menu blocking movement, and there are no unsafe pose signs such as falling, collision lock, or incapacitation.",
+    "derived_mismatches": [],
+    "verdict": "visual_checkpoint_matches"
+  },
+  "actions": [
+    {
+      "action": "press_f6_0_08_sec",
+      "before": {
+        "active_cube": 89,
+        "hero_count": 18,
+        "hero_x": 13693,
+        "hero_y": 7600,
+        "hero_z": 20622,
+        "hero_beta": 4017,
+        "magic_level": 3,
+        "magic_point": 55,
+        "magic_ball_flag": 1,
+        "action_normal": 0,
+        "magic_ball_index": 0,
+        "magic_ball_type": 0,
+        "magic_ball_count": 0,
+        "magic_ball_flags": 61,
+        "comportement": 1,
+        "hero_animation_candidate": {
+          "hero_obj_gen_body": 18,
+          "hero_obj_gen_anim": 0,
+          "hero_obj_next_gen_anim": 1,
+          "hero_obj_sprite_candidate": 195,
+          "hero_obj_flag_anim_candidate": 0,
+          "hero_obj_x_candidate": 13693,
+          "hero_obj_y_candidate": 7600,
+          "hero_obj_z_candidate": 20622,
+          "hero_obj_beta_candidate": 4017
+        }
+      },
+      "poll": {
+        "sample_count": 23,
+        "duration_ms": 1460,
+        "changed_fields": {},
+        "samples": [
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 52
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 104
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 158
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 212
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 266
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 319
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 372
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 425
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 479
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 532
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 586
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 639
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 692
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 745
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 799
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 854
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 907
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 960
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1013
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1066
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1119
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1172
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1226
+          }
+        ]
+      },
+      "after": {
+        "active_cube": 89,
+        "hero_count": 18,
+        "hero_x": 13693,
+        "hero_y": 7600,
+        "hero_z": 20622,
+        "hero_beta": 4017,
+        "magic_level": 3,
+        "magic_point": 55,
+        "magic_ball_flag": 1,
+        "action_normal": 0,
+        "magic_ball_index": 0,
+        "magic_ball_type": 0,
+        "magic_ball_count": 0,
+        "magic_ball_flags": 61,
+        "comportement": 1,
+        "hero_animation_candidate": {
+          "hero_obj_gen_body": 18,
+          "hero_obj_gen_anim": 0,
+          "hero_obj_next_gen_anim": 1,
+          "hero_obj_sprite_candidate": 195,
+          "hero_obj_flag_anim_candidate": 0,
+          "hero_obj_x_candidate": 13693,
+          "hero_obj_y_candidate": 7600,
+          "hero_obj_z_candidate": 20622,
+          "hero_obj_beta_candidate": 4017
+        }
+      }
+    },
+    {
+      "action": "hold_up_2_00_sec_release",
+      "before": {
+        "active_cube": 89,
+        "hero_count": 18,
+        "hero_x": 13693,
+        "hero_y": 7600,
+        "hero_z": 20622,
+        "hero_beta": 4017,
+        "magic_level": 3,
+        "magic_point": 55,
+        "magic_ball_flag": 1,
+        "action_normal": 0,
+        "magic_ball_index": 0,
+        "magic_ball_type": 0,
+        "magic_ball_count": 0,
+        "magic_ball_flags": 61,
+        "comportement": 1,
+        "hero_animation_candidate": {
+          "hero_obj_gen_body": 18,
+          "hero_obj_gen_anim": 0,
+          "hero_obj_next_gen_anim": 1,
+          "hero_obj_sprite_candidate": 195,
+          "hero_obj_flag_anim_candidate": 0,
+          "hero_obj_x_candidate": 13693,
+          "hero_obj_y_candidate": 7600,
+          "hero_obj_z_candidate": 20622,
+          "hero_obj_beta_candidate": 4017
+        }
+      },
+      "poll": {
+        "sample_count": 60,
+        "duration_ms": 3432,
+        "changed_fields": {
+          "hero_animation_candidate": [
+            {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20653,
+              "hero_obj_beta_candidate": 4017
+            },
+            {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20736,
+              "hero_obj_beta_candidate": 4017
+            },
+            {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20820,
+              "hero_obj_beta_candidate": 4017
+            },
+            {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20921,
+              "hero_obj_beta_candidate": 4017
+            },
+            {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 21051,
+              "hero_obj_beta_candidate": 4017
+            },
+            {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13691,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 21184,
+              "hero_obj_beta_candidate": 4017
+            },
+            {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13690,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 21316,
+              "hero_obj_beta_candidate": 4017
+            }
+          ],
+          "hero_x": [
+            13693,
+            13691,
+            13690,
+            13689,
+            13687,
+            13684,
+            13682,
+            13679
+          ],
+          "hero_z": [
+            20622,
+            20653,
+            20736,
+            20820,
+            20921,
+            21051,
+            21184,
+            21316
+          ]
+        },
+        "samples": [
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 52
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 107
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20622,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20622,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 161
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20653,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20653,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 215
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20736,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20736,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 269
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20820,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20820,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 322
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 20921,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 20921,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 374
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13693,
+            "hero_y": 7600,
+            "hero_z": 21051,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13693,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 21051,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 428
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13691,
+            "hero_y": 7600,
+            "hero_z": 21184,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13691,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 21184,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 482
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13690,
+            "hero_y": 7600,
+            "hero_z": 21316,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13690,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 21316,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 535
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13689,
+            "hero_y": 7600,
+            "hero_z": 21462,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13689,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 21468,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 588
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13687,
+            "hero_y": 7600,
+            "hero_z": 21631,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13687,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 21631,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 643
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13684,
+            "hero_y": 7600,
+            "hero_z": 21799,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13684,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 21799,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 697
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13682,
+            "hero_y": 7600,
+            "hero_z": 21957,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13682,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 21957,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 751
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13682,
+            "hero_y": 7600,
+            "hero_z": 22109,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13682,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 22109,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 804
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13679,
+            "hero_y": 7600,
+            "hero_z": 22260,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13679,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 22260,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 858
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13678,
+            "hero_y": 7600,
+            "hero_z": 22414,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13678,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 22417,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 911
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13676,
+            "hero_y": 7600,
+            "hero_z": 22569,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13676,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 22569,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 965
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13676,
+            "hero_y": 7600,
+            "hero_z": 22720,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13676,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 22720,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1018
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13676,
+            "hero_y": 7600,
+            "hero_z": 22872,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13676,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 22872,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1072
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13674,
+            "hero_y": 7600,
+            "hero_z": 23026,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13674,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 23029,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1125
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13673,
+            "hero_y": 7600,
+            "hero_z": 23174,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13673,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 23174,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1178
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13670,
+            "hero_y": 7600,
+            "hero_z": 23329,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13670,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 23329,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1231
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13668,
+            "hero_y": 7600,
+            "hero_z": 23480,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13668,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 23480,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1285
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13666,
+            "hero_y": 7600,
+            "hero_z": 23631,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13666,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 23631,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1338
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13663,
+            "hero_y": 7600,
+            "hero_z": 23786,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13663,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 23786,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1392
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13662,
+            "hero_y": 7600,
+            "hero_z": 23957,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13662,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 23957,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1444
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13662,
+            "hero_y": 7600,
+            "hero_z": 24136,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13661,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 24143,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1497
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13659,
+            "hero_y": 7600,
+            "hero_z": 24328,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13659,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 24328,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1550
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13658,
+            "hero_y": 7600,
+            "hero_z": 24480,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13658,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 24480,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1603
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13655,
+            "hero_y": 7600,
+            "hero_z": 24631,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13655,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 24631,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1657
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13652,
+            "hero_y": 7600,
+            "hero_z": 24783,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13652,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 24785,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1709
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13652,
+            "hero_y": 7600,
+            "hero_z": 24937,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13652,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 24937,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1763
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13652,
+            "hero_y": 7600,
+            "hero_z": 25091,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13652,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25091,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1817
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13650,
+            "hero_y": 7600,
+            "hero_z": 25240,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13649,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25245,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1870
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13647,
+            "hero_y": 7600,
+            "hero_z": 25394,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13647,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25394,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1923
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13646,
+            "hero_y": 7600,
+            "hero_z": 25545,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13646,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25545,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1976
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2029
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2082
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2136
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2188
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2241
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2294
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2347
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2400
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2453
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2507
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2560
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2613
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2666
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2719
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2773
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2826
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2879
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2933
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2986
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 3039
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 3093
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 3146
+          },
+          {
+            "active_cube": 89,
+            "hero_count": 18,
+            "hero_x": 13645,
+            "hero_y": 7600,
+            "hero_z": 25700,
+            "hero_beta": 4017,
+            "magic_level": 3,
+            "magic_point": 55,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "hero_animation_candidate": {
+              "hero_obj_gen_body": 18,
+              "hero_obj_gen_anim": 0,
+              "hero_obj_next_gen_anim": 1,
+              "hero_obj_sprite_candidate": 195,
+              "hero_obj_flag_anim_candidate": 0,
+              "hero_obj_x_candidate": 13645,
+              "hero_obj_y_candidate": 7600,
+              "hero_obj_z_candidate": 25700,
+              "hero_obj_beta_candidate": 4017
+            },
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F29044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 3199
+          }
+        ]
+      },
+      "after": {
+        "active_cube": 89,
+        "hero_count": 18,
+        "hero_x": 13645,
+        "hero_y": 7600,
+        "hero_z": 25700,
+        "hero_beta": 4017,
+        "magic_level": 3,
+        "magic_point": 55,
+        "magic_ball_flag": 1,
+        "action_normal": 0,
+        "magic_ball_index": 0,
+        "magic_ball_type": 0,
+        "magic_ball_count": 0,
+        "magic_ball_flags": 61,
+        "comportement": 1,
+        "hero_animation_candidate": {
+          "hero_obj_gen_body": 18,
+          "hero_obj_gen_anim": 0,
+          "hero_obj_next_gen_anim": 1,
+          "hero_obj_sprite_candidate": 195,
+          "hero_obj_flag_anim_candidate": 0,
+          "hero_obj_x_candidate": 13645,
+          "hero_obj_y_candidate": 7600,
+          "hero_obj_z_candidate": 25700,
+          "hero_obj_beta_candidate": 4017
+        }
+      }
+    }
+  ],
+  "after_actions_screenshot": "work/game_drive_capability_ladder/runs/capability_behavior_accel_otringal_sporty_20260503T224702Z/after_actions.png",
+  "runtime_final": {
+    "active_cube": 89,
+    "hero_count": 18,
+    "hero_x": 13645,
+    "hero_y": 7600,
+    "hero_z": 25700,
+    "hero_beta": 4017,
+    "magic_level": 3,
+    "magic_point": 55,
+    "magic_ball_flag": 1,
+    "action_normal": 0,
+    "magic_ball_index": 0,
+    "magic_ball_type": 0,
+    "magic_ball_count": 0,
+    "magic_ball_flags": 61,
+    "comportement": 1,
+    "hero_animation_candidate": {
+      "hero_obj_gen_body": 18,
+      "hero_obj_gen_anim": 0,
+      "hero_obj_next_gen_anim": 1,
+      "hero_obj_sprite_candidate": 195,
+      "hero_obj_flag_anim_candidate": 0,
+      "hero_obj_x_candidate": 13645,
+      "hero_obj_y_candidate": 7600,
+      "hero_obj_z_candidate": 25700,
+      "hero_obj_beta_candidate": 4017
+    }
+  },
+  "evidence_archive": {
+    "archive_id": "behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_sporty",
+    "manifest": "docs/evidence_archive/game_drive/behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_sporty/manifest.json",
+    "reason": "explicit"
+  }
+}

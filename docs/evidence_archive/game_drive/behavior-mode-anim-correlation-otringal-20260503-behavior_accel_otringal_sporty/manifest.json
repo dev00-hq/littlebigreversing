@@ -1,0 +1,69 @@
+{
+  "schema": "game-drive-evidence-archive-v1",
+  "archive_id": "behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_sporty",
+  "reason": "explicit",
+  "checkpoint_id": "capability_behavior_accel_otringal_sporty",
+  "verdict": "checkpoint_passed_actions_recorded",
+  "run_dir": "work/game_drive_capability_ladder/runs/capability_behavior_accel_otringal_sporty_20260503T224702Z",
+  "created_utc": "2026-05-03T22:47:22.100532Z",
+  "source_summary": "work/game_drive_capability_ladder/runs/capability_behavior_accel_otringal_sporty_20260503T224702Z/summary.json",
+  "images": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_accel_otringal_sporty_20260503T224702Z/after_pose_set_before_action.png",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_sporty/checkpoint_screenshot.webp",
+      "source_sha256": "143b8553dae573ed707a15051638ce98749bb5e4533976b91fbe22d1ffdf149e",
+      "archive_sha256": "1f53865467e011635e7bae2858a13facc328573fa01f413373e19569eef494c5",
+      "source_bytes": 196474,
+      "archive_bytes": 34906,
+      "compression": {
+        "format": "webp",
+        "quality": 35,
+        "method": 6,
+        "max_size": [
+          640,
+          480
+        ]
+      },
+      "summary_field": "checkpoint_screenshot"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_accel_otringal_sporty_20260503T224702Z/after_actions.png",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_sporty/after_actions_screenshot.webp",
+      "source_sha256": "7f66465dc10fc934254e870a4dc7bc306137c3bb5f27d0ece96f37668f20b49c",
+      "archive_sha256": "2b3a4627035180ead540424e5221fd1b40856c0dd544085fb01beaf5e2b1e168",
+      "source_bytes": 197304,
+      "archive_bytes": 35496,
+      "compression": {
+        "format": "webp",
+        "quality": 35,
+        "method": 6,
+        "max_size": [
+          640,
+          480
+        ]
+      },
+      "summary_field": "after_actions_screenshot"
+    }
+  ],
+  "json": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_accel_otringal_sporty_20260503T224702Z/summary.json",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_sporty/summary.json",
+      "source_sha256": "e32f9b1425d77dfdf51396ba335ce55cbd970a07830af558164e777dbd0c915f",
+      "archive_sha256": "e32f9b1425d77dfdf51396ba335ce55cbd970a07830af558164e777dbd0c915f"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_accel_otringal_sporty_20260503T224702Z/visual_result.json",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_sporty/visual_result.json",
+      "source_sha256": "3e66760ea19434d57f027f20ee5e423547898d505c6c66e5ec065abe92427094",
+      "archive_sha256": "3e66760ea19434d57f027f20ee5e423547898d505c6c66e5ec065abe92427094"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_accel_otringal_sporty_20260503T224702Z/codex_exec.json",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-anim-correlation-otringal-20260503-behavior_accel_otringal_sporty/codex_exec.json",
+      "source_sha256": "98d2d6d374ceb15ef95f7cefc91383f9494e5d18858967958d6bd98b32ba6a55",
+      "archive_sha256": "98d2d6d374ceb15ef95f7cefc91383f9494e5d18858967958d6bd98b32ba6a55"
+    }
+  ],
+  "source_summary_sha256": "e32f9b1425d77dfdf51396ba335ce55cbd970a07830af558164e777dbd0c915f"
+}

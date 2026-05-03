@@ -1,0 +1,69 @@
+{
+  "schema": "game-drive-evidence-archive-v1",
+  "archive_id": "behavior-mode-evidence-20260503-behavior_speed_aggressive",
+  "reason": "explicit",
+  "checkpoint_id": "capability_behavior_speed_aggressive",
+  "verdict": "checkpoint_passed_actions_recorded",
+  "run_dir": "work/game_drive_capability_ladder/runs/capability_behavior_speed_aggressive_20260503T174336Z",
+  "created_utc": "2026-05-03T17:43:56.589000Z",
+  "source_summary": "work/game_drive_capability_ladder/runs/capability_behavior_speed_aggressive_20260503T174336Z/summary.json",
+  "images": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_speed_aggressive_20260503T174336Z/after_pose_set_before_action.png",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-evidence-20260503-behavior_speed_aggressive/checkpoint_screenshot.webp",
+      "source_sha256": "6fbe6292fe7074066ae0757440c2f40f77437d160dbd354b2a84dfaf88ced58d",
+      "archive_sha256": "0f57751151b20c2c58e1adc6e6036fa2ddb74b1d6e86b0f97823903437bc677d",
+      "source_bytes": 160813,
+      "archive_bytes": 24560,
+      "compression": {
+        "format": "webp",
+        "quality": 35,
+        "method": 6,
+        "max_size": [
+          640,
+          480
+        ]
+      },
+      "summary_field": "checkpoint_screenshot"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_speed_aggressive_20260503T174336Z/after_actions.png",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-evidence-20260503-behavior_speed_aggressive/after_actions_screenshot.webp",
+      "source_sha256": "0c7d722849b125ec67b9c5280a6b6f04370a027dd6eeddb7b0dbe45076eedbb3",
+      "archive_sha256": "b71ebd89a8574cacba9adb781996fc4ab5d98cfaa38ed536f62f91bed86f7fef",
+      "source_bytes": 160974,
+      "archive_bytes": 24524,
+      "compression": {
+        "format": "webp",
+        "quality": 35,
+        "method": 6,
+        "max_size": [
+          640,
+          480
+        ]
+      },
+      "summary_field": "after_actions_screenshot"
+    }
+  ],
+  "json": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_speed_aggressive_20260503T174336Z/summary.json",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-evidence-20260503-behavior_speed_aggressive/summary.json",
+      "source_sha256": "deba4fd1f18f1758f505713a40ba9cc66073e5f5929abecbb8deee0b4012b0b9",
+      "archive_sha256": "deba4fd1f18f1758f505713a40ba9cc66073e5f5929abecbb8deee0b4012b0b9"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_speed_aggressive_20260503T174336Z/visual_result.json",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-evidence-20260503-behavior_speed_aggressive/visual_result.json",
+      "source_sha256": "ca18c950ebe5e1da2fb72754c9ee191185798d70c77bbccf9b4631daf5feb6ec",
+      "archive_sha256": "ca18c950ebe5e1da2fb72754c9ee191185798d70c77bbccf9b4631daf5feb6ec"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_behavior_speed_aggressive_20260503T174336Z/codex_exec.json",
+      "archive": "docs/evidence_archive/game_drive/behavior-mode-evidence-20260503-behavior_speed_aggressive/codex_exec.json",
+      "source_sha256": "7b605ab47d65093cceebac07e33185f0c5f30ee6169df7f86380d6ca5575e22f",
+      "archive_sha256": "7b605ab47d65093cceebac07e33185f0c5f30ee6169df7f86380d6ca5575e22f"
+    }
+  ],
+  "source_summary_sha256": "deba4fd1f18f1758f505713a40ba9cc66073e5f5929abecbb8deee0b4012b0b9"
+}

@@ -1,0 +1,323 @@
+{
+  "schema": "behavior-animation-root-motion-compare-v1",
+  "asset_root": "D:\\repos\\reverse\\littlebigreversing\\work\\_innoextract_full\\Speedrun\\Windows\\LBA2_cdrom\\LBA2",
+  "lm2_viewer_root": "D:\\repos\\reverse\\lba2-lm2-viewer",
+  "fixture": "D:\\repos\\reverse\\littlebigreversing\\tools\\fixtures\\promotion_packets\\phase5_behavior_movement_speed_startup_otringal_live_positive.json",
+  "hold_ms": 2000,
+  "candidate_mapping_hypothesis": "File3D objects 0, 1, 2, and 3 correspond to Normal, Sporty, Aggressive, and Discreet Twinsen behavior walk families.",
+  "rows": [
+    {
+      "mode": "normal",
+      "comportement": 0,
+      "animation_asset": "ANIM.HQR:1",
+      "file3d_object": 0,
+      "metadata": {
+        "generic_ids": [
+          1
+        ],
+        "generic_names": [
+          "GEN_ANIM_MARCHE"
+        ],
+        "labels": [
+          "Walk"
+        ],
+        "file3d_objects": [
+          0,
+          13
+        ],
+        "compatible_body_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          25
+        ]
+      },
+      "decoded_animation": {
+        "keyframes": 5,
+        "bone_count": 24,
+        "loop_start_keyframe": 1,
+        "total_duration_ms": 1100,
+        "loop_duration_ms": 800,
+        "root_z_at_hold_ms": 2040,
+        "first_nonzero_root_z_ms": 301,
+        "samples": [
+          {
+            "t_ms": 500,
+            "root_z": 240
+          },
+          {
+            "t_ms": 1000,
+            "root_z": 840
+          },
+          {
+            "t_ms": 1500,
+            "root_z": 1440
+          },
+          {
+            "t_ms": 2000,
+            "root_z": 2040
+          }
+        ]
+      },
+      "live_otringal": {
+        "hold_ms": 2000,
+        "first_movement_ms": 371,
+        "final_dz": 2008
+      },
+      "comparison": {
+        "final_dz_delta_decoded_minus_live": 32,
+        "final_dz_abs_error": 32,
+        "final_dz_abs_error_ratio": 0.01593625498007968,
+        "first_motion_delta_decoded_minus_live_ms": -70
+      }
+    },
+    {
+      "mode": "sporty",
+      "comportement": 1,
+      "animation_asset": "ANIM.HQR:67",
+      "file3d_object": 1,
+      "metadata": {
+        "generic_ids": [
+          1
+        ],
+        "generic_names": [
+          "GEN_ANIM_MARCHE"
+        ],
+        "labels": [
+          "Walk"
+        ],
+        "file3d_objects": [
+          1
+        ],
+        "compatible_body_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          12,
+          13,
+          14
+        ]
+      },
+      "decoded_animation": {
+        "keyframes": 10,
+        "bone_count": 24,
+        "loop_start_keyframe": 4,
+        "total_duration_ms": 1500,
+        "loop_duration_ms": 840,
+        "root_z_at_hold_ms": 5149,
+        "first_nonzero_root_z_ms": 141,
+        "samples": [
+          {
+            "t_ms": 500,
+            "root_z": 739
+          },
+          {
+            "t_ms": 1000,
+            "root_z": 2201
+          },
+          {
+            "t_ms": 1500,
+            "root_z": 3721
+          },
+          {
+            "t_ms": 2000,
+            "root_z": 5149
+          }
+        ]
+      },
+      "live_otringal": {
+        "hold_ms": 2000,
+        "first_movement_ms": 211,
+        "final_dz": 5066
+      },
+      "comparison": {
+        "final_dz_delta_decoded_minus_live": 83,
+        "final_dz_abs_error": 83,
+        "final_dz_abs_error_ratio": 0.016383734701934466,
+        "first_motion_delta_decoded_minus_live_ms": -70
+      }
+    },
+    {
+      "mode": "aggressive",
+      "comportement": 2,
+      "animation_asset": "ANIM.HQR:83",
+      "file3d_object": 2,
+      "metadata": {
+        "generic_ids": [
+          1,
+          42
+        ],
+        "generic_names": [
+          "GEN_ANIM_ESQUIVE_AVANT",
+          "GEN_ANIM_MARCHE"
+        ],
+        "labels": [
+          "Dodge forward",
+          "Walk"
+        ],
+        "file3d_objects": [
+          2,
+          5,
+          6,
+          8,
+          12
+        ],
+        "compatible_body_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          12,
+          13,
+          14,
+          15,
+          16,
+          18,
+          19,
+          20,
+          22,
+          23,
+          24
+        ]
+      },
+      "decoded_animation": {
+        "keyframes": 12,
+        "bone_count": 24,
+        "loop_start_keyframe": 0,
+        "total_duration_ms": 2000,
+        "loop_duration_ms": 2000,
+        "root_z_at_hold_ms": 3018,
+        "first_nonzero_root_z_ms": 1,
+        "samples": [
+          {
+            "t_ms": 500,
+            "root_z": 698
+          },
+          {
+            "t_ms": 1000,
+            "root_z": 1351
+          },
+          {
+            "t_ms": 1500,
+            "root_z": 2173
+          },
+          {
+            "t_ms": 2000,
+            "root_z": 3018
+          }
+        ]
+      },
+      "live_otringal": {
+        "hold_ms": 2000,
+        "first_movement_ms": 105,
+        "final_dz": 2974
+      },
+      "comparison": {
+        "final_dz_delta_decoded_minus_live": 44,
+        "final_dz_abs_error": 44,
+        "final_dz_abs_error_ratio": 0.014794889038332213,
+        "first_motion_delta_decoded_minus_live_ms": -104
+      }
+    },
+    {
+      "mode": "discreet",
+      "comportement": 3,
+      "animation_asset": "ANIM.HQR:94",
+      "file3d_object": 3,
+      "metadata": {
+        "generic_ids": [
+          1
+        ],
+        "generic_names": [
+          "GEN_ANIM_MARCHE"
+        ],
+        "labels": [
+          "Walk"
+        ],
+        "file3d_objects": [
+          3
+        ],
+        "compatible_body_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          12,
+          13,
+          14
+        ]
+      },
+      "decoded_animation": {
+        "keyframes": 10,
+        "bone_count": 23,
+        "loop_start_keyframe": 2,
+        "total_duration_ms": 3400,
+        "loop_duration_ms": 2600,
+        "root_z_at_hold_ms": 782,
+        "first_nonzero_root_z_ms": 402,
+        "samples": [
+          {
+            "t_ms": 500,
+            "root_z": 69
+          },
+          {
+            "t_ms": 1000,
+            "root_z": 396
+          },
+          {
+            "t_ms": 1500,
+            "root_z": 616
+          },
+          {
+            "t_ms": 2000,
+            "root_z": 782
+          }
+        ]
+      },
+      "live_otringal": {
+        "hold_ms": 2000,
+        "first_movement_ms": 478,
+        "final_dz": 772
+      },
+      "comparison": {
+        "final_dz_delta_decoded_minus_live": 10,
+        "final_dz_abs_error": 10,
+        "final_dz_abs_error_ratio": 0.012953367875647668,
+        "first_motion_delta_decoded_minus_live_ms": -76
+      }
+    }
+  ],
+  "summary": {
+    "max_final_dz_abs_error_ratio": 0.016383734701934466,
+    "verdict": "supports_animation_root_motion_hypothesis",
+    "limitation": "Decoded ANIM root motion matching live movement is strong correlation, not proof that the original runtime commits root deltas directly."
+  }
+}

@@ -267,10 +267,46 @@ If autosave is active, the game can silently load the wrong state.
 - Status: missing/reverted custom prepared save.
 - Used for: `game_drive_capability_ladder.py` cases:
   `load_visual_gate`, `rotation_left`, `translation_forward`,
-  `magic_ball_throw`, `behavior_cycle`, `direct_pose_visual_gate`.
+  `magic_ball_throw`, `behavior_cycle`, `behavior_direct_f5_f8`,
+  `behavior_speed_normal`, `behavior_speed_sporty`,
+  `behavior_speed_aggressive`, `behavior_speed_discreet`,
+  `direct_pose_visual_gate`.
 - Required setup: same as the Magic Ball switch room entry above. The harness
   currently expects this save unless checkpoints are changed to a recovered
   same-scene substitute plus direct-pose visual gating.
+  Behavior-speed probes direct-pose to `(4866,512,8324,beta=2995)`, press the
+  requested `F5`-`F8` mode key, then hold Up for `0.50s` and record live
+  `hero_x/hero_z/hero_beta` deltas plus before/after screenshots.
+  The second-pose speed probes direct-pose to `(4866,512,8324,beta=2760)`,
+  press the requested mode key, then hold Up for `1.00s`.
+  The acceleration probes reuse that second pose and hold Up for `2.00s` while
+  retaining the runner's roughly `50ms` runtime position samples.
+
+### `otringal-open.LBA`
+
+- Status: operator-prepared custom save; mirrored to `work\saves` on
+  2026-05-03 after being found in the runtime `SAVE\` directory.
+- Used for: cleaner open-area behavior movement/acceleration probes:
+  `behavior_accel_otringal_normal`, `behavior_accel_otringal_sporty`,
+  `behavior_accel_otringal_aggressive`, and
+  `behavior_accel_otringal_discreet`. The same cases were rerun for
+  animation-correlation evidence after `tools/game_drive_runner.py` started
+  sampling candidate hero object animation fields.
+- Required setup: Twinsen is already in an open outdoor Otringal gameplay area,
+  facing clear forward walking space. The checkpoint intentionally uses the
+  save's existing pose rather than a direct-pose override.
+- Evidence: `docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_normal/summary.json`,
+  `docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_sporty/summary.json`,
+  `docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_aggressive/summary.json`,
+  `docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_discreet/summary.json`.
+- Notes: the live visual gate must describe an open Otringal gameplay area
+  before accepting the movement time series. On the 2026-05-03 run, all four
+  modes moved mostly along `hero_z`, making this a cleaner source than the
+  Emerald Moon room for movement-speed ratios and startup latency. The
+  animation-correlation rerun found the candidate hero object position fields
+  tracked movement, while sampled `gen_body/gen_anim/next_gen_anim` stayed
+  constant; treat that as a weak negative against those fields owning movement
+  phase, not as proof that movement is not animation-coupled.
 
 ### `02-voisin.LBA`
 

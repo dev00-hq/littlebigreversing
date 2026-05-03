@@ -629,7 +629,7 @@ fn withBehaviorModeNavTitle(
     overlay: ViewerDialogOverlayDisplay,
     current_session: Session,
 ) ViewerDialogOverlayDisplay {
-    if (overlay.line_count == 0 or current_session.behaviorMode() == .normal) return overlay;
+    if (overlay.line_count == 0) return overlay;
     var adjusted = overlay;
     adjusted.nav_title = std.fmt.bufPrint(
         &buffer.nav_title,

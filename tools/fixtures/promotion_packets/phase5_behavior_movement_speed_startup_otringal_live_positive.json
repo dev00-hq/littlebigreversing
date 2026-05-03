@@ -1,0 +1,64 @@
+{
+  "schema": "promotion-packet-fixture-v1",
+  "packet_id": "phase5_behavior_movement_speed_startup_otringal",
+  "status": "live_positive",
+  "evidence_class": "collision_locomotion",
+  "save": "otringal-open.LBA",
+  "visual_gate": {
+    "source": "live_window_capture",
+    "matches": true,
+    "confidence": "high",
+    "expected": {
+      "twinsen_visible": true,
+      "target_visible": true,
+      "ui_state": "gameplay",
+      "unsafe_pose_signs": false
+    }
+  },
+  "runtime_contract": {
+    "id": "behavior_movement_speed_startup_otringal",
+    "hold_ms": 2000,
+    "axis": "hero_z",
+    "profiles": [
+      {
+        "mode": "normal",
+        "comportement": 0,
+        "first_movement_ms": 371,
+        "final_dx": 0,
+        "final_dz": 2008,
+        "summary": "Normal starts late and advances at the baseline walking distance."
+      },
+      {
+        "mode": "sporty",
+        "comportement": 1,
+        "first_movement_ms": 211,
+        "final_dx": -49,
+        "final_dz": 5066,
+        "summary": "Sporty starts earlier than Normal and travels the farthest."
+      },
+      {
+        "mode": "aggressive",
+        "comportement": 2,
+        "first_movement_ms": 105,
+        "final_dx": -2,
+        "final_dz": 2974,
+        "summary": "Aggressive starts earliest and travels farther than Normal but less than Sporty."
+      },
+      {
+        "mode": "discreet",
+        "comportement": 3,
+        "first_movement_ms": 478,
+        "final_dx": 0,
+        "final_dz": 772,
+        "summary": "Discreet starts latest and travels the shortest distance."
+      }
+    ]
+  },
+  "evidence_refs": [
+    "docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_normal/summary.json",
+    "docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_sporty/summary.json",
+    "docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_aggressive/summary.json",
+    "docs/evidence_archive/game_drive/behavior-mode-accel-otringal-20260503-behavior_accel_otringal_discreet/summary.json"
+  ],
+  "verdict": "behavior_movement_speed_startup_otringal_live_positive"
+}

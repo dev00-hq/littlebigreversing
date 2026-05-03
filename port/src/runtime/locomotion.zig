@@ -11,6 +11,13 @@ pub const ZoneMembership = runtime_query.ContainingZoneSet;
 pub const LocalNeighborTopology = runtime_query.LocalNeighborTopologyProbe;
 pub const HeroIntent = runtime_session.HeroIntent;
 pub const raw_invalid_zone_entry_step_xz: i32 = 32;
+pub const behavior_movement_speed_startup_otringal_contract = "behavior_movement_speed_startup_otringal";
+
+pub const BehaviorMovementProfile = struct {
+    mode: runtime_session.BehaviorMode,
+    startup_ms: u16,
+    distance_z_at_2000ms: i32,
+};
 
 pub const LocomotionRejectedStage = enum {
     origin_invalid,
@@ -113,6 +120,40 @@ pub const LocomotionStatus = union(enum) {
     last_zone_recovery_accepted: RawZoneRecoveryAcceptedStatus,
     last_move_rejected: MoveRejectedStatus,
 };
+
+pub fn behaviorMovementProfile(mode: runtime_session.BehaviorMode) BehaviorMovementProfile {
+    return switch (mode) {
+        .normal => .{
+            .mode = .normal,
+            .startup_ms = 371,
+            .distance_z_at_2000ms = 2008,
+        },
+        .sporty => .{
+            .mode = .sporty,
+            .startup_ms = 211,
+            .distance_z_at_2000ms = 5066,
+        },
+        .aggressive => .{
+            .mode = .aggressive,
+            .startup_ms = 105,
+            .distance_z_at_2000ms = 2974,
+        },
+        .discreet => .{
+            .mode = .discreet,
+            .startup_ms = 478,
+            .distance_z_at_2000ms = 772,
+        },
+    };
+}
+
+pub fn behaviorForwardHoldDistanceZ(mode: runtime_session.BehaviorMode, hold_ms: u16) i32 {
+    const profile = behaviorMovementProfile(mode);
+    if (hold_ms <= profile.startup_ms) return 0;
+
+    const active_ms: i32 = @as(i32, hold_ms) - profile.startup_ms;
+    const proved_active_ms: i32 = 2000 - profile.startup_ms;
+    return @divTrunc(profile.distance_z_at_2000ms * active_ms, proved_active_ms);
+}
 
 pub fn inspectCurrentStatus(
     room: *const room_state.RoomSnapshot,

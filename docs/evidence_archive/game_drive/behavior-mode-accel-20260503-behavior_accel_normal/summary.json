@@ -1,0 +1,3278 @@
+{
+  "schema": "game-drive-run-summary-v1",
+  "checkpoint_id": "capability_behavior_accel_normal",
+  "checkpoint": "work/game_drive_capability_ladder/checkpoints/capability_behavior_accel_normal.json",
+  "save": "moon-switches-room.LBA",
+  "run_dir": "work/game_drive_capability_ladder/runs/capability_behavior_accel_normal_20260503T213433Z",
+  "verdict": "checkpoint_passed_actions_recorded",
+  "pid": 25232,
+  "autosave": {
+    "hidden": false
+  },
+  "runtime_before_pose": {
+    "active_cube": 31,
+    "hero_count": 17,
+    "hero_x": 4869,
+    "hero_y": 512,
+    "hero_z": 8241,
+    "hero_beta": 2979,
+    "magic_level": 3,
+    "magic_point": 60,
+    "magic_ball_flag": 1,
+    "action_normal": 0,
+    "magic_ball_index": 0,
+    "magic_ball_type": 0,
+    "magic_ball_count": 0,
+    "magic_ball_flags": 61,
+    "comportement": 1
+  },
+  "startup": {
+    "enter_count": 3
+  },
+  "pose_result": {
+    "method": "direct_pose",
+    "before": {
+      "module_name": "LBA2.EXE",
+      "module_base": "0x400000",
+      "hero_base": "0x49a19c",
+      "old_x": 4869,
+      "old_y": 512,
+      "old_z": 8241,
+      "x": 4869,
+      "y": 512,
+      "z": 8241,
+      "beta": 2979,
+      "old_beta": 6815744,
+      "bound_angle": {
+        "move_speed": 0,
+        "move_acc": 1,
+        "move_last_timer": 0,
+        "cur": 249561088,
+        "end": 96
+      },
+      "beta_debug": {
+        "beta": 2979,
+        "degrees": 261.826171875,
+        "heading": "W"
+      }
+    },
+    "teleport": {
+      "module_name": "LBA2.EXE",
+      "module_base": "0x400000",
+      "hero_base": "0x49a19c",
+      "old_x": 4866,
+      "old_y": 512,
+      "old_z": 8324,
+      "x": 4866,
+      "y": 512,
+      "z": 8324,
+      "beta": 2979,
+      "old_beta": 6815744,
+      "bound_angle": {
+        "move_speed": 0,
+        "move_acc": 1,
+        "move_last_timer": 0,
+        "cur": 249561088,
+        "end": 96
+      },
+      "beta_debug": {
+        "beta": 2979,
+        "degrees": 261.826171875,
+        "heading": "W"
+      },
+      "target_position": {
+        "x": 4866,
+        "y": 512,
+        "z": 8324
+      },
+      "sync_old_position": true,
+      "sync_candidate_position": true,
+      "final_delta_position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    "heading": {
+      "module_name": "LBA2.EXE",
+      "module_base": "0x400000",
+      "hero_base": "0x49a19c",
+      "old_x": 4866,
+      "old_y": 512,
+      "old_z": 8324,
+      "x": 4866,
+      "y": 512,
+      "z": 8324,
+      "beta": 2760,
+      "old_beta": 2760,
+      "bound_angle": {
+        "move_speed": 0,
+        "move_acc": 0,
+        "move_last_timer": 0,
+        "cur": 2760,
+        "end": 2760
+      },
+      "beta_debug": {
+        "beta": 2760,
+        "degrees": 242.578125,
+        "heading": "SW"
+      },
+      "target_beta": 2760,
+      "target_beta_debug": {
+        "beta": 2760,
+        "degrees": 242.578125,
+        "heading": "SW"
+      },
+      "final_delta_beta": 0,
+      "verify_tolerance_beta": 32,
+      "verified_within_tolerance": true,
+      "sync_bound_angle": true,
+      "set_old_beta": true,
+      "sustain_ms": 200,
+      "interval_ms": 16
+    },
+    "after": {
+      "module_name": "LBA2.EXE",
+      "module_base": "0x400000",
+      "hero_base": "0x49a19c",
+      "old_x": 4866,
+      "old_y": 512,
+      "old_z": 8324,
+      "x": 4866,
+      "y": 512,
+      "z": 8324,
+      "beta": 2760,
+      "old_beta": 2760,
+      "bound_angle": {
+        "move_speed": 0,
+        "move_acc": 0,
+        "move_last_timer": 0,
+        "cur": 2760,
+        "end": 2760
+      },
+      "beta_debug": {
+        "beta": 2760,
+        "degrees": 242.578125,
+        "heading": "SW"
+      }
+    }
+  },
+  "runtime_before_visual": {
+    "active_cube": 31,
+    "hero_count": 17,
+    "hero_x": 4866,
+    "hero_y": 512,
+    "hero_z": 8324,
+    "hero_beta": 2760,
+    "magic_level": 3,
+    "magic_point": 60,
+    "magic_ball_flag": 1,
+    "action_normal": 0,
+    "magic_ball_index": 0,
+    "magic_ball_type": 0,
+    "magic_ball_count": 0,
+    "magic_ball_flags": 61,
+    "comportement": 1
+  },
+  "checkpoint_screenshot": "work/game_drive_capability_ladder/runs/capability_behavior_accel_normal_20260503T213433Z/after_pose_set_before_action.png",
+  "visual_source": "live_window_capture",
+  "visual_result": {
+    "checkpoint_id": "capability_behavior_accel_normal",
+    "matches": true,
+    "confidence": "high",
+    "summary": "Twinsen is visible near the center-left of the gameplay view, facing the row of three switch pedestals. The target switch is visible as the middle switch among the three wall/pedestal switches ahead of Twinsen. The screen shows normal gameplay with no dialog or menu overlay, and Twinsen is standing normally with no unsafe pose signs.",
+    "derived_mismatches": [],
+    "verdict": "visual_checkpoint_matches"
+  },
+  "actions": [
+    {
+      "action": "press_f5_0_08_sec",
+      "before": {
+        "active_cube": 31,
+        "hero_count": 17,
+        "hero_x": 4866,
+        "hero_y": 512,
+        "hero_z": 8324,
+        "hero_beta": 2760,
+        "magic_level": 3,
+        "magic_point": 60,
+        "magic_ball_flag": 1,
+        "action_normal": 0,
+        "magic_ball_index": 0,
+        "magic_ball_type": 0,
+        "magic_ball_count": 0,
+        "magic_ball_flags": 61,
+        "comportement": 1
+      },
+      "poll": {
+        "sample_count": 23,
+        "duration_ms": 1465,
+        "changed_fields": {
+          "comportement": [
+            1,
+            0
+          ]
+        },
+        "samples": [
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 1,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 51
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 105
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 159
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 214
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 267
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 320
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 375
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 429
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 484
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 537
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 590
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 643
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 696
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 750
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 803
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 857
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 910
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 964
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1017
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1070
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1123
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1177
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1231
+          }
+        ]
+      },
+      "after": {
+        "active_cube": 31,
+        "hero_count": 17,
+        "hero_x": 4866,
+        "hero_y": 512,
+        "hero_z": 8324,
+        "hero_beta": 2760,
+        "magic_level": 3,
+        "magic_point": 60,
+        "magic_ball_flag": 1,
+        "action_normal": 0,
+        "magic_ball_index": 0,
+        "magic_ball_type": 0,
+        "magic_ball_count": 0,
+        "magic_ball_flags": 61,
+        "comportement": 0
+      }
+    },
+    {
+      "action": "hold_up_2_00_sec_release",
+      "before": {
+        "active_cube": 31,
+        "hero_count": 17,
+        "hero_x": 4866,
+        "hero_y": 512,
+        "hero_z": 8324,
+        "hero_beta": 2760,
+        "magic_level": 3,
+        "magic_point": 60,
+        "magic_ball_flag": 1,
+        "action_normal": 0,
+        "magic_ball_index": 0,
+        "magic_ball_type": 0,
+        "magic_ball_count": 0,
+        "magic_ball_flags": 61,
+        "comportement": 0
+      },
+      "poll": {
+        "sample_count": 60,
+        "duration_ms": 3428,
+        "changed_fields": {
+          "extras": [
+            {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            }
+          ],
+          "hero_x": [
+            4866,
+            4845,
+            4781,
+            4718,
+            4653,
+            4588,
+            4524,
+            4461
+          ],
+          "hero_z": [
+            8324,
+            8321,
+            8307,
+            8295,
+            8282,
+            8271,
+            8260,
+            8250
+          ]
+        },
+        "samples": [
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 52
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 105
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 157
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 210
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 264
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4866,
+            "hero_y": 512,
+            "hero_z": 8324,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 317
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4845,
+            "hero_y": 512,
+            "hero_z": 8321,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 371
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4781,
+            "hero_y": 512,
+            "hero_z": 8307,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 424
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4718,
+            "hero_y": 512,
+            "hero_z": 8295,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 477
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4653,
+            "hero_y": 512,
+            "hero_z": 8282,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 531
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4588,
+            "hero_y": 512,
+            "hero_z": 8271,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 585
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4524,
+            "hero_y": 512,
+            "hero_z": 8260,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 638
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4461,
+            "hero_y": 512,
+            "hero_z": 8250,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 691
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4397,
+            "hero_y": 512,
+            "hero_z": 8238,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 744
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4334,
+            "hero_y": 512,
+            "hero_z": 8228,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 798
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4270,
+            "hero_y": 512,
+            "hero_z": 8216,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 851
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4205,
+            "hero_y": 512,
+            "hero_z": 8204,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 1,
+              "sprite_counts": {
+                "4": 1
+              },
+              "active_extras": [
+                {
+                  "index": 0,
+                  "sprite": 4,
+                  "body": -1,
+                  "pos_x": 5616,
+                  "pos_y": 560,
+                  "pos_z": 8103,
+                  "owner": 0,
+                  "hit_force": 0
+                }
+              ]
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 905
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4143,
+            "hero_y": 512,
+            "hero_z": 8192,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 958
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4078,
+            "hero_y": 512,
+            "hero_z": 8180,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1011
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 4014,
+            "hero_y": 512,
+            "hero_z": 8168,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1065
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3950,
+            "hero_y": 512,
+            "hero_z": 8157,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1119
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3885,
+            "hero_y": 512,
+            "hero_z": 8145,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1173
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3821,
+            "hero_y": 512,
+            "hero_z": 8134,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1226
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3757,
+            "hero_y": 512,
+            "hero_z": 8122,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1278
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3694,
+            "hero_y": 512,
+            "hero_z": 8112,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1331
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3632,
+            "hero_y": 512,
+            "hero_z": 8102,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1384
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3568,
+            "hero_y": 512,
+            "hero_z": 8091,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1437
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3503,
+            "hero_y": 512,
+            "hero_z": 8079,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1491
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3441,
+            "hero_y": 512,
+            "hero_z": 8069,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1544
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3375,
+            "hero_y": 512,
+            "hero_z": 8058,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1598
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3311,
+            "hero_y": 512,
+            "hero_z": 8045,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1651
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3247,
+            "hero_y": 512,
+            "hero_z": 8032,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1704
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3183,
+            "hero_y": 512,
+            "hero_z": 8021,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1757
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3122,
+            "hero_y": 512,
+            "hero_z": 8010,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1810
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 3055,
+            "hero_y": 512,
+            "hero_z": 7996,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1864
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2993,
+            "hero_y": 512,
+            "hero_z": 7986,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1916
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2930,
+            "hero_y": 512,
+            "hero_z": 7975,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 1970
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2023
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2076
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2129
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2182
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2235
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2289
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2341
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2395
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2448
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2501
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2555
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2607
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2661
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2714
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2767
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2821
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2874
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2928
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 2981
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 3034
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 3088
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 3141
+          },
+          {
+            "active_cube": 31,
+            "hero_count": 17,
+            "hero_x": 2863,
+            "hero_y": 512,
+            "hero_z": 7962,
+            "hero_beta": 2760,
+            "magic_level": 3,
+            "magic_point": 60,
+            "magic_ball_flag": 1,
+            "action_normal": 0,
+            "magic_ball_index": 0,
+            "magic_ball_type": 0,
+            "magic_ball_count": 0,
+            "magic_ball_flags": 61,
+            "comportement": 0,
+            "extras": {
+              "active_extra_count": 0,
+              "sprite_counts": {},
+              "active_extras": []
+            },
+            "dialog": {
+              "current_dial": 0,
+              "pt_text": "0x0F28044C",
+              "pt_dial": "0x00000000",
+              "cursor_offset": null
+            },
+            "_t_ms": 3195
+          }
+        ]
+      },
+      "after": {
+        "active_cube": 31,
+        "hero_count": 17,
+        "hero_x": 2863,
+        "hero_y": 512,
+        "hero_z": 7962,
+        "hero_beta": 2760,
+        "magic_level": 3,
+        "magic_point": 60,
+        "magic_ball_flag": 1,
+        "action_normal": 0,
+        "magic_ball_index": 0,
+        "magic_ball_type": 0,
+        "magic_ball_count": 0,
+        "magic_ball_flags": 61,
+        "comportement": 0
+      }
+    }
+  ],
+  "after_actions_screenshot": "work/game_drive_capability_ladder/runs/capability_behavior_accel_normal_20260503T213433Z/after_actions.png",
+  "runtime_final": {
+    "active_cube": 31,
+    "hero_count": 17,
+    "hero_x": 2863,
+    "hero_y": 512,
+    "hero_z": 7962,
+    "hero_beta": 2760,
+    "magic_level": 3,
+    "magic_point": 60,
+    "magic_ball_flag": 1,
+    "action_normal": 0,
+    "magic_ball_index": 0,
+    "magic_ball_type": 0,
+    "magic_ball_count": 0,
+    "magic_ball_flags": 61,
+    "comportement": 0
+  },
+  "evidence_archive": {
+    "archive_id": "behavior-mode-accel-20260503-behavior_accel_normal",
+    "manifest": "docs/evidence_archive/game_drive/behavior-mode-accel-20260503-behavior_accel_normal/manifest.json",
+    "reason": "explicit"
+  }
+}

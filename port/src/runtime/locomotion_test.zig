@@ -110,6 +110,38 @@ fn expectRawInvalidStartCandidate(
     try std.testing.expectEqual(@as(?locomotion.RawInvalidStartCandidate, null), actual);
 }
 
+test "runtime locomotion exposes promoted Otringal behavior movement startup profile" {
+    const ExpectedProfile = struct {
+        mode: runtime_session.BehaviorMode,
+        startup_ms: u16,
+        distance_z_at_2000ms: i32,
+    };
+    const expected_profiles = [_]ExpectedProfile{
+        .{ .mode = .normal, .startup_ms = 371, .distance_z_at_2000ms = 2008 },
+        .{ .mode = .sporty, .startup_ms = 211, .distance_z_at_2000ms = 5066 },
+        .{ .mode = .aggressive, .startup_ms = 105, .distance_z_at_2000ms = 2974 },
+        .{ .mode = .discreet, .startup_ms = 478, .distance_z_at_2000ms = 772 },
+    };
+
+    try std.testing.expectEqualStrings(
+        "behavior_movement_speed_startup_otringal",
+        locomotion.behavior_movement_speed_startup_otringal_contract,
+    );
+
+    for (expected_profiles) |expected| {
+        const profile = locomotion.behaviorMovementProfile(expected.mode);
+        try std.testing.expectEqual(expected.mode, profile.mode);
+        try std.testing.expectEqual(expected.startup_ms, profile.startup_ms);
+        try std.testing.expectEqual(expected.distance_z_at_2000ms, profile.distance_z_at_2000ms);
+        try std.testing.expectEqual(@as(i32, 0), locomotion.behaviorForwardHoldDistanceZ(expected.mode, expected.startup_ms));
+        try std.testing.expect(locomotion.behaviorForwardHoldDistanceZ(expected.mode, expected.startup_ms + 50) > 0);
+        try std.testing.expectEqual(
+            expected.distance_z_at_2000ms,
+            locomotion.behaviorForwardHoldDistanceZ(expected.mode, 2000),
+        );
+    }
+}
+
 fn expectRawInvalidStartMappingHint(
     actual: ?locomotion.RawInvalidStartMappingHint,
     expected: *const runtime_query.HeroStartMappingEvaluation,

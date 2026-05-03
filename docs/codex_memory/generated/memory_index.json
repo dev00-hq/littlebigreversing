@@ -76,6 +76,51 @@
       "type": "fact"
     },
     {
+      "confidence": "medium",
+      "heading": "fact.original-runtime-behavior-mode-keys-and-speed-are-live-probed",
+      "id": "fact.original-runtime-behavior-mode-keys-and-speed-are-live-probed",
+      "last_verified": "2026-05-03",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "behavior-mode",
+        "movement",
+        "visual-proof"
+      ],
+      "type": "fact"
+    },
+    {
+      "confidence": "medium",
+      "heading": "fact.original-runtime-behavior-movement-animation-correlation-is-unproven",
+      "id": "fact.original-runtime-behavior-movement-animation-correlation-is-unproven",
+      "last_verified": "2026-05-03",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "behavior-mode",
+        "movement",
+        "animation"
+      ],
+      "type": "fact"
+    },
+    {
+      "confidence": "medium",
+      "heading": "fact.original-runtime-behavior-movement-has-startup-delay",
+      "id": "fact.original-runtime-behavior-movement-has-startup-delay",
+      "last_verified": "2026-05-03",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "behavior-mode",
+        "movement",
+        "acceleration"
+      ],
+      "type": "fact"
+    },
+    {
       "confidence": "high",
       "heading": "fact.original-runtime-throw-input-is-hold-release",
       "id": "fact.original-runtime-throw-input-is-hold-release",
@@ -101,6 +146,35 @@
         "dialogue",
         "object-inspection",
         "text-ui"
+      ],
+      "type": "fact"
+    },
+    {
+      "confidence": "high",
+      "heading": "fact.port-behavior-mode-is-durable-player-state",
+      "id": "fact.port-behavior-mode-is-durable-player-state",
+      "last_verified": "2026-05-03",
+      "status": "active",
+      "tags": [
+        "port",
+        "behavior-mode",
+        "runtime-session",
+        "magic-ball",
+        "input"
+      ],
+      "type": "fact"
+    },
+    {
+      "confidence": "high",
+      "heading": "fact.port-magic-ball-throw-is-gated-by-selected-weapon-state",
+      "id": "fact.port-magic-ball-throw-is-gated-by-selected-weapon-state",
+      "last_verified": "2026-05-03",
+      "status": "active",
+      "tags": [
+        "port",
+        "magic-ball",
+        "runtime-session",
+        "input"
       ],
       "type": "fact"
     },
@@ -233,6 +307,21 @@
     },
     {
       "confidence": "high",
+      "heading": "trap.magic-ball-throw-requires-explicit-weapon-selection",
+      "id": "trap.magic-ball-throw-requires-explicit-weapon-selection",
+      "last_verified": "2026-05-03",
+      "status": "active",
+      "tags": [
+        "original-runtime",
+        "gameplay-automation",
+        "magic-ball",
+        "input",
+        "harness"
+      ],
+      "type": "trap"
+    },
+    {
+      "confidence": "high",
       "heading": "trap.movement-rungs-need-live-window-checkpoints",
       "id": "trap.movement-rungs-need-live-window-checkpoints",
       "last_verified": "2026-05-02",
@@ -261,5 +350,5 @@
       "type": "trap"
     }
   ],
-  "source_hash": "sha256:b506be39b900f1ca2182bd1ccd2b2f80e0364e3e6e2275d2cf3eff4311b02e08"
+  "source_hash": "sha256:d990c493a65c0e342c4d05dd481d42f55c7e6b8701f8c8da33f9e975367ab44c"
 }

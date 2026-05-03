@@ -394,6 +394,7 @@ const magic_ball_enemy_damage_tralu_level1_canonical_runtime_contract = "magic_b
 const magic_ball_switch_activation_emerald_moon_canonical_runtime_contract = "magic_ball_switch_activation_emerald_moon";
 const magic_ball_lever_activation_multi_family_canonical_runtime_contract = "magic_ball_lever_activation_multi_family";
 const text_interaction_affordance_families_canonical_runtime_contract = "text_interaction_affordance_families";
+const behavior_movement_speed_startup_otringal_canonical_runtime_contract = "behavior_movement_speed_startup_otringal";
 
 const RoomTransitionInspectionPayload = struct {
     command: []const u8,

@@ -85,6 +85,88 @@ class GameDriveCapabilityLadderTests(unittest.TestCase):
         self.assertEqual(report["verdict"], "blocked")
         self.assertEqual(report["sequence_mismatches"][0]["observed"], [1, 3])
 
+    def test_final_expectation_allows_behavior_key_from_any_starting_mode(self) -> None:
+        case = ladder.CapabilityCase(
+            id="behavior_direct_test",
+            base_checkpoint="checkpoint.json",
+            actions=("press_f5_0_08_sec",),
+            required_signals=(),
+            description="test",
+            expected_finals=(
+                ladder.ActionFinalExpectation(
+                    action="press_f5_0_08_sec",
+                    field="comportement",
+                    value=0,
+                ),
+            ),
+        )
+        result = {
+            "verdict": "checkpoint_passed_actions_recorded",
+            "actions": [
+                {
+                    "action": "press_f5_0_08_sec",
+                    "before": {"comportement": 0},
+                    "poll": {"changed_fields": {}, "samples": [{"comportement": 0}]},
+                    "after": {"comportement": 0},
+                },
+            ],
+        }
+
+        report = ladder.evaluate_case(case, result)
+
+        self.assertEqual(report["verdict"], "passed")
+        self.assertEqual(report["observed_finals"][0]["observed"], 0)
+
+    def test_final_expectation_blocks_wrong_behavior_key_result(self) -> None:
+        case = ladder.CapabilityCase(
+            id="behavior_direct_test",
+            base_checkpoint="checkpoint.json",
+            actions=("press_f8_0_08_sec",),
+            required_signals=(),
+            description="test",
+            expected_finals=(
+                ladder.ActionFinalExpectation(
+                    action="press_f8_0_08_sec",
+                    field="comportement",
+                    value=3,
+                ),
+            ),
+        )
+        result = {
+            "verdict": "checkpoint_passed_actions_recorded",
+            "actions": [
+                {
+                    "action": "press_f8_0_08_sec",
+                    "before": {"comportement": 1},
+                    "poll": {"changed_fields": {"comportement": [1, 2]}, "samples": [{"comportement": 2}]},
+                    "after": {"comportement": 2},
+                },
+            ],
+        }
+
+        report = ladder.evaluate_case(case, result)
+
+        self.assertEqual(report["verdict"], "blocked")
+        self.assertEqual(report["final_mismatches"][0]["observed"], 2)
+
+    def test_materialized_capability_can_override_pose_coordinates(self) -> None:
+        case = ladder.CapabilityCase(
+            id="pose_override_test",
+            base_checkpoint="pose_ready_magic_ball_middle_switch.json",
+            actions=("press_f5_0_08_sec",),
+            required_signals=(),
+            description="test",
+            pose_coordinates={"x": 1, "y": 2, "z": 3, "beta": 4},
+        )
+
+        path = ladder.materialize_checkpoint(case, ladder.DEFAULT_OUT_ROOT / "test_checkpoints")
+        checkpoint = ladder.load_json(path)
+
+        self.assertEqual(
+            checkpoint["setup"]["pose"]["coordinates"],
+            {"x": 1, "y": 2, "z": 3, "beta": 4},
+        )
+
     def test_delta_expectation_passes_signed_range(self) -> None:
         case = ladder.CapabilityCase(
             id="translation_test",
@@ -197,6 +279,23 @@ class GameDriveCapabilityLadderTests(unittest.TestCase):
 
     def test_delta_expectation_uses_beta4096_wrap(self) -> None:
         self.assertEqual(ladder.delta_value(3900, 100, "beta4096"), 296)
+
+    def test_movement_time_series_reports_sample_and_segment_deltas(self) -> None:
+        action = {
+            "poll": {
+                "samples": [
+                    {"_t_ms": 0, "hero_x": 100, "hero_z": 50},
+                    {"_t_ms": 50, "hero_x": 95, "hero_z": 49},
+                    {"_t_ms": 100, "hero_x": 80, "hero_z": 45},
+                ],
+            },
+        }
+
+        report = ladder.movement_time_series(action)
+
+        self.assertEqual(report["sample_count"], 3)
+        self.assertEqual(report["samples"][2]["dx_from_start"], -20)
+        self.assertEqual(report["segments"][1]["dx"], -15)
 
     def test_extras_expectation_requires_lifecycle_and_identity_rows(self) -> None:
         case = ladder.CapabilityCase(

@@ -17,6 +17,8 @@ class GameDriveRunnerTests(unittest.TestCase):
         self.assertEqual((0x57, 0.18), game_drive_runner.action_to_key_hold("press_w_0_18_sec"))
         self.assertEqual((0x25, 0.50), game_drive_runner.action_to_key_hold("hold_left_0_50_sec_release"))
         self.assertEqual((0x26, 0.50), game_drive_runner.action_to_key_hold("hold_up_0_50_sec_release"))
+        self.assertEqual((0x26, 1.00), game_drive_runner.action_to_key_hold("hold_up_1_00_sec_release"))
+        self.assertEqual((0x26, 2.00), game_drive_runner.action_to_key_hold("hold_up_2_00_sec_release"))
         self.assertEqual((0x75, 0.08), game_drive_runner.action_to_key_hold("press_f6_0_08_sec"))
         self.assertEqual((0x75, 0.50), game_drive_runner.action_to_key_hold("hold_f6_0_50_sec_release"))
         self.assertEqual((0x31, 0.08), game_drive_runner.action_to_key_hold("press_1_0_08_sec"))

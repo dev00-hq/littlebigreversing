@@ -29,7 +29,7 @@ from heading_inject import HeadingInjector  # noqa: E402
 from life_trace_shared import DEFAULT_GAME_EXE  # noqa: E402
 from life_trace_windows import WindowCapture, WindowInput  # noqa: E402
 from phase5_magic_ball_switch_probe import stage_save  # noqa: E402
-from phase5_magic_ball_throw_probe import active_extras, snapshot_globals  # noqa: E402
+from phase5_magic_ball_throw_probe import active_extras, read_sized, snapshot_globals  # noqa: E402
 from phase5_magic_ball_tralu_sequence import kill_existing_lba2  # noqa: E402
 from scenes.load_game import direct_launch_argv  # noqa: E402
 from secret_room_door_watch import ProcessReader  # noqa: E402
@@ -43,6 +43,18 @@ PT_TEXT_GLOBAL = 0x004CC498
 PT_DIAL_GLOBAL = 0x004CCDF0
 CURRENT_DIAL_GLOBAL = 0x004CCF10
 COMPORTEMENT_GLOBAL = 0x0049A098
+HERO_OBJECT_BASE_CANDIDATE = 0x0049A198
+HERO_OBJECT_ANIMATION_FIELDS = {
+    "hero_obj_gen_body": (0x00, 1),
+    "hero_obj_gen_anim": (0x02, 2),
+    "hero_obj_next_gen_anim": (0x04, 2),
+    "hero_obj_sprite_candidate": (0x36, 2),
+    "hero_obj_flag_anim_candidate": (0x81, 1),
+    "hero_obj_x_candidate": (0x42, 4),
+    "hero_obj_y_candidate": (0x46, 4),
+    "hero_obj_z_candidate": (0x4A, 4),
+    "hero_obj_beta_candidate": (0x52, 4),
+}
 KEYS = {
     "period": 0xBE,
     "numpad_decimal": 0x6E,
@@ -223,6 +235,8 @@ def action_to_key_hold(action: str) -> tuple[int, float]:
         "hold_left_0_50_sec_release": ("left", 0.50),
         "hold_right_0_50_sec_release": ("right", 0.50),
         "hold_up_0_50_sec_release": ("up", 0.50),
+        "hold_up_1_00_sec_release": ("up", 1.00),
+        "hold_up_2_00_sec_release": ("up", 2.00),
         "hold_down_0_50_sec_release": ("down", 0.50),
         "press_f5_0_08_sec": ("f5", 0.08),
         "press_f6_0_08_sec": ("f6", 0.08),
@@ -373,9 +387,17 @@ def safe_snapshot(reader: ProcessReader) -> dict[str, Any]:
     try:
         snapshot = snapshot_globals(reader)
         snapshot["comportement"] = reader.read_int(COMPORTEMENT_GLOBAL, 1)
+        snapshot["hero_animation_candidate"] = hero_animation_candidate_summary(reader)
         return snapshot
     except Exception as error:
         return {"error": str(error)}
+
+
+def hero_animation_candidate_summary(reader: ProcessReader) -> dict[str, Any]:
+    summary: dict[str, Any] = {}
+    for name, (offset, size) in HERO_OBJECT_ANIMATION_FIELDS.items():
+        summary[name] = read_sized(reader, HERO_OBJECT_BASE_CANDIDATE + offset, size)
+    return summary
 
 
 def dialog_summary(reader: ProcessReader) -> dict[str, Any]:

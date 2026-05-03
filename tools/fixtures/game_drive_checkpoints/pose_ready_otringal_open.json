@@ -1,0 +1,57 @@
+{
+  "schema": "game-drive-checkpoint-v1",
+  "id": "pose_ready_otringal_open",
+  "save": "otringal-open.LBA",
+  "autosave_guard": "hide_active_autosave_preserve_generated",
+  "setup": {
+    "pose": {
+      "method": "existing_pose",
+      "scene": 0,
+      "background": null,
+      "active_cube": null,
+      "coordinates": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "beta": 0
+      },
+      "tolerance": {
+        "position": 0,
+        "beta": 0
+      },
+      "safe_source": "operator-prepared otringal-open.LBA save for open-area behavior movement probes"
+    }
+  },
+  "runtime_expect": {
+    "life_not_lost": true,
+    "scene": 0
+  },
+  "visual_expect": {
+    "checkpoint": "after_pose_set_before_action",
+    "source": "live_window_capture",
+    "classifier": "codex_exec",
+    "screenshot_required": true,
+    "summary_required": true,
+    "scene_description": "An open outdoor Otringal city area suitable for forward movement testing.",
+    "target_description": "Open walking space ahead of Twinsen, without an immediate wall or menu blocking movement.",
+    "expected": {
+      "twinsen_visible": true,
+      "target_visible": true,
+      "ui_state": "gameplay",
+      "unsafe_pose_signs": false
+    },
+    "summary_must_mention": [
+      "Twinsen",
+      "open",
+      "gameplay"
+    ],
+    "negative_controls": [
+      {
+        "id": "wrong_save_or_autosave_room",
+        "description": "The screenshot shows a menu, a different room, or a blocked indoor scene because autosave or launch state won.",
+        "expected_matches": false
+      }
+    ]
+  },
+  "actions_after_checkpoint": []
+}
