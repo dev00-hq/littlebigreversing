@@ -93,6 +93,10 @@ const sdl = struct {
     pub const SDLK_3: i32 = '3';
     pub const SDLK_4: i32 = '4';
     pub const SDLK_PERIOD: i32 = '.';
+    pub const SDLK_F5: i32 = 1073741886;
+    pub const SDLK_F6: i32 = 1073741887;
+    pub const SDLK_F7: i32 = 1073741888;
+    pub const SDLK_F8: i32 = 1073741889;
     pub const SDL_WINDOW_SHOWN: u32 = 0x00000004;
     pub const SDL_WINDOWPOS_CENTERED: c_int = 0x2FFF0000;
     pub const SDL_RENDERER_ACCELERATED: u32 = 0x00000002;
@@ -140,6 +144,10 @@ pub const Key = enum {
     tab,
     w,
     f,
+    behavior_normal,
+    behavior_sporty,
+    behavior_aggressive,
+    behavior_discreet,
     magic_ball_select,
     magic_ball_throw,
     c,
@@ -358,6 +366,10 @@ pub const Canvas = struct {
                 sdl.SDLK_TAB => .{ .key_down = .tab },
                 sdl.SDLK_w => .{ .key_down = .w },
                 sdl.SDLK_f => .{ .key_down = .f },
+                sdl.SDLK_F5 => .{ .key_down = .behavior_normal },
+                sdl.SDLK_F6 => .{ .key_down = .behavior_sporty },
+                sdl.SDLK_F7 => .{ .key_down = .behavior_aggressive },
+                sdl.SDLK_F8 => .{ .key_down = .behavior_discreet },
                 sdl.SDLK_c => .{ .key_down = .c },
                 sdl.SDLK_v => .{ .key_down = .v },
                 sdl.SDLK_SPACE => .{ .key_down = .space },

@@ -1377,22 +1377,83 @@ test "viewer key handling routes Magic Ball selection and throw through runtime 
     _ = try runtime_update.tick(&room, &current_session);
     try std.testing.expectEqual(@as(@TypeOf(current_session.selectedWeapon()), .magic_ball), current_session.selectedWeapon());
 
-    const throw_result = try viewer_shell.handleKeyDown(
+    const behavior_result = try viewer_shell.handleKeyDown(
         &room,
         &current_session,
         catalog,
         select_result.interaction,
         select_result.locomotion_status,
+        .behavior_sporty,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, behavior_result.post_key_action);
+    try std.testing.expectEqual(
+        runtime_locomotion.HeroIntent{ .select_behavior_mode = .sporty },
+        current_session.pendingHeroIntent().?,
+    );
+
+    _ = try runtime_update.tick(&room, &current_session);
+    try std.testing.expectEqual(runtime_session_mod.BehaviorMode.sporty, current_session.behaviorMode());
+
+    const throw_result = try viewer_shell.handleKeyDown(
+        &room,
+        &current_session,
+        catalog,
+        behavior_result.interaction,
+        behavior_result.locomotion_status,
         .magic_ball_throw,
     );
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, throw_result.post_key_action);
     try std.testing.expectEqual(
-        runtime_locomotion.HeroIntent{ .throw_magic_ball = .normal },
+        runtime_locomotion.HeroIntent{ .throw_magic_ball = .sporty },
         current_session.pendingHeroIntent().?,
     );
 
     _ = try runtime_update.tick(&room, &current_session);
     try std.testing.expectEqual(@as(usize, 1), current_session.magicBallProjectiles().len);
+    try std.testing.expectEqual(runtime_session_mod.MagicBallThrowMode.sporty, current_session.magicBallProjectiles()[0].mode);
+}
+
+test "viewer key handling routes F5-F8 to behavior-mode selection intents" {
+    const room = try room_fixtures.guarded1919();
+
+    var snapshot_session = try initViewerSession(room);
+    defer snapshot_session.deinit(std.testing.allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(room, snapshot_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(std.testing.allocator, snapshot);
+    defer catalog.deinit(std.testing.allocator);
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(std.testing.allocator);
+    const initial_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
+    const interaction = viewer_shell.initialInteractionState(catalog);
+
+    const Case = struct {
+        key: viewer_shell.ViewerKey,
+        mode: runtime_session_mod.BehaviorMode,
+    };
+    const cases = [_]Case{
+        .{ .key = .behavior_normal, .mode = .normal },
+        .{ .key = .behavior_sporty, .mode = .sporty },
+        .{ .key = .behavior_aggressive, .mode = .aggressive },
+        .{ .key = .behavior_discreet, .mode = .discreet },
+    };
+
+    for (cases) |case| {
+        const result = try viewer_shell.handleKeyDown(
+            room,
+            &runtime_session,
+            catalog,
+            interaction,
+            initial_status,
+            case.key,
+        );
+        try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, result.post_key_action);
+        try std.testing.expectEqual(
+            runtime_locomotion.HeroIntent{ .select_behavior_mode = case.mode },
+            runtime_session.pendingHeroIntent().?,
+        );
+        _ = runtime_session.consumeHeroIntent();
+    }
 }
 
 test "viewer key handling routes 0013 default action through queued runtime intent" {

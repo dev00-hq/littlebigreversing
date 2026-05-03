@@ -488,6 +488,25 @@ pub fn handleKeyDown(
                 .post_key_action = .advance_world,
             };
         },
+        .behavior_normal,
+        .behavior_sporty,
+        .behavior_aggressive,
+        .behavior_discreet,
+        => {
+            const mode: runtime_session.BehaviorMode = switch (key) {
+                .behavior_normal => .normal,
+                .behavior_sporty => .sporty,
+                .behavior_aggressive => .aggressive,
+                .behavior_discreet => .discreet,
+                else => unreachable,
+            };
+            try current_session.submitHeroIntent(.{ .select_behavior_mode = mode });
+            return .{
+                .interaction = interaction,
+                .locomotion_status = locomotion_status,
+                .post_key_action = .advance_world,
+            };
+        },
         .magic_ball_select => {
             try current_session.submitHeroIntent(.select_magic_ball);
             return .{
@@ -497,7 +516,7 @@ pub fn handleKeyDown(
             };
         },
         .magic_ball_throw => {
-            try current_session.submitHeroIntent(.{ .throw_magic_ball = .normal });
+            try current_session.submitHeroIntent(.{ .throw_magic_ball = current_session.magicBallThrowMode() });
             return .{
                 .interaction = interaction,
                 .locomotion_status = locomotion_status,

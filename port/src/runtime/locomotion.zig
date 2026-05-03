@@ -257,6 +257,7 @@ pub fn applyPendingHeroIntent(
     const intent = current_session.consumeHeroIntent() orelse return error.MissingPendingHeroIntent;
     return switch (intent) {
         .move_cardinal => |direction| applyStep(room, current_session, direction),
+        .select_behavior_mode,
         .select_magic_ball,
         .cast_lightning,
         .default_action,

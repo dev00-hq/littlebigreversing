@@ -239,8 +239,9 @@ test "runtime object behavior applies the live-backed scene-2 cellar magic-ball 
         current_session.setGameVar(magic_ball_flag_index, 1);
         current_session.setMagicPoint(18);
 
+        try object_behavior.applyHeroIntent(&room, &current_session, .{ .select_behavior_mode = case.mode });
         try object_behavior.applyHeroIntent(&room, &current_session, .select_magic_ball);
-        try object_behavior.applyHeroIntent(&room, &current_session, .{ .throw_magic_ball = case.mode });
+        try object_behavior.applyHeroIntent(&room, &current_session, .{ .throw_magic_ball = current_session.magicBallThrowMode() });
 
         try std.testing.expectEqual(@as(u8, 17), current_session.magicPoint());
         try std.testing.expectEqual(@as(usize, 1), current_session.magicBallProjectiles().len);

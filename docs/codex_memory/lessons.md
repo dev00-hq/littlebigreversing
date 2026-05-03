@@ -357,3 +357,18 @@ must first set `SelectedWeapon.magic_ball`, and `throw_magic_ball` fails fast
 with `MagicBallNotSelected` otherwise. Room-local state replacement preserves
 selected weapon state because weapon selection is player/session state, not a
 room-local object behavior.
+
+### invariant.port-behavior-mode-is-durable-player-state
+
+Status: active
+Confidence: high
+Last verified: 2026-05-03
+Tags: port, behavior-mode, runtime-session, magic-ball, input
+Related tests: port/src/runtime/session.zig, port/src/runtime/update_test.zig, port/src/app/viewer_shell_test.zig
+Related files: port/src/runtime/session.zig, port/src/runtime/object_behavior.zig, port/src/app/viewer_shell.zig
+
+The port models Twinsen's behavior mode as durable session/player state, not as
+room-local object state. `F5`-`F8` select Normal, Sporty, Aggressive, and
+Discreet through `select_behavior_mode`; room-local state replacement preserves
+the selected behavior mode. Magic Ball throw mode is derived from current
+behavior mode, so viewer `.` must not hardcode Normal.

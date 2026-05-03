@@ -10,7 +10,7 @@
 
 - Guarded loads: `19/19`, `2/2`, `11/10`, `187/187`; `44/2` rejects.
 - `0013` is closed: packet covers save load, key pickup, door consume, cellar entry, and Down-return.
-- Promoted contracts: Magic Ball pickup/explicit selection before throw/throw/bounce/Tralu damage/Emerald Moon switches/multi-family levers; text interaction affordance-family owner split.
+- Promoted contracts: Magic Ball pickup/explicit selection before throw/behavior-mode-derived throw/bounce/Tralu damage/Emerald Moon switches/multi-family levers; text interaction affordance-family owner split.
 - Magic Ball switch activation is promoted only for Emerald Moon object `3` and corrected object `4`; object `2` remains unpromoted.
 - Magic Ball lever activation is promoted only as `magic_ball_lever_activation_multi_family`; Warehouse is the negative control.
 - Broader Magic-ball damage, generic switches/levers, remote pickup, enemy vulnerability, and collision geometry remain unpromoted.

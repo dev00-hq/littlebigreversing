@@ -147,6 +147,7 @@ pub fn applyHeroIntent(
     intent: runtime_session.HeroIntent,
 ) !void {
     switch (intent) {
+        .select_behavior_mode => |mode| current_session.selectBehaviorMode(mode),
         .select_magic_ball => try selectMagicBall(current_session),
         .cast_lightning => try applyScene3636CastLightning(room, current_session),
         .default_action => try applySecretRoomDefaultAction(room, current_session),

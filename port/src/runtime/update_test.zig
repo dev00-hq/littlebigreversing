@@ -254,6 +254,22 @@ test "runtime update tick consumes queued hero movement and advances the frame i
     }
 }
 
+test "runtime update tick consumes queued behavior-mode selection as durable session state" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    try current_session.submitHeroIntent(.{ .select_behavior_mode = .sporty });
+
+    const tick_result = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expect(tick_result.consumed_hero_intent);
+    try std.testing.expect(!tick_result.triggered_room_transition);
+    try std.testing.expectEqual(@as(?runtime_session.HeroIntent, null), current_session.pendingHeroIntent());
+    try std.testing.expectEqual(runtime_session.BehaviorMode.sporty, current_session.behaviorMode());
+    try std.testing.expectEqual(@as(usize, 1), current_session.frame_index);
+}
+
 test "runtime object behavior frame progression advances the later 19/19 object 2 reward loop and emits bounded magic bonus events" {
     const room = try room_fixtures.guarded1919();
 
