@@ -982,12 +982,17 @@ test "runtime update tick consumes a scene-2 cellar magic-ball throw intent" {
     current_session.setHeroWorldPosition(.{ .x = 5071, .y = 1024, .z = 1820 });
     current_session.setGameVar(1, 1);
 
+    try current_session.submitHeroIntent(.select_magic_ball);
+    const select_tick = try runtime_update.tick(&room, &current_session);
+    try std.testing.expect(select_tick.consumed_hero_intent);
+    try std.testing.expectEqual(runtime_session.SelectedWeapon.magic_ball, current_session.selectedWeapon());
+
     try current_session.submitHeroIntent(.{ .throw_magic_ball = .normal });
     const throw_tick = try runtime_update.tick(&room, &current_session);
 
     try std.testing.expect(throw_tick.consumed_hero_intent);
     try std.testing.expect(!throw_tick.triggered_room_transition);
-    try std.testing.expectEqual(@as(usize, 1), current_session.frame_index);
+    try std.testing.expectEqual(@as(usize, 2), current_session.frame_index);
     try std.testing.expectEqual(@as(?runtime_session.HeroIntent, null), current_session.pendingHeroIntent());
     try std.testing.expectEqual(@as(usize, 1), current_session.magicBallProjectiles().len);
     const projectile = current_session.magicBallProjectiles()[0];

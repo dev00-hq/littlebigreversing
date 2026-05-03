@@ -92,6 +92,7 @@ const sdl = struct {
     pub const SDLK_2: i32 = '2';
     pub const SDLK_3: i32 = '3';
     pub const SDLK_4: i32 = '4';
+    pub const SDLK_PERIOD: i32 = '.';
     pub const SDL_WINDOW_SHOWN: u32 = 0x00000004;
     pub const SDL_WINDOWPOS_CENTERED: c_int = 0x2FFF0000;
     pub const SDL_RENDERER_ACCELERATED: u32 = 0x00000002;
@@ -139,6 +140,8 @@ pub const Key = enum {
     tab,
     w,
     f,
+    magic_ball_select,
+    magic_ball_throw,
     c,
     v,
     space,
@@ -358,10 +361,11 @@ pub const Canvas = struct {
                 sdl.SDLK_c => .{ .key_down = .c },
                 sdl.SDLK_v => .{ .key_down = .v },
                 sdl.SDLK_SPACE => .{ .key_down = .space },
-                sdl.SDLK_1 => .{ .key_down = .proof_key_source },
+                sdl.SDLK_1 => .{ .key_down = .magic_ball_select },
                 sdl.SDLK_2 => .{ .key_down = .proof_key_pickup },
                 sdl.SDLK_3 => .{ .key_down = .proof_house_door },
                 sdl.SDLK_4 => .{ .key_down = .proof_cellar_return },
+                sdl.SDLK_PERIOD => .{ .key_down = .magic_ball_throw },
                 sdl.SDLK_PLUS, sdl.SDLK_EQUALS => .{ .key_down = .zoom_in },
                 sdl.SDLK_MINUS => .{ .key_down = .zoom_out },
                 sdl.SDLK_0 => .{ .key_down = .zoom_reset },

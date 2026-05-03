@@ -26,6 +26,7 @@ pub fn tick(
     const consumed_hero_intent = pending_hero_intent != null;
     const locomotion_status: locomotion.LocomotionStatus = if (pending_hero_intent) |intent| switch (intent) {
         .move_cardinal => try locomotion.applyPendingHeroIntent(room, current_session),
+        .select_magic_ball,
         .cast_lightning,
         .default_action,
         .advance_story,

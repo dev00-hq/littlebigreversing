@@ -147,12 +147,18 @@ pub fn applyHeroIntent(
     intent: runtime_session.HeroIntent,
 ) !void {
     switch (intent) {
+        .select_magic_ball => try selectMagicBall(current_session),
         .cast_lightning => try applyScene3636CastLightning(room, current_session),
         .default_action => try applySecretRoomDefaultAction(room, current_session),
         .advance_story => try applyAdvanceStory(room, current_session),
         .throw_magic_ball => |mode| try applyScene2CellarMagicBallThrow(room, current_session, mode),
         .move_cardinal => return error.UnsupportedObjectBehaviorHeroIntent,
     }
+}
+
+fn selectMagicBall(current_session: *runtime_session.Session) !void {
+    if (current_session.gameVar(magic_ball_flag_index) <= 0) return error.MagicBallUnavailable;
+    current_session.selectWeapon(.magic_ball);
 }
 
 pub fn sendellStoryAwaitsAdvance(
@@ -329,6 +335,7 @@ fn applyScene2CellarMagicBallThrow(
         return error.UnsupportedObjectBehaviorHeroIntent;
     }
     if (current_session.gameVar(magic_ball_flag_index) <= 0) return error.MagicBallUnavailable;
+    if (current_session.selectedWeapon() != .magic_ball) return error.MagicBallNotSelected;
 
     const hero_position = current_session.heroWorldPosition();
     const launch = magicBallLaunchForMode(mode, hero_position);

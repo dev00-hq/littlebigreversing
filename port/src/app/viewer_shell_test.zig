@@ -1342,6 +1342,59 @@ test "viewer key handling routes Sendell room story input through queued runtime
     try std.testing.expectEqualStrings("Sendell to contact you in case of danger.", second_slice.visible_text);
 }
 
+test "viewer key handling routes Magic Ball selection and throw through runtime intents" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    var snapshot_session = try initViewerSession(&room);
+    defer snapshot_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(&room, snapshot_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+
+    var current_session = try initViewerSession(&room);
+    defer current_session.deinit(allocator);
+    current_session.setHeroWorldPosition(.{ .x = 5071, .y = 1024, .z = 1820 });
+    current_session.setGameVar(1, 1);
+    const initial_status = try runtime_locomotion.inspectCurrentStatus(&room, current_session);
+    const interaction = viewer_shell.initialInteractionState(catalog);
+
+    const select_result = try viewer_shell.handleKeyDown(
+        &room,
+        &current_session,
+        catalog,
+        interaction,
+        initial_status,
+        .magic_ball_select,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, select_result.post_key_action);
+    try std.testing.expectEqual(runtime_locomotion.HeroIntent.select_magic_ball, current_session.pendingHeroIntent().?);
+
+    _ = try runtime_update.tick(&room, &current_session);
+    try std.testing.expectEqual(@as(@TypeOf(current_session.selectedWeapon()), .magic_ball), current_session.selectedWeapon());
+
+    const throw_result = try viewer_shell.handleKeyDown(
+        &room,
+        &current_session,
+        catalog,
+        select_result.interaction,
+        select_result.locomotion_status,
+        .magic_ball_throw,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, throw_result.post_key_action);
+    try std.testing.expectEqual(
+        runtime_locomotion.HeroIntent{ .throw_magic_ball = .normal },
+        current_session.pendingHeroIntent().?,
+    );
+
+    _ = try runtime_update.tick(&room, &current_session);
+    try std.testing.expectEqual(@as(usize, 1), current_session.magicBallProjectiles().len);
+}
+
 test "viewer key handling routes 0013 default action through queued runtime intent" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);

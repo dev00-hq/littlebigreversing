@@ -488,6 +488,22 @@ pub fn handleKeyDown(
                 .post_key_action = .advance_world,
             };
         },
+        .magic_ball_select => {
+            try current_session.submitHeroIntent(.select_magic_ball);
+            return .{
+                .interaction = interaction,
+                .locomotion_status = locomotion_status,
+                .post_key_action = .advance_world,
+            };
+        },
+        .magic_ball_throw => {
+            try current_session.submitHeroIntent(.{ .throw_magic_ball = .normal });
+            return .{
+                .interaction = interaction,
+                .locomotion_status = locomotion_status,
+                .post_key_action = .advance_world,
+            };
+        },
         .space => {
             return .{
                 .interaction = interaction,

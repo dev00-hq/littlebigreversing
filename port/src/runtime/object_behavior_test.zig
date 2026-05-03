@@ -239,6 +239,7 @@ test "runtime object behavior applies the live-backed scene-2 cellar magic-ball 
         current_session.setGameVar(magic_ball_flag_index, 1);
         current_session.setMagicPoint(18);
 
+        try object_behavior.applyHeroIntent(&room, &current_session, .select_magic_ball);
         try object_behavior.applyHeroIntent(&room, &current_session, .{ .throw_magic_ball = case.mode });
 
         try std.testing.expectEqual(@as(u8, 17), current_session.magicPoint());
@@ -262,6 +263,32 @@ test "runtime object behavior applies the live-backed scene-2 cellar magic-ball 
     }
 }
 
+test "runtime object behavior requires explicit Magic Ball selection before throw" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 0);
+    defer room.deinit(allocator);
+
+    var current_session = try initSession(&room);
+    defer current_session.deinit(std.testing.allocator);
+    current_session.setHeroWorldPosition(.{ .x = 5071, .y = 1024, .z = 1820 });
+    current_session.setGameVar(magic_ball_flag_index, 1);
+
+    try std.testing.expectError(
+        error.MagicBallNotSelected,
+        object_behavior.applyHeroIntent(&room, &current_session, .{ .throw_magic_ball = .normal }),
+    );
+    try std.testing.expectEqual(@as(usize, 0), current_session.magicBallProjectiles().len);
+
+    try object_behavior.applyHeroIntent(&room, &current_session, .select_magic_ball);
+    try std.testing.expectEqual(runtime_session.SelectedWeapon.magic_ball, current_session.selectedWeapon());
+
+    try object_behavior.applyHeroIntent(&room, &current_session, .{ .throw_magic_ball = .normal });
+    try std.testing.expectEqual(@as(usize, 1), current_session.magicBallProjectiles().len);
+}
+
 test "runtime object behavior rejects scene-2 cellar magic-ball throw without the pickup flag" {
     const allocator = std.testing.allocator;
     const resolved = try paths.resolveFromRepoRoot(allocator, "..", null);
@@ -274,6 +301,12 @@ test "runtime object behavior rejects scene-2 cellar magic-ball throw without th
     defer current_session.deinit(std.testing.allocator);
     current_session.setHeroWorldPosition(.{ .x = 5071, .y = 1024, .z = 1820 });
     current_session.setGameVar(magic_ball_flag_index, 0);
+
+    try std.testing.expectError(
+        error.MagicBallUnavailable,
+        object_behavior.applyHeroIntent(&room, &current_session, .select_magic_ball),
+    );
+    try std.testing.expectEqual(runtime_session.SelectedWeapon.none, current_session.selectedWeapon());
 
     try std.testing.expectError(
         error.MagicBallUnavailable,

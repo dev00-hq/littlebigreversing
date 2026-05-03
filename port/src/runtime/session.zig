@@ -14,6 +14,7 @@ pub const HeroWorldDelta = struct {
 
 pub const HeroIntent = union(enum) {
     move_cardinal: world_geometry.CardinalDirection,
+    select_magic_ball,
     default_action,
     cast_lightning,
     advance_story,
@@ -33,6 +34,11 @@ pub const ObjectBehaviorSeedState = room_state.ObjectBehaviorSeedSnapshot;
 pub const RuntimeBonusKind = enum {
     magic,
     little_key,
+};
+
+pub const SelectedWeapon = enum {
+    none,
+    magic_ball,
 };
 
 pub const BonusSpawnEvent = struct {
@@ -199,6 +205,7 @@ pub const Session = struct {
     pending_hero_intent: ?HeroIntent,
     cube_vars: [256]u8,
     game_vars: [max_game_vars]i16,
+    selected_weapon: SelectedWeapon,
     magic_level: u8,
     magic_point: u8,
     little_key_count: u8,
@@ -229,6 +236,7 @@ pub const Session = struct {
             .pending_hero_intent = null,
             .cube_vars = [_]u8{0} ** 256,
             .game_vars = [_]i16{0} ** max_game_vars,
+            .selected_weapon = .none,
             .magic_level = 0,
             .magic_point = 0,
             .little_key_count = 0,
@@ -271,6 +279,7 @@ pub const Session = struct {
             .pending_hero_intent = null,
             .cube_vars = [_]u8{0} ** 256,
             .game_vars = [_]i16{0} ** max_game_vars,
+            .selected_weapon = .none,
             .magic_level = 0,
             .magic_point = 0,
             .little_key_count = 0,
@@ -385,6 +394,14 @@ pub const Session = struct {
 
     pub fn setGameVar(self: *Session, index: u8, value: i16) void {
         self.game_vars[index] = value;
+    }
+
+    pub fn selectedWeapon(self: Session) SelectedWeapon {
+        return self.selected_weapon;
+    }
+
+    pub fn selectWeapon(self: *Session, weapon: SelectedWeapon) void {
+        self.selected_weapon = weapon;
     }
 
     pub fn magicLevel(self: Session) u8 {
@@ -705,6 +722,7 @@ test "runtime session initializes mutable hero state from an explicit world-posi
     try std.testing.expectEqual(@as(i16, 0), runtime_session.gameVar(0));
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.magicPoint());
+    try std.testing.expectEqual(SelectedWeapon.none, runtime_session.selectedWeapon());
     try std.testing.expectEqual(@as(u8, 0), runtime_session.littleKeyCount());
     try std.testing.expectEqual(@as(?i16, null), runtime_session.currentDialogId());
     try std.testing.expectEqual(text_interactions.TextUiState.hidden(), runtime_session.textUiState());
@@ -954,6 +972,7 @@ test "runtime session can replace room-local state while preserving durable runt
     runtime_session.advanceFrameIndex();
     runtime_session.setCubeVar(7, 3);
     runtime_session.setGameVar(9, 12);
+    runtime_session.selectWeapon(.magic_ball);
     runtime_session.setMagicLevelAndRefill(2);
     runtime_session.setMagicPoint(17);
     runtime_session.setLittleKeyCount(1);
@@ -979,6 +998,7 @@ test "runtime session can replace room-local state while preserving durable runt
     try std.testing.expectEqual(@as(usize, 1), runtime_session.frame_index);
     try std.testing.expectEqual(@as(u8, 3), runtime_session.cubeVar(7));
     try std.testing.expectEqual(@as(i16, 12), runtime_session.gameVar(9));
+    try std.testing.expectEqual(SelectedWeapon.magic_ball, runtime_session.selectedWeapon());
     try std.testing.expectEqual(@as(u8, 2), runtime_session.magicLevel());
     try std.testing.expectEqual(@as(u8, 17), runtime_session.magicPoint());
     try std.testing.expectEqual(@as(u8, 1), runtime_session.littleKeyCount());

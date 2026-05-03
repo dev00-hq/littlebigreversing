@@ -341,3 +341,19 @@ runtime signature is `magic_point 60 -> 59`, launch extras with `sprite=10`,
 `owner=0`, `body=-1`, `hit_force=30`, and return extras with `sprite=14`,
 `owner=255`, `body=-1`, `hit_force=0`. Do not diagnose a failed throw from MP
 or ownership alone until explicit weapon selection has been checked.
+
+### invariant.port-magic-ball-throw-is-gated-by-selected-weapon-state
+
+Status: active
+Confidence: high
+Last verified: 2026-05-03
+Tags: port, magic-ball, runtime-session, input
+Related tests: port/src/runtime/object_behavior_test.zig, port/src/runtime/update_test.zig, port/src/app/viewer_shell_test.zig
+Related files: port/src/runtime/session.zig, port/src/runtime/object_behavior.zig, port/src/app/viewer_shell.zig
+
+The port models original-runtime Magic Ball selection as durable session weapon
+state. Owning the Magic Ball flag is not enough to throw: `select_magic_ball`
+must first set `SelectedWeapon.magic_ball`, and `throw_magic_ball` fails fast
+with `MagicBallNotSelected` otherwise. Room-local state replacement preserves
+selected weapon state because weapon selection is player/session state, not a
+room-local object behavior.
