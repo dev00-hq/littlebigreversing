@@ -1,0 +1,19 @@
+{
+  "schema": "game-drive-run-summary-v1",
+  "checkpoint_id": "tmp_magic_ball_initial_live",
+  "checkpoint": "work/tmp_magic_ball_initial_live_checkpoint.json",
+  "save": "moon-switches-room.LBA",
+  "run_dir": "work/game_drive_runs/tmp_magic_ball_initial_live_20260503T051352Z",
+  "verdict": "error",
+  "pid": 25192,
+  "autosave": {
+    "hidden": true,
+    "hidden_path": "D:\\repos\\reverse\\littlebigreversing\\work\\_innoextract_full\\Speedrun\\Windows\\LBA2_cdrom\\LBA2\\SAVE\\autosave.lba.game-drive-hidden-20260503-011353"
+  },
+  "error": "window for pid 25192 did not become capturable within 25 seconds",
+  "evidence_archive": {
+    "archive_id": "magic-ball-initial-state-20260503-r4",
+    "manifest": "docs/evidence_archive/game_drive/magic-ball-initial-state-20260503-r4/manifest.json",
+    "reason": "explicit"
+  }
+}

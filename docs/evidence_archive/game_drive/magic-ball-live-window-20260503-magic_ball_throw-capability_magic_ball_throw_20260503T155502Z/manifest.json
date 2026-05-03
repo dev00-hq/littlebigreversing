@@ -1,0 +1,69 @@
+{
+  "schema": "game-drive-evidence-archive-v1",
+  "archive_id": "magic-ball-live-window-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T155502Z",
+  "reason": "capability_failure:blocked",
+  "checkpoint_id": "capability_magic_ball_throw",
+  "verdict": "checkpoint_passed_actions_recorded",
+  "run_dir": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T155502Z",
+  "created_utc": "2026-05-03T15:55:26.173235Z",
+  "source_summary": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T155502Z/summary.json",
+  "images": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T155502Z/after_pose_set_before_action.png",
+      "archive": "docs/evidence_archive/game_drive/magic-ball-live-window-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T155502Z/checkpoint_screenshot.webp",
+      "source_sha256": "185de545567557147a577d985bbd9d33c6048ce47240eb4f58a0c00cc2d57f36",
+      "archive_sha256": "975f3c9335d919d391b18366d3f83e12dd0c3a32acf48c1989247e42fcab68f2",
+      "source_bytes": 160739,
+      "archive_bytes": 24552,
+      "compression": {
+        "format": "webp",
+        "quality": 35,
+        "method": 6,
+        "max_size": [
+          640,
+          480
+        ]
+      },
+      "summary_field": "checkpoint_screenshot"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T155502Z/after_actions.png",
+      "archive": "docs/evidence_archive/game_drive/magic-ball-live-window-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T155502Z/after_actions_screenshot.webp",
+      "source_sha256": "efee574a5262b708e86661c30881fdaeac2b569922c192ad049b65eab06ae03b",
+      "archive_sha256": "1dde5931733e97505ca66b555091117dc76c15ffa91c55c0f03e5dd4c9ebbbec",
+      "source_bytes": 160137,
+      "archive_bytes": 24482,
+      "compression": {
+        "format": "webp",
+        "quality": 35,
+        "method": 6,
+        "max_size": [
+          640,
+          480
+        ]
+      },
+      "summary_field": "after_actions_screenshot"
+    }
+  ],
+  "json": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T155502Z/summary.json",
+      "archive": "docs/evidence_archive/game_drive/magic-ball-live-window-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T155502Z/summary.json",
+      "source_sha256": "1f0f578a017ec5ebf3103ca366dad5384cbb49ba473fcbd5a37ac8d35ef57b4c",
+      "archive_sha256": "1f0f578a017ec5ebf3103ca366dad5384cbb49ba473fcbd5a37ac8d35ef57b4c"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T155502Z/visual_result.json",
+      "archive": "docs/evidence_archive/game_drive/magic-ball-live-window-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T155502Z/visual_result.json",
+      "source_sha256": "ad3a15ea9c78729663b4144c9bdd0a3a2e0304505851f346b3c653f8658745b4",
+      "archive_sha256": "ad3a15ea9c78729663b4144c9bdd0a3a2e0304505851f346b3c653f8658745b4"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T155502Z/codex_exec.json",
+      "archive": "docs/evidence_archive/game_drive/magic-ball-live-window-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T155502Z/codex_exec.json",
+      "source_sha256": "9c2e0345b4863cad514b97ffb9a00b0ee5627df45dac90c08f2057f9feef339b",
+      "archive_sha256": "9c2e0345b4863cad514b97ffb9a00b0ee5627df45dac90c08f2057f9feef339b"
+    }
+  ],
+  "source_summary_sha256": "1f0f578a017ec5ebf3103ca366dad5384cbb49ba473fcbd5a37ac8d35ef57b4c"
+}

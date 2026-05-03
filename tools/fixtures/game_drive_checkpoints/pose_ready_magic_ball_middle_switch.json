@@ -31,7 +31,7 @@
   },
   "visual_expect": {
     "checkpoint": "after_pose_set_before_action",
-    "source": "save_embedded_preview",
+    "source": "live_window_capture",
     "classifier": "codex_exec",
     "screenshot_required": true,
     "summary_required": true,

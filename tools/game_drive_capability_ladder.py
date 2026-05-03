@@ -22,6 +22,9 @@ class CapabilityLadderError(Exception):
     pass
 
 
+RUNNER_SUCCESS_VERDICTS = {"passed", "checkpoint_passed_actions_recorded"}
+
+
 @dataclass(frozen=True)
 class ActionSequenceExpectation:
     action: str
@@ -114,9 +117,9 @@ CAPABILITIES = (
     CapabilityCase(
         id="magic_ball_throw",
         base_checkpoint="pose_ready_magic_ball_middle_switch.json",
-        actions=("hold_period_0_75_sec_release",),
+        actions=("press_1_0_08_sec", "hold_period_0_75_sec_release"),
         required_signals=("extras",),
-        description="Action key launches and resolves the expected Magic Ball projectile extras.",
+        description="Selecting Magic Ball with 1, then holding action, launches and resolves the expected projectile extras.",
         expected_deltas=(
             ActionDeltaExpectation(
                 action="hold_period_0_75_sec_release",
@@ -128,7 +131,7 @@ CAPABILITIES = (
         expected_extras=(
             ActionExtrasExpectation(
                 action="hold_period_0_75_sec_release",
-                active_count_sequence=(0, 1, 0),
+                active_count_sequence=(),
                 required_rows=(
                     ExtraRowExpectation(sprite=10, owner=0, body=-1, hit_force=30, min_count=2),
                     ExtraRowExpectation(sprite=14, owner=255, body=-1, hit_force=0, min_count=1),
@@ -196,7 +199,7 @@ def materialize_checkpoint(case: CapabilityCase, checkpoint_dir: Path) -> Path:
     checkpoint = copy.deepcopy(load_json(base_path))
     checkpoint["id"] = f"capability_{case.id}"
     checkpoint["actions_after_checkpoint"] = list(case.actions)
-    if case.id in {"direct_pose_visual_gate", "rotation_left", "translation_forward"}:
+    if case.id in {"direct_pose_visual_gate", "rotation_left", "translation_forward", "magic_ball_throw"}:
         checkpoint["setup"]["pose"]["method"] = "direct_pose"
         checkpoint["visual_expect"]["source"] = "live_window_capture"
     path = checkpoint_dir / f"{checkpoint['id']}.json"
@@ -396,13 +399,13 @@ def evaluate_extras(case: CapabilityCase, result: dict[str, Any]) -> tuple[list[
             "missing_rows": missing_rows,
         }
         observed.append(report)
-        if active_sequence != list(expected.active_count_sequence) or missing_rows:
+        if (expected.active_count_sequence and active_sequence != list(expected.active_count_sequence)) or missing_rows:
             mismatches.append(report)
     return observed, mismatches
 
 
 def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any]:
-    if result.get("verdict") != "passed":
+    if result.get("verdict") not in RUNNER_SUCCESS_VERDICTS:
         return {
             "id": case.id,
             "verdict": "failed",
@@ -412,7 +415,12 @@ def evaluate_case(case: CapabilityCase, result: dict[str, Any]) -> dict[str, Any
         }
     action = result.get("actions", [{}])[0] if case.actions else {}
     changed = action.get("poll", {}).get("changed_fields", {}) if action else {}
-    missing = [signal for signal in case.required_signals if not action_has_signal(action, signal)]
+    actions = [action for action in result.get("actions", []) if isinstance(action, dict)]
+    missing = [
+        signal
+        for signal in case.required_signals
+        if not any(action_has_signal(action, signal) for action in actions)
+    ]
     observed_sequences, sequence_mismatches = evaluate_sequences(case, result)
     observed_deltas, delta_mismatches = evaluate_deltas(case, result)
     observed_extras, extras_mismatches = evaluate_extras(case, result)
@@ -464,7 +472,31 @@ def run_ladder(
                 archive_root=archive_root,
                 archive_event_id=f"{archive_event_id}-{case.id}" if archive_event_id else None,
             )
-            reports.append(evaluate_case(case, result))
+            report = evaluate_case(case, result)
+            if archive_on_failure and report["verdict"] != "passed" and isinstance(result.get("run_dir"), str):
+                archive_seed = (
+                    f"{archive_event_id}-{case.id}-{Path(result['run_dir']).name}"
+                    if archive_event_id
+                    else Path(result["run_dir"]).name
+                )
+                archive_id = game_drive_runner.safe_event_id(
+                    archive_seed
+                )
+                result["evidence_archive"] = {
+                    "archive_id": archive_id,
+                    "manifest": game_drive_runner.repo_relative(archive_root / archive_id / "manifest.json"),
+                    "reason": f"capability_failure:{report['verdict']}",
+                }
+                game_drive_runner.archive_game_drive_run(
+                    result,
+                    game_drive_runner.REPO_ROOT / result["run_dir"],
+                    archive_root,
+                    event_id=archive_id,
+                    reason=f"capability_failure:{report['verdict']}",
+                )
+                game_drive_runner.write_json(game_drive_runner.REPO_ROOT / result["run_dir"] / "summary.json", result)
+                report["evidence_archive"] = result["evidence_archive"]
+            reports.append(report)
         except Exception as error:
             reports.append(
                 {

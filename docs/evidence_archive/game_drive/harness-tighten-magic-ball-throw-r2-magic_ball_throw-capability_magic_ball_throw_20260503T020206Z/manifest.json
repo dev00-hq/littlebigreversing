@@ -1,0 +1,51 @@
+{
+  "schema": "game-drive-evidence-archive-v1",
+  "archive_id": "harness-tighten-magic-ball-throw-r2-magic_ball_throw-capability_magic_ball_throw_20260503T020206Z",
+  "reason": "capability_failure:blocked",
+  "checkpoint_id": "capability_magic_ball_throw",
+  "verdict": "checkpoint_passed_actions_recorded",
+  "run_dir": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T020206Z",
+  "created_utc": "2026-05-03T02:02:28.644351Z",
+  "source_summary": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T020206Z/summary.json",
+  "images": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T020206Z/after_pose_set_before_action.png",
+      "archive": "docs/evidence_archive/game_drive/harness-tighten-magic-ball-throw-r2-magic_ball_throw-capability_magic_ball_throw_20260503T020206Z/checkpoint_screenshot.webp",
+      "source_sha256": "623c37377c3f620132b62fbfad8d2383d8a42ea9b35af6387c8e6c1ee5a845da",
+      "archive_sha256": "1ae7ab9634897cbe129392310ff9e75aa8e268b9373c0017764e5a3ae7feb6d6",
+      "source_bytes": 36925,
+      "archive_bytes": 13652,
+      "compression": {
+        "format": "webp",
+        "quality": 35,
+        "method": 6,
+        "max_size": [
+          640,
+          480
+        ]
+      },
+      "summary_field": "checkpoint_screenshot"
+    }
+  ],
+  "json": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T020206Z/summary.json",
+      "archive": "docs/evidence_archive/game_drive/harness-tighten-magic-ball-throw-r2-magic_ball_throw-capability_magic_ball_throw_20260503T020206Z/summary.json",
+      "source_sha256": "eae6e710cfbb72de5a2e00e5a2ff5723a5fe307d436c75196db5393bb5a914d6",
+      "archive_sha256": "eae6e710cfbb72de5a2e00e5a2ff5723a5fe307d436c75196db5393bb5a914d6"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T020206Z/visual_result.json",
+      "archive": "docs/evidence_archive/game_drive/harness-tighten-magic-ball-throw-r2-magic_ball_throw-capability_magic_ball_throw_20260503T020206Z/visual_result.json",
+      "source_sha256": "5177e27a2d61df68ec0d5a1783c95f20296698450c6f911e8ddcf8382a59359e",
+      "archive_sha256": "5177e27a2d61df68ec0d5a1783c95f20296698450c6f911e8ddcf8382a59359e"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T020206Z/codex_exec.json",
+      "archive": "docs/evidence_archive/game_drive/harness-tighten-magic-ball-throw-r2-magic_ball_throw-capability_magic_ball_throw_20260503T020206Z/codex_exec.json",
+      "source_sha256": "ab3083e2302cde918b6cd33a1bee59ed198582da90a93fa01fba6bded6169d1c",
+      "archive_sha256": "ab3083e2302cde918b6cd33a1bee59ed198582da90a93fa01fba6bded6169d1c"
+    }
+  ],
+  "source_summary_sha256": "eae6e710cfbb72de5a2e00e5a2ff5723a5fe307d436c75196db5393bb5a914d6"
+}

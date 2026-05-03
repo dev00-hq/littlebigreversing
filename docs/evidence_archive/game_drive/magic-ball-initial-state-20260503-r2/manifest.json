@@ -1,0 +1,20 @@
+{
+  "schema": "game-drive-evidence-archive-v1",
+  "archive_id": "magic-ball-initial-state-20260503-r2",
+  "reason": "explicit",
+  "checkpoint_id": "tmp_magic_ball_initial_live",
+  "verdict": "error",
+  "run_dir": "work/game_drive_runs/tmp_magic_ball_initial_live_20260503T032013Z",
+  "created_utc": "2026-05-03T03:20:38.734763Z",
+  "source_summary": "work/game_drive_runs/tmp_magic_ball_initial_live_20260503T032013Z/summary.json",
+  "images": [],
+  "json": [
+    {
+      "source": "work/game_drive_runs/tmp_magic_ball_initial_live_20260503T032013Z/summary.json",
+      "archive": "docs/evidence_archive/game_drive/magic-ball-initial-state-20260503-r2/summary.json",
+      "source_sha256": "976d141aa95113c9f770d85548002a95fe365afe232ad80c0b33b31b4d378c89",
+      "archive_sha256": "976d141aa95113c9f770d85548002a95fe365afe232ad80c0b33b31b4d378c89"
+    }
+  ],
+  "source_summary_sha256": "976d141aa95113c9f770d85548002a95fe365afe232ad80c0b33b31b4d378c89"
+}

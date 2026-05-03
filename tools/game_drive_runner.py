@@ -33,12 +33,12 @@ from phase5_magic_ball_throw_probe import active_extras, snapshot_globals  # noq
 from phase5_magic_ball_tralu_sequence import kill_existing_lba2  # noqa: E402
 from scenes.load_game import direct_launch_argv  # noqa: E402
 from secret_room_door_watch import ProcessReader  # noqa: E402
-from tools.lba2_save_loader import LBA2_PALETTE, SAVE_COMPRESS, SAVE_IMAGE_SIZE, decode_ascii_z, parse_save_payload  # noqa: E402
 
 
 DEFAULT_OUT_ROOT = REPO_ROOT / "work" / "game_drive_runs"
 DEFAULT_ARCHIVE_ROOT = REPO_ROOT / "docs" / "evidence_archive" / "game_drive"
 DEFAULT_SAVE_DIR = DEFAULT_GAME_EXE.parent / "SAVE"
+RUNNER_SUCCESS_VERDICTS = {"passed", "checkpoint_passed_actions_recorded"}
 PT_TEXT_GLOBAL = 0x004CC498
 PT_DIAL_GLOBAL = 0x004CCDF0
 CURRENT_DIAL_GLOBAL = 0x004CCF10
@@ -58,6 +58,7 @@ KEYS = {
     "f6": 0x75,
     "f7": 0x76,
     "f8": 0x77,
+    "1": 0x31,
 }
 
 
@@ -184,25 +185,6 @@ def archive_game_drive_run(
     return manifest
 
 
-def write_save_embedded_preview(save_path: Path, output_path: Path, size: tuple[int, int] = (800, 600)) -> None:
-    data = save_path.read_bytes()
-    if len(data) < 6:
-        raise GameDriveRunnerError(f"save file too short for embedded preview: {save_path}")
-    compressed = bool(data[0] & SAVE_COMPRESS)
-    _save_name, payload_offset = decode_ascii_z(data, 5)
-    payload = parse_save_payload(data, payload_offset, compressed)
-    if len(payload) < SAVE_IMAGE_SIZE:
-        raise GameDriveRunnerError(f"save has no embedded preview: {save_path}")
-    image = Image.frombytes("P", (160, 120), payload[:SAVE_IMAGE_SIZE])
-    if LBA2_PALETTE is not None:
-        image.putpalette(LBA2_PALETTE)
-        image = image.convert("RGB")
-    else:
-        image = image.convert("L").convert("RGB")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    image.resize(size, Image.Resampling.NEAREST).save(output_path)
-
-
 @contextlib.contextmanager
 def hidden_autosave(save_dir: Path) -> Iterator[dict[str, Any]]:
     autosave_path = save_dir / "autosave.lba"
@@ -247,6 +229,7 @@ def action_to_key_hold(action: str) -> tuple[int, float]:
         "press_f7_0_08_sec": ("f7", 0.08),
         "press_f8_0_08_sec": ("f8", 0.08),
         "hold_f6_0_50_sec_release": ("f6", 0.50),
+        "press_1_0_08_sec": ("1", 0.08),
     }
     spec = action_specs.get(action)
     if spec is not None:
@@ -582,7 +565,6 @@ def classify_screenshot(checkpoint_path: Path, checkpoint: dict[str, Any], scree
 
 def capture_visual_checkpoint(
     checkpoint: dict[str, Any],
-    save: Path,
     capture: WindowCapture,
     pid: int,
     output_path: Path,
@@ -590,9 +572,6 @@ def capture_visual_checkpoint(
     source = checkpoint["visual_expect"]["source"]
     if source == "live_window_capture":
         capture.capture(pid, output_path, timeout_sec=10.0)
-        return source
-    if source == "save_embedded_preview":
-        write_save_embedded_preview(save, output_path)
         return source
     raise GameDriveRunnerError(f"unsupported visual source: {source}")
 
@@ -647,7 +626,7 @@ def run_checkpoint(
 
             screenshot = run_dir / f"{checkpoint['visual_expect']['checkpoint']}.png"
             input_tool._activate_window(window.hwnd)
-            visual_source = capture_visual_checkpoint(checkpoint, save, capture, process.pid, screenshot)
+            visual_source = capture_visual_checkpoint(checkpoint, capture, process.pid, screenshot)
             summary["checkpoint_screenshot"] = repo_relative(screenshot)
             summary["visual_source"] = visual_source
             visual_result = classify_screenshot(checkpoint_path, checkpoint, screenshot, run_dir)
@@ -664,15 +643,11 @@ def run_checkpoint(
                 action_records.append({"action": action, "before": before, "poll": poll, "after": after})
             summary["actions"] = action_records
             if action_records:
-                if checkpoint["visual_expect"]["source"] == "live_window_capture":
-                    after_action = run_dir / "after_actions.png"
-                    capture.capture(process.pid, after_action, timeout_sec=10.0)
-                    summary["after_actions_screenshot"] = repo_relative(after_action)
-                else:
-                    summary["after_actions_screenshot"] = None
-                    summary["after_actions_screenshot_reason"] = "visual source is save_embedded_preview"
+                after_action = run_dir / "after_actions.png"
+                capture.capture(process.pid, after_action, timeout_sec=10.0)
+                summary["after_actions_screenshot"] = repo_relative(after_action)
             summary["runtime_final"] = safe_snapshot(reader)
-            summary["verdict"] = "passed"
+            summary["verdict"] = "checkpoint_passed_actions_recorded" if action_records else "passed"
             return summary
         except Exception as error:
             summary["verdict"] = "error"
@@ -684,7 +659,7 @@ def run_checkpoint(
             if process is not None and process.poll() is None:
                 subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"], capture_output=True, text=True, check=False)
             write_json(summary_path, summary)
-            should_archive = archive or (archive_on_failure and summary.get("verdict") != "passed")
+            should_archive = archive or (archive_on_failure and summary.get("verdict") not in RUNNER_SUCCESS_VERDICTS)
             if should_archive:
                 archive_reason = "explicit" if archive else f"failure:{summary.get('verdict')}"
                 archive_id = safe_event_id(archive_event_id or run_dir.name)

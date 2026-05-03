@@ -780,24 +780,12 @@ def direct_save_argument(game_dir: Path, save_dir: Path, save_path: Path) -> str
             return str(save_path.resolve())
 
 
-def hide_autosave_for_direct_launch(save_dir: Path, selected: Path) -> Path | None:
+def delete_autosave_before_direct_launch(save_dir: Path, selected: Path) -> bool:
     autosave = save_dir / "autosave.lba"
     if selected.name.lower() == "autosave.lba" or not autosave.exists():
-        return None
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    hidden = save_dir / f"autosave.lba.loader-hidden-{stamp}"
-    autosave.rename(hidden)
-    return hidden
-
-
-def restore_autosave(save_dir: Path, hidden: Path | None) -> str | None:
-    if hidden is None:
-        return None
-    autosave = save_dir / "autosave.lba"
-    if autosave.exists():
-        return f"autosave guard left preserved file in place because a new autosave exists: {hidden}"
-    hidden.rename(autosave)
-    return "restored autosave.lba after direct launch"
+        return False
+    autosave.unlink()
+    return True
 
 
 EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
@@ -880,35 +868,20 @@ def launch_save(
     else:
         status("no running LBA2.EXE process found")
 
-    hidden_autosave: Path | None = None
-    try:
-        hidden_autosave = hide_autosave_for_direct_launch(save_dir, entry.path)
-        if hidden_autosave is not None:
-            status(f"hid autosave for direct launch: {hidden_autosave.name}")
-        save_arg = direct_save_argument(game_dir, save_dir, entry.path)
-        process = subprocess.Popen([str(exe_path), save_arg], cwd=str(game_dir))
-        status(f"launched {entry.file_name} as pid {process.pid}")
+    if delete_autosave_before_direct_launch(save_dir, entry.path):
+        status("deleted autosave.lba before direct launch")
+    save_arg = direct_save_argument(game_dir, save_dir, entry.path)
+    process = subprocess.Popen([str(exe_path), save_arg], cwd=str(game_dir))
+    status(f"launched {entry.file_name} as pid {process.pid}")
 
-        def finish_startup() -> None:
-            try:
-                send_enter_to_pid(process.pid)
-                status("sent Enter through the Adeline splash")
-            except Exception as error:
-                status(f"automatic splash advance skipped: {error}")
-            finally:
-                try:
-                    restore_message = restore_autosave(save_dir, hidden_autosave)
-                    if restore_message:
-                        status(restore_message)
-                except Exception as error:
-                    status(f"autosave restore failed: {error}")
-
-        threading.Thread(target=finish_startup, daemon=True).start()
-    except Exception:
+    def finish_startup() -> None:
         try:
-            restore_autosave(save_dir, hidden_autosave)
-        finally:
-            raise
+            send_enter_to_pid(process.pid)
+            status("sent Enter through the Adeline splash")
+        except Exception as error:
+            status(f"automatic splash advance skipped: {error}")
+
+    threading.Thread(target=finish_startup, daemon=True).start()
 
 
 def extract_count_filters(query: str) -> tuple[list[tuple[str, str, int]], str]:

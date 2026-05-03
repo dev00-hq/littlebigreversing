@@ -118,6 +118,83 @@ class GameDriveCapabilityLadderTests(unittest.TestCase):
         self.assertEqual(report["verdict"], "passed")
         self.assertEqual(report["observed_deltas"][0]["observed_delta"], -692)
 
+    def test_runner_action_recorded_verdict_is_semantically_evaluated_by_ladder(self) -> None:
+        case = ladder.CapabilityCase(
+            id="translation_test",
+            base_checkpoint="checkpoint.json",
+            actions=("hold_up_0_50_sec_release",),
+            required_signals=("hero_x",),
+            description="test",
+            expected_deltas=(
+                ladder.ActionDeltaExpectation(
+                    action="hold_up_0_50_sec_release",
+                    field="hero_x",
+                    min_delta=-1200,
+                    max_delta=-300,
+                ),
+            ),
+        )
+        result = {
+            "verdict": "checkpoint_passed_actions_recorded",
+            "actions": [
+                {
+                    "action": "hold_up_0_50_sec_release",
+                    "before": {"hero_x": 4866},
+                    "poll": {"changed_fields": {"hero_x": [4866, 4174]}, "samples": []},
+                    "after": {"hero_x": 4174},
+                },
+            ],
+        }
+
+        report = ladder.evaluate_case(case, result)
+
+        self.assertEqual(report["verdict"], "passed")
+
+    def test_required_signal_can_come_from_second_action(self) -> None:
+        case = ladder.CapabilityCase(
+            id="magic_ball_test",
+            base_checkpoint="checkpoint.json",
+            actions=("press_1_0_08_sec", "hold_period_0_75_sec_release"),
+            required_signals=("extras",),
+            description="test",
+            expected_extras=(
+                ladder.ActionExtrasExpectation(
+                    action="hold_period_0_75_sec_release",
+                    active_count_sequence=(),
+                    required_rows=(ladder.ExtraRowExpectation(sprite=10, owner=0, body=-1, hit_force=30),),
+                ),
+            ),
+        )
+        result = {
+            "verdict": "checkpoint_passed_actions_recorded",
+            "actions": [
+                {
+                    "action": "press_1_0_08_sec",
+                    "poll": {"changed_fields": {}, "samples": []},
+                },
+                {
+                    "action": "hold_period_0_75_sec_release",
+                    "poll": {
+                        "changed_fields": {"extras": [{"active_extra_count": 1}]},
+                        "samples": [
+                            {
+                                "extras": {
+                                    "active_extra_count": 1,
+                                    "active_extras": [
+                                        {"sprite": 10, "owner": 0, "body": -1, "hit_force": 30},
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+        }
+
+        report = ladder.evaluate_case(case, result)
+
+        self.assertEqual(report["verdict"], "passed")
+
     def test_delta_expectation_uses_beta4096_wrap(self) -> None:
         self.assertEqual(ladder.delta_value(3900, 100, "beta4096"), 296)
 
@@ -227,6 +304,60 @@ class GameDriveCapabilityLadderTests(unittest.TestCase):
 
         self.assertEqual(report["verdict"], "blocked")
         self.assertEqual(report["extras_mismatches"][0]["missing_rows"][0]["sprite"], 14)
+
+    def test_extras_expectation_can_ignore_scene_ambient_extra_count_sequence(self) -> None:
+        case = ladder.CapabilityCase(
+            id="magic_ball_test",
+            base_checkpoint="checkpoint.json",
+            actions=("hold_period_0_75_sec_release",),
+            required_signals=("extras",),
+            description="test",
+            expected_extras=(
+                ladder.ActionExtrasExpectation(
+                    action="hold_period_0_75_sec_release",
+                    active_count_sequence=(),
+                    required_rows=(
+                        ladder.ExtraRowExpectation(sprite=10, owner=0, body=-1, hit_force=30),
+                        ladder.ExtraRowExpectation(sprite=14, owner=255, body=-1, hit_force=0),
+                    ),
+                ),
+            ),
+        )
+        result = {
+            "verdict": "passed",
+            "actions": [
+                {
+                    "action": "hold_period_0_75_sec_release",
+                    "poll": {
+                        "changed_fields": {"extras": [{"active_extra_count": 2}]},
+                        "samples": [
+                            {
+                                "extras": {
+                                    "active_extra_count": 2,
+                                    "active_extras": [
+                                        {"sprite": 4, "owner": 0, "body": -1, "hit_force": 0},
+                                        {"sprite": 10, "owner": 0, "body": -1, "hit_force": 30},
+                                    ],
+                                },
+                            },
+                            {
+                                "extras": {
+                                    "active_extra_count": 2,
+                                    "active_extras": [
+                                        {"sprite": 5, "owner": 0, "body": -1, "hit_force": 0},
+                                        {"sprite": 14, "owner": 255, "body": -1, "hit_force": 0},
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+        }
+
+        report = ladder.evaluate_case(case, result)
+
+        self.assertEqual(report["verdict"], "passed")
 
 
 if __name__ == "__main__":

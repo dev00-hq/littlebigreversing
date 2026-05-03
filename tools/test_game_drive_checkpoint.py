@@ -16,13 +16,13 @@ class GameDriveCheckpointTests(unittest.TestCase):
             / "pose_ready_magic_ball_middle_switch.json"
         )
 
-    def test_checked_in_checkpoint_uses_declared_save_preview_visual_source(self) -> None:
+    def test_checked_in_checkpoint_uses_live_window_visual_source(self) -> None:
         result = game_drive_checkpoint.validate_checkpoint(self.checkpoint_path())
 
         self.assertEqual("pose_ready_magic_ball_middle_switch", result["id"])
         self.assertEqual("existing_pose", result["pose"]["method"])
         self.assertEqual([], result["action_gate"])
-        self.assertEqual("save_embedded_preview", result["visual_expect"]["source"])
+        self.assertEqual("live_window_capture", result["visual_expect"]["source"])
         self.assertEqual("codex_exec", result["visual_expect"]["classifier"])
         self.assertTrue(result["visual_expect"]["summary_required"])
         self.assertEqual(2, len(result["visual_expect"]["negative_controls"]))
@@ -62,9 +62,8 @@ class GameDriveCheckpointTests(unittest.TestCase):
         ):
             game_drive_checkpoint.validate_checkpoint(path)
 
-    def test_rejects_direct_pose_with_save_preview_visual_source(self) -> None:
+    def test_rejects_save_preview_visual_source(self) -> None:
         checkpoint = json.loads(self.checkpoint_path().read_text(encoding="utf-8"))
-        checkpoint["setup"]["pose"]["method"] = "direct_pose"
         checkpoint["visual_expect"]["source"] = "save_embedded_preview"
 
         path = self.make_scratch_dir() / "checkpoint.json"
@@ -72,7 +71,7 @@ class GameDriveCheckpointTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             game_drive_checkpoint.GameDriveCheckpointError,
-            "direct pose requires live_window_capture visual source",
+            "unsupported visual source save_embedded_preview",
         ):
             game_drive_checkpoint.validate_checkpoint(path)
 

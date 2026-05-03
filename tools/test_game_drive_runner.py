@@ -19,10 +19,14 @@ class GameDriveRunnerTests(unittest.TestCase):
         self.assertEqual((0x26, 0.50), game_drive_runner.action_to_key_hold("hold_up_0_50_sec_release"))
         self.assertEqual((0x75, 0.08), game_drive_runner.action_to_key_hold("press_f6_0_08_sec"))
         self.assertEqual((0x75, 0.50), game_drive_runner.action_to_key_hold("hold_f6_0_50_sec_release"))
+        self.assertEqual((0x31, 0.08), game_drive_runner.action_to_key_hold("press_1_0_08_sec"))
 
     def test_unknown_action_fails_fast(self) -> None:
         with self.assertRaisesRegex(game_drive_runner.GameDriveRunnerError, "unsupported action"):
             game_drive_runner.action_to_key_hold("walk_somewhere")
+
+    def test_action_runner_verdict_is_not_semantic_pass(self) -> None:
+        self.assertNotEqual("checkpoint_passed_actions_recorded", "passed")
 
     def test_combo_action_is_not_a_single_key_spec(self) -> None:
         with self.assertRaisesRegex(game_drive_runner.GameDriveRunnerError, "unsupported action"):
@@ -33,7 +37,7 @@ class GameDriveRunnerTests(unittest.TestCase):
             "id": "sample",
             "save": "sample.LBA",
             "visual_expect": {
-                "source": "save_embedded_preview",
+                "source": "live_window_capture",
                 "scene_description": "A room.",
                 "target_description": "A lever.",
                 "expected": {

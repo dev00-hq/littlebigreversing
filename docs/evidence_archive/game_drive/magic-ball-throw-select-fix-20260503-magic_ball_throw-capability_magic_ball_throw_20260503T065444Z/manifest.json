@@ -1,0 +1,51 @@
+{
+  "schema": "game-drive-evidence-archive-v1",
+  "archive_id": "magic-ball-throw-select-fix-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T065444Z",
+  "reason": "capability_failure:blocked",
+  "checkpoint_id": "capability_magic_ball_throw",
+  "verdict": "checkpoint_passed_actions_recorded",
+  "run_dir": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T065444Z",
+  "created_utc": "2026-05-03T06:55:02.253221Z",
+  "source_summary": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T065444Z/summary.json",
+  "images": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T065444Z/after_pose_set_before_action.png",
+      "archive": "docs/evidence_archive/game_drive/magic-ball-throw-select-fix-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T065444Z/checkpoint_screenshot.webp",
+      "source_sha256": "623c37377c3f620132b62fbfad8d2383d8a42ea9b35af6387c8e6c1ee5a845da",
+      "archive_sha256": "1ae7ab9634897cbe129392310ff9e75aa8e268b9373c0017764e5a3ae7feb6d6",
+      "source_bytes": 36925,
+      "archive_bytes": 13652,
+      "compression": {
+        "format": "webp",
+        "quality": 35,
+        "method": 6,
+        "max_size": [
+          640,
+          480
+        ]
+      },
+      "summary_field": "checkpoint_screenshot"
+    }
+  ],
+  "json": [
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T065444Z/summary.json",
+      "archive": "docs/evidence_archive/game_drive/magic-ball-throw-select-fix-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T065444Z/summary.json",
+      "source_sha256": "7d8dca898f3b03df231995ea44f1b199dffb0fc2dae1306f1c805024e98ca7a0",
+      "archive_sha256": "7d8dca898f3b03df231995ea44f1b199dffb0fc2dae1306f1c805024e98ca7a0"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T065444Z/visual_result.json",
+      "archive": "docs/evidence_archive/game_drive/magic-ball-throw-select-fix-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T065444Z/visual_result.json",
+      "source_sha256": "a531775f8ed64c353467ce528966477243863c94ffd72bb9341b26f1b2c54d44",
+      "archive_sha256": "a531775f8ed64c353467ce528966477243863c94ffd72bb9341b26f1b2c54d44"
+    },
+    {
+      "source": "work/game_drive_capability_ladder/runs/capability_magic_ball_throw_20260503T065444Z/codex_exec.json",
+      "archive": "docs/evidence_archive/game_drive/magic-ball-throw-select-fix-20260503-magic_ball_throw-capability_magic_ball_throw_20260503T065444Z/codex_exec.json",
+      "source_sha256": "1f803489798b1d4ade3cc2f33c9a67c91c34305424ca3c4735fc40df11821700",
+      "archive_sha256": "1f803489798b1d4ade3cc2f33c9a67c91c34305424ca3c4735fc40df11821700"
+    }
+  ],
+  "source_summary_sha256": "7d8dca898f3b03df231995ea44f1b199dffb0fc2dae1306f1c805024e98ca7a0"
+}

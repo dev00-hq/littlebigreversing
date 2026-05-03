@@ -18,7 +18,7 @@ AUTOSAVE_GUARDS = {"hide_active_autosave_preserve_generated"}
 POSE_METHODS = {"existing_pose", "direct_pose", "teleport", "heading_input"}
 DIRECT_POSE_METHODS = {"direct_pose", "teleport"}
 CLASSIFIERS = {"codex_exec"}
-VISUAL_SOURCES = {"live_window_capture", "save_embedded_preview"}
+VISUAL_SOURCES = {"live_window_capture"}
 CONFIDENCE_VALUES = {"low", "medium", "high"}
 UI_STATES = {"gameplay", "dialog", "menu", "unknown"}
 
@@ -168,8 +168,6 @@ def validate_visual_expect(checkpoint_id: str, visual: dict[str, Any], *, direct
     source = require_string(visual, "source")
     if source not in VISUAL_SOURCES:
         raise GameDriveCheckpointError(f"{checkpoint_id}: unsupported visual source {source}")
-    if direct_pose and source != "live_window_capture":
-        raise GameDriveCheckpointError(f"{checkpoint_id}: direct pose requires live_window_capture visual source")
     classifier = require_string(visual, "classifier")
     if classifier not in CLASSIFIERS:
         raise GameDriveCheckpointError(f"{checkpoint_id}: unsupported visual classifier {classifier}")

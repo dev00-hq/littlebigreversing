@@ -284,10 +284,10 @@ Related files: tools/game_drive_runner.py, tools/game_drive_checkpoint.py
 Unattended original-runtime runs can load the correct save and expose valid
 runtime globals while live window screenshot capture returns a black DirectDraw
 surface or cannot access the desktop. Do not silently treat that as visual
-proof. Game-drive checkpoints must declare their visual source explicitly. A
-prepared named-save checkpoint may use `save_embedded_preview` paired with live
-runtime globals, but teleport/direct-pose checkpoints must use
-`live_window_capture` and remain blocked if live screenshots are unavailable.
+proof. Current game-drive checkpoints must use `live_window_capture`; savegame
+preview thumbnails are not a valid visual gate. If live screenshots are
+unavailable, the checkpoint remains blocked instead of falling back to embedded
+save preview imagery.
 
 ### trap.movement-rungs-need-live-window-checkpoints
 
@@ -298,14 +298,12 @@ Tags: original-runtime, gameplay-automation, movement, visual-proof, input-focus
 Related tests: tools/test_game_drive_capability_ladder.py
 Related files: tools/game_drive_capability_ladder.py, tools/game_drive_runner.py
 
-Save-embedded previews are sufficient for proving a named save's stored
-preview and expected runtime globals, but they are not sufficient for movement
-or rotation action rungs. In live ladder runs, plain arrow-key actions could
-load the correct runtime pose yet produce zero movement until the rung used a
-live-window checkpoint/direct-pose setup immediately before the action. Movement
-capability claims should therefore use live-window visual checkpoints and exact
-runtime postconditions such as beta or position deltas, not save-preview-only
-visual gates.
+Save-embedded previews are not sufficient for game-drive visual gates. In live
+ladder runs, plain arrow-key actions could load the correct runtime pose yet
+produce zero movement until the rung used a live-window checkpoint/direct-pose
+setup immediately before the action. Movement capability claims should
+therefore use live-window visual checkpoints and exact runtime postconditions
+such as beta or position deltas, never save-preview visual gates.
 
 ### policy.game-drive-evidence-archive-is-explicit
 
@@ -323,3 +321,23 @@ diagnostic preservation. Archives store compressed WebP screenshot derivatives,
 selected JSON artifacts, hashes, compression settings, run ids, checkpoint ids,
 and the reason the archive exists. Do not auto-archive every passing smoke run;
 most green ladder runs are regression evidence, not canonical proof packets.
+
+### trap.magic-ball-throw-requires-explicit-weapon-selection
+
+Status: active
+Confidence: high
+Last verified: 2026-05-03
+Tags: original-runtime, gameplay-automation, magic-ball, input, harness
+Related tests: tools/test_game_drive_runner.py, tools/test_game_drive_capability_ladder.py
+Related files: tools/game_drive_runner.py, tools/game_drive_capability_ladder.py
+
+Magic Ball ownership and available magic points are not sufficient for the
+original-runtime harness to launch a Magic Ball projectile. In the Emerald Moon
+switch-room save, the initial runtime state had `magic_level=3`,
+`magic_point=60`, and `magic_ball_flag=1`, but holding `.` alone did not emit
+Magic Ball projectile rows or consume magic. The reliable harness sequence is
+to press `1` to select Magic Ball, then hold `.` for `0.75s`. The proved
+runtime signature is `magic_point 60 -> 59`, launch extras with `sprite=10`,
+`owner=0`, `body=-1`, `hit_force=30`, and return extras with `sprite=14`,
+`owner=255`, `body=-1`, `hit_force=0`. Do not diagnose a failed throw from MP
+or ownership alone until explicit weapon selection has been checked.
