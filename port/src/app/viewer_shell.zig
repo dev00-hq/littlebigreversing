@@ -68,6 +68,7 @@ pub const ViewerDialogOverlayDisplayBuffer = struct {
     line_1: [160]u8 = undefined,
     line_2: [160]u8 = undefined,
     line_3: [160]u8 = undefined,
+    nav_title: [64]u8 = undefined,
     aux_0: [8]u8 = undefined,
     aux_1: [64]u8 = undefined,
     aux_2: [64]u8 = undefined,
@@ -613,14 +614,38 @@ pub fn formatGameplayOverlayDisplay(
     current_session: Session,
 ) ViewerDialogOverlayDisplay {
     const sendell_overlay = formatSendellDialogOverlayDisplay(room, current_session);
-    if (sendell_overlay.line_count != 0) return sendell_overlay;
+    if (sendell_overlay.line_count != 0) return withBehaviorModeNavTitle(buffer, sendell_overlay, current_session);
     const cellar_message_overlay = formatCellarMessageOverlayDisplay(buffer, room, current_session);
-    if (cellar_message_overlay.line_count != 0) return cellar_message_overlay;
+    if (cellar_message_overlay.line_count != 0) return withBehaviorModeNavTitle(buffer, cellar_message_overlay, current_session);
     const secret_room_overlay = formatSecretRoomKeyOverlayDisplay(buffer, room, current_session);
-    if (secret_room_overlay.line_count != 0) return secret_room_overlay;
+    if (secret_room_overlay.line_count != 0) return withBehaviorModeNavTitle(buffer, secret_room_overlay, current_session);
     const reward_overlay = formatScene1919RewardOverlayDisplay(buffer, room, current_session);
-    if (reward_overlay.line_count != 0) return reward_overlay;
-    return formatZoneProbeOverlayDisplay(buffer, room, current_session);
+    if (reward_overlay.line_count != 0) return withBehaviorModeNavTitle(buffer, reward_overlay, current_session);
+    return withBehaviorModeNavTitle(buffer, formatZoneProbeOverlayDisplay(buffer, room, current_session), current_session);
+}
+
+fn withBehaviorModeNavTitle(
+    buffer: *ViewerDialogOverlayDisplayBuffer,
+    overlay: ViewerDialogOverlayDisplay,
+    current_session: Session,
+) ViewerDialogOverlayDisplay {
+    if (overlay.line_count == 0 or current_session.behaviorMode() == .normal) return overlay;
+    var adjusted = overlay;
+    adjusted.nav_title = std.fmt.bufPrint(
+        &buffer.nav_title,
+        "{s} {s}",
+        .{ overlay.nav_title, behaviorModeLabel(current_session.behaviorMode()) },
+    ) catch unreachable;
+    return adjusted;
+}
+
+fn behaviorModeLabel(mode: runtime_session.BehaviorMode) []const u8 {
+    return switch (mode) {
+        .normal => "NORMAL",
+        .sporty => "SPORTY",
+        .aggressive => "AGGRESSIVE",
+        .discreet => "DISCREET",
+    };
 }
 
 pub fn formatSendellDialogOverlayDisplay(

@@ -1615,6 +1615,25 @@ test "viewer 0013 key overlay exposes source-ready state before default action" 
     try std.testing.expectEqualStrings("SRC N PICK N DOOR N RET N", overlay.lines[3]);
 }
 
+test "viewer gameplay overlay nav title exposes non-normal behavior mode" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    var room = try room_state.loadRoomSnapshot(allocator, resolved, 2, 1);
+    defer room.deinit(allocator);
+
+    var runtime_session = try initViewerSession(&room);
+    defer runtime_session.deinit(allocator);
+    runtime_session.selectBehaviorMode(.sporty);
+
+    var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
+    const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
+
+    try std.testing.expectEqualStrings("0013 KEY", overlay.title);
+    try std.testing.expectEqualStrings("NAV / KEY SPORTY", overlay.nav_title);
+}
+
 test "viewer secret-room validation hotkeys request proof positions without mutating session" {
     const allocator = std.testing.allocator;
     const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
