@@ -66,9 +66,10 @@ action behavior outside movement.
 The port also exposes a query-only decoded walk-root-motion layer for the same
 four behavior families. That layer answers distance at elapsed held-Up time
 from declared ANIM root-motion keyframes and classic-style interpolation, but it
-is not wired into continuous player locomotion yet. The existing grid-step
-diagnostic movement remains separate until the continuous held-key path is
-explicit.
+is not wired into collision or viewer gameplay yet. A narrow held-forward
+gameplay delta seam now computes per-frame root-motion deltas from held elapsed
+time. The existing grid-step movement is explicitly diagnostic and remains
+separate for viewer/debug topology probes.
 
 ## Positive Test
 
@@ -78,6 +79,9 @@ explicit.
 - `port/src/runtime/locomotion_test.zig` also pins the decoded walk-root-motion
   query at `500ms`, `1000ms`, `1500ms`, and `2000ms`, then checks the `2000ms`
   decoded distance against the live Otringal profile within a bounded tolerance.
+- `port/src/runtime/locomotion_test.zig` verifies that held-forward gameplay
+  deltas sum to the root-motion query while diagnostic grid stepping remains a
+  separate viewer/debug path.
 - `tools/test_game_drive_capability_ladder.py` covers the live proof harness
   cases and movement time-series reporting.
 - `tools/test_behavior_animation_root_motion_compare.py` covers the looped
@@ -129,3 +133,5 @@ startup threshold and a time-based distance profile.
   the four behavior walk-family candidates.
 - 2026-05-03: Added query-only port representation of the four decoded behavior
   walk root-motion curves without wiring them into continuous locomotion.
+- 2026-05-03: Added a narrow held-forward gameplay delta seam and explicitly
+  kept grid-cell stepping as diagnostic locomotion.

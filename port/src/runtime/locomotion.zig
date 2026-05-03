@@ -40,6 +40,21 @@ pub const BehaviorWalkRootMotion = struct {
     }
 };
 
+pub const HeldForwardMovementState = struct {
+    mode: runtime_session.BehaviorMode,
+    elapsed_ms: u16 = 0,
+    previous_forward_distance_z: i32 = 0,
+};
+
+pub const HeldForwardMovementDelta = struct {
+    mode: runtime_session.BehaviorMode,
+    previous_elapsed_ms: u16,
+    elapsed_ms: u16,
+    previous_forward_distance_z: i32,
+    forward_distance_z: i32,
+    forward_delta_z: i32,
+};
+
 pub const LocomotionRejectedStage = enum {
     origin_invalid,
     target_rejected,
@@ -262,6 +277,29 @@ pub fn behaviorWalkRootMotionDistanceZ(mode: runtime_session.BehaviorMode, elaps
     return behaviorWalkRootMotion(mode).distanceZAt(elapsed_ms);
 }
 
+pub fn beginHeldForwardMovement(mode: runtime_session.BehaviorMode) HeldForwardMovementState {
+    return .{ .mode = mode };
+}
+
+pub fn advanceHeldForwardMovement(
+    state: *HeldForwardMovementState,
+    frame_delta_ms: u16,
+) HeldForwardMovementDelta {
+    const previous_elapsed_ms = state.elapsed_ms;
+    const previous_forward_distance_z = state.previous_forward_distance_z;
+    state.elapsed_ms = saturatingAddU16(state.elapsed_ms, frame_delta_ms);
+    const forward_distance_z = behaviorWalkRootMotionDistanceZ(state.mode, state.elapsed_ms);
+    state.previous_forward_distance_z = forward_distance_z;
+    return .{
+        .mode = state.mode,
+        .previous_elapsed_ms = previous_elapsed_ms,
+        .elapsed_ms = state.elapsed_ms,
+        .previous_forward_distance_z = previous_forward_distance_z,
+        .forward_distance_z = forward_distance_z,
+        .forward_delta_z = forward_distance_z - previous_forward_distance_z,
+    };
+}
+
 fn rootMotionDistanceZAt(
     keyframes: []const RootMotionKeyframe,
     loop_start_keyframe: u8,
@@ -326,6 +364,11 @@ fn interpolateRootZFromZero(target_z: i32, elapsed_ms: u32, duration_ms: u16) i3
         @as(i64, duration_ms),
     );
     return @as(i32, @intCast((@as(i64, target_z) * interpolator) >> 16));
+}
+
+fn saturatingAddU16(lhs: u16, rhs: u16) u16 {
+    const sum: u32 = @as(u32, lhs) + rhs;
+    return @intCast(@min(sum, std.math.maxInt(u16)));
 }
 
 pub fn inspectCurrentStatus(
@@ -400,6 +443,9 @@ pub fn seedSessionToNearestStandableStart(
     return position;
 }
 
+/// Diagnostic grid-cell movement for viewer/debug probes. Gameplay movement
+/// should consume held-input root-motion deltas and then apply collision/floor
+/// response; this path intentionally remains a discrete topology probe.
 pub fn applyStep(
     room: *const room_state.RoomSnapshot,
     current_session: *runtime_session.Session,
@@ -464,6 +510,8 @@ pub fn applyStep(
     };
 }
 
+pub const applyDiagnosticStep = applyStep;
+
 pub fn applyPendingHeroIntent(
     room: *const room_state.RoomSnapshot,
     current_session: *runtime_session.Session,
@@ -480,6 +528,8 @@ pub fn applyPendingHeroIntent(
         => error.UnsupportedHeroIntentForLocomotion,
     };
 }
+
+pub const applyPendingDiagnosticHeroIntent = applyPendingHeroIntent;
 
 fn seededValidStatus(
     query: runtime_query.WorldQuery,

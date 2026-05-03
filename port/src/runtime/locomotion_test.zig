@@ -194,6 +194,50 @@ test "runtime locomotion exposes decoded behavior walk root-motion curves withou
     }
 }
 
+test "runtime locomotion computes gameplay held-forward deltas from behavior root motion" {
+    var movement = locomotion.beginHeldForwardMovement(.normal);
+
+    const first = locomotion.advanceHeldForwardMovement(&movement, 500);
+    try std.testing.expectEqual(runtime_session.BehaviorMode.normal, first.mode);
+    try std.testing.expectEqual(@as(u16, 0), first.previous_elapsed_ms);
+    try std.testing.expectEqual(@as(u16, 500), first.elapsed_ms);
+    try std.testing.expectEqual(@as(i32, 0), first.previous_forward_distance_z);
+    try std.testing.expectEqual(@as(i32, 240), first.forward_distance_z);
+    try std.testing.expectEqual(@as(i32, 240), first.forward_delta_z);
+
+    const second = locomotion.advanceHeldForwardMovement(&movement, 500);
+    try std.testing.expectEqual(@as(u16, 500), second.previous_elapsed_ms);
+    try std.testing.expectEqual(@as(u16, 1000), second.elapsed_ms);
+    try std.testing.expectEqual(@as(i32, 240), second.previous_forward_distance_z);
+    try std.testing.expectEqual(@as(i32, 840), second.forward_distance_z);
+    try std.testing.expectEqual(@as(i32, 600), second.forward_delta_z);
+
+    try std.testing.expectEqual(
+        locomotion.behaviorWalkRootMotionDistanceZ(.normal, 1000),
+        first.forward_delta_z + second.forward_delta_z,
+    );
+}
+
+test "runtime locomotion keeps diagnostic grid step separate from held-forward movement" {
+    const room = try room_fixtures.guarded1919();
+    var current_session = runtime_session.Session.init(room_state.heroStartWorldPoint(room));
+    const seeded_position = try seedSessionToFixture(room, &current_session);
+
+    var held_forward = locomotion.beginHeldForwardMovement(.sporty);
+    const gameplay_delta = locomotion.advanceHeldForwardMovement(&held_forward, 500);
+    try std.testing.expectEqual(@as(i32, 739), gameplay_delta.forward_distance_z);
+    try std.testing.expectEqual(seeded_position, current_session.heroWorldPosition());
+
+    const diagnostic_status = try locomotion.applyDiagnosticStep(room, &current_session, .south);
+    switch (diagnostic_status) {
+        .last_move_accepted => |value| {
+            try std.testing.expectEqual(locomotion.CardinalDirection.south, value.direction);
+            try std.testing.expect(current_session.heroWorldPosition().z > seeded_position.z);
+        },
+        else => return error.UnexpectedDiagnosticLocomotionStatus,
+    }
+}
+
 fn expectRawInvalidStartMappingHint(
     actual: ?locomotion.RawInvalidStartMappingHint,
     expected: *const runtime_query.HeroStartMappingEvaluation,
