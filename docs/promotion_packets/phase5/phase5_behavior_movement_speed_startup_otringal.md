@@ -63,11 +63,21 @@ movement profile. It does not promote analog turning, collision sliding,
 animation selection, stamina, camera-dependent motion, or Aggressive/Discreet
 action behavior outside movement.
 
+The port also exposes a query-only decoded walk-root-motion layer for the same
+four behavior families. That layer answers distance at elapsed held-Up time
+from declared ANIM root-motion keyframes and classic-style interpolation, but it
+is not wired into continuous player locomotion yet. The existing grid-step
+diagnostic movement remains separate until the continuous held-key path is
+explicit.
+
 ## Positive Test
 
 - `port/src/runtime/locomotion_test.zig` pins the promoted Otringal startup
   delays and `2.00s` forward distances for Normal, Sporty, Aggressive, and
   Discreet.
+- `port/src/runtime/locomotion_test.zig` also pins the decoded walk-root-motion
+  query at `500ms`, `1000ms`, `1500ms`, and `2000ms`, then checks the `2000ms`
+  decoded distance against the live Otringal profile within a bounded tolerance.
 - `tools/test_game_drive_capability_ladder.py` covers the live proof harness
   cases and movement time-series reporting.
 - `tools/test_behavior_animation_root_motion_compare.py` covers the looped
@@ -117,3 +127,5 @@ startup threshold and a time-based distance profile.
   movement probes.
 - 2026-05-03: Added supplemental LM2 decoded ANIM root-motion comparison for
   the four behavior walk-family candidates.
+- 2026-05-03: Added query-only port representation of the four decoded behavior
+  walk root-motion curves without wiring them into continuous locomotion.

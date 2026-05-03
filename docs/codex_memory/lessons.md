@@ -463,3 +463,10 @@ This supports an animation-root-motion implementation hypothesis, but still
 does not prove the original runtime's exact ownership path. Do not ignore this
 correlation when implementing feel, and do not overstate it as a live writer or
 frame-counter proof.
+
+The port now exposes those four decoded walk-root-motion curves as a query-only
+runtime surface in `runtime/locomotion.zig`. It answers distance at elapsed
+held-Up time from declared ANIM root-motion keyframes and classic-style
+interpolation, while `applyStep` remains the older grid-step diagnostic path.
+Do not treat the presence of `behaviorWalkRootMotionDistanceZ()` as proof that
+continuous held-key locomotion is wired.

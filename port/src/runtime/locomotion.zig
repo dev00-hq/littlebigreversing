@@ -19,6 +19,27 @@ pub const BehaviorMovementProfile = struct {
     distance_z_at_2000ms: i32,
 };
 
+pub const RootMotionKeyframe = struct {
+    duration_ms: u16,
+    root_z: i32,
+};
+
+pub const BehaviorWalkRootMotion = struct {
+    mode: runtime_session.BehaviorMode,
+    animation_asset: []const u8,
+    file3d_object: u8,
+    loop_start_keyframe: u8,
+    keyframes: []const RootMotionKeyframe,
+
+    pub fn distanceZAt(self: BehaviorWalkRootMotion, elapsed_ms: u16) i32 {
+        return rootMotionDistanceZAt(
+            self.keyframes,
+            self.loop_start_keyframe,
+            elapsed_ms,
+        );
+    }
+};
+
 pub const LocomotionRejectedStage = enum {
     origin_invalid,
     target_rejected,
@@ -153,6 +174,158 @@ pub fn behaviorForwardHoldDistanceZ(mode: runtime_session.BehaviorMode, hold_ms:
     const active_ms: i32 = @as(i32, hold_ms) - profile.startup_ms;
     const proved_active_ms: i32 = 2000 - profile.startup_ms;
     return @divTrunc(profile.distance_z_at_2000ms * active_ms, proved_active_ms);
+}
+
+const normal_walk_root_motion = [_]RootMotionKeyframe{
+    .{ .duration_ms = 300, .root_z = 0 },
+    .{ .duration_ms = 200, .root_z = 240 },
+    .{ .duration_ms = 200, .root_z = 240 },
+    .{ .duration_ms = 200, .root_z = 240 },
+    .{ .duration_ms = 200, .root_z = 240 },
+};
+
+const sporty_walk_root_motion = [_]RootMotionKeyframe{
+    .{ .duration_ms = 140, .root_z = 0 },
+    .{ .duration_ms = 160, .root_z = 248 },
+    .{ .duration_ms = 200, .root_z = 491 },
+    .{ .duration_ms = 160, .root_z = 491 },
+    .{ .duration_ms = 140, .root_z = 400 },
+    .{ .duration_ms = 140, .root_z = 400 },
+    .{ .duration_ms = 140, .root_z = 400 },
+    .{ .duration_ms = 140, .root_z = 400 },
+    .{ .duration_ms = 140, .root_z = 400 },
+    .{ .duration_ms = 140, .root_z = 491 },
+};
+
+const aggressive_walk_root_motion = [_]RootMotionKeyframe{
+    .{ .duration_ms = 240, .root_z = 298 },
+    .{ .duration_ms = 160, .root_z = 257 },
+    .{ .duration_ms = 160, .root_z = 229 },
+    .{ .duration_ms = 160, .root_z = 148 },
+    .{ .duration_ms = 160, .root_z = 286 },
+    .{ .duration_ms = 160, .root_z = 178 },
+    .{ .duration_ms = 160, .root_z = 274 },
+    .{ .duration_ms = 160, .root_z = 202 },
+    .{ .duration_ms = 160, .root_z = 345 },
+    .{ .duration_ms = 160, .root_z = 288 },
+    .{ .duration_ms = 160, .root_z = 222 },
+    .{ .duration_ms = 160, .root_z = 291 },
+};
+
+const discreet_walk_root_motion = [_]RootMotionKeyframe{
+    .{ .duration_ms = 400, .root_z = 0 },
+    .{ .duration_ms = 400, .root_z = 277 },
+    .{ .duration_ms = 400, .root_z = 239 },
+    .{ .duration_ms = 300, .root_z = 100 },
+    .{ .duration_ms = 300, .root_z = 100 },
+    .{ .duration_ms = 300, .root_z = 100 },
+    .{ .duration_ms = 400, .root_z = 200 },
+    .{ .duration_ms = 300, .root_z = 100 },
+    .{ .duration_ms = 300, .root_z = 100 },
+    .{ .duration_ms = 300, .root_z = 100 },
+};
+
+pub fn behaviorWalkRootMotion(mode: runtime_session.BehaviorMode) BehaviorWalkRootMotion {
+    return switch (mode) {
+        .normal => .{
+            .mode = .normal,
+            .animation_asset = "ANIM.HQR:1",
+            .file3d_object = 0,
+            .loop_start_keyframe = 1,
+            .keyframes = &normal_walk_root_motion,
+        },
+        .sporty => .{
+            .mode = .sporty,
+            .animation_asset = "ANIM.HQR:67",
+            .file3d_object = 1,
+            .loop_start_keyframe = 4,
+            .keyframes = &sporty_walk_root_motion,
+        },
+        .aggressive => .{
+            .mode = .aggressive,
+            .animation_asset = "ANIM.HQR:83",
+            .file3d_object = 2,
+            .loop_start_keyframe = 0,
+            .keyframes = &aggressive_walk_root_motion,
+        },
+        .discreet => .{
+            .mode = .discreet,
+            .animation_asset = "ANIM.HQR:94",
+            .file3d_object = 3,
+            .loop_start_keyframe = 2,
+            .keyframes = &discreet_walk_root_motion,
+        },
+    };
+}
+
+pub fn behaviorWalkRootMotionDistanceZ(mode: runtime_session.BehaviorMode, elapsed_ms: u16) i32 {
+    return behaviorWalkRootMotion(mode).distanceZAt(elapsed_ms);
+}
+
+fn rootMotionDistanceZAt(
+    keyframes: []const RootMotionKeyframe,
+    loop_start_keyframe: u8,
+    elapsed_ms: u16,
+) i32 {
+    std.debug.assert(keyframes.len > 0);
+    std.debug.assert(loop_start_keyframe < keyframes.len);
+
+    var distance_z: i32 = 0;
+    var remaining_ms: u32 = elapsed_ms;
+
+    for (keyframes) |keyframe| {
+        if (remaining_ms == 0) return distance_z;
+        if (remaining_ms < keyframe.duration_ms) {
+            return distance_z + interpolateRootZFromZero(keyframe.root_z, remaining_ms, keyframe.duration_ms);
+        }
+        distance_z += keyframe.root_z;
+        remaining_ms -= keyframe.duration_ms;
+    }
+
+    const loop_keyframes = keyframes[loop_start_keyframe..];
+    const loop_duration_ms = sumRootMotionDuration(loop_keyframes);
+    if (loop_duration_ms == 0) return distance_z;
+
+    const loop_distance_z = sumRootMotionDistanceZ(loop_keyframes);
+    const loop_cycles = remaining_ms / loop_duration_ms;
+    distance_z += @as(i32, @intCast(loop_cycles)) * loop_distance_z;
+    remaining_ms %= loop_duration_ms;
+
+    for (loop_keyframes) |keyframe| {
+        if (remaining_ms == 0) return distance_z;
+        if (remaining_ms < keyframe.duration_ms) {
+            return distance_z + interpolateRootZFromZero(keyframe.root_z, remaining_ms, keyframe.duration_ms);
+        }
+        distance_z += keyframe.root_z;
+        remaining_ms -= keyframe.duration_ms;
+    }
+
+    return distance_z;
+}
+
+fn sumRootMotionDuration(keyframes: []const RootMotionKeyframe) u32 {
+    var duration_ms: u32 = 0;
+    for (keyframes) |keyframe| {
+        duration_ms += keyframe.duration_ms;
+    }
+    return duration_ms;
+}
+
+fn sumRootMotionDistanceZ(keyframes: []const RootMotionKeyframe) i32 {
+    var distance_z: i32 = 0;
+    for (keyframes) |keyframe| {
+        distance_z += keyframe.root_z;
+    }
+    return distance_z;
+}
+
+fn interpolateRootZFromZero(target_z: i32, elapsed_ms: u32, duration_ms: u16) i32 {
+    if (duration_ms == 0) return target_z;
+    const interpolator = @divTrunc(
+        (@as(i64, elapsed_ms) << 16) + ((@as(i64, duration_ms) + 1) >> 1),
+        @as(i64, duration_ms),
+    );
+    return @as(i32, @intCast((@as(i64, target_z) * interpolator) >> 16));
 }
 
 pub fn inspectCurrentStatus(

@@ -110,6 +110,11 @@ fn expectRawInvalidStartCandidate(
     try std.testing.expectEqual(@as(?locomotion.RawInvalidStartCandidate, null), actual);
 }
 
+fn expectWithinTolerance(expected: i32, actual: i32, tolerance: i32) !void {
+    const delta = if (actual >= expected) actual - expected else expected - actual;
+    try std.testing.expect(delta <= tolerance);
+}
+
 test "runtime locomotion exposes promoted Otringal behavior movement startup profile" {
     const ExpectedProfile = struct {
         mode: runtime_session.BehaviorMode,
@@ -138,6 +143,53 @@ test "runtime locomotion exposes promoted Otringal behavior movement startup pro
         try std.testing.expectEqual(
             expected.distance_z_at_2000ms,
             locomotion.behaviorForwardHoldDistanceZ(expected.mode, 2000),
+        );
+    }
+}
+
+test "runtime locomotion exposes decoded behavior walk root-motion curves without wiring movement" {
+    const ExpectedRootMotion = struct {
+        mode: runtime_session.BehaviorMode,
+        animation_asset: []const u8,
+        file3d_object: u8,
+        decoded_distance_z_at_500ms: i32,
+        decoded_distance_z_at_1000ms: i32,
+        decoded_distance_z_at_1500ms: i32,
+        decoded_distance_z_at_2000ms: i32,
+        live_distance_z_at_2000ms: i32,
+    };
+    const expected_curves = [_]ExpectedRootMotion{
+        .{ .mode = .normal, .animation_asset = "ANIM.HQR:1", .file3d_object = 0, .decoded_distance_z_at_500ms = 240, .decoded_distance_z_at_1000ms = 840, .decoded_distance_z_at_1500ms = 1440, .decoded_distance_z_at_2000ms = 2040, .live_distance_z_at_2000ms = 2008 },
+        .{ .mode = .sporty, .animation_asset = "ANIM.HQR:67", .file3d_object = 1, .decoded_distance_z_at_500ms = 739, .decoded_distance_z_at_1000ms = 2201, .decoded_distance_z_at_1500ms = 3721, .decoded_distance_z_at_2000ms = 5149, .live_distance_z_at_2000ms = 5066 },
+        .{ .mode = .aggressive, .animation_asset = "ANIM.HQR:83", .file3d_object = 2, .decoded_distance_z_at_500ms = 698, .decoded_distance_z_at_1000ms = 1351, .decoded_distance_z_at_1500ms = 2173, .decoded_distance_z_at_2000ms = 3018, .live_distance_z_at_2000ms = 2974 },
+        .{ .mode = .discreet, .animation_asset = "ANIM.HQR:94", .file3d_object = 3, .decoded_distance_z_at_500ms = 69, .decoded_distance_z_at_1000ms = 396, .decoded_distance_z_at_1500ms = 616, .decoded_distance_z_at_2000ms = 782, .live_distance_z_at_2000ms = 772 },
+    };
+
+    for (expected_curves) |expected| {
+        const curve = locomotion.behaviorWalkRootMotion(expected.mode);
+        try std.testing.expectEqual(expected.mode, curve.mode);
+        try std.testing.expectEqualStrings(expected.animation_asset, curve.animation_asset);
+        try std.testing.expectEqual(expected.file3d_object, curve.file3d_object);
+        try std.testing.expectEqual(
+            expected.decoded_distance_z_at_500ms,
+            locomotion.behaviorWalkRootMotionDistanceZ(expected.mode, 500),
+        );
+        try std.testing.expectEqual(
+            expected.decoded_distance_z_at_1000ms,
+            locomotion.behaviorWalkRootMotionDistanceZ(expected.mode, 1000),
+        );
+        try std.testing.expectEqual(
+            expected.decoded_distance_z_at_1500ms,
+            locomotion.behaviorWalkRootMotionDistanceZ(expected.mode, 1500),
+        );
+        try std.testing.expectEqual(
+            expected.decoded_distance_z_at_2000ms,
+            locomotion.behaviorWalkRootMotionDistanceZ(expected.mode, 2000),
+        );
+        try expectWithinTolerance(
+            expected.live_distance_z_at_2000ms,
+            locomotion.behaviorWalkRootMotionDistanceZ(expected.mode, 2000),
+            100,
         );
     }
 }
