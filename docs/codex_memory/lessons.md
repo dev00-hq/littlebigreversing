@@ -470,8 +470,10 @@ from declared ANIM root-motion keyframes and classic-style interpolation, and
 `advanceHeldForwardMovement()` computes per-frame forward deltas from that
 curve. `applyHeldForwardMovement()` now stores held elapsed time on the runtime
 session, applies each frame delta through the existing move-target admission
-query, and viewer `Up` routes through that seam under the current north-forward
-viewer convention. `applyStep` remains the older grid-step diagnostic path for
-viewer/debug topology probes. Do not claim full player locomotion parity yet:
-the port still lacks durable hero beta/facing projection, key-up/continuous
-input timing, sliding, and richer floor response.
+query, and viewer `Up` routes through that seam projected by session-owned hero
+beta. Viewer `Left`/`Right` now queue facing-turn intents, currently as a
+quarter-turn port model (`0`, `1024`, `2048`, `3072`), and overlays expose the
+current beta as `B<n>`. `applyStep` remains the older grid-step diagnostic path
+for viewer/debug topology probes. Do not claim full player locomotion parity
+yet: the port still lacks original-proved continuous turn speed, key-up /
+continuous input timing, sliding, and richer floor response.

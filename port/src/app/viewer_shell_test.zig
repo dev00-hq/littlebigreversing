@@ -1259,7 +1259,7 @@ test "viewer key handling seeds fragment rooms and leaves movement intent queued
     try std.testing.expectEqual(seed_result.locomotion_status, move_result.locomotion_status);
     try std.testing.expectEqual(@as(usize, 0), runtime_session.frame_index);
     try std.testing.expectEqual(
-        runtime_locomotion.HeroIntent{ .move_cardinal = .east },
+        runtime_locomotion.HeroIntent{ .turn_facing = .right },
         runtime_session.pendingHeroIntent().?,
     );
     try std.testing.expectError(
@@ -1278,8 +1278,10 @@ test "viewer key handling seeds fragment rooms and leaves movement intent queued
     try std.testing.expectEqual(@as(?runtime_locomotion.HeroIntent, null), runtime_session.pendingHeroIntent());
     try std.testing.expect(tick_result.consumed_hero_intent);
     try std.testing.expectEqual(@as(usize, 1), runtime_session.frame_index);
+    try std.testing.expectEqual(@as(u16, 1024), runtime_session.heroBeta());
+    try std.testing.expectEqual(initial_position, runtime_session.heroWorldPosition());
     switch (tick_result.locomotion_status) {
-        .last_move_accepted, .last_move_rejected => {},
+        .seeded_valid, .raw_invalid_current, .raw_invalid_start => {},
         else => return error.UnexpectedViewerLocomotionStatus,
     }
 }
@@ -1320,6 +1322,59 @@ test "viewer key handling routes Up through held-forward gameplay movement" {
         .last_move_accepted => |value| {
             try std.testing.expectEqual(runtime_locomotion.CardinalDirection.north, value.direction);
             try std.testing.expectEqual(seeded_position.z - 240, runtime_session.heroWorldPosition().z);
+        },
+        else => return error.UnexpectedViewerLocomotionStatus,
+    }
+}
+
+test "viewer key handling projects held-forward movement through turned facing" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded1919();
+    var snapshot_session = try initViewerSession(room);
+    defer snapshot_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(room, snapshot_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
+    _ = try viewer_shell.seedSessionToLocomotionFixture(room, &runtime_session);
+    const seeded_position = runtime_session.heroWorldPosition();
+    const initial_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
+    const interaction = viewer_shell.initialInteractionState(catalog);
+
+    const turn_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        interaction,
+        initial_status,
+        .right,
+    );
+    _ = try runtime_update.tick(room, &runtime_session);
+    try std.testing.expectEqual(@as(u16, 1024), runtime_session.heroBeta());
+
+    const move_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        turn_result.interaction,
+        turn_result.locomotion_status,
+        .up,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, move_result.post_key_action);
+    try std.testing.expectEqual(
+        runtime_locomotion.HeroIntent{ .move_forward_held_ms = 500 },
+        runtime_session.pendingHeroIntent().?,
+    );
+
+    const tick_result = try runtime_update.tick(room, &runtime_session);
+    try std.testing.expect(tick_result.consumed_hero_intent);
+    switch (tick_result.locomotion_status) {
+        .last_move_accepted => |value| {
+            try std.testing.expectEqual(runtime_locomotion.CardinalDirection.east, value.direction);
+            try std.testing.expectEqual(seeded_position.x + 240, runtime_session.heroWorldPosition().x);
+            try std.testing.expectEqual(seeded_position.z, runtime_session.heroWorldPosition().z);
         },
         else => return error.UnexpectedViewerLocomotionStatus,
     }
@@ -1536,7 +1591,7 @@ test "viewer key handling routes 0013 default action through queued runtime inte
     var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
     try std.testing.expectEqualStrings("0013 KEY", overlay.title);
-    try std.testing.expectEqualStrings("NAV / KEY NORMAL", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / KEY NORMAL B0", overlay.nav_title);
     try std.testing.expectEqualStrings("ROOM 2/1 KEYS 0 VAR0 1", overlay.lines[0]);
     try std.testing.expectEqualStrings("KEY DROP LIVE", overlay.lines[1]);
     try std.testing.expectEqualStrings("POS 1280 2048 5376 ZONES 4", overlay.lines[2]);
@@ -1581,7 +1636,7 @@ test "viewer key handling routes scene-2 cellar message actions through runtime 
     var overlay_buffer: viewer_shell.ViewerDialogOverlayDisplayBuffer = .{};
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
     try std.testing.expectEqualStrings("CELLAR MESSAGE", overlay.title);
-    try std.testing.expectEqualStrings("NAV / MESSAGE NORMAL", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / MESSAGE NORMAL B0", overlay.nav_title);
     try std.testing.expectEqualStrings("DIALOG 284", overlay.lines[0]);
     try std.testing.expectEqualStrings("ZONE 6 FACING north", overlay.lines[1]);
     try std.testing.expectEqualStrings("ENTER ACK", overlay.lines[3]);
@@ -1649,7 +1704,7 @@ test "viewer 0013 key overlay exposes source-ready state before default action" 
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
 
     try std.testing.expectEqualStrings("0013 KEY", overlay.title);
-    try std.testing.expectEqualStrings("NAV / KEY NORMAL", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / KEY NORMAL B0", overlay.nav_title);
     try std.testing.expectEqualStrings("ROOM 2/1 KEYS 0 VAR0 0", overlay.lines[0]);
     try std.testing.expectEqualStrings("KEY SOURCE READY", overlay.lines[1]);
     try std.testing.expectEqualStrings("POS 9724 1024 782 ZONES NONE", overlay.lines[2]);
@@ -1672,7 +1727,7 @@ test "viewer gameplay overlay nav title exposes current behavior mode" {
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
 
     try std.testing.expectEqualStrings("0013 KEY", overlay.title);
-    try std.testing.expectEqualStrings("NAV / KEY SPORTY", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / KEY SPORTY B0", overlay.nav_title);
 }
 
 test "viewer secret-room validation hotkeys request proof positions without mutating session" {
@@ -1793,7 +1848,7 @@ test "viewer zone probe overlay exposes projected zone footprints for manual nav
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, &room, runtime_session);
 
     try std.testing.expectEqualStrings("ZONE PROBE", overlay.title);
-    try std.testing.expectEqualStrings("NAV / ZONE NORMAL", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / ZONE NORMAL B0", overlay.nav_title);
     try std.testing.expectEqualStrings("POS 1280 6400 5376", overlay.lines[0]);
     try std.testing.expectEqualStrings("ZONES NONE", overlay.lines[1]);
     try std.testing.expectEqualStrings("XZ ZONES 4", overlay.lines[2]);
@@ -1917,7 +1972,7 @@ test "viewer 19/19 reward overlay reflects the bounded object-2 bonus loop" {
     const rewarded_state = runtime_session.objectBehaviorStateByIndex(2) orelse return error.MissingRuntimeObjectBehaviorState;
     const overlay = viewer_shell.formatGameplayOverlayDisplay(&overlay_buffer, room, runtime_session);
     try std.testing.expectEqualStrings("OBJ2 LOOP", overlay.title);
-    try std.testing.expectEqualStrings("NAV / REWARD NORMAL", overlay.nav_title);
+    try std.testing.expectEqualStrings("NAV / REWARD NORMAL B0", overlay.nav_title);
     try std.testing.expectEqual(@as(usize, 4), overlay.line_count);
     var expected_line_0: [32]u8 = undefined;
     var expected_track: [8]u8 = undefined;

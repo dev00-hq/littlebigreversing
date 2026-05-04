@@ -279,6 +279,26 @@ test "runtime update tick consumes queued held-forward gameplay movement" {
     }
 }
 
+test "runtime update tick consumes queued hero facing turns" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    const seeded_position = try seedSessionToFixture(room, &current_session);
+    try current_session.submitHeroIntent(.{ .turn_facing = .right });
+
+    const tick_result = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expect(tick_result.consumed_hero_intent);
+    try std.testing.expectEqual(@as(?runtime_session.HeroIntent, null), current_session.pendingHeroIntent());
+    try std.testing.expectEqual(@as(u16, 1024), current_session.heroBeta());
+    try std.testing.expectEqual(seeded_position, current_session.heroWorldPosition());
+    switch (tick_result.locomotion_status) {
+        .seeded_valid => {},
+        else => return error.UnexpectedLocomotionStatus,
+    }
+}
+
 test "runtime update tick consumes queued behavior-mode selection as durable session state" {
     const room = try room_fixtures.guarded1919();
 

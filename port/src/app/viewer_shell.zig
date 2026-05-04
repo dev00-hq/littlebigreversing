@@ -475,10 +475,21 @@ pub fn handleKeyDown(
                 .post_key_action = .advance_world,
             };
         },
-        .left, .right, .down => {
+        .left, .right => {
+            const direction: runtime_session.HeroTurnDirection = switch (key) {
+                .left => .left,
+                .right => .right,
+                else => unreachable,
+            };
+            try current_session.submitHeroIntent(.{ .turn_facing = direction });
+            return .{
+                .interaction = interaction,
+                .locomotion_status = locomotion_status,
+                .post_key_action = .advance_world,
+            };
+        },
+        .down => {
             const direction: CardinalDirection = switch (key) {
-                .left => .west,
-                .right => .east,
                 .down => .south,
                 else => unreachable,
             };
@@ -641,8 +652,8 @@ fn withBehaviorModeNavTitle(
     var adjusted = overlay;
     adjusted.nav_title = std.fmt.bufPrint(
         &buffer.nav_title,
-        "{s} {s}",
-        .{ overlay.nav_title, behaviorModeLabel(current_session.behaviorMode()) },
+        "{s} {s} B{d}",
+        .{ overlay.nav_title, behaviorModeLabel(current_session.behaviorMode()), current_session.heroBeta() },
     ) catch unreachable;
     return adjusted;
 }

@@ -260,6 +260,24 @@ test "runtime locomotion applies held-forward root motion through the gameplay s
     }
 }
 
+test "runtime locomotion projects held-forward root motion through hero facing" {
+    const room = try room_fixtures.guarded1919();
+    var current_session = runtime_session.Session.init(room_state.heroStartWorldPoint(room));
+    const seeded_position = try seedSessionToFixture(room, &current_session);
+    current_session.setHeroBeta(runtime_session.hero_beta_quarter_turn);
+
+    const status = try locomotion.applyHeldForwardMovement(room, &current_session, 500);
+
+    switch (status) {
+        .last_move_accepted => |value| {
+            try std.testing.expectEqual(locomotion.CardinalDirection.east, value.direction);
+            try std.testing.expectEqual(seeded_position.x + 240, current_session.heroWorldPosition().x);
+            try std.testing.expectEqual(seeded_position.z, current_session.heroWorldPosition().z);
+        },
+        else => return error.UnexpectedHeldForwardLocomotionStatus,
+    }
+}
+
 fn expectRawInvalidStartMappingHint(
     actual: ?locomotion.RawInvalidStartMappingHint,
     expected: *const runtime_query.HeroStartMappingEvaluation,

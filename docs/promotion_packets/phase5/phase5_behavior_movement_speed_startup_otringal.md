@@ -69,10 +69,12 @@ declared ANIM root-motion keyframes and classic-style interpolation. A narrow
 held-forward gameplay seam now stores held elapsed time in the runtime session,
 computes per-frame root-motion deltas, admits the target through the existing
 floor/collision move-target query, and routes viewer `Up` through that path
-using the current north-forward viewer convention. It still does not project
-through Twinsen beta/facing because the port has no durable hero-facing state
-yet. The existing grid-step movement is explicitly diagnostic and remains
-separate for viewer/debug topology probes.
+using session-owned hero beta/facing. Viewer `Left`/`Right` now queue facing
+turn intents and the overlay exposes the current beta as `B<n>`. This is a
+narrow quarter-turn facing model (`0`, `1024`, `2048`, `3072`) for the current
+port seam; it is not promoted as original-faithful continuous turning yet. The
+existing grid-step movement is explicitly diagnostic and remains separate for
+viewer/debug topology probes.
 
 ## Positive Test
 
@@ -87,7 +89,8 @@ separate for viewer/debug topology probes.
   separate viewer/debug path.
 - `port/src/runtime/locomotion_test.zig`, `port/src/runtime/update_test.zig`,
   and `port/src/app/viewer_shell_test.zig` verify the held-forward gameplay
-  seam, pending-intent routing, update-tick routing, and viewer `Up` input.
+  seam, pending-intent routing, update-tick routing, viewer `Up` input, and
+  `Left`/`Right` facing-turn input.
 - `tools/test_game_drive_capability_ladder.py` covers the live proof harness
   cases and movement time-series reporting.
 - `tools/test_behavior_animation_root_motion_compare.py` covers the looped
@@ -144,3 +147,6 @@ startup threshold and a time-based distance profile.
 - 2026-05-04: Routed held-forward deltas through runtime move-target admission
   and viewer `Up` input under the current north-forward convention; beta/facing
   projection remains unimplemented.
+- 2026-05-04: Added session-owned hero beta, viewer `Left`/`Right` facing-turn
+  intents, beta HUD visibility, and beta-projected held-forward movement using
+  the port's current quarter-turn model.

@@ -820,7 +820,7 @@ test "viewer render path draws the bounded Sendell dialog overlay in the sidebar
     try std.testing.expect(hasTraceText(trace, "SENDELL DIAL"));
     try std.testing.expect(hasTraceText(trace, "CURRENT DIAL 3"));
     try std.testing.expect(hasTraceTextPrefix(trace, "Sendell to contact"));
-    try std.testing.expect(hasTraceText(trace, "NAV / DIAL NORMAL"));
+    try std.testing.expect(hasTraceText(trace, "NAV / DIAL NORMAL B0"));
 
     try runtime_session.submitHeroIntent(.advance_story);
     _ = try runtime_update.tick(room, &runtime_session);
@@ -887,7 +887,7 @@ test "viewer render path draws the bounded 19/19 reward overlay in the sidebar" 
     try std.testing.expect(hasTraceText(trace, "OBJ2 LOOP"));
     try std.testing.expect(hasTraceText(trace, overlay.lines[1]));
     try std.testing.expect(hasTraceText(trace, overlay.lines[3]));
-    try std.testing.expect(hasTraceText(trace, "NAV / REWARD NORMAL"));
+    try std.testing.expect(hasTraceText(trace, "NAV / REWARD NORMAL B0"));
 }
 
 test "viewer render path draws explicitly visible little-key collectibles as key markers" {

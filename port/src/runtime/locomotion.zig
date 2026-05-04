@@ -340,13 +340,18 @@ pub fn applyHeldForwardMovement(
         return seededValidStatusFromEvaluation(query, origin_position, origin);
     }
 
-    const target_position = worldPointAdvancedNorth(origin_position, delta.forward_delta_z);
+    const facing_direction = cardinalDirectionForHeroBeta(current_session.heroBeta());
+    const target_position = worldPointAdvancedInDirection(
+        origin_position,
+        delta.forward_delta_z,
+        facing_direction,
+    );
     const target = query.evaluateHeroMoveTarget(target_position);
     if (!target.isAllowed()) {
         current_session.clearHeldForwardMovement();
         return .{
             .last_move_rejected = .{
-                .direction = .north,
+                .direction = facing_direction,
                 .rejection_stage = .target_rejected,
                 .reason = target.status,
                 .current_cell = origin.raw_cell.cell,
@@ -365,7 +370,7 @@ pub fn applyHeldForwardMovement(
     const move_options = try buildMoveOptions(query, updated_position);
     return .{
         .last_move_accepted = .{
-            .direction = .north,
+            .direction = facing_direction,
             .origin_cell = origin_cell,
             .cell = move_options.current_cell,
             .move_options = move_options,
@@ -609,6 +614,8 @@ pub fn applyPendingHeroIntent(
     return switch (intent) {
         .move_cardinal => |direction| applyDiagnosticStep(room, current_session, direction),
         .move_forward_held_ms => |frame_delta_ms| applyHeldForwardMovement(room, current_session, frame_delta_ms),
+        .turn_facing,
+        => error.UnsupportedHeroIntentForLocomotion,
         .select_behavior_mode,
         .select_magic_ball,
         .cast_lightning,
@@ -685,14 +692,42 @@ fn buildRawInvalidStartCandidate(
     };
 }
 
-fn worldPointAdvancedNorth(
+fn worldPointAdvancedInDirection(
     origin_world_position: WorldPointSnapshot,
     forward_delta_z: i32,
+    direction: CardinalDirection,
 ) WorldPointSnapshot {
-    return .{
-        .x = origin_world_position.x,
-        .y = origin_world_position.y,
-        .z = origin_world_position.z - forward_delta_z,
+    return switch (direction) {
+        .north => .{
+            .x = origin_world_position.x,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z - forward_delta_z,
+        },
+        .east => .{
+            .x = origin_world_position.x + forward_delta_z,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z,
+        },
+        .south => .{
+            .x = origin_world_position.x,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z + forward_delta_z,
+        },
+        .west => .{
+            .x = origin_world_position.x - forward_delta_z,
+            .y = origin_world_position.y,
+            .z = origin_world_position.z,
+        },
+    };
+}
+
+fn cardinalDirectionForHeroBeta(beta: u16) CardinalDirection {
+    return switch (@divFloor(beta % runtime_session.hero_beta_full_turn, runtime_session.hero_beta_quarter_turn)) {
+        0 => .north,
+        1 => .east,
+        2 => .south,
+        3 => .west,
+        else => unreachable,
     };
 }
 

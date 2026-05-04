@@ -15,6 +15,7 @@ pub const HeroWorldDelta = struct {
 pub const HeroIntent = union(enum) {
     move_cardinal: world_geometry.CardinalDirection,
     move_forward_held_ms: u16,
+    turn_facing: HeroTurnDirection,
     select_behavior_mode: BehaviorMode,
     select_magic_ball,
     default_action,
@@ -29,6 +30,7 @@ pub const FrameUpdate = struct {
 
 pub const HeroState = struct {
     world_position: world_geometry.WorldPointSnapshot,
+    beta: u16,
 };
 
 pub const ObjectState = room_state.ObjectPositionSnapshot;
@@ -49,6 +51,14 @@ pub const BehaviorMode = enum {
     aggressive,
     discreet,
 };
+
+pub const HeroTurnDirection = enum {
+    left,
+    right,
+};
+
+pub const hero_beta_full_turn: u16 = 4096;
+pub const hero_beta_quarter_turn: u16 = hero_beta_full_turn / 4;
 
 pub const HeldForwardMovement = struct {
     mode: BehaviorMode,
@@ -244,6 +254,7 @@ pub const Session = struct {
             .frame_index = 0,
             .hero = .{
                 .world_position = hero_world_position,
+                .beta = 0,
             },
             .pending_hero_intent = null,
             .held_forward_movement = null,
@@ -289,6 +300,7 @@ pub const Session = struct {
             .frame_index = 0,
             .hero = .{
                 .world_position = hero_world_position,
+                .beta = 0,
             },
             .pending_hero_intent = null,
             .held_forward_movement = null,
@@ -360,6 +372,7 @@ pub const Session = struct {
         }
 
         self.hero.world_position = hero_world_position;
+        self.hero.beta = 0;
         self.pending_hero_intent = null;
         self.held_forward_movement = null;
         self.text_ui_state.close();
@@ -379,8 +392,25 @@ pub const Session = struct {
         return self.hero.world_position;
     }
 
+    pub fn heroBeta(self: Session) u16 {
+        return self.hero.beta;
+    }
+
     pub fn setHeroWorldPosition(self: *Session, position: world_geometry.WorldPointSnapshot) void {
         self.hero.world_position = position;
+    }
+
+    pub fn setHeroBeta(self: *Session, beta: u16) void {
+        self.hero.beta = normalizeHeroBeta(beta);
+        self.clearHeldForwardMovement();
+    }
+
+    pub fn turnHeroFacing(self: *Session, direction: HeroTurnDirection) void {
+        self.hero.beta = switch (direction) {
+            .left => normalizeHeroBeta(self.hero.beta -% hero_beta_quarter_turn),
+            .right => normalizeHeroBeta(self.hero.beta + hero_beta_quarter_turn),
+        };
+        self.clearHeldForwardMovement();
     }
 
     pub fn heldForwardMovement(self: Session) ?HeldForwardMovement {
@@ -715,6 +745,10 @@ pub const Session = struct {
         self.hero.world_position.z += update.hero_world_delta.z;
     }
 };
+
+fn normalizeHeroBeta(beta: u16) u16 {
+    return beta % hero_beta_full_turn;
+}
 
 fn copyObjectBehaviorStates(
     allocator: std.mem.Allocator,

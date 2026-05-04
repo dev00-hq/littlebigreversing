@@ -779,14 +779,12 @@ test "viewer scheduler rejects the guarded 2/2 public exit as an unsupported ext
     const initial_interaction = viewer_shell.initialInteractionState(initial_catalog);
     try std.testing.expectEqual(viewer_shell.ViewerControlMode.locomotion, initial_interaction.control_mode);
 
-    const move_result = try viewer_shell.handleKeyDown(
-        &room,
-        &runtime_session,
-        initial_catalog,
-        initial_interaction,
-        locomotion_status,
-        .right,
-    );
+    try runtime_session.submitHeroIntent(.{ .move_cardinal = .east });
+    const move_result = viewer_shell.ViewerKeyDownResult{
+        .interaction = initial_interaction,
+        .locomotion_status = locomotion_status,
+        .post_key_action = .advance_world,
+    };
     locomotion_status = move_result.locomotion_status;
     try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, move_result.post_key_action);
 

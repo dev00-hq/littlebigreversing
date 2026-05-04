@@ -28,6 +28,11 @@ pub fn tick(
         .move_cardinal,
         .move_forward_held_ms,
         => try locomotion.applyPendingHeroIntent(room, current_session),
+        .turn_facing => |direction| blk: {
+            _ = current_session.consumeHeroIntent() orelse return error.MissingPendingHeroIntent;
+            current_session.turnHeroFacing(direction);
+            break :blk try locomotion.inspectCurrentStatus(room, current_session.*);
+        },
         .select_behavior_mode,
         .select_magic_ball,
         .cast_lightning,

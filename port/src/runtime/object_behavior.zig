@@ -155,6 +155,7 @@ pub fn applyHeroIntent(
         .throw_magic_ball => |mode| try applyScene2CellarMagicBallThrow(room, current_session, mode),
         .move_cardinal,
         .move_forward_held_ms,
+        .turn_facing,
         => return error.UnsupportedObjectBehaviorHeroIntent,
     }
 }
