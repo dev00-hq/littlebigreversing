@@ -254,6 +254,31 @@ test "runtime update tick consumes queued hero movement and advances the frame i
     }
 }
 
+test "runtime update tick consumes queued held-forward gameplay movement" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = try initSession(room);
+    defer current_session.deinit(std.testing.allocator);
+    const seeded_position = try seedSessionToFixture(room, &current_session);
+    try current_session.submitHeroIntent(.{ .move_forward_held_ms = 500 });
+
+    const tick_result = try runtime_update.tick(room, &current_session);
+
+    try std.testing.expect(tick_result.consumed_hero_intent);
+    try std.testing.expect(!tick_result.triggered_room_transition);
+    try std.testing.expectEqual(@as(?runtime_session.HeroIntent, null), current_session.pendingHeroIntent());
+    try std.testing.expectEqual(@as(usize, 1), current_session.frame_index);
+    switch (tick_result.locomotion_status) {
+        .last_move_accepted => |value| {
+            try std.testing.expectEqual(locomotion.CardinalDirection.north, value.direction);
+            try std.testing.expectEqual(fixture_cell, value.origin_cell);
+            try std.testing.expectEqual(seeded_position.z - 240, current_session.heroWorldPosition().z);
+            try std.testing.expectEqual(current_session.heroWorldPosition(), value.hero_position);
+        },
+        else => return error.UnexpectedLocomotionStatus,
+    }
+}
+
 test "runtime update tick consumes queued behavior-mode selection as durable session state" {
     const room = try room_fixtures.guarded1919();
 

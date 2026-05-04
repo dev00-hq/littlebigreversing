@@ -1284,6 +1284,47 @@ test "viewer key handling seeds fragment rooms and leaves movement intent queued
     }
 }
 
+test "viewer key handling routes Up through held-forward gameplay movement" {
+    const allocator = std.testing.allocator;
+    const room = try room_fixtures.guarded1919();
+    var snapshot_session = try initViewerSession(room);
+    defer snapshot_session.deinit(allocator);
+    const snapshot = viewer_shell.buildRenderSnapshot(room, snapshot_session);
+    const catalog = try fragment_compare.buildFragmentComparisonCatalog(allocator, snapshot);
+    defer catalog.deinit(allocator);
+
+    var runtime_session = try initViewerSession(room);
+    defer runtime_session.deinit(allocator);
+    _ = try viewer_shell.seedSessionToLocomotionFixture(room, &runtime_session);
+    const seeded_position = runtime_session.heroWorldPosition();
+    const initial_status = try runtime_locomotion.inspectCurrentStatus(room, runtime_session);
+    const interaction = viewer_shell.initialInteractionState(catalog);
+
+    const move_result = try viewer_shell.handleKeyDown(
+        room,
+        &runtime_session,
+        catalog,
+        interaction,
+        initial_status,
+        .up,
+    );
+    try std.testing.expectEqual(viewer_shell.ViewerPostKeyAction.advance_world, move_result.post_key_action);
+    try std.testing.expectEqual(
+        runtime_locomotion.HeroIntent{ .move_forward_held_ms = 500 },
+        runtime_session.pendingHeroIntent().?,
+    );
+
+    const tick_result = try runtime_update.tick(room, &runtime_session);
+    try std.testing.expect(tick_result.consumed_hero_intent);
+    switch (tick_result.locomotion_status) {
+        .last_move_accepted => |value| {
+            try std.testing.expectEqual(runtime_locomotion.CardinalDirection.north, value.direction);
+            try std.testing.expectEqual(seeded_position.z - 240, runtime_session.heroWorldPosition().z);
+        },
+        else => return error.UnexpectedViewerLocomotionStatus,
+    }
+}
+
 test "viewer key handling routes Sendell room story input through queued runtime intents" {
     const allocator = std.testing.allocator;
     const room = try room_fixtures.guarded3636();

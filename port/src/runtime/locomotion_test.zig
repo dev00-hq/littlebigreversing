@@ -238,6 +238,28 @@ test "runtime locomotion keeps diagnostic grid step separate from held-forward m
     }
 }
 
+test "runtime locomotion applies held-forward root motion through the gameplay seam" {
+    const room = try room_fixtures.guarded1919();
+    var current_session = runtime_session.Session.init(room_state.heroStartWorldPoint(room));
+    const seeded_position = try seedSessionToFixture(room, &current_session);
+
+    const status = try locomotion.applyHeldForwardMovement(room, &current_session, 500);
+
+    switch (status) {
+        .last_move_accepted => |value| {
+            try std.testing.expectEqual(locomotion.CardinalDirection.north, value.direction);
+            try std.testing.expectEqual(fixture_cell, value.origin_cell);
+            try std.testing.expectEqual(seeded_position.x, current_session.heroWorldPosition().x);
+            try std.testing.expectEqual(seeded_position.y, current_session.heroWorldPosition().y);
+            try std.testing.expectEqual(seeded_position.z - 240, current_session.heroWorldPosition().z);
+            try std.testing.expectEqual(current_session.heroWorldPosition(), value.hero_position);
+            try std.testing.expectEqual(@as(u16, 500), current_session.heldForwardMovement().?.elapsed_ms);
+            try std.testing.expectEqual(@as(i32, 240), current_session.heldForwardMovement().?.previous_forward_distance_z);
+        },
+        else => return error.UnexpectedHeldForwardLocomotionStatus,
+    }
+}
+
 fn expectRawInvalidStartMappingHint(
     actual: ?locomotion.RawInvalidStartMappingHint,
     expected: *const runtime_query.HeroStartMappingEvaluation,
@@ -443,6 +465,27 @@ test "runtime locomotion consumes pending hero intents through the runtime seam"
             try std.testing.expectEqual(fixture_cell, value.origin_cell);
             try std.testing.expectEqual(locomotion.GridCell{ .x = 39, .z = 7 }, value.cell);
             try std.testing.expect(current_session.heroWorldPosition().z > seeded_position.z);
+            try std.testing.expectEqual(current_session.heroWorldPosition(), value.hero_position);
+        },
+        else => return error.UnexpectedLocomotionStatus,
+    }
+}
+
+test "runtime locomotion consumes pending held-forward gameplay intents through the runtime seam" {
+    const room = try room_fixtures.guarded1919();
+
+    var current_session = runtime_session.Session.init(room_state.heroStartWorldPoint(room));
+    const seeded_position = try seedSessionToFixture(room, &current_session);
+    try current_session.submitHeroIntent(.{ .move_forward_held_ms = 500 });
+
+    const moved_status = try locomotion.applyPendingHeroIntent(room, &current_session);
+    try std.testing.expectEqual(@as(?runtime_session.HeroIntent, null), current_session.pendingHeroIntent());
+
+    switch (moved_status) {
+        .last_move_accepted => |value| {
+            try std.testing.expectEqual(locomotion.CardinalDirection.north, value.direction);
+            try std.testing.expectEqual(fixture_cell, value.origin_cell);
+            try std.testing.expectEqual(seeded_position.z - 240, current_session.heroWorldPosition().z);
             try std.testing.expectEqual(current_session.heroWorldPosition(), value.hero_position);
         },
         else => return error.UnexpectedLocomotionStatus,

@@ -153,7 +153,9 @@ pub fn applyHeroIntent(
         .default_action => try applySecretRoomDefaultAction(room, current_session),
         .advance_story => try applyAdvanceStory(room, current_session),
         .throw_magic_ball => |mode| try applyScene2CellarMagicBallThrow(room, current_session, mode),
-        .move_cardinal => return error.UnsupportedObjectBehaviorHeroIntent,
+        .move_cardinal,
+        .move_forward_held_ms,
+        => return error.UnsupportedObjectBehaviorHeroIntent,
     }
 }
 

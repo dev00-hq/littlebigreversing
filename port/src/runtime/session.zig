@@ -14,6 +14,7 @@ pub const HeroWorldDelta = struct {
 
 pub const HeroIntent = union(enum) {
     move_cardinal: world_geometry.CardinalDirection,
+    move_forward_held_ms: u16,
     select_behavior_mode: BehaviorMode,
     select_magic_ball,
     default_action,
@@ -47,6 +48,12 @@ pub const BehaviorMode = enum {
     sporty,
     aggressive,
     discreet,
+};
+
+pub const HeldForwardMovement = struct {
+    mode: BehaviorMode,
+    elapsed_ms: u16 = 0,
+    previous_forward_distance_z: i32 = 0,
 };
 
 pub const BonusSpawnEvent = struct {
@@ -206,6 +213,7 @@ pub const Session = struct {
     frame_index: usize,
     hero: HeroState,
     pending_hero_intent: ?HeroIntent,
+    held_forward_movement: ?HeldForwardMovement,
     cube_vars: [256]u8,
     game_vars: [max_game_vars]i16,
     selected_weapon: SelectedWeapon,
@@ -238,6 +246,7 @@ pub const Session = struct {
                 .world_position = hero_world_position,
             },
             .pending_hero_intent = null,
+            .held_forward_movement = null,
             .cube_vars = [_]u8{0} ** 256,
             .game_vars = [_]i16{0} ** max_game_vars,
             .selected_weapon = .none,
@@ -282,6 +291,7 @@ pub const Session = struct {
                 .world_position = hero_world_position,
             },
             .pending_hero_intent = null,
+            .held_forward_movement = null,
             .cube_vars = [_]u8{0} ** 256,
             .game_vars = [_]i16{0} ** max_game_vars,
             .selected_weapon = .none,
@@ -351,6 +361,7 @@ pub const Session = struct {
 
         self.hero.world_position = hero_world_position;
         self.pending_hero_intent = null;
+        self.held_forward_movement = null;
         self.text_ui_state.close();
         self.objects = owned_objects;
         self.object_behaviors = owned_object_behaviors;
@@ -370,6 +381,18 @@ pub const Session = struct {
 
     pub fn setHeroWorldPosition(self: *Session, position: world_geometry.WorldPointSnapshot) void {
         self.hero.world_position = position;
+    }
+
+    pub fn heldForwardMovement(self: Session) ?HeldForwardMovement {
+        return self.held_forward_movement;
+    }
+
+    pub fn setHeldForwardMovement(self: *Session, movement: HeldForwardMovement) void {
+        self.held_forward_movement = movement;
+    }
+
+    pub fn clearHeldForwardMovement(self: *Session) void {
+        self.held_forward_movement = null;
     }
 
     pub fn pendingHeroIntent(self: Session) ?HeroIntent {
@@ -416,6 +439,7 @@ pub const Session = struct {
 
     pub fn selectBehaviorMode(self: *Session, mode: BehaviorMode) void {
         self.behavior_mode = mode;
+        self.clearHeldForwardMovement();
     }
 
     pub fn magicBallThrowMode(self: Session) MagicBallThrowMode {

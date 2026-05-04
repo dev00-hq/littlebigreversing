@@ -300,6 +300,95 @@ pub fn advanceHeldForwardMovement(
     };
 }
 
+pub fn applyHeldForwardMovement(
+    room: *const room_state.RoomSnapshot,
+    current_session: *runtime_session.Session,
+    frame_delta_ms: u16,
+) !LocomotionStatus {
+    const query = runtime_query.init(room);
+    const origin_position = current_session.heroWorldPosition();
+    const origin = query.evaluateHeroMoveTarget(origin_position);
+    if (!origin.isAllowed()) {
+        current_session.clearHeldForwardMovement();
+        return .{
+            .last_move_rejected = .{
+                .direction = .north,
+                .rejection_stage = .origin_invalid,
+                .reason = origin.status,
+                .current_cell = origin.raw_cell.cell,
+                .target_cell = origin.raw_cell.cell,
+                .target_occupied_coverage = null,
+                .move_options = null,
+                .local_topology = null,
+                .hero_position = origin_position,
+                .zone_membership = .{},
+            },
+        };
+    }
+    const origin_cell = origin.raw_cell.cell orelse return error.LocomotionStatusMissingCell;
+
+    const mode = current_session.behaviorMode();
+    var movement = heldForwardStateForSession(current_session.*, mode);
+    const delta = advanceHeldForwardMovement(&movement, frame_delta_ms);
+    current_session.setHeldForwardMovement(.{
+        .mode = movement.mode,
+        .elapsed_ms = movement.elapsed_ms,
+        .previous_forward_distance_z = movement.previous_forward_distance_z,
+    });
+
+    if (delta.forward_delta_z == 0) {
+        return seededValidStatusFromEvaluation(query, origin_position, origin);
+    }
+
+    const target_position = worldPointAdvancedNorth(origin_position, delta.forward_delta_z);
+    const target = query.evaluateHeroMoveTarget(target_position);
+    if (!target.isAllowed()) {
+        current_session.clearHeldForwardMovement();
+        return .{
+            .last_move_rejected = .{
+                .direction = .north,
+                .rejection_stage = .target_rejected,
+                .reason = target.status,
+                .current_cell = origin.raw_cell.cell,
+                .target_cell = target.raw_cell.cell,
+                .target_occupied_coverage = target.occupied_coverage,
+                .move_options = try buildMoveOptions(query, origin_position),
+                .local_topology = try buildLocalTopology(query, origin_cell),
+                .hero_position = origin_position,
+                .zone_membership = try query.containingZonesAtWorldPoint(origin_position),
+            },
+        };
+    }
+
+    current_session.setHeroWorldPosition(target_position);
+    const updated_position = current_session.heroWorldPosition();
+    const move_options = try buildMoveOptions(query, updated_position);
+    return .{
+        .last_move_accepted = .{
+            .direction = .north,
+            .origin_cell = origin_cell,
+            .cell = move_options.current_cell,
+            .move_options = move_options,
+            .local_topology = try buildLocalTopology(query, move_options.current_cell),
+            .hero_position = updated_position,
+            .zone_membership = try query.containingZonesAtWorldPoint(updated_position),
+        },
+    };
+}
+
+fn heldForwardStateForSession(
+    current_session: runtime_session.Session,
+    mode: runtime_session.BehaviorMode,
+) HeldForwardMovementState {
+    const stored = current_session.heldForwardMovement() orelse return beginHeldForwardMovement(mode);
+    if (stored.mode != mode) return beginHeldForwardMovement(mode);
+    return .{
+        .mode = stored.mode,
+        .elapsed_ms = stored.elapsed_ms,
+        .previous_forward_distance_z = stored.previous_forward_distance_z,
+    };
+}
+
 fn rootMotionDistanceZAt(
     keyframes: []const RootMotionKeyframe,
     loop_start_keyframe: u8,
@@ -518,7 +607,8 @@ pub fn applyPendingHeroIntent(
 ) !LocomotionStatus {
     const intent = current_session.consumeHeroIntent() orelse return error.MissingPendingHeroIntent;
     return switch (intent) {
-        .move_cardinal => |direction| applyStep(room, current_session, direction),
+        .move_cardinal => |direction| applyDiagnosticStep(room, current_session, direction),
+        .move_forward_held_ms => |frame_delta_ms| applyHeldForwardMovement(room, current_session, frame_delta_ms),
         .select_behavior_mode,
         .select_magic_ball,
         .cast_lightning,
@@ -592,6 +682,17 @@ fn buildRawInvalidStartCandidate(
         .x_distance = resolved.x_distance,
         .z_distance = resolved.z_distance,
         .distance_sq = resolved.distance_sq,
+    };
+}
+
+fn worldPointAdvancedNorth(
+    origin_world_position: WorldPointSnapshot,
+    forward_delta_z: i32,
+) WorldPointSnapshot {
+    return .{
+        .x = origin_world_position.x,
+        .y = origin_world_position.y,
+        .z = origin_world_position.z - forward_delta_z,
     };
 }
 

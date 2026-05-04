@@ -120,6 +120,7 @@ const secret_room_cellar_return_position = WorldPointSnapshot{ .x = 9730, .y = 1
 const reward_scene_entry: usize = 19;
 const reward_background_entry: usize = 19;
 const reward_object_index: usize = 2;
+const viewer_held_forward_frame_ms: u16 = 500;
 
 const SecretRoomValidationTarget = enum {
     key_source,
@@ -466,11 +467,18 @@ pub fn handleKeyDown(
                 .runtime_command = .seed_locomotion,
             };
         },
-        .left, .right, .up, .down => {
+        .up => {
+            try current_session.submitHeroIntent(.{ .move_forward_held_ms = viewer_held_forward_frame_ms });
+            return .{
+                .interaction = interaction,
+                .locomotion_status = locomotion_status,
+                .post_key_action = .advance_world,
+            };
+        },
+        .left, .right, .down => {
             const direction: CardinalDirection = switch (key) {
                 .left => .west,
                 .right => .east,
-                .up => .north,
                 .down => .south,
                 else => unreachable,
             };

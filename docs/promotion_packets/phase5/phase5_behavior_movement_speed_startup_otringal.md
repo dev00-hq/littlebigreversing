@@ -63,12 +63,15 @@ movement profile. It does not promote analog turning, collision sliding,
 animation selection, stamina, camera-dependent motion, or Aggressive/Discreet
 action behavior outside movement.
 
-The port also exposes a query-only decoded walk-root-motion layer for the same
-four behavior families. That layer answers distance at elapsed held-Up time
-from declared ANIM root-motion keyframes and classic-style interpolation, but it
-is not wired into collision or viewer gameplay yet. A narrow held-forward
-gameplay delta seam now computes per-frame root-motion deltas from held elapsed
-time. The existing grid-step movement is explicitly diagnostic and remains
+The port also exposes a decoded walk-root-motion layer for the same four
+behavior families. That layer answers distance at elapsed held-Up time from
+declared ANIM root-motion keyframes and classic-style interpolation. A narrow
+held-forward gameplay seam now stores held elapsed time in the runtime session,
+computes per-frame root-motion deltas, admits the target through the existing
+floor/collision move-target query, and routes viewer `Up` through that path
+using the current north-forward viewer convention. It still does not project
+through Twinsen beta/facing because the port has no durable hero-facing state
+yet. The existing grid-step movement is explicitly diagnostic and remains
 separate for viewer/debug topology probes.
 
 ## Positive Test
@@ -82,6 +85,9 @@ separate for viewer/debug topology probes.
 - `port/src/runtime/locomotion_test.zig` verifies that held-forward gameplay
   deltas sum to the root-motion query while diagnostic grid stepping remains a
   separate viewer/debug path.
+- `port/src/runtime/locomotion_test.zig`, `port/src/runtime/update_test.zig`,
+  and `port/src/app/viewer_shell_test.zig` verify the held-forward gameplay
+  seam, pending-intent routing, update-tick routing, and viewer `Up` input.
 - `tools/test_game_drive_capability_ladder.py` covers the live proof harness
   cases and movement time-series reporting.
 - `tools/test_behavior_animation_root_motion_compare.py` covers the looped
@@ -135,3 +141,6 @@ startup threshold and a time-based distance profile.
   walk root-motion curves without wiring them into continuous locomotion.
 - 2026-05-03: Added a narrow held-forward gameplay delta seam and explicitly
   kept grid-cell stepping as diagnostic locomotion.
+- 2026-05-04: Routed held-forward deltas through runtime move-target admission
+  and viewer `Up` input under the current north-forward convention; beta/facing
+  projection remains unimplemented.

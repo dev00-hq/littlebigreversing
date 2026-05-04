@@ -468,7 +468,10 @@ The port now exposes those four decoded walk-root-motion curves as a runtime
 surface in `runtime/locomotion.zig`. It answers distance at elapsed held-Up time
 from declared ANIM root-motion keyframes and classic-style interpolation, and
 `advanceHeldForwardMovement()` computes per-frame forward deltas from that
-curve. `applyStep` remains the older grid-step diagnostic path for viewer/debug
-topology probes. Do not treat either surface as collision-backed continuous
-gameplay until a held-input/frame-time/root-motion delta is applied through a
-floor/collision response path.
+curve. `applyHeldForwardMovement()` now stores held elapsed time on the runtime
+session, applies each frame delta through the existing move-target admission
+query, and viewer `Up` routes through that seam under the current north-forward
+viewer convention. `applyStep` remains the older grid-step diagnostic path for
+viewer/debug topology probes. Do not claim full player locomotion parity yet:
+the port still lacks durable hero beta/facing projection, key-up/continuous
+input timing, sliding, and richer floor response.
