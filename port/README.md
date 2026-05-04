@@ -19,12 +19,12 @@ Current landed baseline:
 - generated scene/background name metadata for `inspect-room-intelligence`, checked into `port/src/generated/room_metadata.zig` and regenerated with `tools/generate_room_metadata.py`
 - generated reference metadata overlays for HQR and game-state aliases, checked into `port/src/generated/reference_metadata.zig` and verified with `zig build verify-reference-metadata`
 - `inspect-room-intelligence` as the canonical repo-local machine-facing per-room/per-scene inspection surface for structured scene/background/actor payloads and validation hints
-- `BRK`-backed viewer evidence surfaces for the supported guarded `19/19`, `2/2`, and `11/10` room/load set
+- `BRK`-backed viewer evidence surfaces for the guarded `19/19`, `2/2`, `11/10`, and `187/187` room/load set; gameplay support remains narrower and is packet-gated
 - explicit background topology loading through `loadBackgroundTopologyMetadata`, with BRK/palette preview loading kept on the visual metadata path
 - viewer interaction control split into `app/viewer/controller.zig`, with SDL lifecycle orchestration left in `viewer_shell.zig`
 - render snapshot projection split into `runtime/room_projection.zig`, with `runtime/room_state.zig` kept as the guarded `RoomSnapshot` adaptation boundary
 - Windows viewer verification through `scripts/verify_viewer.py`, with bare mode kept as the canonical milestone acceptance gate, `--fast` kept as the broader end-to-end pre-closeout pass, and `zig build test-fast` plus targeted tool probes used for slice-grade iteration
-- guarded success for `19/19`, `2/2`, and `11/10`, plus expected guarded `ViewerSceneMustBeInterior` rejection for `44/2`
+- guarded success for `19/19`, `2/2`, `11/10`, and `187/187`, plus expected guarded `ViewerSceneMustBeInterior` rejection for `44/2`
 - offline life decoding now structurally supports `LM_DEFAULT` and `LM_END_SWITCH` as one-byte markers, and the all-scenes audit currently reports zero unsupported life blobs
 - explicit runtime session seeding from world-position input
 - runtime/gameplay seam widening gated by `docs/promotion_packets/` and `zig build test-promotion-packets`; decoded seams can remain candidates, but canonical runtime behavior requires a `live_positive` or `approved_exception` packet

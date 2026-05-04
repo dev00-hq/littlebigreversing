@@ -13,7 +13,6 @@ const sendell_seed_magic_point: u8 = sendell_seed_magic_level * 20;
 const sendell_red_ball_magic_level: u8 = 3;
 const sendell_red_ball_magic_point: u8 = sendell_red_ball_magic_level * 20;
 const sendell_object_index: usize = 2;
-const sendell_dialog_id: i16 = 3;
 
 pub fn applyRoomEntryState(
     room: *const room_state.RoomSnapshot,
@@ -62,12 +61,6 @@ pub fn reconstructLoadedRoomState(
         return;
     }
 
-    if (current_session.magicLevel() >= sendell_red_ball_magic_level and current_session.magicPoint() == sendell_red_ball_magic_point) {
-        current_session.openTextRecord(.scripted_event_text, sendell_dialog_id, null) catch unreachable;
-        object_behavior.sendell_ball_phase = .awaiting_first_dialog_ack;
-        return;
-    }
-
     object_behavior.sendell_ball_phase = .idle;
 }
 
@@ -111,7 +104,7 @@ test "room entry reconstructs completed Sendell room state from durable vars" {
     try std.testing.expectEqual(runtime_session.SendellBallPhase.completed, current_session.objectBehaviorStateByIndex(sendell_object_index).?.sendell_ball_phase);
 }
 
-test "room entry reconstructs pending Sendell dialog state from durable magic state" {
+test "room entry does not reconstruct pending Sendell dialog from durable magic state" {
     const room = try room_fixtures.guarded3636();
     var current_session = try runtime_session.Session.initWithObjects(
         std.testing.allocator,
@@ -124,7 +117,7 @@ test "room entry reconstructs pending Sendell dialog state from durable magic st
 
     reconstructLoadedRoomState(room, &current_session);
 
-    try std.testing.expectEqual(@as(?i16, sendell_dialog_id), current_session.currentDialogId());
-    try std.testing.expectEqual(runtime_session.text_interactions.TextInteractionOwner.scripted_event_text, current_session.textUiState().owner.?);
-    try std.testing.expectEqual(runtime_session.SendellBallPhase.awaiting_first_dialog_ack, current_session.objectBehaviorStateByIndex(sendell_object_index).?.sendell_ball_phase);
+    try std.testing.expectEqual(@as(?i16, null), current_session.currentDialogId());
+    try std.testing.expectEqual(@as(?runtime_session.text_interactions.TextInteractionOwner, null), current_session.textUiState().owner);
+    try std.testing.expectEqual(runtime_session.SendellBallPhase.idle, current_session.objectBehaviorStateByIndex(sendell_object_index).?.sendell_ball_phase);
 }

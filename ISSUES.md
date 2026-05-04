@@ -5,6 +5,14 @@ Issues lifecycle:
   - if enforceable: test/lint/validator
   - issue closed
 
+# Open Work Queue
+
+- `runtime-seam-registry`: Promotion validation now enforces contract-literal manifest coverage for CLI contract strings and runtime-owned top-level `*_contract` constants. This is not complete seam-registry coverage: there is still no explicit registry for every hardcoded runtime seam scope, status, packet id, and deletion criteria. Add a runtime seam registry only when it can cover current scripted Magic Ball seams and room-entry state seams end to end; a partial registry would create a second source of truth.
+- `magic-ball-script-deletion-criteria`: `MagicBallProjectileScript` remains a promoted tactical scaffold with broad prose deletion criteria. Attach each script value to a packet id, narrow scope, and mechanical deletion/coverage check before broadening Magic Ball behavior beyond the current packets.
+- `guarded-room-use-classification`: Guarded rooms still need a checked-in classification table separating render/load/tooling support from gameplay support. Current docs now call out `187/187` and packet-gated gameplay, but machine-readable classification is still missing.
+- `proof-lane-decision-table`: Frida/FRA and CDB lane boundaries remain mostly prose. Add a concise checked-in decision table mapping proof classes to Frida/FRA, CDB, both, or neither before adding more original-runtime proof tooling.
+- `issues-queue-pruning`: `ISSUES.md` still mixes durable lessons, historical traps, and active work. Prune or relocate closed lesson-like entries after the active `STUDY.md` hardening follow-ups above are converted into validators, tests, or typed memory records.
+
 # Common Agent Traps
 
 - `sidequest/` and `LM_TASKS/` are independent workstreams, not part of canonical memory pickup. Do not treat them as execution owners unless a prompt explicitly widens scope.

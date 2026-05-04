@@ -49,6 +49,13 @@ class GameDriveRunnerTests(unittest.TestCase):
                     "unsafe_pose_signs": False,
                 },
                 "summary_must_mention": ["Twinsen", "lever", "gameplay"],
+                "negative_controls": [
+                    {
+                        "id": "wrong_room",
+                        "description": "The screenshot shows a different room.",
+                        "expected_matches": False,
+                    }
+                ],
             },
         }
 
@@ -57,6 +64,7 @@ class GameDriveRunnerTests(unittest.TestCase):
         self.assertIn("A room.", prompt)
         self.assertIn("A lever.", prompt)
         self.assertIn("summary_must_mention", prompt)
+        self.assertIn("wrong_room", prompt)
 
     def test_archive_game_drive_run_compresses_screenshots_and_links_manifest(self) -> None:
         root = game_drive_runner.REPO_ROOT / "work" / "unit_game_drive_archive_test"

@@ -11,6 +11,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = REPO_ROOT / "docs" / "promotion_packets" / "manifest.json"
 CLI_PATH = REPO_ROOT / "port" / "src" / "tools" / "cli.zig"
+RUNTIME_ROOT = REPO_ROOT / "port" / "src" / "runtime"
 
 SCHEMA = "promotion-packets-v1"
 STATUSES = {"decode_only", "live_negative", "live_positive", "approved_exception"}
@@ -38,7 +39,8 @@ REQUIRED_HEADINGS = (
     "## Old Hypothesis Handling",
     "## Revision History",
 )
-DIRECT_CONTRACT_RE = re.compile(r'canonical_runtime_contract\s*=\s*"([^"]+)"')
+DIRECT_CONTRACT_RE = re.compile(r'canonical_runtime_contract\b\s*(?::[^=\n]+)?=\s*"([^"]+)"')
+RUNTIME_CONTRACT_CONST_RE = re.compile(r'\b(?:pub\s+)?const\s+\w+_contract\s*(?::[^=\n]+)?=\s*"([^"]+)"')
 FUNCTION_CONTRACT_RE = re.compile(
     r"fn\s+decodedTransitionCanonicalRuntimeContract\([^)]*\)\s+\?\[\]const u8\s*\{(?P<body>.*?)\n\}",
     re.DOTALL,
@@ -146,7 +148,8 @@ def validate_packet_doc(
             raise PacketValidationError(f"{packet_id}: packet identity does not match manifest line: {line}")
 
 
-def discover_runtime_contracts(path: Path = CLI_PATH) -> set[str]:
+def discover_runtime_contract_literals(path: Path = CLI_PATH, runtime_root: Path = RUNTIME_ROOT) -> set[str]:
+    """Discover explicit runtime contract literals, not every supported runtime seam."""
     if not path.is_file():
         raise PacketValidationError(f"runtime contract source does not exist: {path}")
     text = path.read_text(encoding="utf-8")
@@ -154,14 +157,21 @@ def discover_runtime_contracts(path: Path = CLI_PATH) -> set[str]:
     function_match = FUNCTION_CONTRACT_RE.search(text)
     if function_match:
         contracts.update(RETURN_CONTRACT_RE.findall(function_match.group("body")))
+    if not runtime_root.is_dir():
+        raise PacketValidationError(f"runtime contract source directory does not exist: {runtime_root}")
+    for runtime_path in sorted(runtime_root.glob("*.zig")):
+        runtime_text = runtime_path.read_text(encoding="utf-8")
+        contracts.update(RUNTIME_CONTRACT_CONST_RE.findall(runtime_text))
     return contracts
 
 
-def validate_runtime_contract_coverage(emitted: set[str], manifest_contracts: set[str]) -> None:
+def validate_runtime_contract_literal_manifest_coverage(
+    emitted: set[str], manifest_contracts: set[str]
+) -> None:
     missing = emitted - manifest_contracts
     if missing:
         raise PacketValidationError(
-            "runtime contracts missing promotable packets: " + ", ".join(sorted(missing))
+            "runtime contract literals missing promotable packets: " + ", ".join(sorted(missing))
         )
 
 
@@ -191,7 +201,9 @@ def validate_manifest(path: Path = MANIFEST_PATH) -> None:
             if contract in manifest_contracts:
                 raise PacketValidationError(f"duplicate runtime_contracts entry '{contract}'")
             manifest_contracts.add(contract)
-    validate_runtime_contract_coverage(discover_runtime_contracts(), manifest_contracts)
+    validate_runtime_contract_literal_manifest_coverage(
+        discover_runtime_contract_literals(), manifest_contracts
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

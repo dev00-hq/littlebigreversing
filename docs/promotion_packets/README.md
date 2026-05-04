@@ -87,9 +87,9 @@ Forbidden before promotion:
 
 `manifest.json` is the machine-readable index. `py -3 tools/validate_promotion_packets.py` validates it, packet paths, status rules, evidence classes, and required packet headings.
 
-Packets that promote runtime behavior must list the emitted runtime contract ids in `runtime_contracts`. The validator scans `port/src/tools/cli.zig` for `canonical_runtime_contract` string literals and requires every emitted contract id to be covered by a `canonical_runtime: true` packet with `live_positive` or `approved_exception` status.
+Packets that promote runtime behavior must list the emitted runtime contract ids in `runtime_contracts`. The validator discovers contract ids from CLI canonical runtime contract literals in `port/src/tools/cli.zig` and runtime-owned top-level `*_contract` constants in `port/src/runtime/*.zig`. Every discovered contract id must be covered by a `canonical_runtime: true` packet with `live_positive` or `approved_exception` status.
 
-The validator is intentionally low-brittleness beyond runtime contract coverage. When the port has explicit seam registries, add tests that require every runtime-supported seam id to exist in this manifest with `canonical_runtime: true` and a promotable status.
+This is not a full seam registry. The validator is intentionally low-brittleness beyond runtime contract coverage. When the port has explicit seam registries, add tests that require every runtime-supported seam id to exist in this manifest with `canonical_runtime: true` and a promotable status.
 
 ## Current 3/3 Rule
 

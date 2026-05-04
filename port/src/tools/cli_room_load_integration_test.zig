@@ -590,7 +590,7 @@ test "inspect-room-transitions keeps guarded 3/3 scoped to cellar-source destina
                     found_zone_1 = true;
                     try expectJsonInteger(try requireJsonField(transition, "source_zone_num"), 19);
                     try expectJsonInteger(try requireJsonField(transition, "destination_cube"), 19);
-                    try expectJsonString(try requireJsonField(transition, "result"), "committed");
+                    try expectJsonString(try requireJsonField(transition, "result"), "decoded_resolved");
                     try expectJsonNull(try requireJsonField(transition, "rejection_reason"));
                     try expectJsonInteger(try requireJsonField(transition, "destination_scene_entry_index"), 21);
                     try expectJsonInteger(try requireJsonField(transition, "destination_background_entry_index"), 19);
@@ -601,7 +601,7 @@ test "inspect-room-transitions keeps guarded 3/3 scoped to cellar-source destina
                     found_zone_8 = true;
                     try expectJsonInteger(try requireJsonField(transition, "source_zone_num"), 20);
                     try expectJsonInteger(try requireJsonField(transition, "destination_cube"), 20);
-                    try expectJsonString(try requireJsonField(transition, "result"), "committed");
+                    try expectJsonString(try requireJsonField(transition, "result"), "decoded_resolved");
                     try expectJsonNull(try requireJsonField(transition, "rejection_reason"));
                     try expectJsonInteger(try requireJsonField(transition, "destination_scene_entry_index"), 22);
                     try expectJsonInteger(try requireJsonField(transition, "destination_background_entry_index"), 20);

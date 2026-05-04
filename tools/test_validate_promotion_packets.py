@@ -416,18 +416,18 @@ class PromotionPacketValidationTests(unittest.TestCase):
                     packet_path,
                 )
 
-    def test_runtime_contract_coverage_rejects_unpacketed_contract(self) -> None:
+    def test_runtime_contract_literal_manifest_coverage_rejects_unpacketed_contract(self) -> None:
         with self.assertRaisesRegex(
             validate_promotion_packets.PacketValidationError,
-            "missing promotable packets",
+            "contract literals missing promotable packets",
         ):
-            validate_promotion_packets.validate_runtime_contract_coverage(
+            validate_promotion_packets.validate_runtime_contract_literal_manifest_coverage(
                 {"secret_room_key_gate_to_cellar", "new_unpacketed_contract"},
                 {"secret_room_key_gate_to_cellar"},
             )
 
     def test_discovers_current_cli_runtime_contracts(self) -> None:
-        contracts = validate_promotion_packets.discover_runtime_contracts()
+        contracts = validate_promotion_packets.discover_runtime_contract_literals()
 
         self.assertIn("secret_room_key_gate_to_cellar", contracts)
         self.assertIn("secret_room_cellar_return_free", contracts)
@@ -437,6 +437,32 @@ class PromotionPacketValidationTests(unittest.TestCase):
         self.assertIn("magic_ball_enemy_damage_tralu_level1", contracts)
         self.assertIn("magic_ball_switch_activation_emerald_moon", contracts)
         self.assertIn("magic_ball_lever_activation_multi_family", contracts)
+        self.assertIn("behavior_movement_speed_startup_otringal", contracts)
+
+    def test_discovers_runtime_owned_top_level_contract_literals(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            cli_path = root / "cli.zig"
+            runtime_root = root / "runtime"
+            runtime_root.mkdir()
+            cli_path.write_text(
+                'const sample_canonical_runtime_contract = "cli_contract";\n',
+                encoding="utf-8",
+            )
+            (runtime_root / "sample.zig").write_text(
+                'pub const sample_runtime_contract = "runtime_contract";\n'
+                'pub const typed_runtime_contract: []const u8 = "typed_contract";\n',
+                encoding="utf-8",
+            )
+
+            contracts = validate_promotion_packets.discover_runtime_contract_literals(
+                cli_path,
+                runtime_root,
+            )
+
+        self.assertIn("cli_contract", contracts)
+        self.assertIn("runtime_contract", contracts)
+        self.assertIn("typed_contract", contracts)
 
 
 if __name__ == "__main__":

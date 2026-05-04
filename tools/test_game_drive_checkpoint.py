@@ -143,6 +143,49 @@ class GameDriveCheckpointTests(unittest.TestCase):
         self.assertIn("--image", prompt["codex_exec"]["argv"])
         self.assertIn("--output-schema", prompt["codex_exec"]["argv"])
         self.assertIn("summary_must_mention", prompt["codex_exec"]["stdin"])
+        self.assertIn("wrong_beta_target_not_visible", prompt["codex_exec"]["stdin"])
+        self.assertIn("negative_control_observations", prompt["response_shape"])
+
+    def test_rejects_visual_result_missing_negative_control_observation(self) -> None:
+        result_path = (
+            game_drive_checkpoint.REPO_ROOT
+            / "tools"
+            / "fixtures"
+            / "game_drive_visual_results"
+            / "pose_ready_magic_ball_middle_switch_match.json"
+        )
+        result = json.loads(result_path.read_text(encoding="utf-8"))
+        result["negative_control_observations"] = []
+
+        path = self.make_scratch_dir() / "result.json"
+        path.write_text(json.dumps(result), encoding="utf-8")
+
+        with self.assertRaisesRegex(
+            game_drive_checkpoint.GameDriveCheckpointError,
+            "negative-control ids do not match checkpoint",
+        ):
+            game_drive_checkpoint.validate_visual_result(self.checkpoint_path(), path)
+
+    def test_rejects_visual_result_negative_control_match_when_expected_false(self) -> None:
+        result_path = (
+            game_drive_checkpoint.REPO_ROOT
+            / "tools"
+            / "fixtures"
+            / "game_drive_visual_results"
+            / "pose_ready_magic_ball_middle_switch_match.json"
+        )
+        result = json.loads(result_path.read_text(encoding="utf-8"))
+        result["negative_control_observations"][0]["matches"] = True
+
+        path = self.make_scratch_dir() / "result.json"
+        path.write_text(json.dumps(result), encoding="utf-8")
+
+        with self.assertRaisesRegex(
+            game_drive_checkpoint.GameDriveCheckpointError,
+            "negative-control wrong_beta_target_not_visible matches "
+            "does not match checkpoint expected_matches",
+        ):
+            game_drive_checkpoint.validate_visual_result(self.checkpoint_path(), path)
 
 
 if __name__ == "__main__":

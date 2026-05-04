@@ -2142,6 +2142,25 @@ fn inspectSingleRoomTransition(
         background_entry_index,
         zone,
     );
+    if (canonical_runtime_contract == null) {
+        return inspectUnpromotedDecodedRoomTransition(
+            allocator,
+            resolved,
+            &room,
+            scene_entry_index,
+            background_entry_index,
+            zone,
+            semantics,
+            destination_world_position,
+            resolved_destination_entries,
+            canonical_result_source,
+            runtime_probe_position,
+            runtime_no_key_effect,
+            runtime_with_key_effect,
+            runtime_unlocked_effect,
+        );
+    }
+
     try current_session.setPendingRoomTransition(.{
         .source_zone_index = zone.index,
         .destination_cube = semantics.destination_cube,
@@ -2303,6 +2322,294 @@ fn decodedTransitionCanonicalRuntimeContract(
         return "secret_room_key_gate_to_cellar";
     }
     return null;
+}
+
+fn inspectUnpromotedDecodedRoomTransition(
+    allocator: std.mem.Allocator,
+    resolved: paths_mod.ResolvedPaths,
+    source_room: *const room_state.RoomSnapshot,
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    zone: room_state.ZoneBoundsSnapshot,
+    semantics: scene_data.ChangeCubeSemantics,
+    destination_world_position: locomotion.WorldPointSnapshot,
+    resolved_destination_entries: ?room_state.ResolvedRoomEntries,
+    canonical_result_source: []const u8,
+    runtime_probe_position: ?locomotion.WorldPointSnapshot,
+    runtime_no_key_effect: ?RoomTransitionRuntimeEffectSummary,
+    runtime_with_key_effect: ?RoomTransitionRuntimeEffectSummary,
+    runtime_unlocked_effect: ?RoomTransitionRuntimeEffectSummary,
+) !RoomTransitionProbeSummary {
+    if (decodedTransitionUnsupportedReason(scene_entry_index, background_entry_index, zone, semantics)) |reason| {
+        return decodedTransitionRejectedSummary(
+            source_room,
+            zone,
+            semantics,
+            destination_world_position,
+            canonical_result_source,
+            resolved_destination_entries,
+            reason,
+            null,
+            runtime_probe_position,
+            runtime_no_key_effect,
+            runtime_with_key_effect,
+            runtime_unlocked_effect,
+        );
+    }
+
+    const destination_entries = resolved_destination_entries orelse {
+        return decodedTransitionRejectedSummary(
+            source_room,
+            zone,
+            semantics,
+            destination_world_position,
+            canonical_result_source,
+            null,
+            .unsupported_destination_cube,
+            null,
+            runtime_probe_position,
+            runtime_no_key_effect,
+            runtime_with_key_effect,
+            runtime_unlocked_effect,
+        );
+    };
+
+    var destination_room = try room_state.loadRoomSnapshot(
+        allocator,
+        resolved,
+        destination_entries.scene_entry_index,
+        destination_entries.background_entry_index,
+    );
+    defer destination_room.deinit(allocator);
+
+    const landing = try decodedTransitionDiagnosticLanding(&destination_room, semantics, destination_world_position);
+    return switch (landing) {
+        .resolved => |hero_position| decodedTransitionResolvedSummary(
+            zone,
+            semantics,
+            destination_world_position,
+            canonical_result_source,
+            destination_entries,
+            hero_position,
+            runtime_probe_position,
+            runtime_no_key_effect,
+            runtime_with_key_effect,
+            runtime_unlocked_effect,
+        ),
+        .rejected => |rejection| decodedTransitionRejectedSummary(
+            source_room,
+            zone,
+            semantics,
+            destination_world_position,
+            canonical_result_source,
+            destination_entries,
+            rejection.reason,
+            rejection.diagnostics,
+            runtime_probe_position,
+            runtime_no_key_effect,
+            runtime_with_key_effect,
+            runtime_unlocked_effect,
+        ),
+    };
+}
+
+const DecodedTransitionRejection = struct {
+    reason: runtime_transition.TransitionRejectionReason,
+    diagnostics: ?runtime_transition.PostLoadAdjustmentFailure,
+};
+
+const DecodedTransitionDiagnosticLanding = union(enum) {
+    resolved: locomotion.WorldPointSnapshot,
+    rejected: DecodedTransitionRejection,
+};
+
+fn decodedTransitionDiagnosticLanding(
+    destination_room: *const room_state.RoomSnapshot,
+    semantics: scene_data.ChangeCubeSemantics,
+    destination_world_position: locomotion.WorldPointSnapshot,
+) !DecodedTransitionDiagnosticLanding {
+    const query = runtime_query.init(destination_room);
+    const evaluation = query.evaluateHeroMoveTarget(destination_world_position);
+
+    if (semantics.dont_readjust_twinsen) {
+        if (evaluation.isAllowed()) return .{ .resolved = destination_world_position };
+        return .{
+            .rejected = .{
+                .reason = if (evaluation.status == .target_height_mismatch)
+                    .unsupported_destination_height_mismatch
+                else
+                    .unsupported_destination_world_position,
+                .diagnostics = try decodedTransitionPostLoadDiagnostics(query, destination_world_position, evaluation, null),
+            },
+        };
+    }
+
+    if (evaluation.isAllowed()) return .{ .resolved = destination_world_position };
+    if (evaluation.status != .target_height_mismatch) {
+        return .{
+            .rejected = .{
+                .reason = .unsupported_destination_post_load_adjustment,
+                .diagnostics = try decodedTransitionPostLoadDiagnostics(query, destination_world_position, evaluation, null),
+            },
+        };
+    }
+
+    const shadow_adjusted_landing = query.classicShadowAdjustedLanding(destination_world_position) catch |err| switch (err) {
+        error.WorldPointOutOfBounds,
+        error.WorldCellEmpty,
+        error.WorldCellNotStandable,
+        => {
+            return .{
+                .rejected = .{
+                    .reason = .unsupported_destination_post_load_adjustment,
+                    .diagnostics = try decodedTransitionPostLoadDiagnostics(
+                        query,
+                        destination_world_position,
+                        evaluation,
+                        decodedTransitionShadowAdjustmentFailure(err).?,
+                    ),
+                },
+            };
+        },
+        else => return err,
+    };
+    return .{ .resolved = shadow_adjusted_landing };
+}
+
+fn decodedTransitionPostLoadDiagnostics(
+    query: runtime_query.WorldQuery,
+    world_position: locomotion.WorldPointSnapshot,
+    evaluation: runtime_query.MoveTargetEvaluation,
+    shadow_adjustment_failure: ?runtime_transition.ShadowAdjustmentFailure,
+) !runtime_transition.PostLoadAdjustmentFailure {
+    return .{
+        .provisional_world_position = world_position,
+        .move_target_status = evaluation.status,
+        .raw_cell = evaluation.raw_cell,
+        .occupied_coverage = evaluation.occupied_coverage,
+        .nearest_occupied = try query.nearestOccupiedCandidateAtWorldPoint(world_position),
+        .nearest_standable = try query.nearestStandableCandidateAtWorldPoint(world_position),
+        .shadow_adjustment_failure = shadow_adjustment_failure,
+    };
+}
+
+fn decodedTransitionShadowAdjustmentFailure(err: anyerror) ?runtime_transition.ShadowAdjustmentFailure {
+    return switch (err) {
+        error.WorldPointOutOfBounds => .world_point_out_of_bounds,
+        error.WorldCellEmpty => .world_cell_empty,
+        error.WorldCellNotStandable => .world_cell_not_standable,
+        else => null,
+    };
+}
+
+fn decodedTransitionUnsupportedReason(
+    scene_entry_index: usize,
+    background_entry_index: usize,
+    zone: room_state.ZoneBoundsSnapshot,
+    semantics: scene_data.ChangeCubeSemantics,
+) ?runtime_transition.TransitionRejectionReason {
+    if (semantics.yaw != 0) return .unsupported_yaw;
+    if (semantics.test_brick) return .unsupported_test_brick;
+
+    if (scene_entry_index == 2 and
+        background_entry_index == 2 and
+        zone.index == 0 and
+        semantics.destination_cube == 0)
+    {
+        return .unsupported_exterior_destination_cube;
+    }
+
+    return null;
+}
+
+fn decodedTransitionResolvedSummary(
+    zone: room_state.ZoneBoundsSnapshot,
+    semantics: scene_data.ChangeCubeSemantics,
+    destination_world_position: locomotion.WorldPointSnapshot,
+    canonical_result_source: []const u8,
+    destination_entries: room_state.ResolvedRoomEntries,
+    hero_position: locomotion.WorldPointSnapshot,
+    runtime_probe_position: ?locomotion.WorldPointSnapshot,
+    runtime_no_key_effect: ?RoomTransitionRuntimeEffectSummary,
+    runtime_with_key_effect: ?RoomTransitionRuntimeEffectSummary,
+    runtime_unlocked_effect: ?RoomTransitionRuntimeEffectSummary,
+) RoomTransitionProbeSummary {
+    return .{
+        .source_kind = "decoded_change_cube",
+        .canonical_result_source = canonical_result_source,
+        .canonical_runtime_contract = null,
+        .source_zone_index = zone.index,
+        .source_zone_num = zone.num,
+        .destination_cube = semantics.destination_cube,
+        .destination_world_position_kind = "provisional_zone_relative",
+        .destination_world_position = roomTransitionWorldPositionSummary(destination_world_position),
+        .yaw = semantics.yaw,
+        .test_brick = semantics.test_brick,
+        .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
+        .result = "decoded_resolved",
+        .rejection_reason = null,
+        .destination_scene_entry_index = destination_entries.scene_entry_index,
+        .destination_background_entry_index = destination_entries.background_entry_index,
+        .provisional_world_position = roomTransitionWorldPositionSummary(destination_world_position),
+        .runtime_new_position = null,
+        .hero_position = roomTransitionWorldPositionSummary(hero_position),
+        .post_load_diagnostics = null,
+        .runtime_probe_position = if (runtime_probe_position) |probe_position| roomTransitionWorldPositionSummary(probe_position) else null,
+        .runtime_no_key_effect = runtime_no_key_effect,
+        .runtime_with_key_effect = runtime_with_key_effect,
+        .runtime_unlocked_effect = runtime_unlocked_effect,
+    };
+}
+
+fn decodedTransitionRejectedSummary(
+    source_room: *const room_state.RoomSnapshot,
+    zone: room_state.ZoneBoundsSnapshot,
+    semantics: scene_data.ChangeCubeSemantics,
+    destination_world_position: locomotion.WorldPointSnapshot,
+    canonical_result_source: []const u8,
+    resolved_destination_entries: ?room_state.ResolvedRoomEntries,
+    reason: runtime_transition.TransitionRejectionReason,
+    post_load_adjustment_failure: ?runtime_transition.PostLoadAdjustmentFailure,
+    runtime_probe_position: ?locomotion.WorldPointSnapshot,
+    runtime_no_key_effect: ?RoomTransitionRuntimeEffectSummary,
+    runtime_with_key_effect: ?RoomTransitionRuntimeEffectSummary,
+    runtime_unlocked_effect: ?RoomTransitionRuntimeEffectSummary,
+) RoomTransitionProbeSummary {
+    return .{
+        .source_kind = "decoded_change_cube",
+        .canonical_result_source = canonical_result_source,
+        .canonical_runtime_contract = null,
+        .source_zone_index = zone.index,
+        .source_zone_num = zone.num,
+        .destination_cube = semantics.destination_cube,
+        .destination_world_position_kind = "provisional_zone_relative",
+        .destination_world_position = roomTransitionWorldPositionSummary(destination_world_position),
+        .yaw = semantics.yaw,
+        .test_brick = semantics.test_brick,
+        .dont_readjust_twinsen = semantics.dont_readjust_twinsen,
+        .result = "rejected",
+        .rejection_reason = @tagName(reason),
+        .destination_scene_entry_index = if (reason == .unsupported_exterior_destination_cube)
+            null
+        else if (resolved_destination_entries) |entries|
+            entries.scene_entry_index
+        else
+            null,
+        .destination_background_entry_index = if (reason == .unsupported_exterior_destination_cube)
+            null
+        else if (resolved_destination_entries) |entries|
+            entries.background_entry_index
+        else
+            null,
+        .provisional_world_position = null,
+        .runtime_new_position = null,
+        .hero_position = roomTransitionWorldPositionSummary(heroStartWorldPoint(source_room)),
+        .post_load_diagnostics = if (post_load_adjustment_failure) |failure| roomTransitionPostLoadDiagnosticsSummary(failure) else null,
+        .runtime_probe_position = if (runtime_probe_position) |probe_position| roomTransitionWorldPositionSummary(probe_position) else null,
+        .runtime_no_key_effect = runtime_no_key_effect,
+        .runtime_with_key_effect = runtime_with_key_effect,
+        .runtime_unlocked_effect = runtime_unlocked_effect,
+    };
 }
 
 fn inspectRoomTransitionRuntimeEffect(
@@ -4699,7 +5006,7 @@ test "inspect-room-transitions payload keeps guarded 3/3 decoded candidates non-
         if (transition.source_zone_index != 1) continue;
         found_zone_1 = true;
         try std.testing.expectEqual(@as(i16, 19), transition.destination_cube);
-        try std.testing.expectEqualStrings("committed", transition.result);
+        try std.testing.expectEqualStrings("decoded_resolved", transition.result);
         try std.testing.expect(transition.canonical_runtime_contract == null);
         try std.testing.expect(transition.rejection_reason == null);
         try std.testing.expectEqual(@as(?usize, 21), transition.destination_scene_entry_index);
@@ -4708,6 +5015,30 @@ test "inspect-room-transitions payload keeps guarded 3/3 decoded candidates non-
         try std.testing.expectEqual(transition.destination_world_position, transition.hero_position);
     }
     try std.testing.expect(found_zone_1);
+}
+
+test "inspect-room-transitions payload keeps guarded 3/3 zone 8 decoded candidate non-committed" {
+    const allocator = std.testing.allocator;
+    const resolved = try paths_mod.resolveFromRepoRoot(allocator, "..", null);
+    defer resolved.deinit(allocator);
+
+    const payload = try buildRoomTransitionInspectionPayload(allocator, resolved, 3, 3);
+    defer allocator.free(payload.transitions);
+
+    var found_zone_8 = false;
+    for (payload.transitions) |transition| {
+        if (transition.source_zone_index != 8) continue;
+        found_zone_8 = true;
+        try std.testing.expectEqual(@as(i16, 20), transition.destination_cube);
+        try std.testing.expectEqualStrings("decoded_resolved", transition.result);
+        try std.testing.expect(transition.canonical_runtime_contract == null);
+        try std.testing.expect(transition.rejection_reason == null);
+        try std.testing.expectEqual(@as(?usize, 22), transition.destination_scene_entry_index);
+        try std.testing.expectEqual(@as(?usize, 20), transition.destination_background_entry_index);
+        try std.testing.expect(transition.post_load_diagnostics == null);
+        try std.testing.expectEqual(transition.destination_world_position, transition.hero_position);
+    }
+    try std.testing.expect(found_zone_8);
 }
 
 test "inspect-room-transitions payload keeps guarded 2/2 public exterior rejection unmapped" {

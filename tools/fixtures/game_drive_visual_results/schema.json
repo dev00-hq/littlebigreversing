@@ -9,6 +9,7 @@
     "confidence",
     "summary",
     "observed",
+    "negative_control_observations",
     "mismatches"
   ],
   "properties": {
@@ -67,6 +68,31 @@
       "type": "array",
       "items": {
         "type": "string"
+      }
+    },
+    "negative_control_observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "matches",
+          "summary"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "matches": {
+            "type": "boolean"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       }
     }
   }

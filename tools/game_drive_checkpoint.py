@@ -288,6 +288,7 @@ def build_visual_prompt(checkpoint: dict[str, Any], screenshot_path: str) -> dic
                 "target_description": visual.get("target_description"),
                 "expected": visual["expected"],
                 "summary_must_mention": visual["summary_must_mention"],
+                "negative_controls": visual["negative_controls"],
                 "response_schema": VISUAL_RESULT_SCHEMA,
             },
             indent=2,
@@ -313,6 +314,7 @@ def build_visual_prompt(checkpoint: dict[str, Any], screenshot_path: str) -> dic
         "required_response_schema": VISUAL_RESULT_SCHEMA,
         "expected": visual["expected"],
         "summary_must_mention": visual["summary_must_mention"],
+        "negative_controls": visual["negative_controls"],
         "response_shape": {
             "schema": VISUAL_RESULT_SCHEMA,
             "checkpoint_id": validated["id"],
@@ -325,6 +327,13 @@ def build_visual_prompt(checkpoint: dict[str, Any], screenshot_path: str) -> dic
                 "ui_state": "gameplay|dialog|menu|unknown",
                 "unsafe_pose_signs": "boolean",
             },
+            "negative_control_observations": [
+                {
+                    "id": "negative control id from the prompt",
+                    "matches": "boolean",
+                    "summary": "non-empty visual justification",
+                }
+            ],
             "mismatches": ["strings"],
         },
     }
@@ -369,6 +378,30 @@ def validate_visual_result(checkpoint_path: Path, result_path: Path) -> dict[str
         raise GameDriveCheckpointError("visual result matches disagrees with observed fields")
     if matches and result_mismatches:
         raise GameDriveCheckpointError("visual result cannot match while listing mismatches")
+    expected_negative_matches = {
+        require_string(control, "id"): require_bool(control, "expected_matches")
+        for control in checkpoint["visual_expect"]["negative_controls"]
+    }
+    negative_observations = result.get("negative_control_observations")
+    if not isinstance(negative_observations, list):
+        raise GameDriveCheckpointError("visual result negative_control_observations must be a list")
+    observed_negative_ids: list[str] = []
+    for index, observation in enumerate(negative_observations):
+        if not isinstance(observation, dict):
+            raise GameDriveCheckpointError("visual result negative-control observations must be objects")
+        control_id = require_string(observation, "id")
+        observed_matches = observation.get("matches")
+        if not isinstance(observed_matches, bool):
+            raise GameDriveCheckpointError(f"visual result negative-control {index} matches must be boolean")
+        require_string(observation, "summary")
+        if control_id in expected_negative_matches and observed_matches != expected_negative_matches[control_id]:
+            raise GameDriveCheckpointError(
+                f"visual result negative-control {control_id} matches "
+                "does not match checkpoint expected_matches"
+            )
+        observed_negative_ids.append(control_id)
+    if sorted(observed_negative_ids) != sorted(expected_negative_matches):
+        raise GameDriveCheckpointError("visual result negative-control ids do not match checkpoint")
     return {
         "checkpoint_id": checkpoint["id"],
         "matches": matches,

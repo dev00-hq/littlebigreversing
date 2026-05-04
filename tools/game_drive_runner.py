@@ -536,6 +536,7 @@ def build_visual_prompt(checkpoint: dict[str, Any]) -> str:
                 "target_description": visual.get("target_description"),
                 "expected": visual["expected"],
                 "summary_must_mention": visual["summary_must_mention"],
+                "negative_controls": visual["negative_controls"],
                 "response_schema": "game-drive-visual-classification-v1",
             },
             indent=2,

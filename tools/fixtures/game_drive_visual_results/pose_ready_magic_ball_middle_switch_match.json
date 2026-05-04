@@ -10,5 +10,17 @@
     "ui_state": "gameplay",
     "unsafe_pose_signs": false
   },
+  "negative_control_observations": [
+    {
+      "id": "wrong_beta_target_not_visible",
+      "matches": false,
+      "summary": "The screenshot is not the wrong-beta negative control because the middle switch target remains visible."
+    },
+    {
+      "id": "wrong_save_or_autosave_room",
+      "matches": false,
+      "summary": "The screenshot is not a wrong-save or autosave-room control because it shows the Emerald Moon switch room."
+    }
+  ],
   "mismatches": []
 }
