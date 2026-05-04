@@ -75,3 +75,5 @@ So the same topic can appear in both in ISSUES.md and lessons.md temporarily, bu
 - Use rg/rg --files for searches; fall back only if unavailable.
 - Use the `apply_patch` to edit files, fallback to sed.
 - Use jq for json processing
+
+Note: Use the $critical-sparring skill as your main driver to keep uncertainty low and not overtrust, for planning and implementations use $make-change-easy

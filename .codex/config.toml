@@ -1,2 +1,5 @@
 [agents]
 max_threads = 10
+
+[features]
+goals = true

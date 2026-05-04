@@ -41,3 +41,10 @@ EXPORTS
     timeKillEvent=proxy_timeKillEvent
     timeSetEvent=proxy_timeSetEvent
     waveOutGetNumDevs=proxy_waveOutGetNumDevs
+    mmioAscend=proxy_mmioAscend
+    mmioClose=proxy_mmioClose
+    mmioCreateChunk=proxy_mmioCreateChunk
+    mmioDescend=proxy_mmioDescend
+    mmioOpenA=proxy_mmioOpenA
+    mmioRead=proxy_mmioRead
+    mmioWrite=proxy_mmioWrite

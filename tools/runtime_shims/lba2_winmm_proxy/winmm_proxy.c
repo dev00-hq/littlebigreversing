@@ -593,6 +593,48 @@ MMRESULT WINAPI proxy_timeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK c
     Fn fn = (Fn)real_proc("timeSetEvent");
     return fn ? fn(delay, resolution, callback, user, event) : 0;
 }
+
+MMRESULT WINAPI proxy_mmioAscend(HMMIO mmio, LPMMCKINFO ck, UINT flags) {
+    typedef MMRESULT(WINAPI *Fn)(HMMIO, LPMMCKINFO, UINT);
+    Fn fn = (Fn)real_proc("mmioAscend");
+    return fn ? fn(mmio, ck, flags) : MMSYSERR_ERROR;
+}
+
+MMRESULT WINAPI proxy_mmioClose(HMMIO mmio, UINT flags) {
+    typedef MMRESULT(WINAPI *Fn)(HMMIO, UINT);
+    Fn fn = (Fn)real_proc("mmioClose");
+    return fn ? fn(mmio, flags) : MMSYSERR_ERROR;
+}
+
+MMRESULT WINAPI proxy_mmioCreateChunk(HMMIO mmio, LPMMCKINFO ck, UINT flags) {
+    typedef MMRESULT(WINAPI *Fn)(HMMIO, LPMMCKINFO, UINT);
+    Fn fn = (Fn)real_proc("mmioCreateChunk");
+    return fn ? fn(mmio, ck, flags) : MMSYSERR_ERROR;
+}
+
+MMRESULT WINAPI proxy_mmioDescend(HMMIO mmio, LPMMCKINFO ck, const MMCKINFO *parent, UINT flags) {
+    typedef MMRESULT(WINAPI *Fn)(HMMIO, LPMMCKINFO, const MMCKINFO *, UINT);
+    Fn fn = (Fn)real_proc("mmioDescend");
+    return fn ? fn(mmio, ck, parent, flags) : MMSYSERR_ERROR;
+}
+
+HMMIO WINAPI proxy_mmioOpenA(LPSTR name, LPMMIOINFO info, DWORD flags) {
+    typedef HMMIO(WINAPI *Fn)(LPSTR, LPMMIOINFO, DWORD);
+    Fn fn = (Fn)real_proc("mmioOpenA");
+    return fn ? fn(name, info, flags) : NULL;
+}
+
+LONG WINAPI proxy_mmioRead(HMMIO mmio, HPSTR buffer, LONG count) {
+    typedef LONG(WINAPI *Fn)(HMMIO, HPSTR, LONG);
+    Fn fn = (Fn)real_proc("mmioRead");
+    return fn ? fn(mmio, buffer, count) : -1;
+}
+
+LONG WINAPI proxy_mmioWrite(HMMIO mmio, const char *buffer, LONG count) {
+    typedef LONG(WINAPI *Fn)(HMMIO, const char *, LONG);
+    Fn fn = (Fn)real_proc("mmioWrite");
+    return fn ? fn(mmio, buffer, count) : -1;
+}
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved) {
     (void)instance;
     (void)reserved;
